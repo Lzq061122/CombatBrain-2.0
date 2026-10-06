@@ -3,6 +3,7 @@ _audit/
 
 # === Agent / Harness 工作记忆（具体会话过程，非项目权威历史） ===
 .workbuddy/
+.agent-teams/
 
 # === 编译输出 ===
 bin/
