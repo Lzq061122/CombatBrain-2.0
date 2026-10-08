@@ -11,9 +11,9 @@
       "path": "AGENTS.md",
       "status": "ACTIVE",
       "created_at": "2026-10-02",
-      "updated_at": "2026-10-02",
+      "updated_at": "2026-10-08",
       "owner": "project-maintainer",
-      "content_sha256": "54f102ded48d9ba75aa9296a4589fba073deaabb2f8205d4765481df6997d19d",
+      "content_sha256": "898eed39c0b9cdf0161de55b869ffe44896dbf9614b370dc417a1dee72c51a7a",
       "auto_archive": false,
       "notes": "项目根 AGENTS.md 内直接包含完整 PAIPOS Lite v0.1；本登记表仅管本工作区。"
     }
