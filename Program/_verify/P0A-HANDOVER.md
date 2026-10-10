@@ -287,7 +287,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 | `CBATH\cbath-runtime-identity-20316.txt` | 708 | `AB461BBD535811AC2628483F91A699EE5A3AF8D5595EDB87B4F9661A8D5FA106` |
 | `CBATH\cbath-screen-20316.txt` | 154 | `73F634D553579E67D54A9C98B4C0ED623817C788F6B055FD6BE2DBAAD3DF66E3` |
 
-**场次 2：`Program\_verify\sessions\20261010-225539\`（run 5，主线程转交整改后 · **当前决定性**，13 files / 132353 B）**
+**场次 2：`Program\_verify\sessions\20261010-225539\`（run 5，主线程转交整改后 · **当前决定性**，13 files / 136897 B）**
 
 | 文件 | bytes | SHA256 |
 |---|---|---|
@@ -325,7 +325,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 | `CBATH\cbath-runtime-identity-52288.txt` | 708 | `DFE080927809C613C663E5DE4CD3760071AE3ABD2E2914C45DA8932A3AF29463` |
 | `CBATH\cbath-screen-52288.txt` | 154 | `764ACF4AC9CABF2748AB977B46EF177342A74328B6DC3FC2EE890555D15CB8C5` |
 
-**场次索引（`Program\_verify\sessions\`，13 场；11 场摘要见下，另含 run 5 `20261010-225539` 与失败场 `20261010-225030`）**
+**场次索引（`Program\_verify\sessions\`，共 13 场 / 594 files / 12834616 B）**
 
 完整索引（含每场 files/bytes/日志行数/RESULT/有效性）见 `sessions\INDEX.md`（仓库内唯一提交的场次索引）。
 
@@ -342,8 +342,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 | `20261010-212554` | 0 / 0 | 否（run 2） | `games_start` 返回 `exited_during_start`，exitCode 3221225477 |
 | `20261010-213002` | 0 / 0 | 否（run 3） | `games_start` 返回 `exited_during_start`，exitCode -1 |
 | **`20261010-213621`** | **13 / 124667** | **是（run 4，C 路线整改后）** | 主线程转交整改前的中间态；保留加载/观测/获选/落地事实 |
-| `20261010-225030` | 4 / 小 | 否（run 5 首跑） | 启动期退出，`rgl_log_34796.txt` 末行 `Error: Non-Zero Device Reference Count! (ERC302)`，`CombatBrain2.log` 从未创建（模块未进入加载期）；**重跑即通过，未定位到代码因素** |
-| **`20261010-225539`** | **13 / 132353** | **是（run 5，主线程转交整改后 · 当前决定性）** | 主线程转交 + 原方法回执整改后唯一成功场次 |
+| `20261010-225030` | 0 / 0 | 否（run 5 首跑） | 启动期退出，`rgl_log_34796.txt` 末行 `Error: Non-Zero Device Reference Count! (ERC302)`，`CombatBrain2.log` 从未创建（模块未进入加载期）；**重跑即通过，未定位到代码因素** |
+| **`20261010-225539`** | **13 / 136897** | **是（run 5，主线程转交整改后 · 当前决定性）** | 主线程转交 + 原方法回执整改后唯一成功场次 |
 
 前五场与 run 1–3、run 5 首跑是过程失败场，**不构成验收依据**，但保留原始结果未删。
 
