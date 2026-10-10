@@ -23,6 +23,9 @@ Codex 2026-10-11 独立验收：第一批最小命令通路在已限定范围内
 `ThreadHandoff` 槽位同步阻挡已关闭；本批停止整改与补场，未验证边界继续保留。
 当前结论见 `_verify/P0A-CODEX-ACCEPTANCE.md`；旧复验报告保留为历史。
 
+P0 阶段退出核对已完成：Exit Gate 1/2/4 在当前已交付范围内满足，Gate 3 的适用控制资格变化实机证据仍缺；
+P0 尚未整体通过。最小剩余工作见 `_verify/P0-STAGE-EXIT-CHECK.md`，先完成该边沿再决定正式进入 P1。
+
 - 规模：`src/` 16 个 .cs（Core 8 + Host 8），`tests/` 7 个测试文件 **60 个**测试全绿
   （43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5 + 槽位并发 2）。
 - 模块身份：`Id CombatBrain2`、程序集 `CombatBrain2.dll`、
