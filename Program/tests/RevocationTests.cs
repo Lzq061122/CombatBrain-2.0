@@ -113,12 +113,13 @@ namespace CombatBrain2.Tests
         {
             var gate = new ExecutionGate();
             gate.SubmitCandidate("i1", "1/0", 100.0);
+            gate.BindObject("i1", "aaa@Infantry");
             gate.MarkSelected("i1", "1/0", 101.0);
-            gate.RequestWrite("i1", "1/0", 101.1, true, true, false);
+            gate.RequestWrite("i1", "1/0", 101.1, true, true, false, "aaa@Infantry", true, true);
             var before = gate.WriteAttempts;
             gate.Close("i1", CancelReason.ExplicitClose, 105.0);
             for (int n = 0; n < 30; n++)
-                gate.RequestWrite("i1", "1/0", 105.1 + n * 0.1, true, true, false);
+                gate.RequestWrite("i1", "1/0", 105.1 + n * 0.1, true, true, false, "aaa@Infantry", true, true);
             Assert.Equal(before, gate.WriteAttempts);
         }
     }

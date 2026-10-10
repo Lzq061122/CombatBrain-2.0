@@ -178,9 +178,11 @@ namespace CombatBrain2.Host
             }
         }
 
-        // 订阅原生自带的 OnBeforeMovementOrderApplied：
-        // 这是"原生即将对某编队应用移动命令"的真实信号，
-        // 也是本批判定"真实获选"的唯一依据。
+        // Route C 的两个原生信号：
+        //  1) FormationAI.OnActiveBehaviorChanged —— 原生把某个行为选为 ActiveBehavior，
+        //     这是"本方获选"的唯一判据，判定靠行为引用归属；
+        //  2) Formation.OnBeforeMovementOrderApplied —— 原生把命令应用到编队，仅作观测。
+        // 两者都只订阅原生自带事件，不 patch、不改原生行为。
         private void HookFormations(Mission mission)
         {
             int hooked = 0;
@@ -192,6 +194,7 @@ namespace CombatBrain2.Host
                     foreach (var f in team.FormationsIncludingEmpty)
                     {
                         if (f == null) continue;
+                        f.AI.OnActiveBehaviorChanged += OnActiveBehaviorChanged;
                         f.OnBeforeMovementOrderApplied += OnNativeMovementOrder;
                         hooked++;
                     }
@@ -204,15 +207,22 @@ namespace CombatBrain2.Host
             Cb2Log.Line("HOOK_FORMATIONS", "count=" + hooked);
         }
 
+        private void OnActiveBehaviorChanged(Formation f)
+        {
+            var mission = Mission.Current;
+            if (mission == null || f == null) return;
+            TestDriver.Instance.OnActiveBehaviorChanged(mission, f, CurrentThreadId());
+        }
+
         private void OnNativeMovementOrder(Formation f, MovementOrder.MovementOrderEnum orderEnum)
         {
-            // 本方自己的 setter 调用不算原生获选。
+            // 本方自己的 setter 调用不算原生应用。
             if (TestDriver.InOurWrite) return;
 
             var mission = Mission.Current;
             if (mission == null) return;
 
-            TestDriver.Instance.OnNativeSelected(mission, f, orderEnum, CurrentThreadId());
+            TestDriver.Instance.OnNativeMovementOrderApplied(mission, f, orderEnum, CurrentThreadId());
         }
 
         // 回调线程核对：OnBeforeMovementOrderApplied 在调用 SetMovementOrder 的线程上同步触发。

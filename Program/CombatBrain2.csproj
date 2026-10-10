@@ -21,6 +21,7 @@
     <Compile Include="src\Core\WriteLedger.cs" />
     <Compile Include="src\Host\RuntimeIdentity.cs" />
     <Compile Include="src\Host\BuildIdentity.g.cs" />
+    <Compile Include="src\Host\CbHoldBehavior.cs" />
     <Compile Include="src\Host\FormationSampler.cs" />
     <Compile Include="src\Host\IndependentObservation.cs" />
     <Compile Include="src\Host\TestDriver.cs" />

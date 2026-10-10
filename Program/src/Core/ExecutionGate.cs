@@ -53,10 +53,12 @@ namespace CombatBrain2.Core
             GetOrCreate(intentId).ObjectIdentity = objectIdentity;
         }
 
-        // 实时条件由调用方传入（Mission 有效、目标有效、AI 受控、玩家是否拥有）。
+        // 实时条件由调用方传入。执行前三项复核（对象身份、AI 受控、行为归属）
+        // 独立于快照，全部在写入前即时求值，不允许用获选时的旧值顶替。
         internal WriteDecision RequestWrite(
             string intentId, string key, double missionTime,
-            bool missionValid, bool targetValid, bool playerOwned)
+            bool missionValid, bool targetValid, bool playerOwned,
+            string currentObjectIdentity, bool aiControlled, bool behaviorIsOurs)
         {
             var d = new WriteDecision();
             IntentState s;
@@ -83,6 +85,21 @@ namespace CombatBrain2.Core
             if (s.Key != key)
             {
                 d.BlockReason = "different_object";
+                return d;
+            }
+            if (s.ObjectIdentity.Length > 0 && s.ObjectIdentity != currentObjectIdentity)
+            {
+                d.BlockReason = "object_identity_changed";
+                return d;
+            }
+            if (!aiControlled)
+            {
+                d.BlockReason = "not_ai_controlled";
+                return d;
+            }
+            if (!behaviorIsOurs)
+            {
+                d.BlockReason = "behavior_not_ours";
                 return d;
             }
             if (!missionValid)

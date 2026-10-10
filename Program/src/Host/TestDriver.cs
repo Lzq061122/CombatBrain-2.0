@@ -14,6 +14,8 @@ namespace CombatBrain2.Host
 
         private readonly ExecutionGate _gate = new ExecutionGate();
         private readonly WriteLedger _ledger = new WriteLedger();
+        private readonly Dictionary<string, CbHoldBehavior> _armedBehaviors =
+            new Dictionary<string, CbHoldBehavior>();
         private TestIntent _intent;
         private FormationSnapshot _snapshot;
         private string _missionKey = "";
@@ -37,11 +39,10 @@ namespace CombatBrain2.Host
         internal bool Selected { get { return _intent != null && _intent.SelectedAt >= 0; } }
         internal bool Executed { get { return _intent != null && _intent.ExecutedAt >= 0; } }
 
-        // 原生真实应用了移动命令：这是 Route C 的获选信号来源。
-        // 只有本次测试意图已提交候选、且原生选中的正是候选对象时，
-        // 才转入执行阶段。原生选别的编队不算本方获选。
-        internal void OnNativeSelected(Mission mission, Formation f,
-                                       MovementOrder.MovementOrderEnum orderEnum, int threadId)
+        // Route C 的获选信号：原生 FormationAI 把本方注册的行为选为 ActiveBehavior。
+        // 判定条件是行为归属（引用相等），不是"有命令写到同一编队"。
+        // 原生选中别的编队或别的行为都不算本方获选。
+        internal void OnActiveBehaviorChanged(Mission mission, Formation f, int threadId)
         {
             if (_intent == null || _intent.IsClosed) return;
 
@@ -54,37 +55,112 @@ namespace CombatBrain2.Host
 
             if (!string.Equals(keyNow, pending, StringComparison.Ordinal))
             {
-                // 原生对别的编队写令是常态，只记前若干条，避免淹没日志。
+                // 别的编队切行为是常态，只记前若干条，避免淹没日志。
                 _otherSelectionCount++;
                 if (_otherSelectionCount <= 20)
                 {
-                    Cb2Log.Line("NATIVE_SELECTION_OTHER",
+                    Cb2Log.Line("ACTIVE_BEHAVIOR_CHANGED_OTHER",
                         "intent=" + _intent.IntentId +
                         " pending=" + pending +
                         " native=" + keyNow +
-                        " order_enum=" + orderEnum +
                         " tid=" + threadId +
                         " seq=" + _otherSelectionCount);
                 }
                 else if (_otherSelectionCount == 21)
                 {
-                    Cb2Log.Line("NATIVE_SELECTION_OTHER_SUPPRESSED", "further_entries_not_logged");
+                    Cb2Log.Line("ACTIVE_BEHAVIOR_CHANGED_OTHER_SUPPRESSED", "further_entries_not_logged");
                 }
                 return;
             }
 
+            bool ours = IsOurActiveBehavior(keyNow, f);
+            Cb2Log.Line("ACTIVE_BEHAVIOR_CHANGED",
+                "intent=" + _intent.IntentId +
+                " key=" + keyNow +
+                " active_behavior=" + FormationSampler.ActiveBehaviorNameOf(f) +
+                " ours=" + (ours ? 1 : 0) +
+                " tid=" + threadId);
+
+            if (!ours) return;
+
+            if (_intent.SelectedAt < 0)
+                MarkRealSelection(mission, f);
+        }
+
+        // 原生把命令应用到编队：只做观测与归属记录，不在这里写令。
+        // 写令由下一个 Mission tick 的执行门路径完成。
+        internal void OnNativeMovementOrderApplied(Mission mission, Formation f,
+                                                   MovementOrder.MovementOrderEnum orderEnum, int threadId)
+        {
+            if (_intent == null || _intent.IsClosed) return;
+
+            var pending = _gate.PendingKey(_intent.IntentId);
+            if (pending.Length == 0) return;
+
+            int teamIndex = -1;
+            try { if (f.Team != null) teamIndex = f.Team.TeamIndex; } catch (Exception) { }
+            var keyNow = KeyOf(teamIndex, f);
+            if (!string.Equals(keyNow, pending, StringComparison.Ordinal)) return;
+
+            bool ours = IsOurActiveBehavior(keyNow, f);
             Cb2Log.Line("NATIVE_MOVEMENT_APPLIED",
                 "intent=" + _intent.IntentId +
                 " formation=" + FormationSampler.FormationClassOf(f) +
                 " order_enum=" + orderEnum +
                 " tid=" + threadId +
                 " our_write=0" +
-                " source=not_ours");
+                " source=" + (ours ? "native_apply_of_our_behavior" : "not_ours"));
+        }
 
-            if (_intent.SelectedAt < 0)
-                MarkRealSelection(mission, f);
-            // 实际写令不在本回调内进行：这是原生 setter 的 pre-apply 时点，
-            // 嵌套写令会被外层原生写入立即覆盖。改由下一个 Mission tick 执行。
+        // 行为归属判定：原生当前行为必须就是本方注册的那个实例。
+        private bool IsOurActiveBehavior(string key, Formation f)
+        {
+            CbHoldBehavior ours;
+            if (!_armedBehaviors.TryGetValue(key, out ours) || ours == null) return false;
+            try { return ReferenceEquals(f.AI.ActiveBehavior, ours); }
+            catch (Exception) { return false; }
+        }
+
+        private bool HasArmedBehavior(string key)
+        {
+            CbHoldBehavior b;
+            return _armedBehaviors.TryGetValue(key, out b) && b != null && b.Armed;
+        }
+
+        private string ActiveBehaviorOfBound(Mission mission, FormationRecord bound)
+        {
+            var f = FormationSampler.FindFormation(
+                mission, bound.TeamIndex,
+                bound.FormationIndex.ToString(CultureInfo.InvariantCulture));
+            if (f == null) return "<formation_not_found>";
+            return FormationSampler.ActiveBehaviorNameOf(f);
+        }
+
+        // 退出时只把本方行为的权重清零并解除武装。
+        // 不用 ResetBehaviorWeights：那会抹掉原生在本方写入期间作出的新权重决策。
+        private void DisarmAllBehaviors(string reason, double now)
+        {
+            foreach (var pair in _armedBehaviors)
+            {
+                var b = pair.Value;
+                if (b == null) continue;
+                string error = "";
+                try
+                {
+                    var f = b.Formation;
+                    b.Disarm();
+                    if (f != null) f.AI.SetBehaviorWeight<CbHoldBehavior>(0f);
+                }
+                catch (Exception e) { error = e.GetType().Name + ": " + e.Message; }
+
+                Cb2Log.Line("BEHAVIOR_DISARMED",
+                    "key=" + pair.Key +
+                    " reason=" + reason +
+                    " weight=0" +
+                    " error=" + (error.Length == 0 ? "<none>" : error) +
+                    " at=" + Cb2Log.F(now));
+            }
+            _armedBehaviors.Clear();
         }
 
         // 标记本方自身的写入，避免把本方的 setter 调用误判为"原生获选"。
@@ -126,6 +202,7 @@ namespace CombatBrain2.Host
             // Mission 结束清掉本方意图与对象状态。
             _gate.ClearMission();
             _ledger.ClearMission();
+            DisarmAllBehaviors("MissionEnded", t);
             _snapshot = null;
             _intent = null;
             Cb2Log.Line("MISSION_CLEANUP", "intent_and_object_state_cleared");
@@ -176,13 +253,18 @@ namespace CombatBrain2.Host
                     return;
                 }
 
-                // 已获选但尚未写令：在获选后的下一个 tick 执行。
+                // 写令不在 Mission tick 里并列进行。Route C 下它由原生
+                // FormationAI 在本方行为被选中后调用 TickOccasionally 应用，
+                // 落在原生主循环内、受原生 IsAIControlled 门控。
                 if (_intent.ExecutedAt < 0 && !_gate.HasWritten(_intent.IntentId))
                 {
-                    var f = FormationSampler.FindFormation(
-                        mission, bound.TeamIndex,
-                        bound.FormationIndex.ToString(CultureInfo.InvariantCulture));
-                    if (f != null) TryExecuteStop(mission, f);
+                    Cb2Log.Line("AWAITING_NATIVE_APPLY",
+                        "intent=" + _intent.IntentId +
+                        " key=" + _intent.BoundKey +
+                        " obj=" + _intent.BoundObjectIdentity +
+                        " armed_behavior=" + (HasArmedBehavior(_intent.BoundKey) ? 1 : 0) +
+                        " active_behavior_now=" + ActiveBehaviorOfBound(mission, bound) +
+                        " at=" + Cb2Log.F(now));
                 }
             }
         }
@@ -314,15 +396,82 @@ namespace CombatBrain2.Host
 
             if (!selection.HasChoice()) return false;
 
+            // Route C：把本方行为注册进该 Formation 的原生行为选择链。
+            // 这里只注册与设定权重，不调用任何 setter、不写 MovementOrder。
+            var f = FormationSampler.FindFormation(
+                mission,
+                selection.Chosen.TeamIndex,
+                selection.Chosen.FormationIndex.ToString(CultureInfo.InvariantCulture));
+            if (f == null)
+            {
+                Cb2Log.Line("CANDIDATE_SUBMIT_FAILED",
+                    "intent=" + _intent.IntentId +
+                    " key=" + selection.Chosen.Key() +
+                    " reason=formation_not_found");
+                return false;
+            }
+
+            var behavior = ArmBehavior(mission, f, selection.Chosen.Key());
+            if (behavior == null) return false;
+
             _gate.SubmitCandidate(_intent.IntentId, selection.Chosen.Key(), now);
             Cb2Log.Line("CANDIDATE_SUBMITTED",
                 "intent=" + _intent.IntentId +
                 " key=" + selection.Chosen.Key() +
                 " obj=" + selection.Chosen.ObjectIdentity +
                 " order_before=" + selection.Chosen.MovementOrder +
+                " behavior_registered=1" +
+                " behavior_weight=" + Cb2Log.F(TestParameters.HoldBehaviorWeight) +
                 " at=" + Cb2Log.F(now) +
                 " write_attempts=" + _gate.WriteAttempts);
             return true;
+        }
+
+        // 注册本方行为并设定权重。AddAiBehavior 不设 WeightFactor，
+        // 必须显式设定非零值，否则原生 FindBestBehavior 会直接跳过。
+        private CbHoldBehavior ArmBehavior(Mission mission, Formation f, string key)
+        {
+            CbHoldBehavior behavior = null;
+            string error = "";
+            try
+            {
+                var ai = f.AI;
+                if (ai == null) throw new InvalidOperationException("formation_ai_is_null");
+
+                behavior = ai.GetBehavior<CbHoldBehavior>();
+                if (behavior == null)
+                {
+                    behavior = new CbHoldBehavior(f);
+                    ai.AddAiBehavior(behavior);
+                }
+                behavior.Arm();
+                ai.SetBehaviorWeight<CbHoldBehavior>((float)TestParameters.HoldBehaviorWeight);
+            }
+            catch (Exception e)
+            {
+                error = e.GetType().Name + ": " + e.Message;
+                behavior = null;
+            }
+
+            if (behavior == null)
+            {
+                Cb2Log.Line("BEHAVIOR_REGISTER_FAILED",
+                    "intent=" + (_intent != null ? _intent.IntentId : "<none>") +
+                    " key=" + key +
+                    " error=" + (error.Length == 0 ? "<none>" : error));
+                return null;
+            }
+
+            _armedBehaviors[key] = behavior;
+
+            Cb2Log.Line("BEHAVIOR_REGISTERED",
+                "intent=" + _intent.IntentId +
+                " key=" + key +
+                " behavior=" + behavior.GetType().Name +
+                " weight=" + Cb2Log.F(TestParameters.HoldBehaviorWeight) +
+                " behavior_count=" + FormationSampler.BehaviorCountOf(f) +
+                " active_behavior=" + FormationSampler.ActiveBehaviorNameOf(f));
+            return behavior;
         }
 
         // 原生真实获选回调后调用。这是唯一允许转入执行的状态转移。
@@ -357,6 +506,18 @@ namespace CombatBrain2.Host
                 " at=" + Cb2Log.F(now));
         }
 
+        // 原生主循环内的执行点：本方行为被原生选中后由 FormationAI 调 TickOccasionally 进入这里。
+        // 这是写令真正发生的地方——在游戏主线程、受原生 IsAIControlled 门控之内，
+        // 不是本方并列抢写。重复 tick 被执行门去重。
+        internal void ExecuteFromBehavior(Formation f)
+        {
+            var mission = Mission.Current;
+            if (mission == null || f == null) return;
+            if (_intent == null || _intent.IsClosed) return;
+            if (_intent.SelectedAt < 0) return;
+            TryExecuteStop(mission, f);
+        }
+
         // 执行站定。仅在真实获选之后调用一次；重复回调被执行门去重。
         internal void TryExecuteStop(Mission mission, Formation f)
         {
@@ -374,8 +535,21 @@ namespace CombatBrain2.Host
             try { playerOwned = f.Team != null && f.Team.IsPlayerTeam; } catch (Exception) { }
             try { if (f.PlayerOwner != null) playerOwned = true; } catch (Exception) { }
 
+            // 执行前三项复核，独立于快照，全部即时求值：
+            //  1) 对象身份仍是获选时绑定的那个；
+            //  2) 目标仍由 AI 控制（Route C 的前提，不申请 Full）；
+            //  3) 原生当前行为仍是本方注册的那个实例。
+            string currentObjectIdentity = "";
+            try { currentObjectIdentity = ObjectIdentityOf(f); } catch (Exception) { }
+
+            bool aiControlled = false;
+            try { aiControlled = f.IsAIControlled; } catch (Exception) { }
+
+            bool behaviorIsOurs = IsOurActiveBehavior(key, f);
+
             var decision = _gate.RequestWrite(
-                _intent.IntentId, key, now, missionValid, targetValid, playerOwned);
+                _intent.IntentId, key, now, missionValid, targetValid, playerOwned,
+                currentObjectIdentity, aiControlled, behaviorIsOurs);
 
             if (!decision.Allowed)
             {
@@ -422,6 +596,7 @@ namespace CombatBrain2.Host
                 " error=" + (error.Length == 0 ? "<none>" : error) +
                 " order_before=" + before +
                 " order_after=" + after +
+                " route=native_behavior_apply" +
                 " at=" + Cb2Log.F(now) +
                 " write_attempts=" + _gate.WriteAttempts);
         }
@@ -460,6 +635,7 @@ namespace CombatBrain2.Host
                 " reason=" + reason +
                 " at=" + Cb2Log.F(now) +
                 " write_attempts=" + _gate.WriteAttempts);
+            DisarmAllBehaviors(reason.ToString(), now);
             RevokeIfNeeded(now);
         }
 

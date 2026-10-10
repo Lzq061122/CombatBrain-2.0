@@ -19,6 +19,11 @@ namespace CombatBrain2.Core
         // 写令成功后固定延迟显式关闭，验证显式关闭路径。
         internal const double ExplicitCloseAfterWriteSeconds = 6.0;
 
+        // 本方行为在原生选择链里的权重。原生常规行为的 GetAiWeight 基准是 1f，
+        // 且当前活跃行为带 1.2~2.0 的惯性加成；这里一次设定到位，
+        // 不在每 tick 反复加压。这是本批测试参数，不是战术参数。
+        internal const double HoldBehaviorWeight = 8.0;
+
         internal const double Now = 0.0;
     }
 

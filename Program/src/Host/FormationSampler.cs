@@ -92,6 +92,29 @@ namespace CombatBrain2.Host
                    RuntimeHelpers.GetHashCode(mission).ToString(CultureInfo.InvariantCulture);
         }
 
+        // 原生当前活跃行为名。本方是否获选必须靠它判定，不能靠"有命令写到同一编队"。
+        internal static string ActiveBehaviorNameOf(Formation f)
+        {
+            if (f == null) return "<no_formation>";
+            return SafeString(() =>
+            {
+                var ai = f.AI;
+                if (ai == null) return "<no_ai>";
+                var b = ai.ActiveBehavior;
+                return b == null ? "<none>" : b.GetType().Name;
+            });
+        }
+
+        internal static int BehaviorCountOf(Formation f)
+        {
+            if (f == null) return -1;
+            return SafeInt(() =>
+            {
+                var ai = f.AI;
+                return ai == null ? -1 : ai.BehaviorCount;
+            });
+        }
+
         internal static string ObjectIdentityOf(Formation f)
         {
             // 以运行期对象引用哈希作为身份的一部分，避免只靠可复用索引。
