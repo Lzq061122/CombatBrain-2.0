@@ -1,5 +1,7 @@
 # CombatBrain 2.0 — P0 第一批交接（最小命令通路）
 
+> **Codex 独立验收（2026-10-10）：第一批整体暂不通过。** 工程加载、已有状态观测和两次外部 Stop 写入事实保留；源码没有把站定 Behavior 注册进原生选择，而是把普通外部写令回调标为 REAL_SELECTION。下文开发自评中的“C 路线／真实获选／命令链通过”不作为通过结论。有限整改及逐项证据见 `P0A-CODEX-REVIEW.md`；本次没有重新构建、测试、部署或启动游戏，456c642 的构建身份更正保持有效。
+
 派单：`E:\MBmod\TacticalCommandLab\_dispatch\2026-10-10-cb20-p0-minimal-command-path.md`
 工作区：`E:\MBmod\CombatBrain 2.0`，开工 HEAD `a9ace1366f9aeb6de1a0f5a2cb039713004bc8fc`
 唯一有效实机场次：`Program\_verify\sessions\20261010-171526\`（pid 20316）
