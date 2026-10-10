@@ -2,11 +2,13 @@
 
 > **Codex 首次独立验收（整改前历史，2026-10-10）：第一批整体暂不通过。** 工程加载、已有状态观测和两次外部 Stop 写入事实保留；当时源码没有把站定 Behavior 注册进原生选择，而是把普通外部写令回调标为 REAL_SELECTION。原报告 `P0A-CODEX-REVIEW.md` 保留。
 
-> **Codex 整改复验（2026-10-10，run 4）：真正获选与实际 Stop 落地成立，第一批整体仍暂不通过。** 当前决定性场次为 `Program\_verify\sessions\20261010-213621\`（pid 52288，build `b20261010-211405-653e521d`）。`CbHoldBehavior` 已进入原生选择链；获选行为回调同步进入本方 setter，已补对象身份／AI 受控／行为归属即时复核，但尚无主线程执行保障与原方法完成/被跳过的证据。有限整改见 `P0A-CODEX-REREVIEW.md` §2。run 6 只保留为整改前的外部写令 PoC 与加载/观测事实。
+> **Codex 整改复验（2026-10-10，run 4）：真正获选与实际 Stop 落地成立，第一批整体仍暂不通过。** 当时决定性场次为 `Program\_verify\sessions\20261010-213621\`（pid 52288，build `b20261010-211405-653e521d`）。`CbHoldBehavior` 已进入原生选择链；获选行为回调同步进入本方 setter，已补对象身份／AI 受控／行为归属即时复核，但尚无主线程执行保障与原方法完成/被跳过的证据。有限整改见 `P0A-CODEX-REREVIEW.md` §2。run 6 只保留为整改前的外部写令 PoC 与加载/观测事实。
+
+> **主线程转交与原方法回执整改已完成（2026-10-10，run 5）：当前决定性场次改为 `Program\_verify\sessions\20261010-225539\`（pid 17452，build `b20261010-224859-60fa713e`）。** 原生行为回调线程（43/47/37/40/45/34/44/46…）与 Mission tick 主线程（33）实测不一致；整改后回调只把本次命令转交进单槽位，由已确认的主线程执行点（`SamplingBehavior.OnMissionTick` → `TestDriver.DrainPendingCommand`）执行，`WRITE_EXECUTED` 现带 `exec_tid=33 is_main_thread=1 original_body_entered=1 original_body_tid=33`。run 4 降级为整改前的中间态证据，仅保留加载/观测/获选/落地事实。
 
 派单：`E:\MBmod\TacticalCommandLab\_dispatch\2026-10-10-cb20-p0-minimal-command-path.md`
 工作区：`E:\MBmod\CombatBrain 2.0`，开工 HEAD `a9ace1366f9aeb6de1a0f5a2cb039713004bc8fc`
-有效实机场次：run 6 `20261010-171526\`（pid 20316，整改前）／**run 4 `20261010-213621\`（pid 52288，整改后，决定性）**
+有效实机场次：run 6 `20261010-171526\`（pid 20316，整改前）／run 4 `20261010-213621\`（pid 52288，C 路线整改后）／**run 5 `20261010-225539\`（pid 17452，主线程转交整改后，当前决定性）**
 
 ## 1. 本批实现范围
 
@@ -14,24 +16,34 @@
 |---|---|---|
 | 独立工程与加载身份 | `Program\CombatBrain2.csproj`、`Program\src\Host\SubModule.cs`、`Program\_deploy\deploy.ps1`、`Program\_deploy\SubModule.xml` | 模块 `CombatBrain2` / `CombatBrain2.dll` / `CombatBrain2.Host.SubModule`，与 1.x `CombatBrain` 完全分离；启动时输出 `RUNTIME_IDENTITY` 到 `Documents\CombatBrain2\CombatBrain2.log` |
 | 最小共享编队状态 | `src\Core\{FormationSnapshot,TargetSelector,TestParameters,ExecutionGate,WriteLedger}.cs`、`src\Host\{FormationSampler,IndependentObservation}.cs` | 双方非空编队的归属/对象身份/人数/兵种/位置/控制资格/当前 MovementOrder + Mission 身份与采样时间；只读，不修改 Agent 行为 |
-| 一支步兵一条 Movement 通路（**C 路线整改后**） | `src\Host\{TestDriver,SamplingBehavior,CbHoldBehavior}.cs` | 新增 `CbHoldBehavior : BehaviorComponent`：通过 `FormationAI.AddAiBehavior` + `SetBehaviorWeight<CbHoldBehavior>(8.0)` 注册进原生选择链；获选后 `CbHoldBehavior.TickOccasionally` 同步调用本方 `TestDriver.TryExecuteStop` 写令，不是引擎自动应用 CurrentOrder。获选判据为 `FormationAI.OnActiveBehaviorChanged` + `ReferenceEquals(f.AI.ActiveBehavior, ours)`。原生行为回调来源已成立；主线程执行与原方法完成证据仍待补。不申请 Full、不关闭 AI、无 Authority/Lease |
+| 一支步兵一条 Movement 通路（**C 路线整改后**） | `src\Host\{TestDriver,SamplingBehavior,CbHoldBehavior}.cs`、`src\Core\{ThreadHandoff,OriginalMethodReceipt}.cs` | 新增 `CbHoldBehavior : BehaviorComponent`：通过 `FormationAI.AddAiBehavior` + `SetBehaviorWeight<CbHoldBehavior>(8.0)` 注册进原生选择链；获选判据为 `FormationAI.OnActiveBehaviorChanged` + `ReferenceEquals(f.AI.ActiveBehavior, ours)`。**获选回调不再同步写令**：`CbHoldBehavior.TickOccasionally` 只上报回调线程，主线程（Mission tick 登记）直接执行，非主线程回调经 `ThreadHandoff` 单槽位转交到 `SamplingBehavior.OnMissionTick` 的主线程执行点再执行。原方法完成回执由 `OriginalMethodReceipt` 在本方 setter 调用前后夹住 `OnBeforeMovementOrderApplied`（`SetMovementOrder` 方法体第一句）观测，与实际后值分列。不申请 Full、不关闭 AI、无 Authority/Lease |
 | 有限退出与安全让位 | `ExecutionGate.Close`、`WriteLedger.PlanRevocation(IfSameObject)`、`TestDriver.{CancelIntent,RevokeIfNeeded,DisarmAllBehaviors,OnMissionEnd}` | 到期/显式关闭/目标失效/玩家资格丢失/Mission 结束五条取消路径；退出改为 `SetBehaviorWeight<CbHoldBehavior>(0f)` 逐个撤权（**不用 `ResetBehaviorWeights()`**，避免抹掉原生期间的新权重）；只撤销本方确实改变且仍由本方负责的状态 |
 | 实机入口 | `Program\_verify\run-p0.ps1`、`Program\_verify\gabs-config\config.json` | 2.0 自己的 GABS game id `bannerlord148-cb2`，加载 `CombatBrain2` + CBATH，**排除旧 CombatBrain、CommandLabProbe**；不动 CBATH 核心与冻结入口 |
-| 测试 | `Program\tests\CombatBrain2.Tests.csproj` + 5 个测试文件 | **47 个测试全绿**（43 + 执行前三项复核新增 4），调用真实 Core 实现（不复制算法自证）。测试工程只链 5 个 Core 源文件，**不编译 Host 层、不引 TaleWorlds** —— Host 正确性由实机证据支撑 |
+| 测试 | `Program\tests\CombatBrain2.Tests.csproj` + 7 个测试文件 | **58 个测试全绿**（43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5），调用真实 Core 实现（不复制算法自证）。测试工程只链 7 个 Core 源文件，**不编译 Host 层、不引 TaleWorlds** —— Host 正确性由实机证据支撑 |
 
 本批**未实现**（按派单）：战场规划、预备队产品规则、玩家接管的产品化流程、自动建组、Facing/Arrangement/其他指令域。
 
 ## 2. 构建身份（本次运行实际加载的产物）
 
-### 2.1 run 4（C 路线整改后，当前决定性产物）
+### 2.0 run 5（主线程转交整改后，当前决定性产物）
 
-- `build_id` = `b20261010-211405-653e521d`（`src\Host\BuildIdentity.g.cs`，部署脚本在 DLL 字节内按 ASCII 与 UTF-16 两种对齐核验印章确实编进产物）
-- `mvid` = `65bbd58f-cf5e-4bda-886f-18bf794af645`
-- `assembly_file_sha256` = `51068919F30B878090BCEFA5A496AB26578F1E6FD8B59CA8DBF076716DF3917A`（部署时源产物与部署产物同摘要，`_deploy\deploy.ps1` 比对通过；复验时当前 bin/obj 已为 `6E87AD62…`，不得宣称当前三方同摘要。run 4 加载身份仍与现存部署文件一致，见复验报告 §3）
-- 部署路径 = `E:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\Modules\CombatBrain2\bin\Win64_Shipping_Client\CombatBrain2.dll`（**43008 B**，2026-10-10 21:14）
-- 场次日志 = `sessions\20261010-213621\CombatBrain2.log` L1（`[CB2][RUNTIME_IDENTITY]`，pid 52288）：`assembly_location` 指向上述部署路径、`assembly_file_sha256` 与磁盘一致、`game_version=v1.4.8.0`、`active_modules=Harmony,ButterLib,UIExtenderEx,Mod Configuration Menu v5,Native,SandBox Core,Sandbox,StoryMode,CustomBattle,CombatBrain 2.0 (P0a),CombatBrain Autonomous Test Harness`（**无旧 CombatBrain**）
-- CBATH 独立身份（`build-identity.json`，同 pid 52288）：`build_id=b20260925-013209-2b52d28b`、`mvid=e9f98865-06a7-47d8-ab7d-585cb445904a`、`assembly_sha256=93f6e154…`、`active_modules=…,CombatBrain2,CombatBrainAutonomousTestHarness`（**无 CombatBrain**）
+- `build_id` = `b20261010-224859-60fa713e`（`src\Host\BuildIdentity.g.cs`，部署脚本在 DLL 字节内按 ASCII 与 UTF-16 两种对齐核验印章确实编进产物）
+- `mvid` = `0063dd50-8837-421d-a299-69bc647eea7e`
+- `assembly_file_sha256` = `C2004C3BAF4216118CBE88D41200DDA793C7A637BEFB51F0B469ABA94CD7A8D7`（部署时源产物与部署产物同摘要，`_deploy\deploy.ps1` 比对通过）
+- 部署路径 = `E:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\Modules\CombatBrain2\bin\Win64_Shipping_Client\CombatBrain2.dll`（**46592 B**，2026-10-10 22:48）
+- 场次日志 = `sessions\20261010-225539\CombatBrain2.log` L1（`[CB2][RUNTIME_IDENTITY]`，pid 17452）：`assembly_location` 指向上述部署路径、`assembly_file_sha256=c2004c3b…` 与磁盘一致、`game_version=v1.4.8.0`、`active_modules=Harmony,ButterLib,UIExtenderEx,Mod Configuration Menu v5,Native,SandBox Core,Sandbox,StoryMode,CustomBattle,CombatBrain 2.0 (P0a),CombatBrain Autonomous Test Harness`（**无旧 CombatBrain**）
+- CBATH 独立身份（`build-identity.json`，同 pid 17452）：`build_id=b20260925-013209-2b52d28b`、`mvid=e9f98865-06a7-47d8-ab7d-585cb445904a`、`assembly_sha256=93f6e154…`、`active_modules=…,CombatBrain2,CombatBrainAutonomousTestHarness`（**无 CombatBrain**）
 - 说明：`assembly_file_sha256` 是**磁盘文件摘要**，不等于进程内存字节；`mvid` 是本场加载的程序集模块版本 id。
+
+### 2.1 run 4（C 路线整改后，主线程转交整改前的中间态）
+
+- `build_id` = `b20261010-211405-653e521d`
+- `mvid` = `65bbd58f-cf5e-4bda-886f-18bf794af645`
+- `assembly_file_sha256` = `51068919F30B878090BCEFA5A496AB26578F1E6FD8B59CA8DBF076716DF3917A`（部署时源产物与部署产物同摘要；复验时当前 bin/obj 已为 `6E87AD62…`，不得宣称当前三方同摘要）
+- 部署路径 = 同上（**43008 B**，2026-10-10 21:14）
+- 场次日志 = `sessions\20261010-213621\CombatBrain2.log` L1（pid 52288）
+- CBATH 独立身份（`build-identity.json`，同 pid 52288）：同上 CBATH 值
+- 该场只保留加载/观测/获选/落地事实；其 `WRITE_EXECUTED` 不带线程与原方法回执字段，不能作为 Codex 复验 §2 两项的通过证据
 
 ### 2.2 run 6（整改前产物，保留为外部写令 PoC 与加载/观测事实）
 
@@ -46,27 +58,29 @@
 
 `SubModule.xml` 部署副本 SHA256 = `CF246650A1E7425639C9CA7D5B4DD2BC87542D89DA655A0F7B847422161F6168`（与源文件 `_deploy\SubModule.xml` 同摘要）。
 
-## 3. 逐项判据（run 4 · `sessions\20261010-213621\` · C 路线整改后 · 当前决定性）
+## 3. 逐项判据（run 5 · `sessions\20261010-225539\` · 主线程转交整改后 · 当前决定性）
 
 | 判据 | 结论 | 最短证据路径 |
 |---|---|---|
-| 独立加载 | **通过** | `CombatBrain2.log` L1 `[CB2][RUNTIME_IDENTITY] module=CombatBrain2 build_id=b20261010-211405-653e521d mvid=65bbd58f-… assembly_file_sha256=51068919… pid=52288 active_modules=…,CustomBattle,CombatBrain 2.0 (P0a),CombatBrain Autonomous Test Harness`（**无旧 CombatBrain**）；CBATH `build-identity.json` 同 pid 独立佐证（`active_modules=…,CombatBrain2,CombatBrainAutonomousTestHarness`） |
-| 双方状态可信 | **通过，陈旧拒绝仍未实机验证** | 2.0 自身 `INDEPENDENT_SAMPLE at=182.721` → `team=0 Defender 5/47 \| team=1 Attacker 5/40 \| total_units=87`；CBATH 独立路径 `formations-late.json` `mission_time=182.769` → Defender 5/47、Attacker 5/40、TOTAL=87 —— 两条独立读取路径相隔 0.048 s，人数与编队数一致，不宣称跨时刻位置逐字一致。早段对照：`formations-early.json` `mission_time=0.480` → Defender 4/99、Attacker 5/95、TOTAL=194。`SNAPSHOT_HEALTH` 183 条 `duplicate_keys=0`、`over_limit=0` 全 183 条 |
-| 命令链成立 | **部分成立：真实获选与实际落地通过；线程与原方法完成待补** | L38 `INTENT_TRIGGERED at=15.462 deadline=35.462` → L59/61/63 `BEHAVIOR_REGISTERED key=1/0 behavior=CbHoldBehavior weight=8.000 behavior_count=25` → L60/62/64 `CANDIDATE_SUBMITTED … write_attempts=0` → L65 `ACTIVE_BEHAVIOR_CHANGED active_behavior=CbHoldBehavior ours=1 tid=56` → L66 `REAL_SELECTION` → L67 `WRITE_EXECUTED order_before=Move order_after=StandYourGround`。intent-2 同构于 L206–L214。`route=native_behavior_apply` 与 `invoked=1` 不能补全主线程与原方法是否被跳过证据，见复验报告 §2 |
-| 效果与覆盖可区分 | **通过（落地后仍被原生改写，如实记录）** | L67 `order_before=Move → order_after=StandYourGround`（非 Stop→Stop 的实际变化）；83 条 `POST_OBSERVE`：intent-1 在 `at=17.041→35.064` 连续 10 次 `order=StandYourGround same_object=1`，**`at=37.072/39.076` 变回 `Move`**；intent-2 在 `at=41.079/43.086/45.087` 三次 `StandYourGround`，**`at=47.093` 起至 `at=181.350` 全部 `Move`**。站定不持续独占，原生后续改写已如实报告 |
-| 退出安全 | **部分通过** | L171 `INTENT_CANCELLED reason=WindowExpired at=35.466`（触发 15.462+20=35.462，实测 35.466，未延长）→ L172 `BEHAVIOR_DISARMED key=1/0 reason=WindowExpired weight=0 error=<none>`；L215 `EXPLICIT_CLOSE_SCHEDULED at=46.540` → L246 `INTENT_CANCELLED reason=ExplicitClose at=46.542` → L247 `BEHAVIOR_DISARMED reason=ExplicitClose weight=0`。51 条 `WRITE_BLOCKED` **全部 `reason=already_written`**，首条 `at=16.033`、末条 `at=46.528`，**46.6 s 之后 0 条**（退出后无旧意图写入）。`REVOKE_EXECUTED` **0 条**（见 §5 项 3） |
-| 玩家与失效边界 | **未验证** | 场次内 `TARGET_INVALID` 0 条、`PLAYER_ELIGIBILITY_LOST` 0 条、`SELECTION_TIMEOUT` 0 条；`WRITE_BLOCKED` 51 条全为 `already_written`，无资格类拒绝被触发。离线覆盖见 §5 项 1 |
-| 环境清理 | **通过** | `_lastrun4.txt`：`end_mission sent` / `saved CombatBrain2.log (104592 bytes)` / `games_stop sent` / `no residual Bannerlord process` / `no new crash dir` / `saved CBATH outputs` / **`RESULT: OK`**（脚本失败退出码非 0，不吞） |
-| 快照年龄上限 | **未触发** | `SNAPSHOT_HEALTH` 183 条 `age=0.000 max_age_seen=0.000 max_age_limit=2.000 over_limit=0`，`refresh_interval_min=0.006~0.007`、`refresh_interval_max=0.008~0.009`、`records=10`。原因同 §3.1 项 1（每 tick 重采样） |
+| 独立加载 | **通过** | `CombatBrain2.log` L1 `[CB2][RUNTIME_IDENTITY] module=CombatBrain2 build_id=b20261010-224859-60fa713e mvid=0063dd50-8837-421d-a299-69bc647eea7e assembly_file_sha256=c2004c3baf4216118cbe88d41200dda793c7a637befb51f0b469aba94cd7a8d7 pid=17452 active_modules=…,CustomBattle,CombatBrain 2.0 (P0a),CombatBrain Autonomous Test Harness`（**无旧 CombatBrain**）；CBATH `build-identity.json` 同 pid 独立佐证（`active_modules=…,CombatBrain2,CombatBrainAutonomousTestHarness`） |
+| 双方状态可信 | **通过，陈旧拒绝仍未实机验证** | 2.0 自身 `INDEPENDENT_SAMPLE at=182.923` → `team=0 Defender 5/76 \| team=1 Attacker 4/61 \| total_units=137`；CBATH 独立路径 `formations-late.json` `mission_time=183.105` → Defender 5 队（24/24/6/17/5=76）、Attacker 4 队（20/25/1/15=61）—— 两条独立读取路径相隔 0.182 s，人数与编队数逐项一致。早段对照：`formations-early.json`。`SNAPSHOT_HEALTH` 全量 `duplicate_keys=0`、`over_limit=0`，末条 `sampled_at=182.923 records=9` |
+| 命令链成立 | **通过（含主线程执行保障与原方法完成回执）** | L3 `MAIN_THREAD_MARKED tid=33 source=mission_tick` → L37 `INTENT_TRIGGERED intent-1 at=15.135 deadline=35.135` → L58/62/64/66/68 `BEHAVIOR_REGISTERED key=1/0 behavior=CbHoldBehavior weight=8.000 behavior_count=25` → L59/63/65/67/69 `CANDIDATE_SUBMITTED … write_attempts=0` → **L70 `ACTIVE_BEHAVIOR_CHANGED active_behavior=CbHoldBehavior ours=1 tid=43`** → L71 `REAL_SELECTION` → L72/73 `HANDOFF_DEFERRED callback_tid=43 main_tid=33` + `AWAITING_NATIVE_APPLY` → **L74 `HANDOFF_EXECUTED callback_tid=43 exec_tid=33 is_main_thread=1 at=15.553`** → **L75 `WRITE_EXECUTED invoked=1 error=<none> order_before=Move order_after=StandYourGround route=native_behavior_apply exec_tid=33 is_main_thread=1 original_body_entered=1 original_body_tid=33 at=15.553 write_attempts=1`**。intent-2 同构于 L270→L305→L306→L309→L310（`callback_tid=34`、`at=40.549`、`write_attempts=2`） |
+| 效果与覆盖可区分 | **通过（落地后仍被原生改写，如实记录）** | L75 / L310 `order_before=Move → order_after=StandYourGround`（非 Stop→Stop 的实际变化）；`POST_OBSERVE`：intent-1 在 `at=17.084→35.139` 连续 10 次 `order=StandYourGround same_object=1`，**`at=37.160/39.184` 变回 `Move`**；intent-2 在 `at=41.192/43.210/45.217` 三次 `StandYourGround`，**`at=47.229` 起至 `at=181.918` 全部 `Move`**。站定不持续独占，原生后续改写已如实报告 |
+| 退出安全 | **部分通过（真实回退执行仍为 0 条）** | L253 `INTENT_CANCELLED reason=WindowExpired at=35.139`（触发 15.135+20=35.135，实测 35.139，未延长）→ L254 `BEHAVIOR_DISARMED key=1/0 reason=WindowExpired weight=0 error=<none>`；L311 `EXPLICIT_CLOSE_SCHEDULED at=46.549` → L364 `INTENT_CANCELLED reason=ExplicitClose at=46.558` → L365 `BEHAVIOR_DISARMED reason=ExplicitClose weight=0`。51 条 `WRITE_BLOCKED` **全部 `reason=already_written`**，末条 `at=46.558`，**46.6 s 之后 0 条**（退出后无旧意图写入）。`HANDOFF_SLOT_BUSY` / `HANDOFF_DROPPED` / `HANDOFF_DIRECT` 均 0 条。`REVOKE_EXECUTED` **0 条**（见 §5 项 3） |
+| 玩家与失效边界 | **未验证** | 场次内 `WRITE_BLOCKED` 51 条全为 `already_written`，无资格类拒绝被触发；`TARGET_INVALID` / `PLAYER_ELIGIBILITY_LOST` / `SELECTION_TIMEOUT` 均 0 条。离线覆盖见 §5 项 1 |
+| 环境清理 | **通过** | `_lastrun6.txt`：`end_mission sent` / `saved CombatBrain2.log (117398 bytes)` / `games_stop sent` / `no residual Bannerlord process` / `no new crash dir` / `saved CBATH outputs` / **`RESULT: OK`**；失败退出码非 0，不吞（同场次前的 `20261010-225030` 一场因启动期 `ERC302` 退出并如实记 `RESULT: FAILURES (3)`） |
+| 快照年龄上限 | **未触发** | `SNAPSHOT_HEALTH` 末条 `sampled_at=182.923 age=0.000 max_age_seen=0.000 max_age_limit=2.000 over_limit=0 refresh_interval_min=0.007 refresh_interval_max=0.023 records=9`。原因同 §3.1 项 1（每 tick 重采样） |
 
 ### 3.1 限制说明（必须与"通过"一并读）
 
-1. **快照新鲜度上限从未被真正压到**：run 4 与 run 6 同因——`TestDriver.Tick` **每个 Mission tick 都用当前 `now` 重新采样**，`age` 恒为 0，2.0 秒上限从未触发。"陈旧快照被拒绝"在实机**仍无证据**，只有离线证据（`tests\SnapshotTests.cs`：`StaleSnapshotUsesActualSampleTimeNotRefreshTime`；`tests\TargetSelectorTests.cs`：`DoesNotSelectStaleSnapshot`、`AcceptsSnapshotExactlyAtAgeLimit`）。
-2. **"两组独立观测"的含义**：2.0 自身的 `SNAPSHOT_FORMATION` 与 `INDEPENDENT_SAMPLE` 是同进程的重复采样，**不作为独立性依据**；独立性来自 CBATH 的独立只读路径（`get_all_formations` → `formations-*.json`，由 `TaleWorlds` 侧 `FormationProbe` 直接读取，不经过 2.0 代码）。run 4 晚期两条路径**逐项完全一致**（47/40、total 87，相距 0.048 s），强于 run 6 的"差 1 人需战损解释"。
-3. **撤销未执行**：两条意图 `PreviousOrder` 都是 `"Move"`，`WriteLedger.IsRestorableOrderName` 只接受 `Advance`/`FallBack`/`Charge`/`StandYourGround`，故判 `previous_order_not_restorable`（L173、L248 `REVOKE_SKIPPED`）。这是**拒绝用不可忠实重建的值去覆盖原生新决策**，不是执行失败（`MovementOrder` 是值类型，`Move` 带目标/位置，无法按名忠实重建）。
-4. **Mission 未自然结束**：`mission-state-end.json` = `{"mission_running":true,"mission_time":"182.790"}`，收尾是脚本发 `end_mission`。`MISSION_CLEANUP`（L638）已记录，但"下一 Mission 无旧状态残留"未验证。
+1. **快照新鲜度上限从未被真正压到**：run 4、run 5、run 6 同因——`TestDriver.Tick` **每个 Mission tick 都用当前 `now` 重新采样**，`age` 恒为 0，2.0 秒上限从未触发。"陈旧快照被拒绝"在实机**仍无证据**，只有离线证据（`tests\SnapshotTests.cs`：`StaleSnapshotUsesActualSampleTimeNotRefreshTime`；`tests\TargetSelectorTests.cs`：`DoesNotSelectStaleSnapshot`、`AcceptsSnapshotExactlyAtAgeLimit`）。
+2. **"两组独立观测"的含义**：2.0 自身的 `SNAPSHOT_FORMATION` 与 `INDEPENDENT_SAMPLE` 是同进程的重复采样，**不作为独立性依据**；独立性来自 CBATH 的独立只读路径（`get_all_formations` → `formations-*.json`，由 `TaleWorlds` 侧 `FormationProbe` 直接读取，不经过 2.0 代码）。run 5 晚期两条路径**逐项完全一致**（Defender 5 队 76 人 / Attacker 4 队 61 人，相距 0.182 s）。
+3. **撤销未执行**：两条意图 `PreviousOrder` 都是 `"Move"`，`WriteLedger.IsRestorableOrderName` 只接受 `Advance`/`FallBack`/`Charge`/`StandYourGround`，故判 `previous_order_not_restorable`（L255、L366 `REVOKE_SKIPPED`）。这是**拒绝用不可忠实重建的值去覆盖原生新决策**，不是执行失败（`MovementOrder` 是值类型，`Move` 带目标/位置，无法按名忠实重建）。
+4. **Mission 未自然结束**：`mission-state-end.json` = `{"mission_running":true,"mission_time":"183.123"}`，收尾是脚本发 `end_mission`。`MISSION_CLEANUP`（L754 末行）已记录，但"下一 Mission 无旧状态残留"未验证。
 5. **退出后编队回到 `Move` 已观察，符合撤权后原生接续的解释**：本场未单独记录关闭后的具体获选原生行为，不把该解释升级为完整调用因果证明。不宣称站定在意图结束后仍持续生效。
-6. **`WriteLedger` 的"当前值仍等于本方写入值才回退"护栏**：本场因白名单未过而从未进入回退分支，故该护栏在 run 4 **没有实机触发**（离线证据见 `tests\RevocationTests.cs`）。
+6. **`WriteLedger` 的"当前值仍等于本方写入值才回退"护栏**：本场因白名单未过而从未进入回退分支，故该护栏在 run 5 **没有实机触发**（离线证据见 `tests\RevocationTests.cs`）。
+7. **主线程判据的口径**：`ThreadHandoff.MarkMainThread` 只在首次 Mission tick 登记一次（`MAIN_THREAD_MARKED tid=33 source=mission_tick`），判据是"执行线程等于该已登记线程"，不是 OS 主线程概念。本场 53 条回调全部来自非该线程（tid 34/37/40/43/44/45/46/47…），53 条 `HANDOFF_EXECUTED` 的 `exec_tid=33 is_main_thread=1` 全部成立，`HANDOFF_DIRECT` 0 条。若将来出现 Mission tick 换线程，`MarkMainThread` 不会更新，属已知设计取舍（只登记一次，避免来源漂移）。
+8. **原方法回执的口径**：`original_body_entered` 观测的是 `Formation.OnBeforeMovementOrderApplied` —— 它是 `SetMovementOrder` 方法体的**第一句**（`TaleWorlds.MountAndBlade.Formation.cs:685-687`），被 Harmony Prefix 跳过时不会触发；但它只能证明**方法体进入了**，不能证明方法体完整执行到赋值。回执与 `order_after` 分列，两者互不为对方的证明。
 
 ### 3.2 run 6（整改前）对照表 — 仅保留为外部写令 PoC 与加载/观测事实
 
@@ -92,7 +106,46 @@ Codex 已判该场的 `REAL_SELECTION` **不构成原生获选证据**（`P0A-CO
 
 ## 4. 命令链与退出现象（逐字摘录）
 
-### 4.1 run 4 `sessions\20261010-213621\CombatBrain2.log`（C 路线整改后，决定性）
+### 4.1 run 5 `sessions\20261010-225539\CombatBrain2.log`（主线程转交整改后，决定性）
+
+```
+L1   [CB2][RUNTIME_IDENTITY] module=CombatBrain2 build_id=b20261010-224859-60fa713e mvid=0063dd50-8837-421d-a299-69bc647eea7e assembly_file_sha256=c2004c3baf4216118cbe88d41200dda793c7a637befb51f0b469aba94cd7a8d7 game_version=v1.4.8.0 pid=17452 active_modules=…,CustomBattle,CombatBrain 2.0 (P0a),CombatBrain Autonomous Test Harness
+L3   [CB2][MAIN_THREAD_MARKED] tid=33 source=mission_tick
+L4   [CB2][BEHAVIOR_START] sampling_behavior_initialized tid=33
+L37  [CB2][INTENT_TRIGGERED] intent=intent-1 at=15.135 deadline=35.135 window=20.000 selection_wait=10.000
+L58  [CB2][BEHAVIOR_REGISTERED] intent=intent-1 key=1/0 behavior=CbHoldBehavior weight=8.000 behavior_count=25 active_behavior=BehaviorCautiousAdvance
+L59  [CB2][CANDIDATE_SUBMITTED] intent=intent-1 key=1/0 obj=0107c554@Infantry order_before=Move behavior_registered=1 behavior_weight=8.000 at=15.135 write_attempts=0
+L69  [CB2][CANDIDATE_SUBMITTED] intent=intent-1 key=1/0 obj=0107c554@Infantry order_before=Move behavior_registered=1 behavior_weight=8.000 at=15.467 write_attempts=0
+L70  [CB2][ACTIVE_BEHAVIOR_CHANGED] intent=intent-1 key=1/0 active_behavior=CbHoldBehavior ours=1 tid=43
+L71  [CB2][REAL_SELECTION] intent=intent-1 key=1/0 side=Attacker obj=0107c554@Infantry at=15.535
+L72  [CB2][HANDOFF_DEFERRED] intent=intent-1 key=1/0 callback_tid=43 main_tid=33 at=15.535
+L73  [CB2][AWAITING_NATIVE_APPLY] intent=intent-1 key=1/0 obj=0107c554@Infantry armed_behavior=1 active_behavior_now=CbHoldBehavior at=15.553
+L74  [CB2][HANDOFF_EXECUTED] intent=intent-1 key=1/0 obj=0107c554@Infantry callback_tid=43 exec_tid=33 is_main_thread=1 at=15.553
+L75  [CB2][WRITE_EXECUTED] intent=intent-1 key=1/0 obj=0107c554@Infantry invoked=1 error=<none> order_before=Move order_after=StandYourGround route=native_behavior_apply exec_tid=33 is_main_thread=1 original_body_entered=1 original_body_tid=33 at=15.553 write_attempts=1
+L253 [CB2][INTENT_CANCELLED] intent=intent-1 reason=WindowExpired at=35.139 write_attempts=1
+L254 [CB2][BEHAVIOR_DISARMED] key=1/0 reason=WindowExpired weight=0 error=<none> at=35.139
+L255 [CB2][REVOKE_SKIPPED] intent=intent-1 reason=previous_order_not_restorable
+L270 [CB2][INTENT_TRIGGERED] intent=intent-2 at=40.149 deadline=60.149 window=20.000 selection_wait=10.000
+L305 [CB2][ACTIVE_BEHAVIOR_CHANGED] intent=intent-2 key=1/0 active_behavior=CbHoldBehavior ours=1 tid=34
+L306 [CB2][REAL_SELECTION] intent=intent-2 key=1/0 side=Attacker obj=0107c554@Infantry at=40.534
+L309 [CB2][HANDOFF_EXECUTED] intent=intent-2 key=1/0 obj=0107c554@Infantry callback_tid=34 exec_tid=33 is_main_thread=1 at=40.549
+L310 [CB2][WRITE_EXECUTED] intent=intent-2 key=1/0 obj=0107c554@Infantry invoked=1 error=<none> order_before=Move order_after=StandYourGround route=native_behavior_apply exec_tid=33 is_main_thread=1 original_body_entered=1 original_body_tid=33 at=40.549 write_attempts=2
+L311 [CB2][EXPLICIT_CLOSE_SCHEDULED] at=46.549
+L364 [CB2][INTENT_CANCELLED] intent=intent-2 reason=ExplicitClose at=46.558 write_attempts=2
+L365 [CB2][BEHAVIOR_DISARMED] key=1/0 reason=ExplicitClose weight=0 error=<none> at=46.558
+L366 [CB2][REVOKE_SKIPPED] intent=intent-2 reason=previous_order_not_restorable
+L754 [CB2][MISSION_CLEANUP] intent_and_object_state_cleared
+```
+
+- **主线程执行保障（Codex 复验 §2 要求 ①）**：`MAIN_THREAD_MARKED tid=33 source=mission_tick`（L3，只在首次 Mission tick 登记一次）与 `BEHAVIOR_START tid=33`（L4）确认主线程执行点。`ACTIVE_BEHAVIOR_CHANGED … tid=43/34`（L70/L305）证明原生行为回调来自**另一个线程**；回调路径只做 `HANDOFF_DEFERRED`（L72，记 `callback_tid=43 main_tid=33`），把该次命令放进 `ThreadHandoff` 的单槽位，随后由主线程点消费成 `HANDOFF_EXECUTED … exec_tid=33 is_main_thread=1`（L74）。最终写令的 `exec_tid=33`（L75）。全场 53 条 `HANDOFF_DEFERRED` 对 53 条 `HANDOFF_EXECUTED`，`HANDOFF_DIRECT` / `HANDOFF_SLOT_BUSY` / `HANDOFF_DROPPED` 均 0 条 —— 没有一条命令在回调线程里被就地执行。
+- **原方法完成回执（Codex 复验 §2 要求 ②）**：L75/L310 新增 `original_body_entered=1 original_body_tid=33`，与 `order_after=StandYourGround` **分列**。观测点是 `Formation.OnBeforeMovementOrderApplied`，它是 `SetMovementOrder` 方法体的第一句（`TaleWorlds.MountAndBlade.Formation.cs:685-687`），被 Harmony Prefix 跳过时不会触发；`SamplingBehavior.OnNativeMovementOrder` 在 `InOurWrite` 判断**之前**调用 `TestDriver.ObserveOriginalEnter`，故本方自己的调用也能被回执捕获。回执只证明方法体进入，不代替后值；两者互不替代。
+- **候选阶段仍然零写入**：L59–L69 五条 `CANDIDATE_SUBMITTED` 的 `write_attempts` 恒为 0（intent-2 的六条为 1，是 intent-1 已写过的累计值，非本次候选产生）。
+- **获选判据仍是引用相等**：L70/L305 的 `ours=1` 来自 `FormationAI.OnActiveBehaviorChanged` + `ReferenceEquals(f.AI.ActiveBehavior, ours)`；`ACTIVE_BEHAVIOR_CHANGED_OTHER` 4 条（tid 34/35/42/41）是其他编队的获选，不触发本方执行。
+- **写令仍在原生主循环内发起**：`CbHoldBehavior.TickOccasionally` 由原生 `FormationAI.TickOccasionally` 调用（受原生 `IsAIControlled` 门控），它现在只上报回调线程与对象；真正的 setter 调用发生在已确认的主线程执行点。日志保留 `route=native_behavior_apply` 标记来源，**不以该标记充当线程保障**。
+- **对象绑定未漂移**：两条意图的 `obj` 与 83 条 `POST_OBSERVE` 的 `obj_now` 唯一值均为 `0107c554@Infantry`，`same_object=1`。
+- **截止点未被延长**：intent-1 触发 15.135 + 20 = 35.135，实测取消 35.139；intent-2 显式关闭计划 46.549，实测 46.558。重复回调（53 条）与首次获选都没有延长窗口。
+
+### 4.2 run 4 `sessions\20261010-213621\CombatBrain2.log`（C 路线整改后，主线程转交整改前）
 
 ```
 L7   [CB2][TRIGGER_SCHEDULED] intent=A at=15.459 deployment_finished=1 allow_ai_ticking=1
@@ -127,7 +180,7 @@ L638 [CB2][MISSION_CLEANUP] intent_and_object_state_cleared
 - **候选阶段零写入**：L60/62/64 三条 `CANDIDATE_SUBMITTED` 的 `write_attempts` 恒为 **0**（intent-2 的 L207/209/211 为 1，那是 intent-1 已写过的累计值，非本次候选产生）。全日志 `write_attempts` 取值集合 `{0,1,2}`，**最大 2**（每条意图只有一次写尝试）。
 - **获选判据是引用相等，不是键比对**：L65/L212 的 `ACTIVE_BEHAVIOR_CHANGED … active_behavior=CbHoldBehavior ours=1` 来自 `FormationAI.OnActiveBehaviorChanged` + `ReferenceEquals(f.AI.ActiveBehavior, ours)`。整改前 run 6 用 `Formation.OnBeforeMovementOrderApplied`（pre-apply 时点）按编队键比对，会把原生自己的 Move 写入误判为本方获选——这正是 Codex §1 指认的缺陷，已删除该路径的执行资格，仅保留为观测（`NATIVE_MOVEMENT_APPLIED … source=…`）。
 - **写令发生在原生主循环内**：`CbHoldBehavior.TickOccasionally()` 由原生 `FormationAI.TickOccasionally` 调用，写令受原生 `IsAIControlled` 门控（`TestDriver.TryExecuteStop` 是被它调用的，不再是 Mission tick 里的并列外部腿）。日志标记 `route=native_behavior_apply`。
-- **线程**：Mission tick 初始化 `BEHAVIOR_START tid=30`，两次获选事件 `ACTIVE_BEHAVIOR_CHANGED tid=56/44`；其他编队获选事件也在多个线程发生。实际 WRITE_EXECUTED 没有 tid，不能从邻接日志补出写令线程。源码同步调用 setter，没有主线程确认/转交保障；三项资格复核不能替代该要求，见复验报告 §2。
+- **线程**：Mission tick 初始化 `BEHAVIOR_START tid=30`，两次获选事件 `ACTIVE_BEHAVIOR_CHANGED tid=56/44`。`WRITE_EXECUTED` 无 tid 字段，无法从邻接日志补出写令线程；源码当时为同步调用 setter，无主线程确认/转交保障 —— 这一缺口已在 run 5 补齐，本场不作为该两项的证据。
 - **选择依据可复核**：L39 `SELECTION_CANDIDATES … sort_basis=prefer_non_stop_then_ascending(TeamIndex,FormationIndex) candidates=10 eligible=1/0`；17 条 `SELECTION_REJECTED` 为 9 条 `player_owned`（Defender 全队 `0/0`–`0/4`）与 8 条 `not_infantry`（Ranged×2、Cavalry×4、HorseArcher×2）。**目标不是硬编码的 T1F0/T1F3**，选定后绑定 `obj=02c17ea5@Infantry`，全场未换对象（83 条 `POST_OBSERVE` 的 `obj_now` 唯一值恒为该对象、`same_object=1`）。
 - **截止点未被延长**：intent-1 触发 15.462 + 20 = 35.462，实测取消 35.466；intent-2 显式关闭计划 46.540，实测 46.542。三次重复提交（L60/62/64）与首次获选都没有延长窗口。
 - **执行前三项复核的离线覆盖**（本场未触发拒绝，因三项恒为真）：`tests\ExecutionGateTests.cs` 的 `WriteBlockedWhenObjectIdentityChanged`、`WriteBlockedWhenNotAiControlled`、`WriteBlockedWhenActiveBehaviorNotOurs`、`WriteAllowedOnceWithFullPrecheck`。生产侧在 `TestDriver.TryExecuteStop` 于 `RequestWrite` **之前即时求值**（`ObjectIdentityOf(f)` / `f.IsAIControlled` / `IsOurActiveBehavior(key, f)`），不使用获选时的旧值。
@@ -162,15 +215,16 @@ L557 [CB2][MISSION_CLEANUP] intent_and_object_state_cleared
 
 ## 5. 未验证项（不得据此进入 P1）
 
-> 以下为 **run 4 与 run 6 共同**未覆盖的项；两条 C 路线整改新增的判据（原生行为注册、引用相等获选）已在 run 4 验证。
+> 以下为 **run 5、run 4 与 run 6 共同**未覆盖的项；C 路线整改新增的判据（原生行为注册、引用相等获选）在 run 4/run 5 已验证，主线程转交与原方法回执在 run 5 已验证。
 
-1. **玩家接管边沿**：CBATH 冻结核心的 15 个工具中**没有任何一个能把控制权交还给玩家**（`delegate_team_to_ai` 是单向的 AI 授予）。按派单 L67/L79 保留离线检查、把实机边沿明确列为未验证。离线覆盖：`tests\ExecutionGateTests.cs` 的 `WriteBlockedWhenTargetInvalidOrPlayerOwned`（`player_owned` 拒绝）与 `tests\TargetSelectorTests.cs` 的 `DoesNotSelectPlayerOwnedFormation`。**run 4 亦未触发**（`PLAYER_ELIGIBILITY_LOST` 0 条）。
-2. **目标失效分支**（`TARGET_INVALID`）与**选择超时分支**（`SELECTION_TIMEOUT`）：两场意图都在约 0.1 s 内获选、目标全程存活，两个分支均未触发（run 4：`AWAITING_NATIVE_APPLY` 0 条，说明获选后无悬空等待）。
-3. **撤销的真实回退执行**（`REVOKE_EXECUTED`）：两场共 4 条意图全部因 `previous_order_not_restorable` 被正确跳过。撤销白名单 `WriteLedger.IsRestorableOrderName` 只接受 `Advance`/`FallBack`/`Charge`/`StandYourGround`，而实际 `previous_order` 均为 `Move`（值类型，带目标/位置，无法按名忠实重建），故刻意不拿 Stop 冒充。
-4. **快照陈旧拒绝路径**（`over_limit=1`）：见 §3.1 项 1。两场 `age` 恒为 0。
-5. **下一 Mission 无旧状态残留**：两场 Mission 均由脚本 `end_mission` 收尾，未自然进入下一场（`mission-state-end.json` 仍为 `mission_running:true`）。
+1. **玩家接管边沿**：CBATH 冻结核心的 15 个工具中**没有任何一个能把控制权交还给玩家**（`delegate_team_to_ai` 是单向的 AI 授予）。按派单 L67/L79 保留离线检查、把实机边沿明确列为未验证。离线覆盖：`tests\ExecutionGateTests.cs` 的 `WriteBlockedWhenTargetInvalidOrPlayerOwned`（`player_owned` 拒绝）与 `tests\TargetSelectorTests.cs` 的 `DoesNotSelectPlayerOwnedFormation`。**三场均未触发**（`PLAYER_ELIGIBILITY_LOST` 0 条）。
+2. **目标失效分支**（`TARGET_INVALID`）与**选择超时分支**（`SELECTION_TIMEOUT`）：三场意图都在约 0.1 s 内获选、目标全程存活，两个分支均未触发（run 5 `AWAITING_NATIVE_APPLY` 仅 2 条，均为获选后同一 tick 内的记录，无悬空等待）。
+3. **撤销的真实回退执行**（`REVOKE_EXECUTED`）：三场共 6 条意图全部因 `previous_order_not_restorable` 被正确跳过。撤销白名单 `WriteLedger.IsRestorableOrderName` 只接受 `Advance`/`FallBack`/`Charge`/`StandYourGround`，而实际 `previous_order` 均为 `Move`（值类型，带目标/位置，无法按名忠实重建），故刻意不拿 Stop 冒充。
+4. **快照陈旧拒绝路径**（`over_limit=1`）：见 §3.1 项 1。三场 `age` 恒为 0。
+5. **下一 Mission 无旧状态残留**：三场 Mission 均由脚本 `end_mission` 收尾，未自然进入下一场（`mission-state-end.json` 仍为 `mission_running:true`）。
 6. **`assembly_version`** 报 `0.0.0.0`（csproj 未设 `<Version>`）；不影响本批判据，未修。
 7. **C 路线未覆盖的原生交互**：本方行为权重 `8.0` 是在 `ArmBehavior` 里一次性设定的（原生常规行为 `GetAiWeight` 基准 1f，活跃行为带 1.2~2.0 惯性加成）。**"权重过小导致未获选"和"原生在获选后立刻改回"是两种不同的失败/降级**，本场只走通前者未发生的路径；若将来出现未获选，需按 `BEHAVIOR_REGISTERED` 的 `behavior_count`/`active_behavior` 与后续 `ACTIVE_BEHAVIOR_CHANGED_OTHER` 逐条区分，不能笼统归为"原生压制"。
+8. **主线程登记只做一次**：`ThreadHandoff.MarkMainThread` 只登记首次 Mission tick 的线程，不随 Mission tick 线程变化更新（见 §3.1 项 7）。若将来 Bannerlord 把 Mission tick 迁到另一个线程，该判据会持续误判为"非主线程"并被转交到旧线程点 —— 目前无证据表明会发生，登记为已知取舍而非已验证安全。
 
 ## 6. 复现入口
 
@@ -179,7 +233,7 @@ L557 [CB2][MISSION_CLEANUP] intent_and_object_state_cleared
 cd 'E:\MBmod\CombatBrain 2.0\Program'
 dotnet build CombatBrain2.csproj -c Debug
 
-# 测试（47 个；43 + 执行前三项复核新增 4）
+# 测试（58 个；43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5）
 dotnet test tests\CombatBrain2.Tests.csproj -c Debug
 
 # 部署（生成新 build_id、印章核验、清 bin/obj 真重编、目标目录守卫、源/部署 SHA256 比对）
@@ -199,12 +253,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 
 | 项 | 值 |
 |---|---|
-| **归档（当前，覆盖 11 场）** | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run7.zip` |
-| 大小 / 条目 | **8768831 B / 581** |
-| SHA256 | `E825FF34A48F024BB5FA3436BA13F4A44430A60C295635D48197F5E10C27A2FB` |
-| sidecar | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run7.zip.sha256` |
-| 覆盖面 | `Program\_verify\sessions\` 全部 **11** 个场次目录（含隐藏文件），源清单 581 files / 12694917 B |
-| 归档（第一批，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions.zip`，274030 B / 531，`B144E23AFCE18B7C45F21B799884ECEEF9D9CD274808A9884E6264CCDDB015FE`；仅覆盖前 7 场（855706 B），不含 C 路线整改后的 4 场 |
+| **归档（当前，覆盖 13 场）** | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run9.zip` |
+| 大小 / 条目 | **8774320 B / 594** |
+| SHA256 | `BC4FA254822B4CA468E889FDF83D1AA36EA86BE3184987C02D2AC5F791DC830A` |
+| sidecar | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run9.zip.sha256` |
+| 覆盖面 | `Program\_verify\sessions\` 全部 **13** 个场次目录（含隐藏文件），源 594 files / 12834616 B |
+| 归档（上批，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run7.zip`，8768831 B / 581，`E825FF34A48F024BB5FA3436BA13F4A44430A60C295635D48197F5E10C27A2FB`；仅覆盖 11 场 |
+| 归档（第一批，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions.zip`，274030 B / 531，`B144E23AFCE18B7C45F21B799884ECEEF9D9CD274808A9884E6264CCDDB015FE`；仅覆盖前 7 场（855706 B），不含 C 路线整改后的场次 |
 
 归档摘要不写入归档内部（自指即失效），只在此处与 sidecar 记录。
 
@@ -232,7 +287,27 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 | `CBATH\cbath-runtime-identity-20316.txt` | 708 | `AB461BBD535811AC2628483F91A699EE5A3AF8D5595EDB87B4F9661A8D5FA106` |
 | `CBATH\cbath-screen-20316.txt` | 154 | `73F634D553579E67D54A9C98B4C0ED623817C788F6B055FD6BE2DBAAD3DF66E3` |
 
-**场次 2：`Program\_verify\sessions\20261010-213621\`（run 4，C 路线整改后 · 决定性，13 files / 124667 B）**
+**场次 2：`Program\_verify\sessions\20261010-225539\`（run 5，主线程转交整改后 · **当前决定性**，13 files / 132353 B）**
+
+| 文件 | bytes | SHA256 |
+|---|---|---|
+| `CombatBrain2.log` | 117398 | `6C8D5BAD053CA755B2C15D07FBEBAF1A3BDCE6151955D49186EEEA732DFAAA5C` |
+| `build-identity.json` | 1695 | `AB80B34CA241BE5AD3BBB190A5C249A42A2AA5C5E66992C19B3C3CA5D2B6D4A1` |
+| `provider-start.json` | 906 | `256DF79050F8FA13A043C6644DA3F123FE57AFA2DB2EF8C472CFCF2C153F3C81` |
+| `start-from-screen.json` | 602 | `D546E68EBFA7C08AEE6DEB6B7BDAB8965552CD0EA67F9412BEC9CFD3A113B039` |
+| `deployment.json` | 587 | `78691036246570AAB31812EF6553699C25D9658C92D20B2469919E2DB62C11DB` |
+| `delegate.json` | 2626 | `AC010026F402CC1EB5521391E55BD38BA8509769F65F5855685FFAEAAB391F77` |
+| `formations-early.json` | 5740 | `9ECF8490A621BCB695A6AE259CF2A0EA11CA4D348BB5EBBC97EB1C423EED6CA9` |
+| `formations-late.json` | 5748 | `47E329757DF931614D35C2B76D2093B04143F4FABD729D44DA8FE74576943588` |
+| `mission-state-end.json` | 290 | `B019EF5545CA58202D3D44450145402CE58FE4C8E34B03959A2490EBBF0B611A` |
+| `last-run.json` | 266 | `42E49AC2B29C4129FCA3B09984E3F763BF493DBD3057439C9DFFA2413896CA21` |
+| `CBATH\cbath-gabp-17452.txt` | 176 | `B2AC0CB6D8E17958F4E62D2006BC5BBB9148FA9152C0EF636D351EFDD1AA5C26` |
+| `CBATH\cbath-runtime-identity-17452.txt` | 708 | `5EBC32987BDB1D42B633875E79B9F8064287BAF74DC6A84ED3F03581BBEB0C42` |
+| `CBATH\cbath-screen-17452.txt` | 155 | `955227748A18BFD59F435E4CB536F43CE23D0D1634F136CC98B10FA2C9DD09F2` |
+
+（逐文件 SHA256 于 2026-10-10 从磁盘现算。）
+
+**场次 3：`Program\_verify\sessions\20261010-213621\`（run 4，C 路线整改后，13 files / 124667 B）**
 
 | 文件 | bytes | SHA256 |
 |---|---|---|
@@ -250,7 +325,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 | `CBATH\cbath-runtime-identity-52288.txt` | 708 | `DFE080927809C613C663E5DE4CD3760071AE3ABD2E2914C45DA8932A3AF29463` |
 | `CBATH\cbath-screen-52288.txt` | 154 | `764ACF4AC9CABF2748AB977B46EF177342A74328B6DC3FC2EE890555D15CB8C5` |
 
-**场次索引（`Program\_verify\sessions\`，11 场 / 581 files / 12694917 B）**
+**场次索引（`Program\_verify\sessions\`，13 场；11 场摘要见下，另含 run 5 `20261010-225539` 与失败场 `20261010-225030`）**
 
 完整索引（含每场 files/bytes/日志行数/RESULT/有效性）见 `sessions\INDEX.md`（仓库内唯一提交的场次索引）。
 
@@ -266,9 +341,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 | `20261010-211555` | 35 / 11711698 | 否（run 1） | 整改后首场；模块已加载，主菜单后渲染纹理创建失败、资源不足，**未进入 Mission**；不直接定性为 Granite 缓存故障 |
 | `20261010-212554` | 0 / 0 | 否（run 2） | `games_start` 返回 `exited_during_start`，exitCode 3221225477 |
 | `20261010-213002` | 0 / 0 | 否（run 3） | `games_start` 返回 `exited_during_start`，exitCode -1 |
-| **`20261010-213621`** | **13 / 124667** | **是（run 4，整改后 · 决定性）** | C 路线整改后唯一成功场次 |
+| **`20261010-213621`** | **13 / 124667** | **是（run 4，C 路线整改后）** | 主线程转交整改前的中间态；保留加载/观测/获选/落地事实 |
+| `20261010-225030` | 4 / 小 | 否（run 5 首跑） | 启动期退出，`rgl_log_34796.txt` 末行 `Error: Non-Zero Device Reference Count! (ERC302)`，`CombatBrain2.log` 从未创建（模块未进入加载期）；**重跑即通过，未定位到代码因素** |
+| **`20261010-225539`** | **13 / 132353** | **是（run 5，主线程转交整改后 · 当前决定性）** | 主线程转交 + 原方法回执整改后唯一成功场次 |
 
-前五场与 run 1–3 是过程失败场，**不构成验收依据**，但保留原始结果未删。
+前五场与 run 1–3、run 5 首跑是过程失败场，**不构成验收依据**，但保留原始结果未删。
 
 ## 8. C 路线整改后前三场失败记录与归因边界
 
@@ -294,17 +371,18 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 | ① 站定 Behavior 真注册进原生选择链 | 新增 `src\Host\CbHoldBehavior.cs`（`internal sealed class CbHoldBehavior : BehaviorComponent`）；`TestDriver.ArmBehavior` 调 `ai.GetBehavior<CbHoldBehavior>()`，无则 `new CbHoldBehavior(f)` + `ai.AddAiBehavior(behavior)`，再 `behavior.Arm()` + `ai.SetBehaviorWeight<CbHoldBehavior>(8.0)` | run 4 L59/L61/L63 `BEHAVIOR_REGISTERED … behavior=CbHoldBehavior weight=8.000 behavior_count=25` |
 | ② 候选只计算命令，普通外部 setter 事件不再授予执行资格 | `SubmitCandidateOnly` 只做 `TargetSelector.Select` + `ArmBehavior` + `gate.SubmitCandidate`，**无 setter 调用**；`Formation.OnBeforeMovementOrderApplied` 只保留为观测（`OnNativeMovementOrderApplied`，记 `source=`） | run 4 L60/62/64 `CANDIDATE_SUBMITTED … write_attempts=0` |
 | ③ 用本方行为的实际获选身份作交付依据 | 获选改由 `FormationAI.OnActiveBehaviorChanged` 驱动，`TestDriver.OnActiveBehaviorChanged` 用 `ReferenceEquals(f.AI.ActiveBehavior, ours)` 判 `ours=1`；`ours` 为假直接返回 | run 4 L65/L212 `ACTIVE_BEHAVIOR_CHANGED … active_behavior=CbHoldBehavior ours=1 tid=56/44` |
-| ④ 主线程执行与执行前实时复核 | 对象身份、AI 受控、当前本方行为等即时复核已补；但原生行为回调同步调用 setter，未落实主线程确认/转交保障。下一执行点还须直接检查当前时间未超过意图截止 | 生产侧 `src\Host\TestDriver.cs:512-602`；复验报告 §2。新增 Core 测试不覆盖 Host 线程 |
-| ⑤ 取得原方法完成/被跳过的可核对事实及实际后值 | 实际后值已取得；`invoked=1` 仅证明 setter 普通返回，原方法体完成/被跳过回执尚未取得 | run 4 L67 / L214；复验报告 §2 |
+| ④ 主线程执行与执行前实时复核 | 对象身份、AI 受控、当前本方行为等即时复核已补（run 4 已完成）；**run 5 补齐主线程保障**：`ThreadHandoff` 在首次 Mission tick 登记主线程 `tid=33`，非主线程回调只转交单槽位，由 `SamplingBehavior.OnMissionTick` 的主线程点执行 | run 5 L3 `MAIN_THREAD_MARKED tid=33 source=mission_tick`、L72 `HANDOFF_DEFERRED callback_tid=43 main_tid=33`、L74 `HANDOFF_EXECUTED exec_tid=33 is_main_thread=1`、L75 `WRITE_EXECUTED exec_tid=33 is_main_thread=1`；53/53 全部转交成功，`HANDOFF_DIRECT` 0 条 |
+| ⑤ 取得原方法完成/被跳过的可核对事实及实际后值 | `OriginalMethodReceipt` 在本方 setter 调用前后夹住 `OnBeforeMovementOrderApplied`（`SetMovementOrder` 方法体第一句，被 Prefix 跳过时不触发），回执与后值**分列** | run 5 L75 / L310 `WRITE_EXECUTED … order_before=Move order_after=StandYourGround … original_body_entered=1 original_body_tid=33` |
 | ⑥ 退出撤销本方行为影响、证明旧意图不再执行 | `CancelIntent`/`OnMissionEnd` 调 `DisarmAllBehaviors`：逐个 `Disarm()` + `SetBehaviorWeight<CbHoldBehavior>(0f)`，**刻意不用 `ResetBehaviorWeights()`**（会抹掉原生期间的新权重）；另有"当前值仍等于本方写入值才回退"护栏（`RevokeIfNeeded`） | run 4 L172/L247 `BEHAVIOR_DISARMED … weight=0`；51 条 `WRITE_BLOCKED` 全 `already_written`，末条 `at=46.528` 之后 0 条 |
 | ⑦ 不强行重建旧 Move，不无限加权、不自动改成 B | `WriteLedger.IsRestorableOrderName` 白名单只认 `Advance/FallBack/Charge/StandYourGround`；`previous_order=Move` 判 `previous_order_not_restorable` 跳过。权重一次性设定 8.0，不每 tick 加压 | run 4 L173/L248 `REVOKE_SKIPPED reason=previous_order_not_restorable` |
-| ⑧ 保留 `RuntimeIdentity.assembly_file_sha256`，不取消、不新增代码段摘要 | 未改动 `RuntimeIdentity.Emit()`；run 4 日志 L1 仍输出 `assembly_file_sha256=51068919…` | `src\Host\RuntimeIdentity.cs` 未改；run 4 L1 |
-| ⑨ 只补必要生产逻辑检查和一场目标 C 通路验证 | 新增 4 个执行前复核测试（47/47 绿），实机只跑通 run 4 一场作为 C 通路验证 | §6 复现入口；`sessions\INDEX.md` |
+| ⑧ 保留 `RuntimeIdentity.assembly_file_sha256`，不取消、不新增代码段摘要 | 未改动 `RuntimeIdentity.Emit()`；run 5 日志 L1 仍输出 `assembly_file_sha256=c2004c3b…` | `src\Host\RuntimeIdentity.cs` 未改；run 5 L1 |
+| ⑨ 只补必要生产逻辑检查和一场目标 C 通路验证 | 新增 4 个执行前复核测试（47 绿）+ 6 个主线程转交测试 + 5 个原方法回执测试（**58/58 绿**）；实机在两项整改后只跑通 run 5 一场作为受影响通路验证 | §6 复现入口；`sessions\INDEX.md` |
 
-## 10. 本批仍待有限整改，不能登记整体通过
+## 10. 交付口径：本批通过 ≠ P0 整体通过
 
-- FD-PoC **P11** 本次仅登记 Route **C** 的真实获选与落地事实；主线程及原方法完成缺口补齐前不登记该通路完整通过（未申请 Full Authority、未关闭 AI、无 Authority/Lease）。
+- FD-PoC **P11** 按本次 Route **C** 范围登记：真实获选、主线程执行保障、原方法完成回执、实际后值均已取得（run 5）；未申请 Full Authority、未关闭 AI、无 Authority/Lease。
 - FD-PoC **P1**（关闭 AI 后的跨域问题）因本批**未关闭 AI** → **不适用**。
-- FD-PoC **P2**（玩家/阵亡边沿）按本场实际覆盖登记为**未验证**。
-- 未验证能力不阻挡本批无关工程成果提交，但**不允许**依赖这些能力的 P1 产品功能进入开发。
-- **本批整改仅覆盖 Scope C 的命令通路**；Scope B 的快照年龄上限实机未触发、Scope D 的真实回退执行未走到，均按未验证登记（见 §5）。
+- FD-PoC **P2**（玩家/阵亡边沿）按本场实际覆盖登记为**未验证**（见 §5 项 1、2）。
+- Scope **B** 的快照年龄上限实机未触发、Scope **D** 的真实回退执行（`REVOKE_EXECUTED`）未走到，均按**未验证**登记（见 §5 项 3、4）。
+- **第一批通过不等于 P0 整体通过**；未验证能力不阻挡本批无关工程成果提交，但**不允许**依赖这些能力的 P1 产品功能进入开发。
+- 本批成果已交回 Codex 独立验收；最终结论以验收为准，本文件不自行判定整体通过。
