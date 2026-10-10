@@ -19,9 +19,9 @@ P0 第一批（最小命令通路，派单 `TacticalCommandLab/_dispatch/2026-10
 已落地：原生行为注册（run 4）、主线程写令与原方法入口/返回/后值组合证据（run 5）、
 转交槽位的同步保障（run 7）已通过实机。
 决定性场次 `_verify/sessions/20261011-002337/`（run 7，build `b20261011-002322-97c0ff2e`，pid 1512）。
-Codex run 5 独立验收提出的两项阻挡中，主线程执行保障与原方法回执在 run 5 补齐；
-`ThreadHandoff` 槽位同步在 run 7 补齐（加锁 + 两个并发测试先跑红后跑绿 + 一场实机受影响通路）。
-有限整改见 `_verify/P0A-CODEX-RUN5-REVIEW.md` §2；旧复验报告保留为历史。
+Codex 2026-10-11 独立验收：第一批最小命令通路在已限定范围内通过，
+`ThreadHandoff` 槽位同步阻挡已关闭；本批停止整改与补场，未验证边界继续保留。
+当前结论见 `_verify/P0A-CODEX-ACCEPTANCE.md`；旧复验报告保留为历史。
 
 - 规模：`src/` 16 个 .cs（Core 8 + Host 8），`tests/` 7 个测试文件 **60 个**测试全绿
   （43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5 + 槽位并发 2）。
@@ -53,6 +53,6 @@ Codex run 5 独立验收提出的两项阻挡中，主线程执行保障与原�
   快照陈旧拒绝路径（`age` 恒 0，`over_limit=0`）、下一 Mission 无状态残留、
   主线程只登记一次（`ThreadHandoff.MarkMainThread` 不随 Mission tick 线程变化更新）、
   槽位并发测试的覆盖边界（40 轮加压跑绿 ≠ 形式化无竞态证明，见 `_verify/P0A-HANDOVER.md` §3.1 项 9/10）。
-- 详见 `_verify/P0A-HANDOVER.md`（交接与判据）、`_verify/P0A-CODEX-REREVIEW.md`（当前复验）；
-  `_verify/P0A-CODEX-REVIEW.md` 保留为整改前历史。
+- 详见 `_verify/P0A-HANDOVER.md`（交接与判据）、`_verify/P0A-CODEX-ACCEPTANCE.md`（当前验收）；
+  之前的独立审查/复验报告保留为历史。
 - "P0 第一批通过"不等于 P0 整体通过；战术决策、预备队产品规则等均未开工。
