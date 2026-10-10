@@ -1,3 +1,4 @@
+using System.Threading;
 using TaleWorlds.MountAndBlade;
 
 namespace CombatBrain2.Host
@@ -30,11 +31,12 @@ namespace CombatBrain2.Host
         }
 
         // 原生选中本行为后由 FormationAI 调用（受 IsAIControlled 门控）。
-        // 写令发生在这里——即原生主循环内、主线程上——而不是本方另起一条腿抢写。
+        // 原生主循环不等于主线程：这里只负责把本次命令交给 TestDriver 判决，
+        // 由它决定就地执行还是最小转交给已确认的主线程执行点。
         public override void TickOccasionally()
         {
             if (!_armed) return;
-            TestDriver.Instance.ExecuteFromBehavior(base.Formation);
+            TestDriver.Instance.OnBehaviorTick(base.Formation, Thread.CurrentThread.ManagedThreadId);
         }
 
         protected override void CalculateCurrentOrder()

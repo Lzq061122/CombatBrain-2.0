@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 using CombatBrain2.Core;
 using TaleWorlds.MountAndBlade;
 
@@ -14,6 +15,9 @@ namespace CombatBrain2.Host
 
         private readonly ExecutionGate _gate = new ExecutionGate();
         private readonly WriteLedger _ledger = new WriteLedger();
+        private readonly ThreadHandoff _handoff = new ThreadHandoff();
+        private readonly OriginalMethodReceipt _receipt = new OriginalMethodReceipt();
+        private Formation _receiptTarget;
         private readonly Dictionary<string, CbHoldBehavior> _armedBehaviors =
             new Dictionary<string, CbHoldBehavior>();
         private TestIntent _intent;
@@ -202,6 +206,8 @@ namespace CombatBrain2.Host
             // Mission 结束清掉本方意图与对象状态。
             _gate.ClearMission();
             _ledger.ClearMission();
+            _handoff.Clear();
+            _receiptTarget = null;
             DisarmAllBehaviors("MissionEnded", t);
             _snapshot = null;
             _intent = null;
@@ -506,20 +512,105 @@ namespace CombatBrain2.Host
                 " at=" + Cb2Log.F(now));
         }
 
-        // 原生主循环内的执行点：本方行为被原生选中后由 FormationAI 调 TickOccasionally 进入这里。
-        // 这是写令真正发生的地方——在游戏主线程、受原生 IsAIControlled 门控之内，
-        // 不是本方并列抢写。重复 tick 被执行门去重。
-        internal void ExecuteFromBehavior(Formation f)
+        // 原方法体入口观测：只在本方这次调用的武装窗口内、且对象就是本方目标时记入回执。
+        internal void ObserveOriginalEnter(Formation f, int threadId)
         {
-            var mission = Mission.Current;
-            if (mission == null || f == null) return;
-            if (_intent == null || _intent.IsClosed) return;
-            if (_intent.SelectedAt < 0) return;
-            TryExecuteStop(mission, f);
+            if (_receiptTarget == null || f == null) return;
+            if (!ReferenceEquals(_receiptTarget, f)) return;
+            _receipt.ObserveEnter(threadId);
         }
 
-        // 执行站定。仅在真实获选之后调用一次；重复回调被执行门去重。
-        internal void TryExecuteStop(Mission mission, Formation f)
+        // 主线程执行点的登记来源：Mission tick。只登记第一次，之后不再改。
+        internal void MarkMainThread(int threadId)
+        {
+            bool first = !_handoff.HasMainThread;
+            _handoff.MarkMainThread(threadId);
+            if (first)
+            {
+                Cb2Log.Line("MAIN_THREAD_MARKED",
+                    "tid=" + threadId +
+                    " source=mission_tick");
+            }
+        }
+
+        // 原生选中本方行为后由 FormationAI 调 TickOccasionally 进入这里。
+        // 原生主循环不等于主线程：只有线程号等于已登记的主线程号才允许就地写令，
+        // 否则把本次这一条命令最小转交给 Mission tick，不在这里执行。
+        internal void OnBehaviorTick(Formation f, int threadId)
+        {
+            if (f == null) return;
+            var mission = Mission.Current;
+            if (mission == null) return;
+            if (_intent == null || _intent.IsClosed) return;
+            if (_intent.SelectedAt < 0) return;
+
+            if (_handoff.IsMainThread(threadId))
+            {
+                _handoff.NoteDirect();
+                Cb2Log.Line("HANDOFF_DIRECT",
+                    "intent=" + _intent.IntentId +
+                    " key=" + _intent.BoundKey +
+                    " tid=" + threadId +
+                    " at=" + Cb2Log.F(SafeTime(mission)));
+                TryExecuteStop(mission, f, threadId);
+                return;
+            }
+
+            bool deferred = _handoff.TryDefer(
+                _intent.IntentId, _intent.BoundKey, _intent.BoundObjectIdentity,
+                threadId, SafeTime(mission));
+
+            Cb2Log.Line(deferred ? "HANDOFF_DEFERRED" : "HANDOFF_SLOT_BUSY",
+                "intent=" + _intent.IntentId +
+                " key=" + _intent.BoundKey +
+                " callback_tid=" + threadId +
+                " main_tid=" + _handoff.MainThreadId +
+                " at=" + Cb2Log.F(SafeTime(mission)));
+        }
+
+        // 主线程执行点：只消费转交槽位里那一条命令，不重放历史、不批量。
+        internal void DrainPendingCommand(Mission mission)
+        {
+            if (mission == null) return;
+            if (!_handoff.HasPending) return;
+
+            var p = _handoff.TakePending();
+            if (_intent == null || _intent.IsClosed) return;
+            if (!string.Equals(p.IntentId, _intent.IntentId, StringComparison.Ordinal)) return;
+            if (_intent.SelectedAt < 0) return;
+
+            var f = FindByKey(mission, p.Key);
+            if (f == null)
+            {
+                Cb2Log.Line("HANDOFF_DROPPED",
+                    "intent=" + p.IntentId + " key=" + p.Key + " reason=formation_not_found");
+                return;
+            }
+
+            int tid = Thread.CurrentThread.ManagedThreadId;
+            Cb2Log.Line("HANDOFF_EXECUTED",
+                "intent=" + p.IntentId +
+                " key=" + p.Key +
+                " obj=" + p.ObjectIdentity +
+                " callback_tid=" + p.CallbackThreadId +
+                " exec_tid=" + tid +
+                " is_main_thread=" + (_handoff.IsMainThread(tid) ? 1 : 0) +
+                " at=" + Cb2Log.F(SafeTime(mission)));
+
+            TryExecuteStop(mission, f, tid);
+        }
+
+        private static Formation FindByKey(Mission mission, string key)
+        {
+            var parts = key.Split('/');
+            if (parts.Length != 2) return null;
+            int teamIndex;
+            if (!int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out teamIndex)) return null;
+            return FormationSampler.FindFormation(mission, teamIndex, parts[1]);
+        }
+
+        // 执行站定。仅在真实获选且已落到主线程执行点之后调用一次；重复回调被执行门去重。
+        internal void TryExecuteStop(Mission mission, Formation f, int execThreadId)
         {
             if (_intent == null || f == null) return;
             double now = SafeTime(mission);
@@ -565,6 +656,12 @@ namespace CombatBrain2.Host
             string before = "";
             try { before = OrderNameOf(f); } catch (Exception e) { before = "<err:" + e.GetType().Name + ">"; }
 
+            // 原方法完成/跳过回执：setter 普通返回只能说明调用回来了，
+            // 不能说明原方法体真的执行过。观测点是原方法体第一句的原生事件——
+            // 它被跳过时不会触发。这里在调用前后夹住武装窗口，拿到的才是本次调用的回执。
+            _receiptTarget = f;
+            _receipt.Arm();
+
             bool invoked = false;
             string error = "";
             try
@@ -582,6 +679,10 @@ namespace CombatBrain2.Host
                 InOurWrite = false;
             }
 
+            bool originalEntered = _receipt.Disarm();
+            int originalThreadId = _receipt.EnterThreadId;
+            _receiptTarget = null;
+
             string after = "";
             try { after = OrderNameOf(f); } catch (Exception e) { after = "<err:" + e.GetType().Name + ">"; }
 
@@ -597,6 +698,10 @@ namespace CombatBrain2.Host
                 " order_before=" + before +
                 " order_after=" + after +
                 " route=native_behavior_apply" +
+                " exec_tid=" + execThreadId +
+                " is_main_thread=" + (_handoff.IsMainThread(execThreadId) ? 1 : 0) +
+                " original_body_entered=" + (originalEntered ? 1 : 0) +
+                " original_body_tid=" + (originalEntered ? originalThreadId.ToString(CultureInfo.InvariantCulture) : "-1") +
                 " at=" + Cb2Log.F(now) +
                 " write_attempts=" + _gate.WriteAttempts);
         }

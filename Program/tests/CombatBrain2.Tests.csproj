@@ -16,11 +16,15 @@
     <Compile Include="SnapshotTests.cs" />
     <Compile Include="ExecutionGateTests.cs" />
     <Compile Include="RevocationTests.cs" />
+    <Compile Include="ThreadHandoffTests.cs" />
+    <Compile Include="OriginalMethodReceiptTests.cs" />
     <Compile Include="..\src\Core\TestParameters.cs" Link="Core\TestParameters.cs" />
     <Compile Include="..\src\Core\FormationSnapshot.cs" Link="Core\FormationSnapshot.cs" />
     <Compile Include="..\src\Core\TargetSelector.cs" Link="Core\TargetSelector.cs" />
     <Compile Include="..\src\Core\ExecutionGate.cs" Link="Core\ExecutionGate.cs" />
     <Compile Include="..\src\Core\WriteLedger.cs" Link="Core\WriteLedger.cs" />
+    <Compile Include="..\src\Core\ThreadHandoff.cs" Link="Core\ThreadHandoff.cs" />
+    <Compile Include="..\src\Core\OriginalMethodReceipt.cs" Link="Core\OriginalMethodReceipt.cs" />
   </ItemGroup>
 
   <ItemGroup>

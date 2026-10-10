@@ -44,6 +44,7 @@ namespace CombatBrain2.Host
             {
                 _started = true;
                 TestDriver.Instance.OnMissionStart(mission);
+                TestDriver.Instance.MarkMainThread(CurrentThreadId());
                 Cb2Log.Line("BEHAVIOR_START",
                     "sampling_behavior_initialized tid=" + CurrentThreadId());
             }
@@ -63,6 +64,9 @@ namespace CombatBrain2.Host
             }
 
             TestDriver.Instance.Tick(mission);
+
+            // 主线程执行点：消费非主线程回调转交过来的那一条命令。
+            TestDriver.Instance.DrainPendingCommand(mission);
 
             if (!_hooked)
             {
@@ -216,6 +220,10 @@ namespace CombatBrain2.Host
 
         private void OnNativeMovementOrder(Formation f, MovementOrder.MovementOrderEnum orderEnum)
         {
+            // 原方法完成/跳过回执：该事件是 SetMovementOrder 方法体的第一句，
+            // 在武装窗口内出现即证明本次调用的原方法体真的被执行；被跳过时不会出现。
+            TestDriver.Instance.ObserveOriginalEnter(f, CurrentThreadId());
+
             // 本方自己的 setter 调用不算原生应用。
             if (TestDriver.InOurWrite) return;
 

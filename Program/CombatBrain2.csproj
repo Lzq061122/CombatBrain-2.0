@@ -19,6 +19,8 @@
     <Compile Include="src\Core\TargetSelector.cs" />
     <Compile Include="src\Core\ExecutionGate.cs" />
     <Compile Include="src\Core\WriteLedger.cs" />
+    <Compile Include="src\Core\ThreadHandoff.cs" />
+    <Compile Include="src\Core\OriginalMethodReceipt.cs" />
     <Compile Include="src\Host\RuntimeIdentity.cs" />
     <Compile Include="src\Host\BuildIdentity.g.cs" />
     <Compile Include="src\Host\CbHoldBehavior.cs" />
