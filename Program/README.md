@@ -16,9 +16,10 @@
 ## 当前状态
 
 P0 第一批（最小命令通路，派单 `TacticalCommandLab/_dispatch/2026-10-10-cb20-p0-minimal-command-path.md`）
-已落地：原生行为注册（run 4）与主线程转交 + 原方法完成回执（run 5）两项整改均已完成并通过实机。
+已落地：原生行为注册（run 4）、主线程写令与原方法入口/返回/后值组合证据（run 5）已通过实机。
 决定性场次 `_verify/sessions/20261010-225539/`（run 5，build `b20261010-224859-60fa713e`，pid 17452）。
-本批成果已交回 Codex 独立验收；最终结论以验收为准（`_verify/P0A-CODEX-REREVIEW.md`）。
+Codex run 5 独立验收：上述实机事实成立；第一批整体仍待转交槽位的同步保障修复。
+有限整改见 `_verify/P0A-CODEX-RUN5-REVIEW.md` §2；旧复验报告保留为历史。
 
 - 规模：`src/` 16 个 .cs（Core 8 + Host 8），`tests/` 7 个测试文件 **58 个**测试全绿
   （43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5）。
