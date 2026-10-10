@@ -24,7 +24,8 @@
 - `assembly_file_sha256` = `44845964C8AD9D825309AC053529F68BE2B909EFD8807A1BF7E57D02A667D8B2`
 - 部署路径 = `E:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\Modules\CombatBrain2\bin\Win64_Shipping_Client\CombatBrain2.dll`（37376 B，2026-10-10 17:13:41）
 - 游戏版本 = `v1.4.8.119303`，日志报告 `v1.4.8.0`（`ApplicationVersion.FromString("v1.4.8")`）
-- **回溯一致**：强制全新重编（`--no-incremental`，输出到临时目录，已删）得到的 DLL 与本机 `Program\bin\Debug\CombatBrain2.dll`、已部署文件**三方同为上述 SHA256**；场次日志里的 `assembly_file_sha256` 也是同一值。
+- **回溯口径更正（2026-10-10，Codex）**：撤回“强制全新重编、Program\bin\Debug、已部署文件三方同为上述 SHA256”的回溯声明。开发本轮报告的全新重编摘要为 `732100BE1C3FD21F584A560D480E30DB879992A64911DBC62728AFCA1C03D834`；本次只读核对保留在 `Program\obj\Debug\CombatBrain2.dll` 的该产物与受审 `Program\bin\Debug\CombatBrain2.dll`：两者均为 37376 B，恰有 **72 字节构建元数据差异，其余 37304 字节逐字节相同**。差异位于 PE/调试目录时间戳、MVID、CodeView GUID 和 PDB 校验摘要；零基文件偏移分别为 136–139、33340–33355、35536–35539、35620–35635、35707–35738。此对照支持这些元数据以外的文件内容一致，不能证明当时完整编译输入已还原；`44845964…` 的全新重编摘要目前无法复现。本次未重新构建或运行测试。
+- **run 6 身份保留**：该场 `sessions\20261010-171526\CombatBrain2.log` L1 的 `assembly_file_sha256` 与目前仍在盘的受审及部署文件均为上述 `44845964…`；场次的加载 MVID、路径及原始日志保持不变。加载身份以该场记录和对应部署产物为依据，不用本轮 `732100BE…` 产物替换或倒写该场身份。
 - 说明：`assembly_file_sha256` 是**磁盘文件摘要**，不等于进程内存字节；`mvid` 是本场加载的程序集模块版本 id。
 
 `SubModule.xml` 部署副本 SHA256 = `CF246650A1E7425639C9CA7D5B4DD2BC87542D89DA655A0F7B847422161F6168`（与源文件 `_deploy\SubModule.xml` 同摘要）。
