@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>CombatBrain2</AssemblyName>
+    <RootNamespace>CombatBrain2</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src\Core\Cb2Log.cs" />
+    <Compile Include="src\Core\TestParameters.cs" />
+    <Compile Include="src\Core\FormationSnapshot.cs" />
+    <Compile Include="src\Core\TargetSelector.cs" />
+    <Compile Include="src\Core\ExecutionGate.cs" />
+    <Compile Include="src\Core\WriteLedger.cs" />
+    <Compile Include="src\Host\RuntimeIdentity.cs" />
+    <Compile Include="src\Host\BuildIdentity.g.cs" />
+    <Compile Include="src\Host\FormationSampler.cs" />
+    <Compile Include="src\Host\IndependentObservation.cs" />
+    <Compile Include="src\Host\TestDriver.cs" />
+    <Compile Include="src\Host\SamplingBehavior.cs" />
+    <Compile Include="src\Host\SubModule.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bannerlord.ReferenceAssemblies" Version="1.4.8.119303" />
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.CustomBattle" Version="1.4.8.119303" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" />
+  </ItemGroup>
+
+</Project>

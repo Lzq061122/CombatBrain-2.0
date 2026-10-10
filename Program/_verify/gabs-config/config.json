@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "portRanges": {
+    "customRanges": [
+      { "min": 19500, "max": 19600 }
+    ]
+  },
+  "timeouts": {
+    "startup": {
+      "processStartSeconds": 30,
+      "gabpConnectSeconds": 120
+    },
+    "session": {
+      "ownerLeaseSeconds": 120
+    }
+  },
+  "games": {
+    "bannerlord148-cb2": {
+      "id": "bannerlord148-cb2",
+      "name": "Mount & Blade II: Bannerlord (CombatBrain 2.0 P0)",
+      "description": "P0 batch of CombatBrain 2.0. Loads CombatBrain2 (the module under test) and the existing CBATH harness for launch/CustomBattle/deployment/Mission control. Old CombatBrain and CommandLabProbe are deliberately absent.",
+      "launchMode": "DirectPath",
+      "target": "E:\\SteamLibrary\\steamapps\\common\\Mount & Blade II Bannerlord\\bin\\Win64_Shipping_Client\\Bannerlord.exe",
+      "workingDir": "E:\\SteamLibrary\\steamapps\\common\\Mount & Blade II Bannerlord\\bin\\Win64_Shipping_Client",
+      "args": [
+        "/singleplayer",
+        "_MODULES_*Bannerlord.Harmony*Bannerlord.ButterLib*Bannerlord.UIExtenderEx*Bannerlord.MBOptionScreen*Native*SandBoxCore*Sandbox*StoryMode*CustomBattle*CombatBrain2*CombatBrainAutonomousTestHarness*_MODULES_",
+        "/anticheat"
+      ]
+    }
+  }
+}

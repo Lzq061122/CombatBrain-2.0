@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>CombatBrain2.Tests</AssemblyName>
+    <RootNamespace>CombatBrain2.Tests</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="TargetSelectorTests.cs" />
+    <Compile Include="TestIntentTests.cs" />
+    <Compile Include="SnapshotTests.cs" />
+    <Compile Include="ExecutionGateTests.cs" />
+    <Compile Include="RevocationTests.cs" />
+    <Compile Include="..\src\Core\TestParameters.cs" Link="Core\TestParameters.cs" />
+    <Compile Include="..\src\Core\FormationSnapshot.cs" Link="Core\FormationSnapshot.cs" />
+    <Compile Include="..\src\Core\TargetSelector.cs" Link="Core\TargetSelector.cs" />
+    <Compile Include="..\src\Core\ExecutionGate.cs" Link="Core\ExecutionGate.cs" />
+    <Compile Include="..\src\Core\WriteLedger.cs" Link="Core\WriteLedger.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+</Project>

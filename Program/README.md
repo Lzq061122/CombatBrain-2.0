@@ -15,5 +15,18 @@
 
 ## 当前状态
 
-尚未落地源码（P0 未开工）。本文件的存在保证本目录在 clone 后仍然存在
-且职责明确。
+P0 第一批（最小命令通路，派单 `TacticalCommandLab/_dispatch/2026-10-10-cb20-p0-minimal-command-path.md`）
+已落地并在实机验证。
+
+- 规模：`src/` 13 个 .cs（Core 6 + Host 7），`tests/` 5 个测试文件 43 个测试全绿。
+- 模块身份：`Id CombatBrain2`、程序集 `CombatBrain2.dll`、
+  `SubModuleClassType CombatBrain2.Host.SubModule`，与旧 1.x `CombatBrain` 完全分离。
+- 构建：`dotnet build CombatBrain2.csproj -c Debug`（.NET SDK 8，`net472`，
+  引用 NuGet `Bannerlord.ReferenceAssemblies[.CustomBattle] 1.4.8.119303`）。
+- 部署：`_deploy/deploy.ps1`，目标 `Modules\CombatBrain2\`，不触碰 `Modules\CombatBrain\`。
+- 实机验证入口：`_verify/run-p0.ps1`，日志落在 `_verify/sessions/<快照时间>/`。
+- 已验证范围：独立加载身份、双方编队只读快照与独立观测对照、
+  候选不写→原生真实获选→Stop 后值、有限窗口到期与显式关闭。
+- 未验证范围（不得据此推进依赖这些能力的功能）：玩家接管边沿、目标失效分支、
+  选择超时分支、撤销的真实回退执行、快照陈旧拒绝路径、下一 Mission 无状态残留。
+- "P0 第一批通过"不等于 P0 整体通过；战术决策、预备队产品规则等均未开工。
