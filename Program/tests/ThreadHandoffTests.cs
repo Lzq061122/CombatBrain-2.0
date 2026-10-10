@@ -1,4 +1,6 @@
 using CombatBrain2.Core;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace CombatBrain2.Tests
@@ -85,6 +87,73 @@ namespace CombatBrain2.Tests
             h.MarkMainThread(31);
 
             Assert.Equal(30, h.MainThreadId);
+        }
+
+        // 同一空槽位被多个回调线程同时投递时，只允许一条进槽位，
+        // 且 DeferredCount 必须与实际接受的条数一致（不能丢更新）。
+        [Fact]
+        public void ConcurrentDeferAttemptsAreSerialized()
+        {
+            for (int round = 0; round < 40; round++)
+            {
+                var h = new ThreadHandoff();
+                h.MarkMainThread(30);
+
+                int accepted = 0;
+                int workerCount = 8;
+                var threads = new Thread[workerCount];
+                using (var barrier = new Barrier(workerCount))
+                {
+                    for (int i = 0; i < workerCount; i++)
+                    {
+                        int tid = 100 + i;
+                        threads[i] = new Thread(() =>
+                        {
+                            barrier.SignalAndWait();
+                            if (h.TryDefer("i1", "1/" + tid, "obj" + tid, tid, 15.5))
+                                Interlocked.Increment(ref accepted);
+                        });
+                        threads[i].Start();
+                    }
+                    foreach (var t in threads) t.Join();
+                }
+
+                Assert.True(accepted <= 1, "accepted=" + accepted + " round=" + round);
+                Assert.Equal(accepted, h.DeferredCount);
+            }
+        }
+
+        // 槽位里那条命令被取出时只能被交付一次，不能两个消费方同时拿到同一条。
+        [Fact]
+        public void PendingCommandIsDeliveredExactlyOnce()
+        {
+            for (int round = 0; round < 40; round++)
+            {
+                var h = new ThreadHandoff();
+                h.MarkMainThread(30);
+                h.TryDefer("i1", "1/0", "aaa@Infantry", 56, 15.5);
+
+                int taken = 0;
+                int workerCount = 4;
+                var threads = new Thread[workerCount];
+                using (var barrier = new Barrier(workerCount))
+                {
+                    for (int i = 0; i < workerCount; i++)
+                    {
+                        threads[i] = new Thread(() =>
+                        {
+                            barrier.SignalAndWait();
+                            var p = h.TakePending();
+                            if (p != null) Interlocked.Increment(ref taken);
+                        });
+                        threads[i].Start();
+                    }
+                    foreach (var t in threads) t.Join();
+                }
+
+                Assert.Equal(1, taken);
+                Assert.False(h.HasPending);
+            }
         }
     }
 }

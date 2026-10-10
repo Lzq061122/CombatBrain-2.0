@@ -15,59 +15,79 @@ namespace CombatBrain2.Core
     // 非主线程来的获选回调不允许就地写令，只能把本次命令放进单槽位转交。
     internal sealed class ThreadHandoff
     {
+        // 跨线程共享：回调线程投递、主线程取出、主线程清空都要过同一把锁。
+        private readonly object _sync = new object();
         private int _mainThreadId = -1;
         private PendingCommand _pending;
         private int _directCount;
         private int _deferredCount;
 
-        internal bool HasMainThread { get { return _mainThreadId >= 0; } }
-        internal int MainThreadId { get { return _mainThreadId; } }
-        internal bool HasPending { get { return _pending != null; } }
-        internal int DirectCount { get { return _directCount; } }
-        internal int DeferredCount { get { return _deferredCount; } }
+        internal bool HasMainThread { get { lock (_sync) { return _mainThreadId >= 0; } } }
+        internal int MainThreadId { get { lock (_sync) { return _mainThreadId; } } }
+        internal bool HasPending { get { lock (_sync) { return _pending != null; } } }
+        internal int DirectCount { get { lock (_sync) { return _directCount; } } }
+        internal int DeferredCount { get { lock (_sync) { return _deferredCount; } } }
 
         internal void MarkMainThread(int threadId)
         {
-            if (_mainThreadId < 0) _mainThreadId = threadId;
+            lock (_sync)
+            {
+                if (_mainThreadId < 0) _mainThreadId = threadId;
+            }
         }
 
         internal bool IsMainThread(int threadId)
         {
-            return _mainThreadId >= 0 && threadId == _mainThreadId;
+            lock (_sync)
+            {
+                return _mainThreadId >= 0 && threadId == _mainThreadId;
+            }
         }
 
         internal void NoteDirect()
         {
-            _directCount++;
+            lock (_sync)
+            {
+                _directCount++;
+            }
         }
 
         // 同一个意图只保留一条待执行命令：后来者不覆盖先到的那条。
         internal bool TryDefer(string intentId, string key, string objectIdentity,
                               int callbackThreadId, double missionTime)
         {
-            if (_pending != null) return false;
-            _pending = new PendingCommand
+            lock (_sync)
             {
-                IntentId = intentId,
-                Key = key,
-                ObjectIdentity = objectIdentity,
-                CallbackThreadId = callbackThreadId,
-                MissionTime = missionTime
-            };
-            _deferredCount++;
-            return true;
+                if (_pending != null) return false;
+                _pending = new PendingCommand
+                {
+                    IntentId = intentId,
+                    Key = key,
+                    ObjectIdentity = objectIdentity,
+                    CallbackThreadId = callbackThreadId,
+                    MissionTime = missionTime
+                };
+                _deferredCount++;
+                return true;
+            }
         }
 
         internal PendingCommand TakePending()
         {
-            var p = _pending;
-            _pending = null;
-            return p;
+            lock (_sync)
+            {
+                var p = _pending;
+                _pending = null;
+                return p;
+            }
         }
 
         internal void Clear()
         {
-            _pending = null;
+            lock (_sync)
+            {
+                _pending = null;
+            }
         }
     }
 }
