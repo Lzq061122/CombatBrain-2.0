@@ -16,20 +16,27 @@
 ## 当前状态
 
 P0 第一批（最小命令通路，派单 `TacticalCommandLab/_dispatch/2026-10-10-cb20-p0-minimal-command-path.md`）
-已落地并取得限定实机证据；Codex 独立审查发现 C 路线尚未实现，第一批整体暂不通过。
+已落地；Codex 独立审查判 C 路线未实现后完成限定整改，并跑通一场 Route C 实机验证
+（`_verify/sessions/20261010-213621/`，build `b20261010-211405-653e521d`）。
 
-- 规模：`src/` 13 个 .cs（Core 6 + Host 7），`tests/` 5 个测试文件 43 个测试全绿。
+- 规模：`src/` 14 个 .cs（Core 6 + Host 8，新增 `Host/CbHoldBehavior.cs`），
+  `tests/` 5 个测试文件 **47 个**测试全绿（43 + 执行前三项复核新增 4）。
 - 模块身份：`Id CombatBrain2`、程序集 `CombatBrain2.dll`、
   `SubModuleClassType CombatBrain2.Host.SubModule`，与旧 1.x `CombatBrain` 完全分离。
 - 构建：`dotnet build CombatBrain2.csproj -c Debug`（.NET SDK 8，`net472`，
   引用 NuGet `Bannerlord.ReferenceAssemblies[.CustomBattle] 1.4.8.119303`）。
 - 部署：`_deploy/deploy.ps1`，目标 `Modules\CombatBrain2\`，不触碰 `Modules\CombatBrain\`。
 - 实机验证入口：`_verify/run-p0.ps1`，日志落在 `_verify/sessions/<快照时间>/`。
-- 已有实机事实：独立加载身份、双方编队只读快照与独立观测对照、
-  本地候选阶段不写令、两次外部 Stop 后值变化、有限窗口到期与显式关闭。
-- 需要限定整改：单个站定 Behavior 尚未进入原生选择；普通写令回调被误标为
-  REAL_SELECTION。补真实 C 通路及执行前对象/AI/当前行为复核，见
-  `_verify/P0A-CODEX-REVIEW.md`。
+- 命令通路（TCL C 路线，已实机验证）：`CbHoldBehavior : BehaviorComponent` 经
+  `FormationAI.AddAiBehavior` + `SetBehaviorWeight<CbHoldBehavior>(8.0)` 进入原生选择链；
+  获选判据为 `FormationAI.OnActiveBehaviorChanged` + `ReferenceEquals(f.AI.ActiveBehavior, ours)`；
+  写令由原生 `FormationAI.TickOccasionally` 在原生主循环内应用
+  （`route=native_behavior_apply`）。不申请 Full、不关闭 AI、无 Authority/Lease。
+- 已有实机事实：独立加载身份、双方编队只读快照与独立观测对照（run 4 晚期两条独立
+  路径逐项一致：47/40、total 87）、候选阶段零写入、两次 Move→StandYourGround 实际后值、
+  有限窗口到期与显式关闭后无旧意图写入、行为撤权（`BEHAVIOR_DISARMED weight=0`）。
 - 未验证范围（不得据此推进依赖这些能力的功能）：玩家接管边沿、目标失效分支、
-  选择超时分支、撤销的真实回退执行、快照陈旧拒绝路径、下一 Mission 无状态残留。
+  选择超时分支、撤销的真实回退执行（`REVOKE_EXECUTED` 0 条，`previous_order_not_restorable`）、
+  快照陈旧拒绝路径（`age` 恒 0）、下一 Mission 无状态残留。
+- 详见 `_verify/P0A-HANDOVER.md`（交接与判据）与 `_verify/P0A-CODEX-REVIEW.md`（独立审查）。
 - "P0 第一批通过"不等于 P0 整体通过；战术决策、预备队产品规则等均未开工。
