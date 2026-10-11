@@ -1,22 +1,24 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 P1 Minimal Loop Implementation Script
-Version: 1.1
+Version: 1.2
 Author Role: CombatBrain 2.0 Development Planner
 Model: GPT-6
 Created: 2026-10-11
-Updated: 2026-10-11
+Updated: 2026-10-12
 Target: CombatBrain 2.0 Development Team
 Scope: P1 / Infantry and Ranged / Minimal Plan Execution and Feedback
 Reviewer: Codex
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.2 2026-10-12 00:20 | role=CombatBrain 2.0 Development Dispatcher and Reviewer | model=GPT-6 | editor=codex-cb20-p1-driver-replacement-decision-20261012 | note=明确批准P1取代固定P0驱动，删除旧意图与专属测试，改为新通路安全要求回归，默认关闭只采样不发令
 v1.1 2026-10-11 22:21 | role=CombatBrain 2.0 Development Dispatcher and Reviewer | model=GPT-6 | editor=codex-cb20-p1-script-confirmation-20261011 | note=明确任务级执行门、多编队转交、安全退出例外与未生效反馈处置，修正时间和几何判据并确认进入限定实现
 -->
 
-# P1 最小指挥闭环 —— 实现前脚本（v1.1，Codex 已确认）
+# P1 最小指挥闭环 —— 实现前脚本（v1.2，Codex 已确认）
 
 状态：**Codex 已确认，允许按本脚本进入限定实现**。确认基于文档和现有源码约束，不是 P1 实机通过。§5 参数在本版本冻结；实测期间不得边跑边改通过口径。v1 来自 `789272c`，本轮只修改本文件，不改实现、构建或部署。
+2026-10-12 当前裁决：采用 P1 驱动取代固定 P0 测试驱动，具体范围与报告口径见 §9.4.1。本次明确授权是 v1.1 对 P0 驱动保留约定的修订，不把已有未提交重写解释为开工前该约定已不存在。其他任务、参数、效果与安全验收条件保持不变。
 日期：2026-10-11。基线 HEAD `fe73825`（P0 已由 Codex 接受退出）。派单：`E:\MBmod\TacticalCommandLab\_dispatch\2026-10-11-cb20-p1-minimal-loop-script.md`（v1.0，提交 `7d22cce`，未 push）。
 与 `P1-MINIMAL-LOOP-OUTLINE.md`（v2）冲突时以本文件为准。
 
@@ -278,21 +280,30 @@ v1.1 2026-10-11 22:21 | role=CombatBrain 2.0 Development Dispatcher and Reviewer
 - 分流以 Mission 内稳定编队键及实际对象身份为基础，每编队最多一个 pending，载体带 mission/plan/task 身份；同任务重复投递去重，不覆盖不同未关闭任务，同编队新任务只能在旧任务关闭清槽后进入。不同编队独立存放，消费后仍即时复核当前任务、Plan、资格、对象和本方行为；所有发布/取出/清空继续受同一同步约束，Mission 结束全清。不能只按编队槽位号判为同一任务。
 - `Program/src/Core/ExecutionGate.cs` / `WriteLedger.cs`：每个普通任务及退出命令用独立状态键，不能让一个 `plan_id` 共用一次写入额度或覆盖另一支编队的账本。必要时改 `TestParameters.cs` 的取消原因枚举；既有 P0 拒绝顺序、即时资格门和单次去重语义保留。
 - `Program/src/Core/FormationSnapshot.cs`：加编队类别辅助（`Infantry`/`Ranged` 判定）与按队/类别遍历入口；其它字段不动。
-- `Program/src/Host/TestDriver.cs`：新增 P1 通路（评价→计划→任务→投递→反馈）；P0 通路保留。
+- `Program/src/Host/TestDriver.cs`：由 P1 通路（评价→计划→任务→投递→反馈）取代固定 P0 测试驱动，不恢复旧固定 A/B 流程。P0 已验安全要求在新通路上保留，历史源码与实机证据按 §9.4.1 留存。
 - `Program/src/Host/CbHoldBehavior.cs`：行为按当前任务产出命令（不再写死 `Stop`）；`Hold` 行为等价于现状。
-- `Program/src/Host/SamplingBehavior.cs`：按开关分流 P0 固定驱动 / P1 自动指挥（**互斥**）。
+- `Program/src/Host/SamplingBehavior.cs`：开关启用时运行 P1 自动指挥；关闭时只采样/观测，不退回旧 P0 固定驱动。
 - `Program/src/Host/FormationSampler.cs`：如需，补 P1 反馈所需字段（实际目标位置等）。
 - `Program/src/Host/EligibilityProbe.cs`：支持按 `plan_id`/编队键触发资格变化（沿用既有哨兵文件，默认关闭）。
 - `Program/CombatBrain2.csproj`：登记新增 `.cs`（`EnableDefaultCompileItems=false`，漏登记则不参与编译）。
 - 构建自动更新 `Program/src/Host/BuildIdentity.g.cs`，不手工伪造身份；必要时在 `Cb2Log.cs` 只补上述字段，不重写日志机制。
 
 ### 9.3 测试
-- `Program/tests/`：新增 `PlanTests.cs` / `AssessmentTests.cs` / `MultiFormationHandoffTests.cs`；扩展 `TargetSelectorTests.cs`（Ranged）、`ThreadHandoffTests.cs`（按 key 分流）。既有 65 个用例必须继续全绿。
+- `Program/tests/`：覆盖 Plan、评价、任务反馈、独立记账及多编队转交；可以按实际纯 Core 结构组织测试文件，扩展 `TargetSelectorTests.cs`（Ranged）、`ThreadHandoffTests.cs`（按 key 分流）。仍适用的既有安全用例必须保留并通过；仅针对已删除 P0 固定驱动的测试按 §9.4.1 退役/替换，不再要求原 65 个用例逐项原样保留。
 - 相应更新 `Program/tests/CombatBrain2.Tests.csproj` 的纯 Core 链接项；必要的执行门/账本取消与退出动作测试纳入上述范围，不把 Host 编译进纯 Core 测试冒充实机证明。
 
 ### 9.4 开关与互斥
-- 沿用哨兵文件方式（`Documents\CombatBrain2\` 下），默认关闭；关闭时行为与当前完全一致。
-- **同一场 Mission 只能有一个写令来源**：P0 固定驱动与 P1 自动指挥互斥，由开关决定，不得同时运行。
+- 沿用哨兵文件方式（`Documents\CombatBrain2\` 下），P1 默认关闭；关闭态不生成 Plan/任务，不投递或执行本方命令，只保留采样/观测。这是新的默认语义，不宣称与旧 P0 固定驱动完全一致。
+- 当前 `p1-command-loop.txt` 的 enabled 在 Mission 首次加载时确定。不存在或 enabled=0 对应关闭态；不把中途修改/删除文件称为已实现热关闭。资格丧失、任务/Plan 失效及 Mission 结束仍必须按既定安全要求清槽撤权。
+- **同一场 Mission 只有 P1 一条本方自动指挥来源**；资格测试适配默认关闭，其实际环境修改必须如实标记，不能冒充本方自动指挥。
+
+### 9.4.1 P0 驱动替代的明确裁决与证据口径
+- 批准删除 `TargetSelector.cs` 的旧 `TestIntent` 类、`TestParameters.cs` 的 `IntentWindowSeconds` / `TriggerDelaySeconds` / `BetweenIntentSeconds` / `ExplicitCloseAfterWriteSeconds` 四个 P0 专属常量，以及 `EligibilityProbe.cs` 中已不参与当前流程的 `_planCountAtLoad`。不得顺带删除仍适用的资格门、主线程约束、同步、撤权与 Mission 清理。
+- 批准以 `TaskSelectionDeadlineTests.cs` 替换旧 `TestIntentTests.cs`；旧固定 20 s 意图窗口不属于 P1 Plan 的寿命要求。测试报告列明退役、替换和新增项，不用总数相同/更多宣称原基线原样回归。
+- 本次直接核对：旧 TestIntent 文件 6 个 Fact，替换文件 7 个 Fact；ThreadHandoff 文件由 8 个 Fact 增至 10 个，净增 3。开发报告的当前 68 个通过可以作为该轮测试结果记录，但不能写成“原 65 个用例全部保留并通过，再新增 3 个”。本裁决未重新运行测试，不独立背书其构建/执行读数。
+- 旧 P0 可追溯基线为 `df4cf3d`（源码与 P0 阶段退出时相同，后续为文档变更），旧实机身份、场次与归档保留。历史 P0 通过不撤回，也不冒充新 P1 的实机结果；本批不要求增加旧驱动兼容模式或另跑完整 P0 场。
+- V12 定义为**受影响的新 P1 通路上的安全要求回归**：主线程、真实获选、资格门、撤权、关闭不复活与 Mission 清理。报告显著记录此次对原 §9.2/§9.4 的批准修订和实际默认行为变化，不能称为旧 P0 固定场景逐字回归。
+- 当前 `run-p1.ps1` 尚不存在，尚无两场 P1 主对照记录。所有依赖新实机证据的 V1～V14 条目继续待实机；下一步按本脚本实现 runner 和必要配置入口，再进行既定两场，不追加验收项目、不 push。
 
 ### 9.5 CBATH（在 CBATH 仓库内独立提交）
 - 实现落点限定为既有 `experiments/test-mod/CBATH/CbathTools.cs` / `MissionControl.cs`、自动生成的 `BuildIdentity.g.cs` 及必要项目登记项；实际完整路径按 CBATH 现有源码根核对。采样、RunRecord 与其他工具语义不因配置扩展改动。
@@ -344,7 +355,7 @@ snapshot_id → plan_id → task_id → formation对象身份 → 原因
 | V9 | 分头响应 | 同一正常 Plan 两编队初次实际写入间隔 ≥ 1.5 s；首次命令延迟 ≥ 1.5 s；安全退出例外单列 | 四类时间戳 | 待实机 |
 | V10 | 真实失效 | §7.2 的 1～3 全部成立，且**不是**到期触发 | 我方日志 + CBATH 时间线 | 待实机 |
 | V11 | 不复活 | 恢复后观察 ≥ 8 s，旧普通任务无新写令/重投递/重 arming；一次退出动作与新评价的新 Plan 独立识别 | 日志按 plan/task 身份和命令用途扫描 | 待实机 |
-| V12 | P0 回归 | 主线程、资格门、撤权、关闭不复活、Mission 清理在新通路上成立 | 同两场日志 | 待实机 |
+| V12 | 继承安全要求在 P1 新通路回归 | 主线程、真实获选、资格门、撤权、关闭不复活、Mission 清理在新通路上成立；旧固定 P0 驱动已退役，见 §9.4.1 | 同两场日志 | 待实机 |
 | V13 | 收尾 | Mission 结束清理完成；`run-p1.ps1` 退出码与无新崩溃；时间线归档 | 场次目录 | 待实机 |
 | V14 | Gate 1 对照 | 两场差异落在任务/命令/目标位置，且可追到 `rangedEdge` 差异（非仅 Plan 名称） | V4 日志 + 两场对比 | 待实机 |
 
@@ -376,4 +387,4 @@ snapshot_id → plan_id → task_id → formation对象身份 → 原因
 ---
 
 ## 14. 停止点
-原文档阶段停止点已完成，v1.1 由 Codex 确认进入实现。实现交接时逐项填写 V1～V14 的事实、场次与未验证项，然后交回独立验收。这里批准的是实现方案，不预先登记 P1 阶段通过；若原生入口或命令事实与脚本发生实质矛盾，提交具体缺口与一个最小替代，不自行放宽门槛。
+原文档阶段停止点已完成，v1.1 已确认进入实现；v1.2 明确批准固定 P0 驱动替代及当前删除范围，继续实现 runner 与既定实机交付，无需重复询问这两项。实现交接时逐项填写 V1～V14 的事实、场次与未验证项，然后交回独立验收。这里批准的是实现方案及本次范围修订，不预先登记 P1 阶段通过；若原生入口或命令事实与脚本发生实质矛盾，提交具体缺口与一个最小替代，不自行放宽门槛。
