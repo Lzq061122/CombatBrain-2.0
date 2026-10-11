@@ -274,6 +274,12 @@ finally {
     try { Invoke-Tool 'cbath/end_mission' 40 | Out-Null; Write-Host "end_mission sent" } catch { Write-Host "end_mission failed: $_" }
     Start-Sleep -Seconds 5
 
+    # CBATH 的 RunRecord 只在 OnEndMission 完成，因此 end_mission 之后才取得到完整 1 Hz 独立时间线。
+    try {
+        $r = Invoke-Tool 'cbath/get_last_run' 30
+        [System.IO.File]::WriteAllText((Join-Path $OutDir 'cbath-timeline.json'), $r)
+        Write-Host "cbath-timeline captured"
+    } catch { Write-Host "cbath-timeline capture failed: $_" }
     # 先把本模块日志副本抢下来，再关游戏。
     if (Test-Path $cb2Log) {
         Copy-Item $cb2Log (Join-Path $OutDir 'CombatBrain2.log') -Force
