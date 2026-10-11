@@ -1,5 +1,7 @@
 # P0 Exit Gate 3 —— 控制权安全边沿：本场运行报告
 
+> **Codex 2026-10-11 复核：场景 A/B 的生产否决、取消和撤权事实成立；Gate 3/P0 仍待独立失资格观测与玩家适用域补证。** had_pending=0 接受为本场时序；probe 实读不能替代写定的独立采样；“玩家接管不可达”原推断不予采纳。完整裁定见 `P0-EXIT-GATE3-CODEX-REVIEW.md`。启用文件已备份并移除，默认测试关闭态已恢复。
+
 - Author Role：CombatBrain 2.0 Development Dispatcher / 实现方（本机会话执行）
 - Reviewer：Codex（最终阶段结论由其复核落定）
 - 目的：补齐 P0 Exit Gate 3，使 Movement 控制范围具备可复查的安全退出依据
@@ -73,7 +75,7 @@
 
 `deploy.ps1` 输出：`source_sha256 = deployed_sha256 = 4A7E9C1D...918E8`，与部署目录磁盘文件、以及日志 L1 自报的 `assembly_file_sha256=4a7e9c1d05efc0fe666e022789b11a99a149af73491a579dfa83a9bedca918e8` 三者一致。
 
-**New vs Old**：Old = run 7 的 `b20261011-002322-97c0ff2e`（37376 B，`44845964C8AD9D825309AC053529F68BE2B909EFD8807A1BF7E57D02A667D8B2`）；New = 本单（53248 B，`4A7E9C1D...918E8`）。**未做 byte-diff**；且 `44845964…` 当前不可复现（P0a 阶段已登记），故不按磁盘摘要作跨时间回溯判据。
+**New vs Old（Codex 身份勘误）**：Old run 7 = `b20261011-002322-97c0ff2e`（47104 B，`27F8CBFA29AC1F13A848A61CDC2F761C7751517558CB294AD2DAA30113EF2416`）；New = 本单（53248 B，`4A7E9C1D...918E8`）。37376 B / `44845964…` 属于 run 6，不是 run 7。未做 byte-diff，不重启已收口的构建可复现性调查。
 
 ### 1.4 性能与稳定性数据
 
@@ -124,16 +126,16 @@ WT 与 MT 并非 1:1（`MISSION_START` WT 13:39:24.230 对应 MT 0.000，而 5.4
 **关于"原生玩家接管"是否可达（派单 §2 要求查清）**：
 
 - 引擎层唯一授予玩家拥有的公开入口是 `Formation.PlayerOwner` setter（反编译 `Formation.cs:271-281`：`set { _playerOwner = value; SetControlledByAI(value == null); }`），它直接联动同一个状态位 `IsAIControlled`。
-- 因此"玩家接管"与"AI 控制资格丢失"在引擎里是同一个 `IsAIControlled` 状态的两种表述。
+- `PlayerOwner` 赋值会联动 AI 控制状态，但两者不是同义状态：本场直接关闭 AI 后 PlayerOwner 仍为 null，不能由此声明完整玩家接管事件链已覆盖。
 - 本单**没有伪造 `PlayerOwner`、没有裸反射写私有字段**；实机触发用公开原生 API `Formation.SetControlledByAI(false)` / `(true)`（反编译 `Formation.cs:788-817`）。
 - 结论：**本单所有触发一律标为"测试接口触发的资格变化"，不标为 F1/F6 玩家接管，不宣称玩家接管事件链已通过。**
 
-### 2.1 玩家接管为何在当前控制域不可达（代码入口 + 引擎控制关系依据）
+### 2.1 玩家接管适用性：当前尚未闭合的判断
 
 1. 控制域过滤：`TargetSelector` 硬性排除 `IsPlayerTeam || IsPlayerControlled`，且 `!IsAiControlled` 亦排除；`ExecutionGate.RequestWrite` 再用 `player_owned` / `not_ai_controlled` 兜底。
-2. 引擎侧耦合：`PlayerOwner` setter 是唯一授予玩家拥有的公开入口，且它**就是** `SetControlledByAI(value == null)`。设 `PlayerOwner` 与"丢 AI 控制资格"是同一状态位的两种写法。
-3. 因此本单不必额外构造"专属接管时刻"：资格变化的事实已经覆盖同一状态位。
-4. **CBATH 缺工具不是"不适用"的依据** —— 本条不适用性由代码入口 + 引擎控制关系推出，与 Harness 能力无关。
+2. 引擎侧耦合：PlayerOwner setter 先写独立的 `_playerOwner` 字段，再调用 SetControlledByAI；直接关闭 AI 并未设置 PlayerOwner，不能作等价推断。
+3. 初始过滤不能证明对象后续永不成为玩家队。Codex 静态复核确认公开原生 Mission.JoinEnemyTeam 能改变 PlayerTeam；该路径的本场可达性没有实机取证，原“永久不可达”结论撤回。
+4. CBATH 缺工具不是不适用依据。仍需提交当前控制域排除合法玩家控制变化的完整依据，或补对应真实原生控制路径的安全证据；本场测试资格切换不能直接替代。
 5. 补充未验证项：目标在 selected 后由本方行为持有，真实 UI 玩家接管能否在本方持有期间合法发生，本单**未取到反证也未取证**，登记为未验证（见 §6）。
 
 ---
@@ -294,7 +296,7 @@ L184 PROBE_ELIGIBILITY_RESTORED source_intent=intent-2 mode=b key=1/0 before[ai_
 3. **生产路径因资格丢失取消**：`INTENT_CANCELLED reason=AiControlLost`（**非 WindowExpired / 非 ExplicitClose**）。
 4. **撤权**：`BEHAVIOR_DISARMED armed_before=1 weight_before=8.000 weight_after=0.000`。
 5. **旧意图不再新写令**：intent-2 的 `write_attempts_intent` 终值为 1（即 MT 21.037 那次合法写令）；L169 之后至 L448 无任何 `WRITE_EXECUTED` / `WRITE_BLOCKED` / `BEHAVIOR_REGISTERED` / `REAL_SELECTION` / `HANDOFF_EXECUTED` / `CANDIDATE_SUBMITTED`（按 §4.1 marker 计数核对，各值均属取消前那一段）。
-6. **失资格保持 ≥2 s**：MT 21.044 → 25.050，**3.994 s**。
+6. **失资格保持 ≥2 s**：MT 21.044 → 25.050，**4.006 s**（Codex 按原日志复算）。
 7. **恢复发生在旧截止之前**：25.050 < 40.549；并观察到 Mission 结束（L448）。
 8. **无复活**：`PROBE_ELIGIBILITY_RESTORED ... intent_open_now=<none> same_intent_open=0 write_attempts_source_intent=1`（值仍为取消前那一次）。after 串中 `order=Move active_behavior=BehaviorCautiousAdvance` 是引擎 `SetControlledByAI(true)` 内部 `AI.Tick()` + `SetMovementOrder(AI.ActiveBehavior.CurrentOrder)` 的原生副作用，**如实记录，不伪称为"撤销恢复"**。此时本方行为已 `weight_after=0.000` 且 `_armedBehaviors` 已清空，`FindBestBehavior()` 选出的 `BehaviorCautiousAdvance` 是原生自己的决策。
 
@@ -328,8 +330,8 @@ L184 PROBE_ELIGIBILITY_RESTORED source_intent=intent-2 mode=b key=1/0 before[ai_
 
 - 判据文档第 6 节期望"失资格期间至少 2 次 1 Hz 独立采样带上 `ai_ctrl=0`"。
 - 实际：`ai_ctrl=0` 全日志只出现 4 次，全在 probe 的 `before[...]`/`after[...]` 串里；`SNAPSHOT_FORMATION key=1/0` 全会话 3 条（L204 / L288 / L373）都是 `ai_ctrl=1`。
-- 原因：失资格窗口只有 **3.994 s**，这三处采样时刻均不在窗口内。
-- **不做事后粉饰**：本条以 probe 自己的 `before`/`after` 实读值作数（由 `StateOf()` 在同一 Mission tick 直接读 `f.IsAIControlled`，与 `SNAPSHOT_FORMATION` 同源），偏差如实登记。
+- 复算：A 失资格 4.005 s、B 4.006 s；三条详细快照时刻均不在窗口内。CBATH 本可采集 1 Hz 时间线，但当前 runner 在 end_mission 之前取 get_last_run，归档只有 status=no_run，没有保存结束后才可取得的独立时间线。
+- Codex 裁定：probe before/after 与生产守卫能支持本场核心动作真实发生，不能替代预先写定的独立观测判据。本条继续缺证，不因列为 Deviation 自动判 PASS。
 
 ### 5.3 `HANDOFF_DROPPED reason=intent_closed` 分支本场未触发
 
@@ -394,5 +396,5 @@ L184 PROBE_ELIGIBILITY_RESTORED source_intent=intent-2 mode=b key=1/0 before[ai_
 
 ### 备注：环境与后续清理项
 
-- `C:\Users\Administrator\Documents\CombatBrain2\eligibility-probe.txt` **仍存在**（3 行 `#` 注释 + `intents=A,B`）。文件存在即 enable；若要回到默认关闭态需删除。本报告有意保留当前状态以便复核，是否删除由派单方决定。
-- 当前部署 DLL 仍是本单 New（`4A7E9C1D...918E8` / 53248 B / mtime 2026-10-11 13:20:48）；`Program\bin\Debug\CombatBrain2.dll` 同值。Old run 7 的 `44845964...` 已不在磁盘。
+- 启用文件原状态已由 Codex 原字节备份到 `E:\MBmod\CombatBrain2-evidence\20261011-gate3-codex-review\eligibility-probe-enabled-23EB8A27.txt`，随后移除启用路径，默认关闭态已恢复，详见独立复核 §5。原场启用配置仍有证物，不需要继续留在生效位置。
+- 当前部署 DLL 仍是本单 New（`4A7E9C1D...918E8` / 53248 B），本次未修改产物；不把 run 6 的 `44845964…` 称为 run 7 身份。

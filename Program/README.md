@@ -15,6 +15,9 @@
 
 ## 当前状态
 
+Codex Gate 3 复核：AI 控制资格丢失后的核心否决/撤权动作成立；P0 仍待独立失资格观测与玩家适用域补证。
+当前结论见 `_verify/P0-EXIT-GATE3-CODEX-REVIEW.md`。测试启用文件已留证并移除，恢复默认关闭态。
+
 P0 第一批（最小命令通路，派单 `TacticalCommandLab/_dispatch/2026-10-10-cb20-p0-minimal-command-path.md`）
 已落地：原生行为注册（run 4）、主线程写令与原方法入口/返回/后值组合证据（run 5）、
 转交槽位的同步保障（run 7）已通过实机。
@@ -27,7 +30,7 @@ P0 Exit Gate 3（控制权安全边沿，派单 `TacticalCommandLab/_dispatch/20
 已交付本机证据：决定性场次 `_verify/sessions/20261011-133859/`（build `b20261011-132044-a06f2e05`，pid 35032，
 DLL sha256 `4A7E9C1D05EFC0FE666E022789B11A99A149AF73491A579DFA83A9BEDCA918E8`）。
 同场跑通两段：场景 A（待写命令在资格变化后被 `not_ai_controlled` 否决、写入尝试 0、取消 `AiControlLost`、撤权 8.000→0.000）
-与场景 B（已生效命令遇资格变化同样取消 `AiControlLost`，失资格保持 3.994 s，恢复发生在旧截止之前，
+与场景 B（已生效命令遇资格变化同样取消 `AiControlLost`，失资格保持 4.006 s，恢复发生在旧截止之前，
 恢复后该意图 `same_intent_open=0` 且无新写入）。**触发方式属于"测试接口触发的资格变化"**（公开原生
 `Formation.SetControlledByAI`），不是玩家接管实机事件；玩家接管边沿仍未验证。
 场景判据见 `_verify/P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md`，证据与 Deviation 见
