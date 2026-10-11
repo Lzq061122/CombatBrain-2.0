@@ -19,9 +19,13 @@
 |---|---|---|---|
 | 1 | 场景判据（实现前写定） | `Program/_verify/P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md`（14303 B） | Slot 0 |
 | 2 | 本单运行报告 | 本文件 `Program/_verify/P0-EXIT-GATE3-RUN-REPORT.md` | Slot 2 |
-| 3 | 原始材料归档（一次） | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip`<br>size **8829130 B**，SHA256 **`35F99ECB26213FF23AA1719E055310CA8D5B2437C5579B19BF6FEDADA57F4A73`**（同名 `.sha256` 已写） | Slot 1 |
+| 3 | 原始材料归档（受审批次，17 场） | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip`<br>size **8829130 B / 610 条目**，SHA256 **`35F99ECB26213FF23AA1719E055310CA8D5B2437C5579B19BF6FEDADA57F4A73`**（同名 `.sha256` 已写） | Slot 1 |
+| 4 | 原始材料归档（2026-10-11 补证轮，19 场） | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-supplement-sessions.zip`<br>size **8925131 B / 666 条目**，SHA256 **`C86C44A5A7B323A8D9D9AE4733BC24EB22C79FFB3514A8D5A0E1A254799183C4`**（同名 `.sha256` 已写） | Slot 3 |
 
-归档内容：`sessions/` 全部 17 个场次子树（含本单 `20261011-133859`）+ `_lastrun/`（`_lastrun*.txt` 副本）。已解压到临时目录核对后删除。**归档摘要不写在归档自身内部，只留在本文件与 `sessions/INDEX.md`。**
+归档内容（第 3 项）：`sessions/` 全部 17 个场次子树（含受审场 `20261011-133859`）+ `_lastrun/`（`_lastrun*.txt` 副本）。已解压到临时目录核对后删除。
+归档内容（第 4 项，本轮补证后重新打包一次）：`sessions/` 全部 **19** 个场次子树，新增 `20261011-162100`（mode c）与 `20261011-164000`（a,b 重跑 + CBATH 独立时间线）；`_lastrun/` 扩到 11 个副本（新增 `_lastrun11.txt` / `_lastrun12.txt`）。
+
+> 归档纪律：**不重写旧归档**（旧 `.zip` 保留为上一时点的完整快照），本轮材料另存为一个新归档；**归档摘要不写在归档自身内部**，只留在本文件与 `sessions/INDEX.md`。
 
 > 说明：`20261010-211555` 子目录体积大（35 files）是因为它含 `crash-2026-10-10_13.16.29\` 的 launcher/engine/module/thread/watchdog/minidump 素材，属 P0a 期间旧物，非本单新增。
 
@@ -75,7 +79,7 @@
 
 `deploy.ps1` 输出：`source_sha256 = deployed_sha256 = 4A7E9C1D...918E8`，与部署目录磁盘文件、以及日志 L1 自报的 `assembly_file_sha256=4a7e9c1d05efc0fe666e022789b11a99a149af73491a579dfa83a9bedca918e8` 三者一致。
 
-**New vs Old（Codex 身份勘误）**：Old run 7 = `b20261011-002322-97c0ff2e`（47104 B，`27F8CBFA29AC1F13A848A61CDC2F761C7751517558CB294AD2DAA30113EF2416`）；New = 本单（53248 B，`4A7E9C1D...918E8`）。37376 B / `44845964…` 属于 run 6，不是 run 7。未做 byte-diff，不重启已收口的构建可复现性调查。
+**New vs Old（Codex 身份勘误，2026-10-11 已修订）**：Old run 7 = `b20261011-002322-97c0ff2e`（47104 B，`27F8CBFA29AC1F13A848A61CDC2F761C7751517558CB294AD2DAA30113EF2416`，已由 `sessions\20261011-002337\CombatBrain2.log` 首行 `RUNTIME_IDENTITY` 独立复核）；New = 本单（53248 B，`4A7E9C1D...918E8`）。37376 B / `44845964…` 属于 run 6，不是 run 7。**上一版本报告曾把 run 7 误写为 run 6 的这两个值，现已更正。** 未做 byte-diff，不重启已收口的构建可复现性调查。
 
 ### 1.4 性能与稳定性数据
 
@@ -130,16 +134,19 @@ WT 与 MT 并非 1:1（`MISSION_START` WT 13:39:24.230 对应 MT 0.000，而 5.4
 - 本单**没有伪造 `PlayerOwner`、没有裸反射写私有字段**；实机触发用公开原生 API `Formation.SetControlledByAI(false)` / `(true)`（反编译 `Formation.cs:788-817`）。
 - 结论：**本单所有触发一律标为"测试接口触发的资格变化"，不标为 F1/F6 玩家接管，不宣称玩家接管事件链已通过。**
 
-### 2.1 玩家接管适用性：当前尚未闭合的判断
+### 2.1 玩家接管适用性：**原"不可达"结论已撤回，2026-10-11 补证后改为"已用真实原生控制链覆盖"**
 
-1. 控制域过滤：`TargetSelector` 硬性排除 `IsPlayerTeam || IsPlayerControlled`，且 `!IsAiControlled` 亦排除；`ExecutionGate.RequestWrite` 再用 `player_owned` / `not_ai_controlled` 兜底。
-2. 引擎侧耦合：PlayerOwner setter 先写独立的 `_playerOwner` 字段，再调用 SetControlledByAI；直接关闭 AI 并未设置 PlayerOwner，不能作等价推断。
-3. 初始过滤不能证明对象后续永不成为玩家队。Codex 静态复核确认公开原生 Mission.JoinEnemyTeam 能改变 PlayerTeam；该路径的本场可达性没有实机取证，原“永久不可达”结论撤回。
-4. CBATH 缺工具不是不适用依据。仍需提交当前控制域排除合法玩家控制变化的完整依据，或补对应真实原生控制路径的安全证据；本场测试资格切换不能直接替代。
-5. 补充未验证项：目标在 selected 后由本方行为持有，真实 UI 玩家接管能否在本方持有期间合法发生，本单**未取到反证也未取证**，登记为未验证（见 §6）。
+原结论（初版）只论证了"绑定那一刻 `PlayerOwner` 不可能存在"。Codex 复核判定该依据不充分：`Team.IsPlayerTeam` 是派生量（`Team.cs:40-50` `return Mission.PlayerTeam == this;`），可被原生公开入口改变。**原结论撤回。**
+
+补证方式与结果（实机细节见 §4.7）：
+
+1. 静态：`Mission.JoinEnemyTeam()`（`Mission.cs:4659-4691`）是公开原生方法，在 `PlayerTeam` 为攻/守一方且对方 `Team.Leader != null` 时把 `PlayerTeam` 换成另一队。它不写 `Formation.PlayerOwner`、不直接改 `IsAIControlled`，但会翻转 `Team.IsPlayerTeam`，进而改变本方 `TargetSelector` / `ExecutionGate` 的 `player_owned` 输入；引擎若再走过 `Team.AddTeamAI`（`Team.cs:447-453`）或 `Team.SetPlayerRole`（`Team.cs:707-715`），`IsAIControlled` 会按新的 `PlayerTeam` 重算。
+2. 实机：本轮补一场 `sessions\20261011-162100`（build `b20261011-161246-db46608a`，pid 44704），由 `EligibilityProbe` mode `c` 调 `Mission.Current.JoinEnemyTeam()`，使**同一已绑定实际对象**在引擎里变成玩家队成员。前置可达性如实记录：`attacker_leader=1 defender_leader=1 agent_main=1 main_agent=1`。
+3. 生产反应：同一 tick `WRITE_BLOCKED reason=player_owned write_attempts_intent=0`；下一 `Tick` `INTENT_CANCELLED reason=PlayerEligibilityLost`；`BEHAVIOR_DISARMED weight_before=8.000 weight_after=0.000`。
+4. 口径：**这是测试适配调用公开原生入口触发的 PlayerTeam 变化**，日志固定标注 `note=test-adapter_triggered_playerteam_change`；不是 F1/F6 按键，不是伪造 `PlayerOwner`，没有放宽生产玩家队过滤。
+5. 仍不覆盖（登记为未验证，不写成通过）：真实按键/UI 接管事件链、阵亡导致的资格变化、多人 peer 路径、`JoinEnemyTeam` 之后引擎再次走过 `AddTeamAI`/`SetPlayerRole` 时 `IsAIControlled` 被重算的那条组合路径。
 
 ---
-
 ## 3. 本单改了什么（文件级）
 
 ### 3.1 变更清单
@@ -155,8 +162,11 @@ WT 与 MT 并非 1:1（`MISSION_START` WT 13:39:24.230 对应 MT 0.000，而 5.4
 | 7 | `Program/src/Host/BuildIdentity.g.cs` | 修改 | build_id → `b20261011-132044-a06f2e05`（`deploy.ps1` 自动重写） |
 | 8 | `Program/CombatBrain2.csproj` | 修改（+1） | `<Compile Include="src\Host\EligibilityProbe.cs" />` |
 | 9 | `Program/tests/CombatBrain2.Tests.csproj` | 修改（+1） | `<Compile Include="EligibilityLossTests.cs" />` |
+| 10 | `Program/src/Host/EligibilityProbe.cs` | **修改（2026-10-11 补证）** | 增 mode `c`：`ApplyTeamJoin` 调公开原生 `Mission.JoinEnemyTeam()`；`Plan` 增 `OriginalPlayerTeam`；`ApplyRestore` 按 mode 分支恢复（c 恢复 `mission.PlayerTeam`，a/b 恢复 `SetControlledByAI(true)`）。新增辅助 `TeamChain()` / `MissionIds()` 记录接管前置可达性。默认关闭不变（哨兵不存在即零副作用）。 |
+| 11 | `Program/_verify/run-p0.ps1` | **修改（2026-10-11 补证，+6）** | `finally` 内、`end_mission` 之后、`games_stop` 之前新增一次 `cbath/get_last_run` → `cbath-timeline.json`（不覆盖原 `last-run.json`）。未改冻结 CBATH 核心。 |
+| 12 | `Program/src/Host/BuildIdentity.g.cs` | 修改 | build_id → `b20261011-161246-db46608a`（`deploy.ps1` 自动重写）|
 
-**删除：0 个文件、0 个既有测试、0 条既有生产判断分支。** `git diff --stat`：7 files changed, 96 insertions(+), 9 deletions(-)。
+**删除：0 个文件、0 个既有测试、0 条既有生产判断分支。** 受审提交 `95f49c3`：`git diff --stat` 7 files changed, 96 insertions(+), 9 deletions(-)。2026-10-11 补证轮追加第 10-12 行，仍**不改任何已有生产判断分支**（`TargetSelector` 过滤、`ExecutionGate.RequestWrite` 顺序、`TryExecuteStop` 复核、快照/意图/获选时间参数均未动）。
 
 ### 3.2 `TestDriver.cs` 六项
 
@@ -317,6 +327,81 @@ L184 PROBE_ELIGIBILITY_RESTORED source_intent=intent-2 mode=b key=1/0 before[ai_
 
 ---
 
+### 4.7 补证场 1：场景 C —— 绑目标经原生 `Mission.JoinEnemyTeam()` 变成玩家队（mode c）
+
+场次 `sessions\20261011-162100`，build `b20261011-161246-db46608a`（mvid `eea0ebe0-31e3-41cf-a871-9d4646299f8d`，`assembly_file_sha256=c0d59ae7124da67db8fd3b39cbb4b6fa4b4779694780f5d748a9074268946ee4`，55808 B），pid **44704**，日志 395 行，哨兵 `intents=c`。这一场专门用于闭合 Codex §3 提出的「玩家接管适用域」缺口。
+
+触发前原生可达性（如实记录，用于区分"原生不可达"与"没走到"）—— L69 before 串：`attacker_leader=1 defender_leader=1 agent_main=1 main_agent=1`，`player_team=0 bound_team=1`。
+
+| 行 | 事件 | 关键值 |
+|---|---|---|
+| L66 | `REAL_SELECTION intent=intent-1 key=1/0 side=Attacker obj=02c17ea5@Infantry at=15.532` | 真实原生获选 |
+| L69 | `PROBE_TEAM_JOIN intent=intent-1 mode=c key=1/0 applied=1 before[player_team=0 bound_team=1 ...] after[player_team=1 bound_team=1] target_now_player_team=1 after[obj=02c17ea5@Infantry ai_ctrl=1 player_owner=0 player_team=1 units=20 order=Move active_behavior=CbHoldBehavior behavior_count=25]` | 公开原生 `Mission.JoinEnemyTeam()` 使同一实际对象所在队成为 `PlayerTeam`；note=`test-adapter_triggered_playerteam_change` |
+| L72 | `WRITE_BLOCKED intent=intent-1 key=1/0 reason=player_owned at=15.539 write_attempts_total=0 write_attempts_intent=0` | 执行前即时复核以 `player_owned` 否决 |
+| L73 | `INTENT_CANCELLED intent=intent-1 reason=PlayerEligibilityLost at=15.549 write_attempts_total=0 write_attempts_intent=0` | 生产以"玩家资格丢失"取消，不是 `WindowExpired` / `ExplicitClose` |
+| L74 | `HANDOFF_CLEARED intent=intent-1 reason=PlayerEligibilityLost had_pending=0 at=15.549` | 槽位清空（had_pending=0 含义见 §5.1） |
+| L75 | `BEHAVIOR_DISARMED key=1/0 reason=PlayerEligibilityLost armed_before=1 weight_before=8.000 weight_after=0.000` | 撤权可核查 |
+| L88 | `PROBE_ELIGIBILITY_RESTORED ... mode=c ... after[player_team=0 ...] intent_open_now=<none> same_intent_open=0 write_attempts_total=0 write_attempts_source_intent=0 note=any_state_change_here_is_native_PlayerTeam_change_side_effect at=19.546` | 4.007 s 后只撤回本适配自己的 PlayerTeam 改动；旧意图未复活 |
+
+**CBATH 独立侧**（同一场 `cbath-timeline.json`，`run_id=run-20261011-081451-1`，91 样本）：`team_id=1` 的 `is_player_team` 在 t=15.107 为 `False`，t=16.110 / 17.113 / 18.120 / 19.120 为 `True`，t=20.125 恢复 `False` —— 与本方 L69/L88 的时刻一致，来源为 CBATH 自己的 1 Hz 只读采样，不是本方日志。
+
+**本路径的特殊点（如实登记）**：mode c 全程 `ai_ctrl=1`（`JoinEnemyTeam()` 不写 `IsAIControlled`），本场没有走到「`JoinEnemyTeam()` 之后引擎再跑 `Team.AddTeamAI` / `Team.SetPlayerRole` 重算 `IsAIControlled`」的组合；该组合仍列为未验证（§6）。
+
+**同场 intent-2 的意义**：恢复完成后 intent-2 于 L143 `REAL_SELECTION`、L147 `WRITE_EXECUTED ... write_attempts_intent=1`，说明 Adaptation 恢复只撤回自己的环境改动，没有留下禁止后续合法意图的残留；此后每 tick 的重复投递均以 `already_written` 拒绝（`WRITE_BLOCKED` 13 次，全部 `reason=already_written`），`WRITE_EXECUTED` 仍为 1 —— 旧命令没有被重发。L201 `INTENT_CANCELLED reason=ExplicitClose`（既有路径复跑），L395 `MISSION_CLEANUP`。
+
+**口径**：这是**测试适配调用公开原生入口 `Mission.JoinEnemyTeam()` 触发的 PlayerTeam 变化**；不是 F1/F6 按键事件链，不是伪造 `PlayerOwner`，没有放宽生产玩家队过滤。
+
+### 4.8 补证场 2：CBATH 独立 1 Hz 时间线覆盖 a/b 失资格窗口（闭合 Deviation §5.2）
+
+场次 `sessions\20261011-164000`，同一 build `b20261011-161246-db46608a`，pid **16736**，日志 364 行，哨兵 `intents=a,b`。这一场重跑已经受审的 a/b 场景，唯一变化是 runner 取数时机（不再 `-` 而是补打了 `cbath-timeline.json`）。
+
+生产侧关键行复现（与受审场次同形）：
+
+| 行 | 事件 |
+|---|---|
+| L68 | `REAL_SELECTION intent=intent-1 ... obj=02a2c4bf@Infantry at=15.532` |
+| L71 | `PROBE_ELIGIBILITY_LOST scenario=scenario_a ... before[ai_ctrl=1 ...] after[ai_ctrl=0 ...] applied=1 at=15.538` |
+| L74 | `WRITE_BLOCKED intent=intent-1 reason=not_ai_controlled at=15.538 write_attempts_intent=0` |
+| L75 | `INTENT_CANCELLED intent=intent-1 reason=AiControlLost at=15.545 write_attempts_intent=0` |
+| L77 | `BEHAVIOR_DISARMED ... weight_before=8.000 weight_after=0.000` |
+| L90 | `PROBE_ELIGIBILITY_RESTORED source_intent=intent-1 mode=a ... intent_open_now=<none> same_intent_open=0 write_attempts_source_intent=0 at=19.539` |
+| L149 | `WRITE_EXECUTED intent=intent-2 ... order_before=Move order_after=StandYourGround route=native_behavior_apply is_main_thread=1 write_attempts_intent=1 at=21.036` |
+| L152 | `PROBE_ELIGIBILITY_LOST scenario=scenario_b ... after[ai_ctrl=0 ...] at=21.043` |
+| L154 | `INTENT_CANCELLED intent=intent-2 reason=AiControlLost at=21.050 write_attempts_intent=1` |
+| L156 | `BEHAVIOR_DISARMED ... weight_before=8.000 weight_after=0.000` |
+| L168 | `PROBE_ELIGIBILITY_RESTORED source_intent=intent-2 mode=b ... intent_open_now=<none> same_intent_open=0 write_attempts_source_intent=1 at=25.047` |
+| L364 | `MISSION_CLEANUP` |
+
+**CBATH 独立 1 Hz 时间线**：`cbath-timeline.json` → `status=ok`，`run_id=run-20261011-081849-1`，`sample_count=91`，`sample_interval_seconds=1`，`mission_start_time=0.042`，`mission_end_time=90.619`。
+
+| 采样 t | `is_ai_controlled` | `unit_count` | `movement_order` | `active_behavior` |
+|---|---|---|---|---|
+| 15.096 | True | 20 | Move | BehaviorCautiousAdvance |
+| **16.097** | **False** | 20 | Move | CbHoldBehavior |
+| **17.098** | **False** | 20 | Move | CbHoldBehavior |
+| **18.103** | **False** | 20 | Move | CbHoldBehavior |
+| **19.104** | **False** | 20 | Move | CbHoldBehavior |
+| 20.105 | True | 20 | Move | BehaviorCautiousAdvance |
+| **21.110** | **False** | 20 | StandYourGround | CbHoldBehavior |
+| **22.115** | **False** | 20 | StandYourGround | CbHoldBehavior |
+| **23.119** | **False** | 20 | StandYourGround | CbHoldBehavior |
+| **24.122** | **False** | 20 | StandYourGround | CbHoldBehavior |
+| 25.129 | True | 20 | Move | BehaviorCautiousAdvance |
+| 26.135 | True | 20 | Move | BehaviorCautiousAdvance |
+
+（以上均为 `team_id=1` / `formation_index=0`，即被控对象 `1/0`。）
+
+- **独立 `is_ai_controlled=false` 样本共 8 条**，场景 A 窗口 4 条、场景 B 窗口 4 条，各窗口前后均有 `True` 对照。判据文档 §6 要求的「至少 2 次 1 Hz 独立只读采样带 `ai_ctrl=0`」**已满足**。
+- 场景 B 窗口内 `movement_order` 保持 `StandYourGround`，说明命令未回退；t=25.129 变回 `Move` 是恢复时原生 `SetControlledByAI(true)` 内部 `AI.Tick()` + `SetMovementOrder(AI.ActiveBehavior.CurrentOrder)` 的副作用（已在 §4.4 标注，不伪称"撤销恢复"）。
+
+### 4.9 本轮补证的 runner 改动（只为取数时机）
+
+`Program/_verify/run-p0.ps1`：`finally` 块内、`end_mission` 之后、`games_stop` 之前新增一次 `cbath/get_last_run`，写入 `cbath-timeline.json`（不覆盖原有 `last-run.json`）。原因：CBATH 的 `RunRecord` 只在 `OnEndMission` 完成，旧取数点在 end_mission 之前，归档到的恒为 `status=no_run`。**未改冻结的 CBATH 核心。**
+
+补充：新归档 `cbath-timeline.json` 写入的是工具原始 JSON-RPC 信封，内容体在 `result.structuredContent` 下；`RunRecord` 字段为 `run_id / mission_name / mission_start_time / mission_end_time / sample_interval_seconds / sample_count / samples`，每 formation 含 `is_ai_controlled`。
+
+---
+
 ## 5. Deviation Register（如实登记，不事后改判据）
 
 ### 5.1 `HANDOFF_CLEARED had_pending=0` 与判据文档 §3 的偏差
@@ -326,12 +411,16 @@ L184 PROBE_ELIGIBILITY_RESTORED source_intent=intent-2 mode=b key=1/0 before[ai_
 - **原因（可解释，不是判据被放宽）**：`EligibilityProbe.OnMissionTick` 的插入点在 `Tick` 之后、`DrainPendingCommand` 之前。在同一次 tick 内，`DrainPendingCommand` 先消费了槽位（L91 `HANDOFF_EXECUTED`）并由生产执行门以 `not_ai_controlled` 否决（L92 `WRITE_BLOCKED`），随后 `CancelIntent` 记下的 `had_pending` 已是消费后的 0。这是**时点安排的必然结果**。
 - 场景 A 的核心事实仍完整成立：待转交命令未落地、写入尝试计数 = 0、否决原因为 `not_ai_controlled`、取消原因为 `AiControlLost`、行为权重由 8.000 回读为 0.000。
 
-### 5.2 `SNAPSHOT_FORMATION` 未采到 `ai_ctrl=0`
+### 5.2 `SNAPSHOT_FORMATION` 未采到 `ai_ctrl=0` —— **本条已于 2026-10-11 补证闭合**
 
 - 判据文档第 6 节期望"失资格期间至少 2 次 1 Hz 独立采样带上 `ai_ctrl=0`"。
-- 实际：`ai_ctrl=0` 全日志只出现 4 次，全在 probe 的 `before[...]`/`after[...]` 串里；`SNAPSHOT_FORMATION key=1/0` 全会话 3 条（L204 / L288 / L373）都是 `ai_ctrl=1`。
-- 复算：A 失资格 4.005 s、B 4.006 s；三条详细快照时刻均不在窗口内。CBATH 本可采集 1 Hz 时间线，但当前 runner 在 end_mission 之前取 get_last_run，归档只有 status=no_run，没有保存结束后才可取得的独立时间线。
-- Codex 裁定：probe before/after 与生产守卫能支持本场核心动作真实发生，不能替代预先写定的独立观测判据。本条继续缺证，不因列为 Deviation 自动判 PASS。
+- 原偏差：`ai_ctrl=0` 全日志只出现 4 次，全在 probe 的 `before[...]`/`after[...]` 串里；`SNAPSHOT_FORMATION key=1/0` 全会话 3 条（L204 / L288 / L373）都是 `ai_ctrl=1`。Codex 裁定不接受 probe 自读替代。
+- **补证**：修 `run-p0.ps1`，在 `end_mission` 之后、`games_stop` 之前再取一次 `cbath/get_last_run`（RunRecord 只在 OnEndMission 完成），存 `cbath-timeline.json`。重跑 `intents=a,b` 一场 `sessions\20261011-164000`（pid 16736，同一 build `b20261011-161246-db46608a`）。
+- **独立结果**：`status=ok`、`run_id=run-20261011-081849-1`、`sample_count=91`、`mission_start_time=0.042`、`mission_end_time=90.619`。由 CBATH 独立读取的 `is_ai_controlled=false` 共 **8 条样本**，落在两个失资格窗口内：
+  - 场景 A（15.538→19.539）：t=16.097 / 17.098 / 18.103 / 19.104（4 条）；
+  - 场景 B（21.043→25.047）：t=21.110 / 22.115 / 23.119 / 24.122（4 条）。
+  - 每个窗口前（t=15.096 ai=True）与恢复后（t=20.105 / 25.129 ai=True）均有对照样本；场景 B 窗口内 `order=StandYourGround` 保持不变，恢复后 t=25.129 变回 `Move`（该变化是原生 `SetControlledByAI(true)` 的副作用，已在 §4.4 标注）。
+- 结论：判据文档 §6 要求的"至少 2 次 1 Hz 独立只读采样带 `ai_ctrl=0`"**已满足（8 条）**，来源为 CBATH 独立 1 Hz 时间线，不是本方 probe 自读。
 
 ### 5.3 `HANDOFF_DROPPED reason=intent_closed` 分支本场未触发
 
@@ -353,10 +442,10 @@ L184 PROBE_ELIGIBILITY_RESTORED source_intent=intent-2 mode=b key=1/0 before[ai_
 本单新增未验证：
 
 1. `HANDOFF_DROPPED reason=intent_closed` 实机路径（count=0，见 5.3）。
-2. 真实 UI 玩家接管能否在本方行为持有期间合法发生在当前控制域对象上（见 §2.1，只给出代码入口与引擎耦合依据，没有实测）。
+2. **（2026-10-11 更新）** 已用公开原生入口 `Mission.JoinEnemyTeam()` 补到"PlayerTeam 变化"这条边沿（§4.7）：测试适配调它使同一已绑定对象的队成为 `PlayerTeam`，生产以 `player_owned` 否决 + `PlayerEligibilityLost` 取消 + 撤权。**仍未覆盖**：真实 UI/按键事件链接管（F1/F6 等按键走到 `OrderController` / `Team.SetPlayerRole` 的完整链）、以及 `JoinEnemyTeam()` 之后引擎再次走过 `Team.AddTeamAI`（`Team.cs:447-453`）或 `Team.SetPlayerRole`（`Team.cs:707-715`）使 `IsAIControlled` 被重算的那条组合路径。
 3. 被控对象为 Cavalry / Ranged / HorseArcher / Skirmisher 时的同类通路（本场被控对象固定为 `key=1/0 Infantry`）。
 4. 同 tick 内多个 Formation 同时失资格时 `DisarmAllBehaviors` 的多键遍历（本场 `_armedBehaviors` 只有 1 个键）。
-5. Old DLL `44845964C8AD...` 仍不可复现（P0a 已登记）。
+5. Old DLL `44845964C8AD...` 仍不可复现（P0a 已登记）。**2026-10-11 勘误**：run 7 正确身份为 47104 B / `27F8CBFA29AC1F13A848A61CDC2F761C7751517558CB294AD2DAA30113EF2416`（`sessions\20261011-002337\CombatBrain2.log` L1 `RUNTIME_IDENTITY` 已核对）；37376 B / `44845964…` 属 run 6。
 6. New vs Old 未做 byte-diff；New 编译链的是 NuGet ref，未对 `TaleWorlds.Core.dll` 之类做 publickeytoken / manifest 对齐对比。
 7. 本场无 Benchmark / FPS 数据（见 1.4），无法给出任何性能数字。
 
@@ -373,6 +462,16 @@ L184 PROBE_ELIGIBILITY_RESTORED source_intent=intent-2 mode=b key=1/0 before[ai_
 | 5 | **资格恢复不复活** | **PASS** | L108（intent-1, MT 19.542）/ L184（intent-2, MT 25.050）`PROBE_ELIGIBILITY_RESTORED ... intent_open_now=<none> same_intent_open=0 write_attempts_source_intent=...`；两者均在旧 deadline（35.108 / 40.549）**之前**恢复，并观察到 L448 Mission 结束；取消后无任何 `WRITE_*` / `BEHAVIOR_REGISTERED` / `REAL_SELECTION` / `HANDOFF_EXECUTED` 再现 |
 | 6 | **Mission 与环境收尾** | **PASS** | L448 `MISSION_CLEANUP`；`_lastrun10.txt` `RESULT: OK` exit 0、`no residual Bannerlord process`、`no new crash dir`；`rgl_log_35032.txt` 末段 `There are no living managed objects.` |
 | 7 | **阶段退出判定** | **待 Codex** | 本文件提供事实与证据；最终阶段结论由 Codex 复核落定（派单 §6） |
+
+### 7.1 Codex 复核（`P0-EXIT-GATE3-CODEX-REVIEW.md`，提交 `f274745`）与本轮的补充对照
+
+| Codex 要求 | 本轮处理 | 落点 |
+|---|---|---|
+| 缺 CBATH 独立 1 Hz `ai_ctrl=0` 样本，probe 自读不算 | 修 runner 取数时机后重跑一场；取得 8 条独立 `is_ai_controlled=false`（A 窗口 4 + B 窗口 4），前后有 `True` 对照 | §4.8、§5.2 |
+| 玩家接管依据不充分（`SetControlledByAI(false)` ≠ `PlayerOwner`） | 撤回原"不可达"结论；改用公开原生 `Mission.JoinEnemyTeam()` 实机补边沿，生产以 `player_owned` 否决 + `PlayerEligibilityLost` 取消 + 撤权 | §2.1、§4.7 |
+| run 7 身份误写为 run 6 的 37376 B / `44845964…` | 已更正为 47104 B / `27F8CBFA…`，并注明报告上一版误写 | §1.3、§6 第 5 条 |
+| `had_pending=0` 可接受但不得写成"清掉非空命令" | 保持原措辞；本报告从未把 had_pending=0 描述为清掉非空槽位 | §5.1 |
+| `HANDOFF_DROPPED intent_closed`=0 继续未验证、不作阻挡 | 维持未验证登记 | §5.3、§6 第 1 条 |
 
 ---
 
@@ -394,7 +493,16 @@ L184 PROBE_ELIGIBILITY_RESTORED source_intent=intent-2 mode=b key=1/0 before[ai_
 4. **派单 §5 第 1-6 条自判 PASS**；第 7 条"阶段退出判定"交回 Codex。
 5. **未验证项已逐条登记**（§6），不得据此推进依赖这些分支的功能。
 
+### 9.1 2026-10-11 补证后的状态
+
+1. **Codex 提出的两项缺口均已补上**：独立 1 Hz 失资格样本 8 条（§4.8）；玩家身份变化的适用域改为"已用真实原生控制链覆盖"（§2.1 / §4.7），原"不可达"结论撤回。
+2. **run 7 身份勘误已更正**（§1.3、§6 第 5 条）。
+3. **本轮补证未改任何生产判断分支**：新增的只有 `EligibilityProbe` 的 mode `c`（默认关闭）与 runner 的取数时机；已通过代码检查、`dotnet build` 0 告警 0 错误、`dotnet test` 65 通过 0 失败、构建源地 library 与摘要一致（build `b20261011-161246-db46608a`，55808 B，`C0D59AE7…46EE4`）。
+4. **仍未交付的东西**：实机仍只有 CustomBattle + `delegate_team_to_ai` 场景；真实按键/UI 接管事件链、`JoinEnemyTeam` 后 `AddTeamAI`/`SetPlayerRole` 重算 `IsAIControlled` 的组合、`REVOKE_EXECUTED` 真实回退、快照陈旧拒绝（age 恒 0）依旧未验证。
+5. **阶段结论仍由 Codex 落定**：本报告不自行把 Gate 3 改成 PASS。
+
 ### 备注：环境与后续清理项
 
-- 启用文件原状态已由 Codex 原字节备份到 `E:\MBmod\CombatBrain2-evidence\20261011-gate3-codex-review\eligibility-probe-enabled-23EB8A27.txt`，随后移除启用路径，默认关闭态已恢复，详见独立复核 §5。原场启用配置仍有证物，不需要继续留在生效位置。
-- 当前部署 DLL 仍是本单 New（`4A7E9C1D...918E8` / 53248 B），本次未修改产物；不把 run 6 的 `44845964…` 称为 run 7 身份。
+- 启用文件状态：原状态已由 Codex 原字节备份到 `E:\MBmod\CombatBrain2-evidence\20261011-gate3-codex-review\eligibility-probe-enabled-23EB8A27.txt`。本轮补证期间曾临时写入哨兵（`intents=c`，后 `intents=a,b`），**两场跑完后已删除**，当前 `Documents\CombatBrain2\eligibility-probe.txt` 不存在，默认关闭态已恢复（实测 `sentinel_exists=False`）。
+- 当前部署 DLL 为补证 build `b20261011-161246-db46608a`（55808 B，`C0D59AE7124DA67DB8FD3B39CBB4B6FA4B4779694780F5D748A9074268946EE4`），部署路径 `Modules\CombatBrain2\bin\Win64_Shipping_Client\CombatBrain2.dll`；本轮未改动受审实现 `95f49c3` 的任何生产判断分支。
+- 本轮两场实机的控制台分别归档于 `Program/_verify/_lastrun11.txt`（mode c 场）与 `_lastrun12.txt`（a,b 重跑场），均为 `RESULT: OK` / exit 0；另有失败场次 `_lastrun.txt`（runner 编码事故，已还原修复，见 §4.9）。

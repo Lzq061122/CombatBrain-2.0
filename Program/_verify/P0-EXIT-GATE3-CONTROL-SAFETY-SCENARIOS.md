@@ -19,7 +19,7 @@
 
 ---
 
-## 2. 真实玩家接管在当前被控对象上**不可达**（代码入口 + 引擎依据）
+## 2. 真实玩家接管在当前被控对象上**不可达**（代码入口 + 引擎依据）—— **初版结论，已被下方 §2.1 修订**
 
 派单 §2 要求先查清，CBATH 缺工具不能作为依据。以下为反编译真实游戏程序集
 `E:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll`
@@ -36,9 +36,29 @@
 4. 玩家下令触发的接管：`OrderController.cs:726` `if (selectedFormation.IsAIControlled && selectedFormation.PlayerOwner != null) SetControlledByAI(false);` —— **前提是该编队已有 `PlayerOwner`**。
 5. `Team.IsPlayerGeneral` / `IsPlayerSergeant` 为 private set（`Team.cs:98/100`），只能由 `SetPlayerRole` / 构造 / 网络包设置。
 
-**结论**：被控对象由 `TargetSelector` 硬性排除 `IsPlayerTeam || IsPlayerControlled`，因此其上不可能存在 `PlayerOwner`；而游戏中所有产生 `PlayerOwner` 的合法路径都要求队伍是玩家（将军/士官）或多人 peer。**原生玩家接管在当前控制域的对象上不可达，它不属于本单适用域。**本单不为制造接管场景放宽玩家队过滤，不伪造 `PlayerOwner`、快照或日志。
+**结论（初版，已被 2026-10-11 Codex 复核驳回并修订，见下方 §2.1）**：初版只论证了“绑定那一刻 `PlayerOwner` 不可能存在”，但 `Team.IsPlayerTeam` 是派生量（`Team.cs:40-50` `return Mission.PlayerTeam == this;`），可被原生公开入口 `Mission.JoinEnemyTeam()` 改变，因此**“绑定时的过滤”不足以证明以后身份不会变化**。初版结论不成立，改由 §2.1 承接。
+
+### 2.1 修订：玩家身份可变的原生路径与边沿覆盖（2026-10-11）
+
+- `Mission.JoinEnemyTeam()`（`TaleWorlds.MountAndBlade\Mission.cs:4659-4691`）是公开原生方法，在 `PlayerTeam` 为攻/守任一方且对方 `Team.Leader != null` 时把 `PlayerTeam` 换成另一队。全 DLL grep 只有定义与 `FailedAssert` 两处，`OnPlayerTeamChanged` 在 DLL 内也无订阅者 —— 它是给 UI/外部用的入口，不是内部自触发。
+- 该路径**不写 `Formation.PlayerOwner`、不直接改 `Formation.IsAIControlled`**，但会翻转 `Team.IsPlayerTeam`（派生比较），从而改变本方 `TargetSelector` 的 `IsPlayerTeam` 输入；引擎若再次走过 `Team.AddTeamAI(...)`（`Team.cs:447-453`）或 `Team.SetPlayerRole(...)`（`Team.cs:707-715`），`IsAIControlled` 会按新的 `Mission.PlayerTeam` 重算。
+- 因此本单把“玩家身份变化”也当作**资格变化的一种**，用同一套已实现的生产检查覆盖，而不是声明它不适用：
+  - `TestDriver.Tick` 的绑目标检查先由 `likelyPlayerOwned(bound)`（`IsPlayerTeam || IsPlayerControlled`）判 `PlayerEligibilityLost`，再由 `!bound.IsAiControlled` 判 `AiControlLost`；
+  - `TryExecuteStop` 的执行前复核即时求值 `playerOwned`、`aiControlled`、`behaviorIsOurs`，交给 `ExecutionGate.RequestWrite`。
+- 本单实机补一场 mode `c`：用 `EligibilityProbe` 调 `Mission.JoinEnemyTeam()`（公开原生入口，非 F1/F6 按键、非伪造 `PlayerOwner`），使**同一已绑定实际对象**在引擎里变成玩家队成员，观测生产路径是否同样让位。日志固定标注 `note=test-adapter_triggered_playerteam_change`。
+- 仍不覆盖：真实按键/UI 接管事件链、阵亡导致的资格变化、多人 peer 路径。这些按“未验证”登记，不写成通过。
 
 ---
+
+### 2.2 场景 C：绑目标经原生 `JoinEnemyTeam()` 变成玩家队后，本方让位（mode c，本轮补证）
+
+| 项 | 内容 |
+|---|---|
+| 触发 | `EligibilityProbe` mode `c`，在 `intent.SelectedAt >= 0` 之后的 Mission tick 调 `Mission.Current.JoinEnemyTeam()`（公开原生入口），把 `PlayerTeam` 换成绑目标所在队 |
+| 前置如实记录 | `attacker_leader` / `defender_leader` / `agent_main` / `main_agent` 是否成立（用于区分“原生不可达”与“没走到”） |
+| 预期生产反应 | 同一 tick `TryExecuteStop` 由执行门以 `player_owned` 拒绝（`write_attempts_intent` 仍为 0）；下一 `Tick` 由 `likelyPlayerOwned` 判 `INTENT_CANCELLED reason=PlayerEligibilityLost`；`BEHAVIOR_DISARMED weight_before=8.000 weight_after=0.000` |
+| 恢复 | 4.0 s 后 `mission.PlayerTeam = plan.OriginalPlayerTeam`（只撤回本适配自己的环境改动），记录 `intent_open_now` / `same_intent_open` |
+| 不得 | 不得标为 F1/F6 按键；不得伪造 `PlayerOwner`；不得放宽生产玩家队过滤 |
 
 ## 3. 本单实机触发方式（如实标注为“测试接口触发的资格变化”）
 
@@ -53,7 +73,8 @@
 
 - 新文件 `Program/src/Host/EligibilityProbe.cs`，进 `Program/CombatBrain2.csproj` 的 `<Compile>` 列表。
 - 开关：哨兵文件 `Documents\CombatBrain2\eligibility-probe.txt`。**文件不存在 → 完全禁用**：不调任何游戏接口、不写任何 MovementOrder、不产生额外日志（除禁用态一次性说明）。
-- 配置格式（一行）：`intents=A,B` —— 第 N 个触发的意图取第 N 个模式；缺对应模式的意图不做任何翻转。缺失该行或文件不存在即禁用。
+- 配置格式（一行）：`intents=A,B` —— 第 N 个触发的意图取第 N 个模式；缺对应模式的意图不做任何翻转。缺失该行或文件不存在即禁用。也接受 `mode=`。
+- 模式取值：`a`（场景 A：`Formation.SetControlledByAI(false)`，触发条件 `SelectedAt>=0 && ExecutedAt<0 && Handoff.HasPending`）、`b`（场景 B：同上接口，触发条件 `ExecutedAt>=0`）、**`c`（场景 C：调公开原生 `Mission.JoinEnemyTeam()`，触发条件 `SelectedAt>=0`，见 §2.2）**。`c` 的恢复是 `mission.PlayerTeam = OriginalPlayerTeam`（只撤回自己的一次改动），与前两个模式的 `SetControlledByAI(true)` 不同。恢复保持窗口同为 ≥4.0 s。
 - **恢复纪律（实现已按此写定）**：`SetControlledByAI(false)` 后保持失资格 ≥4.0 s（`SnapshotMaxAgeSeconds + 2.0`）再恢复；恢复由 probe 在每个 tick 检查到点后执行，**不依赖该意图仍然开放**——即使意图已被取消也要恢复，因为这只撤回 probe 自己的环境改动，且这是观测“资格恢复后旧意图不复活”的前提。恢复后本 probe 对该意图不再动作。
 - 调用点（生产文件仅此一处新增）：`Program/src/Host/SamplingBehavior.cs` 在 `TestDriver.Instance.Tick(mission)` 之后、`TestDriver.Instance.DrainPendingCommand(mission)` 之前插入一行 `EligibilityProbe.OnMissionTick(mission);`。
   选这个时点的意义：**资格变化发生在当 tick 的产品检查点之后、主线程消费之前**，因此能同时压出两件事——
@@ -98,7 +119,7 @@
 - 此后 `intent-2` 的 `write_attempts` 不再增加（停在场景 B 阶段一那一次写入对应的累计值）。**只命中 `already_written` 不算已让位。**
 
 **阶段三（保持失资格 ≥2 s + 恢复 + 观察到截止后 ≥2 s）：**
-- 失资格保持：自失资格时刻起 **≥2.0 s** 内 probe 不恢复（期间至少有 2 次 1 Hz 独立只读采样带上 `ai_ctrl=0`）；
+- 失资格保持：自失资格时刻起 **≥2.0 s** 内 probe 不恢复（期间至少有 2 次 1 Hz 独立只读采样带上 `ai_ctrl=0`）。**观测来源必须是 CBATH 的 1 Hz 独立时间线**（`cbath/get_last_run` 在 `end_mission` 之后取，见 §8）；本方 probe 自身读出的 before/after **不能替代**这条判据（Codex 裁定）。
 - 恢复：在 `intent-2` 原 `Deadline` **之前**调用 `SetControlledByAI(true)`，记 `PROBE_ELIGIBILITY_RESTORED`（同样含 before/after 全部实际值）；
 - 观察至 `Deadline + 2.0 s` 之后：**`intent-2` 不得再出现 `WRITE_EXECUTED` / `BEHAVIOR_REGISTERED`（本方重武装）/ `REAL_SELECTION` / `HANDOFF_EXECUTED`**；按 intent id 核对写入计数，不得因为后续（本场无）新意图的合法写入被误算。
 - 恢复时的原生副作用必须逐项记录：`SetControlledByAI(true)` 内部会 `ForceTickOccasionally=true; AI.Tick(); ...; AI.ActiveBehavior.OnBehaviorActivated(); SetMovementOrder(AI.ActiveBehavior.CurrentOrder);`（`Formation.cs:788-810`）——即**恢复本身会让原生重新推一次当前最优行为的命令**。本方此时已撤权（weight 0、`GetAiWeight()=0`），应当不再参与选择。不得把此次原生重推当作“本方复活”，也不得隐瞒它。

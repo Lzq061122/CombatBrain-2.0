@@ -1,6 +1,6 @@
 # P0 第一批 — 实机场次索引
 
-Gate 3 场次 `20261011-133859` 的场景 A/B 核心事实已独立确认；玩家适用域和失资格期间独立时间线仍缺证，P0 暂不整体退出。当前复核见 `../P0-EXIT-GATE3-CODEX-REVIEW.md`；原始归档不因文档勘误重写。
+**2026-10-11 第三轮：Gate 3 补证已完成。** Codex 复核提出的两项缺口已补：`20261011-164000` 提供 CBATH 独立 1 Hz 失资格观测（8 条 `is_ai_controlled=false`），`20261011-162100` 以公开原生 `Mission.JoinEnemyTeam()` 补齐玩家身份变化的适用域边沿；run 7 身份勘误已更正。受审决定性场仍为 `20261011-133859`，阶段结论待 Codex 再复核，见 `../P0-EXIT-GATE3-RUN-REPORT.md` §7.1。`../P0-EXIT-GATE3-CODEX-REVIEW.md` 保留为历史审查结论，不改写；原始归档不重写，本轮材料另归档为 `20261011-gate3-supplement-sessions.zip`。
 
 Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的单槽位同步修复及受影响通路已独立核对，原有阻挡关闭。当前决定性场次为 **run 7 `20261011-002337`**，当前验收见 `../P0A-CODEX-ACCEPTANCE.md`。未验证边界保留；不以单场 RESULT: OK 代替 P0 整体验收。
 
@@ -10,11 +10,16 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 
 | 项 | 值 |
 |---|---|
-| 归档（当前，覆盖 17 场，P0 Exit Gate 3） | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip` |
-| 大小 / 条目 | **8829130 B / 610** |
+| **归档（当前，覆盖 19 场，含 Gate 3 补证两场）** | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-supplement-sessions.zip` |
+| 大小 / 条目 | **8925131 B / 666** |
+| SHA256 | `C86C44A5A7B323A8D9D9AE4733BC24EB22C79FFB3514A8D5A0E1A254799183C4` |
+| sidecar | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-supplement-sessions.zip.sha256` |
+| 覆盖面 | `Program\_verify\sessions\` 全部 **19** 个场次目录（含 Gate 3 决定性场 `20261011-133859`、补证场 `20261011-162100` / `20261011-164000`）+ `_lastrun\*.txt` 11 个控制台副本 |
+| 归档（上批，覆盖 17 场，P0 Exit Gate 3） | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip` |
+| 大小 / 条目 | 8829130 B / 610 |
 | SHA256 | `35F99ECB26213FF23AA1719E055310CA8D5B2437C5579B19BF6FEDADA57F4A73` |
 | sidecar | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip.sha256` |
-| 覆盖面 | `Program\_verify\sessions\` 全部 **17** 个场次目录（含 Gate 3 决定性场 `20261011-133859`）+ `_lastrun\*.txt` 控制台副本 |
+| 覆盖面 | 17 个场次目录 + `_lastrun\*.txt`；**已被引上者取代**（不重写，保留为上一时点的完整快照） |
 | 归档（上批，P0a 收口，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run10.zip`，8800734 B / 610，`EE6EB6D1BF261252B4F5F93E162847DA12A29720955813296FDF3CBA04E49919`；仅覆盖 14 场 |
 | 归档（上批，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run9.zip`，8774320 B / 594，`BC4FA254822B4CA468E889FDF83D1AA36EA86BE3184987C02D2AC5F791DC830A`；仅覆盖 13 场 |
 | 归档（更早，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run7.zip`，8768831 B / 581，`E825FF34A48F024BB5FA3436BA13F4A44430A60C295635D48197F5E10C27A2FB`；仅覆盖 11 场 |
@@ -42,6 +47,9 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 | `20261011-132600` | 0 / 0 | 0 | FAILURES | 否 | 同上重跑，同样在 Steam 未登录条件下失败 |
 | **`20261011-133859`（Gate 3）** | **13 / 95579** | **448** | **OK** | **是** | **P0 Exit Gate 3 决定性场次**：build `b20261011-132044-a06f2e05`，pid 35032，sha256 `4A7E9C1D05EFC0FE666E022789B11A99A149AF73491A579DFA83A9BEDCA918E8`。场景 A（intent-1，MT 15.108–15.545）：`REAL_SELECTION` → `HANDOFF_DEFERRED callback_tid=45 main_tid=30` → `PROBE_ELIGIBILITY_LOST before[ai_ctrl=1] after[ai_ctrl=0] applied=1` → `WRITE_BLOCKED reason=not_ai_controlled write_attempts_intent=0` → `INTENT_CANCELLED reason=AiControlLost` → `HANDOFF_CLEARED had_pending=0` → `BEHAVIOR_DISARMED armed_before=1 weight_before=8.000 weight_after=0.000`。场景 B（intent-2，MT 20.549–25.050）：`WRITE_EXECUTED order_before=Move order_after=StandYourGround original_body_entered=1 original_body_tid=30 write_attempts_intent=1` → 失资格 → `INTENT_CANCELLED reason=AiControlLost` → `BEHAVIOR_DISARMED weight_before=8.000 weight_after=0.000` → 恢复后 `PROBE_ELIGIBILITY_RESTORED intent_open_now=<none> same_intent_open=0 write_attempts_source_intent=1`。全会话 `WRITE_EXECUTED 1 / WRITE_BLOCKED 1 / NATIVE_MOVEMENT_APPLIED 0 / HANDOFF_SLOT_BUSY 0 / HANDOFF_DROPPED 0`。详见 `../P0-EXIT-GATE3-RUN-REPORT.md` |
 
+| **`20261011-162100`（Gate 3 补证场 1，mode c）** | **14 / 832432** | **395** | **OK** | **是** | 同一 build `b20261011-161246-db46608a`（mvid `eea0ebe0-31e3-41cf-a871-9d4646299f8d`，sha256 `C0D59AE7124DA67DB8FD3B39CBB4B6FA4B4779694780F5D748A9074268946EE4`，55808 B），pid **44704**，哨兵 `intents=c`。**用于闭合 Codex §3 玩家接管适用域缺口**：`PROBE_TEAM_JOIN ... before[player_team=0 bound_team=1 attacker_leader=1 defender_leader=1 agent_main=1 main_agent=1] after[player_team=1 bound_team=1] target_now_player_team=1`（公开原生 `Mission.JoinEnemyTeam()`）→ `WRITE_BLOCKED reason=player_owned write_attempts_intent=0` → `INTENT_CANCELLED reason=PlayerEligibilityLost` → `BEHAVIOR_DISARMED weight_before=8.000 weight_after=0.000` → 恢复 `PROBE_ELIGIBILITY_RESTORED mode=c intent_open_now=<none> same_intent_open=0`。CBATH 独立时间线 `team_id=1.is_player_team` 在 t=16.110/17.113/18.120/19.120 为 True（t=15.107 False、t=20.125 回 False）。首次产出有效 `cbath-timeline.json`（749046 B）。详见 `../P0-EXIT-GATE3-RUN-REPORT.md` §4.7 |
+| **`20261011-164000`（Gate 3 补证场 2，a,b 重跑）** | **14 / 831585** | **364** | **OK** | **是** | 同 build `b20261011-161246-db46608a`，pid **16736**，哨兵 `intents=a,b`。重跑已受审的 a/b 场景，唯一变化是 runner 取数时机。**用于闭合 Codex §2 缺证**：`cbath-timeline.json` `status=ok run_id=run-20261011-081849-1 sample_count=91`，独立 `is_ai_controlled=false` 共 **8 条**（A 窗口 t=16.097/17.098/18.103/19.104；B 窗口 t=21.110/22.115/23.119/24.122），窗口前后均有 True 对照。生产行与受审场同形：`WRITE_BLOCKED reason=not_ai_controlled write_attempts_intent=0` → `INTENT_CANCELLED reason=AiControlLost`；`WRITE_EXECUTED write_attempts_intent=1` → `INTENT_CANCELLED reason=AiControlLost`。详见 `../P0-EXIT-GATE3-RUN-REPORT.md` §4.8 |
+
 - 前五场为过程失败场，**保留原始结果，不构成验收依据**。
 - `20261010-164624` 为中间场：命令链已完整，但撤销原因记为 `native_rewrote_after_us`，且尚无 `SNAPSHOT_HEALTH`。
 - run 1–3 的现有记录均未显示进入 Mission。run 1 有渲染资源不足证据，run 3 时间对应的 pid 44272 日志有 Granite OOM；run 2 只有启动访问异常，原因未定。不能统一归因或排除全部代码因素，见 `P0A-HANDOVER.md` §8 与 `P0A-CODEX-REREVIEW.md` §4。
@@ -51,16 +59,23 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 
 - `20261011-132100` / `20261011-132600` 为 Gate 3 的两个失败场：**失败原因是本机 Steam 当时未完成登录**（2.0 日志从未创建、无 crash dir、两者现象相同），与代码无关；不得与 run 2/3 的启动访问异常混为一谈。登录完成后同一命令（`run-p0.ps1 -OutDir ...\20261011-133859 -CombatHoldSec 120`）即跑通。
 - **当前决定性场次为 Gate 3 的 `20261011-133859`**；run 7 `20261011-002337` 仍是 P0a 第一批的决定性场次。二者解决的是不同批次的问题：run 7 解决槽位同步，`20261011-133859` 解决控制权安全边沿（资格变化）。
-- Gate 3 三项 Deviation 已在本单报告 §5 如实登记：`HANDOFF_CLEARED had_pending=0`（时点安排使然）、`SNAPSHOT_FORMATION` 未采到 `ai_ctrl=0`（窗口仅 3.994 s）、`HANDOFF_DROPPED reason=intent_closed` 本场 0 条尚无实机证据。
+- Gate 3 三项 Deviation 原始状态见本单报告 §5；**2026-10-11 补证后的处置**：
+  - `HANDOFF_CLEARED had_pending=0`（时点安排使然）—— Codex 接受，本报告从未把 had_pending=0 描述为"清掉了一条非空命令"；
+  - `SNAPSHOT_FORMATION` 未采到 `ai_ctrl=0` —— **已闭合**：补证场 `20261011-164000` 的 CBATH 独立 1 Hz 时间线给出 8 条 `is_ai_controlled=false`（报告 §4.8 / §5.2）；
+  - `HANDOFF_DROPPED reason=intent_closed` 本场 0 条 —— 仍无可证明的实机证据，Codex 判"不作阻挡"，维持未验证登记（报告 §5.3 / §6 第 1 条）。
+- `20261011-162100` / `20261011-164000` 是 Codex 复核（`P0-EXIT-GATE3-CODEX-REVIEW.md`，提交 `f274745`）要求的两项补证场；二者与受审场 `20261011-133859` 的关系是"补缺独立于 probe 自读 / 补玩家身份边沿"，不是替换决定性场。
+- **2026-10-11 勘误**：run 7 正确身份为 47104 B / `27F8CBFA29AC1F13A848A61CDC2F761C7751517558CB294AD2DAA30113EF2416`（`20261011-002337\CombatBrain2.log` L1 已核对）；上版各处把 run 7 写成 37376 B / `44845964…`（run 6 的值）的地方已在本轮更正（报告 §1.3、§6 第 5 条）。
 
-## 逐文件摘要（五个有效场次）
+## 逐文件摘要（七个有效场次）
 
 - **Gate 3 `20261011-133859`（当前决定性）**：13 个文件 / 95579 B，逐个 SHA256 见 `../P0-EXIT-GATE3-RUN-REPORT.md` §0/§4（本出场次已在归档 `20261011-gate3-sessions.zip` 内逐文件保存）。
 - **run 7 `20261011-002337`（P0a 决定性）**：完整表（13 个文件 / 136097 B 的逐个 SHA256）见 `../P0A-HANDOVER.md` §7 场次 2。
 - run 5 `20261010-225539`：完整表（13 个文件 / 136897 B 的逐个 SHA256）见 `../P0A-HANDOVER.md` §7 场次 3。
 - run 4 `20261010-213621`：完整表（13 个文件 / 124667 B 的逐个 SHA256）见 `../P0A-HANDOVER.md` §7 场次 4。
 - run 6 `20261010-171526`：完整表（19 个文件 / 577266 B 的逐个 SHA256）见 `../P0A-HANDOVER.md` §7 场次 1。
-- 四者数据同源（均从磁盘现算），如有出入以归档内实际文件为准。
+- **Gate 3 补证场 1 `20261011-162100`**：14 个文件 / 832432 B。`cbath-timeline.json` 749046 B → `FF7EEE788FFE7E374BF41A119696F2B40259CA79A19A24878F78D0EBB3AADC88`；`CombatBrain2.log` 63378 B → `FCB13C640FEEF6A9CCC441D5888188E32E5344E71F43B59D955BA7804AEA0C53`；`CombatBrain2.log` SHA256 见上，其余文件摘要见报告 §4.7 与本报告下方。
+- **Gate 3 补证场 2 `20261011-164000`**：14 个文件 / 831585 B。`cbath-timeline.json` 750858 B → `A352C2B9FD1AD5F26FBE892A8CB97609A750A4C79CCF3FA5D53CD7AEFFB5DA19`；`CombatBrain2.log` 60678 B → `62681CEFD650DA98DEAAB4084FD9127BD576BC20FB423B5CDBFEFE06A6168ED1`。
+- 六者数据同源（均从磁盘现算），如有出入以归档内实际文件为准。
 
 ## 未提交内容说明
 

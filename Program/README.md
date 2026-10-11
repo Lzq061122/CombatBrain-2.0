@@ -15,8 +15,20 @@
 
 ## 当前状态
 
-Codex Gate 3 复核：AI 控制资格丢失后的核心否决/撤权动作成立；P0 仍待独立失资格观测与玩家适用域补证。
-当前结论见 `_verify/P0-EXIT-GATE3-CODEX-REVIEW.md`。测试启用文件已留证并移除，恢复默认关闭态。
+2026-10-11 第三轮：Codex Gate 3 复核提出的**两项补证已交付**。
+(a) 独立失资格观测：修 `_verify/run-p0.ps1` 取数时机后在补证场 `20261011-164000`（pid 16736，
+build `b20261011-161246-db46608a`）取得 CBATH 独立 1 Hz 时间线，`is_ai_controlled=false` 共 8 条
+（A 窗口 t=16.097/17.098/18.103/19.104，B 窗口 t=21.110/22.115/23.119/24.122），窗口前后有 True 对照。
+(b) 玩家适用域：撤回原"接管不可达"结论，改用公开原生 `Mission.JoinEnemyTeam()` 实机走真实控制链
+（补证场 `20261011-162100`，pid 44704，同 build）——同一已绑定对象的队成为 PlayerTeam 后，生产以
+`player_owned` 否决、`PlayerEligibilityLost` 取消、`weight 8.000→0.000` 撤权；标记为
+`test-adapter_triggered_playerteam_change`，不是 F1/F6 按键链。
+另更正 run 7 身份勘误（47104 B / `27F8CBFA29AC1F13A848A61CDC2F761C7751517558CB294AD2DAA30113EF2416`，
+不是 run 6 的 37376 B / `44845964…`）。
+仍未验证：真实按键/UI 接管事件链、`JoinEnemyTeam` 后再经 `Team.AddTeamAI`/`SetPlayerRole` 重算
+`IsAIControlled` 的组合、`REVOKE_EXECUTED` 真实回退、快照陈旧拒绝路径。Gate 3 是否正式通过仍由 Codex 落定。
+详见 `_verify/P0-EXIT-GATE3-RUN-REPORT.md` §2.1 / §4.7 / §4.8 / §5.2 与
+`_verify/P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md` §2.1 / §2.2。
 
 P0 第一批（最小命令通路，派单 `TacticalCommandLab/_dispatch/2026-10-10-cb20-p0-minimal-command-path.md`）
 已落地：原生行为注册（run 4）、主线程写令与原方法入口/返回/后值组合证据（run 5）、
@@ -36,15 +48,17 @@ DLL sha256 `4A7E9C1D05EFC0FE666E022789B11A99A149AF73491A579DFA83A9BEDCA918E8`）
 场景判据见 `_verify/P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md`，证据与 Deviation 见
 `_verify/P0-EXIT-GATE3-RUN-REPORT.md`。Gate 3 是否正式通过由 Codex 复核落定，本仓库不自行把阶段判定改为通过。
 
-P0 阶段退出核对已完成：Exit Gate 1/2/4 在当前已交付范围内满足，Gate 3 的适用控制资格变化实机证据
-已由上述 `20261011-133859` 场交付，待 Codex 复核；P0 尚未整体通过。
-最小剩余工作见 `_verify/P0-STAGE-EXIT-CHECK.md`，正式进入 P1 前以此为准。
+P0 阶段退出核对：Exit Gate 1/2/4 在当前已交付范围内满足；Gate 3 的适用控制资格变化实机证据
+由上述 `20261011-133859` 场交付，Codex 复核提出的两项缺口已由补证场 `20261011-162100` /
+`20261011-164000` 补上，**待 Codex 再复核**；P0 尚未整体通过。最小剩余工作见 `_verify/P0-STAGE-EXIT-CHECK.md`，正式进入 P1 前以此为准。
 
 - 规模：`src/` 17 个 .cs（Core 8 + Host 9），`tests/` 8 个测试文件 **65 个**测试全绿
   （43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5 + 槽位并发 2 + Exit Gate 3 的 5）。
   Gate 3 新增 `src/Host/EligibilityProbe.cs`（测试适配：哨兵文件
-  `Documents\CombatBrain2\eligibility-probe.txt` 不存在时全程无副作用）。
-- 模块身份：`Id CombatBrain2`、程序集 `CombatBrain2.dll`、
+  `Documents\CombatBrain2\eligibility-probe.txt` 不存在时全程无副作用；mode a/b 走
+  `Formation.SetControlledByAI`，mode c 走公开原生 `Mission.JoinEnemyTeam()`）。
+  Gate 3 三项 Deviation 中"缺独立失资格观测"已闭合；`had_pending=0` 按 Codex 裁定保持原措辞，
+  `HANDOFF_DROPPED reason=intent_closed` 仍无实机证据（不作阻挡）。- 模块身份：`Id CombatBrain2`、程序集 `CombatBrain2.dll`、
   `SubModuleClassType CombatBrain2.Host.SubModule`，与旧 1.x `CombatBrain` 完全分离。
 - 构建：`dotnet build CombatBrain2.csproj -c Debug`（.NET SDK 8，`net472`，
   引用 NuGet `Bannerlord.ReferenceAssemblies[.CustomBattle] 1.4.8.119303`）。

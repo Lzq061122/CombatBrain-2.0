@@ -4,7 +4,7 @@
 
 > **P0 Exit Gate 3（控制权安全边沿）本单证据已交付（2026-10-11）：** 新决定性场次 `Program\_verify\sessions\20261011-133859\`（pid 35032，build `b20261011-132044-a06f2e05`，DLL sha256 `4A7E9C1D05EFC0FE666E022789B11A99A149AF73491A579DFA83A9BEDCA918E8`）。场景 A（待写命令遇资格变化）写入尝试 0、`INTENT_CANCELLED reason=AiControlLost`、`BEHAVIOR_DISARMED weight_before=8.000 weight_after=0.000`；场景 B（已生效命令遇资格变化）取消原因同为 `AiControlLost`，资格恢复于旧截止（40.549）之前、失资格保持 4.006 s，恢复后 `same_intent_open=0` 且该意图无新写入。**这是测试接口触发的资格变化**（公开原生 API `Formation.SetControlledByAI`），不是玩家接管实机事件。**最终阶段结论仍由 Codex 复核落定**；完整证据、三条 Deviation 与未验证项见 `P0-EXIT-GATE3-RUN-REPORT.md`，场景判据见 `P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md`。下方 §1、§2 描述的是本批第一批范围，**不因 Gate 3 而改写**。
 
-> **P0 阶段退出核对（2026-10-11）：核对已完成，P0 整体尚未通过。** 第一批通过保留；阶段 Gate 1/2/4 在当前范围内满足，Gate 3 仍缺适用的玩家接管/控制资格变化实机安全证据。只补该前置，不扩大性能或全域验证，见 `P0-STAGE-EXIT-CHECK.md`。
+> **Gate 3 补证已完成（2026-10-11 第三轮）：Codex 复核提出的两项缺口已交付实物证据，阶段结论仍待 Codex 再复核。** (a) 独立失资格观测：`run-p0.ps1` 取数时机修正（`end_mission` 之后、`games_stop` 之前再取 `cbath/get_last_run` → `cbath-timeline.json`）后重跑补证场 `_verify\sessions\20261011-164000\`（pid 16736，build `b20261011-161246-db46608a`，mvid `eea0ebe0-31e3-41cf-a871-9d4646299f8d`，DLL sha256 `C0D59AE7124DA67DB8FD3B39CBB4B6FA4B4779694780F5D748A9074268946EE4`），CBATH 独立 1 Hz 时间线 `run_id=run-20261011-081849-1 sample_count=91` 给出 **`is_ai_controlled=false` 8 条**（A 窗口 t=16.097/17.098/18.103/19.104，B 窗口 t=21.110/22.115/23.119/24.122），窗口前后有 True 对照。 (b) 玩家适用域：**撤回原"接管不可达"结论**，改用公开原生 `Mission.JoinEnemyTeam()` 走真实控制链（补证场 `_verify\sessions\20261011-162100\`，pid 44704，同 build）：同一已绑定对象 `obj=02c17ea5@Infantry` 所在队成为 PlayerTeam 后，生产以 `WRITE_BLOCKED reason=player_owned write_attempts_intent=0` 否决、`INTENT_CANCELLED reason=PlayerEligibilityLost` 取消、`BEHAVIOR_DISARMED weight_before=8.000 weight_after=0.000` 撤权；CBATH 侧 `team_id=1.is_player_team` 独立确认 t=16.110–19.120 为 True。标记为 `test-adapter_triggered_playerteam_change`，**不是 F1/F6 按键链，不是伪造 PlayerOwner，没有放宽生产过滤**。另更正 run 7 身份勘误：47104 B / `27F8CBFA29AC1F13A848A61CDC2F761C7751517558CB294AD2DAA30113EF2416`（不是 run 6 的 37376 B / `44845964…`）。仍未验证：真实按键/UI 接管事件链、`JoinEnemyTeam` 后经 `Team.AddTeamAI`/`SetPlayerRole` 重算 `IsAIControlled` 的组合、`REVOKE_EXECUTED` 真实回退、快照陈旧拒绝路径。详见 `P0-EXIT-GATE3-RUN-REPORT.md` §2.1 / §4.7 / §4.8 / §5.2 / §7.1 与 `P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md` §2.1 / §2.2。> **P0 阶段退出核对（2026-10-11）：核对已完成，P0 整体尚未通过。** 第一批通过保留；阶段 Gate 1/2/4 在当前范围内满足，Gate 3 仍缺适用的玩家接管/控制资格变化实机安全证据。只补该前置，不扩大性能或全域验证，见 `P0-STAGE-EXIT-CHECK.md`。
 
 > **Codex 独立验收收口（2026-10-11）：第一批最小命令通路在已限定范围内通过。** `cbc9981` 的单槽位同步修复及 run 7 受影响通路已核对，唯一剩余阻挡关闭。本批停止整改和补场；P0 整体、玩家/失效边界、真实回退及陈旧拒绝等未验证项不升级为通过。当前决定性场次为 run 7，完整口径见 `P0A-CODEX-ACCEPTANCE.md`；下列旧审查批次保留为历史。
 
@@ -21,7 +21,7 @@
 派单：`E:\MBmod\TacticalCommandLab\_dispatch\2026-10-10-cb20-p0-minimal-command-path.md`
 工作区：`E:\MBmod\CombatBrain 2.0`，开工 HEAD `a9ace1366f9aeb6de1a0f5a2cb039713004bc8fc`
 有效实机场次：run 6 `20261010-171526\`（pid 20316，整改前）／run 4 `20261010-213621\`（pid 52288，C 路线整改后）／run 5 `20261010-225539\`（pid 17452，主线程转交整改后）／**run 7 `20261011-002337\`（pid 1512，槽位同步整改后，本批决定性）**
-后续批次：Exit Gate 3 `20261011-133859\`（pid 35032，控制权安全边沿，见 `P0-EXIT-GATE3-RUN-REPORT.md`）
+后续批次：Exit Gate 3 `20261011-133859\`（pid 35032，控制权安全边沿，见 `P0-EXIT-GATE3-RUN-REPORT.md`）／Gate 3 补证 `20261011-162100\`（pid 44704，mode c，公开原生 `Mission.JoinEnemyTeam()` 玩家身份边沿）与 `20261011-164000\`（pid 16736，a,b 重跑 + CBATH 独立 1 Hz 时间线）
 
 ## 1. 本批实现范围
 
@@ -329,11 +329,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 
 | 项 | 值 |
 |---|---|
-| **归档（当前，覆盖 17 场，Exit Gate 3）** | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip` |
-| 大小 / 条目 | **8829130 B / 610** |
+| **归档（当前，覆盖 19 场，含 Gate 3 补证）** | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-supplement-sessions.zip` |
+| 大小 / 条目 | **8925131 B / 666** |
+| SHA256 | `C86C44A5A7B323A8D9D9AE4733BC24EB22C79FFB3514A8D5A0E1A254799183C4` |
+| sidecar | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-supplement-sessions.zip.sha256` |
+| 覆盖面 | `Program\_verify\sessions\` 全部 **19** 个场次目录 + `_lastrun\*.txt` 11 个控制台副本；含 Gate 3 补证场 `20261011-162100` / `20261011-164000` 的 CBATH 独立 1 Hz 时间线 |
+| **归档（上批，覆盖 17 场，Exit Gate 3 补证前）** | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip` |
+| 大小 / 条目 | 8829130 B / 610 |
 | SHA256 | `35F99ECB26213FF23AA1719E055310CA8D5B2437C5579B19BF6FEDADA57F4A73` |
 | sidecar | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip.sha256` |
-| 覆盖面 | `Program\_verify\sessions\` 全部 **17** 个场次目录 + `_lastrun\*.txt` 控制台副本 |
+| 覆盖面 | 17 个场次目录 + `_lastrun\*.txt`；不重写，保留为上一时点快照 |
 | 归档（上批，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run10.zip`，8800734 B / 610，`EE6EB6D1BF261252B4F5F93E162847DA12A29720955813296FDF3CBA04E49919`；仅覆盖 14 场 |
 | 归档（上批，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run9.zip`，8774320 B / 594，`BC4FA254822B4CA468E889FDF83D1AA36EA86BE3184987C02D2AC5F791DC830A`；仅覆盖 13 场 |
 | 归档（更早，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run7.zip`，8768831 B / 581，`E825FF34A48F024BB5FA3436BA13F4A44430A60C295635D48197F5E10C27A2FB`；仅覆盖 11 场 |
