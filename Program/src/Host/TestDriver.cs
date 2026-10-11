@@ -36,6 +36,7 @@ namespace CombatBrain2.Host
 
         internal ExecutionGate Gate { get { return _gate; } }
         internal WriteLedger Ledger { get { return _ledger; } }
+        internal ThreadHandoff Handoff { get { return _handoff; } }
         internal TestIntent Intent { get { return _intent; } }
         internal FormationSnapshot Snapshot { get { return _snapshot; } }
 
@@ -148,19 +149,41 @@ namespace CombatBrain2.Host
             {
                 var b = pair.Value;
                 if (b == null) continue;
+                var f = b.Formation;
+                float weightBefore = -1f;
+                float weightAfter = -1f;
+                int armedBefore = b.Armed ? 1 : 0;
+                string behaviorNow = "<none>";
                 string error = "";
                 try
                 {
-                    var f = b.Formation;
+                    try { weightBefore = b.WeightFactor; } catch (Exception) { }
                     b.Disarm();
-                    if (f != null) f.AI.SetBehaviorWeight<CbHoldBehavior>(0f);
+                    if (f != null)
+                    {
+                        f.AI.SetBehaviorWeight<CbHoldBehavior>(0f);
+                        try
+                        {
+                            weightAfter = ((CbHoldBehavior)f.AI.GetBehavior<CbHoldBehavior>()).WeightFactor;
+                        }
+                        catch (Exception) { }
+                        try
+                        {
+                            var active = f.AI.ActiveBehavior;
+                            behaviorNow = active == null ? "<none>" : active.GetType().Name;
+                        }
+                        catch (Exception) { }
+                    }
                 }
                 catch (Exception e) { error = e.GetType().Name + ": " + e.Message; }
 
                 Cb2Log.Line("BEHAVIOR_DISARMED",
                     "key=" + pair.Key +
                     " reason=" + reason +
-                    " weight=0" +
+                    " armed_before=" + armedBefore +
+                    " weight_before=" + Cb2Log.F(weightBefore) +
+                    " weight_after=" + Cb2Log.F(weightAfter) +
+                    " active_behavior_now=" + behaviorNow +
                     " error=" + (error.Length == 0 ? "<none>" : error) +
                     " at=" + Cb2Log.F(now));
             }
@@ -256,6 +279,13 @@ namespace CombatBrain2.Host
                 if (likelyPlayerOwned(bound))
                 {
                     CancelIntent(CancelReason.PlayerEligibilityLost, now);
+                    return;
+                }
+                // 控制资格丢失（IsAIControlled=false）：Route C 的前提不再成立。
+                // 只在此处取消还不够，取消路径必须同时撤权并让待写命令失效。
+                if (!bound.IsAiControlled)
+                {
+                    CancelIntent(CancelReason.AiControlLost, now);
                     return;
                 }
 
@@ -429,7 +459,8 @@ namespace CombatBrain2.Host
                 " behavior_registered=1" +
                 " behavior_weight=" + Cb2Log.F(TestParameters.HoldBehaviorWeight) +
                 " at=" + Cb2Log.F(now) +
-                " write_attempts=" + _gate.WriteAttempts);
+                " write_attempts_total=" + _gate.WriteAttempts +
+                " write_attempts_intent=" + _gate.WriteAttemptsFor(_intent.IntentId));
             return true;
         }
 
@@ -575,7 +606,18 @@ namespace CombatBrain2.Host
             if (!_handoff.HasPending) return;
 
             var p = _handoff.TakePending();
-            if (_intent == null || _intent.IsClosed) return;
+            if (_intent == null || _intent.IsClosed)
+            {
+                // 意图已取消：这条命令已经失效，丢弃而不执行，且要留下可核查记录。
+                Cb2Log.Line("HANDOFF_DROPPED",
+                    "intent=" + p.IntentId +
+                    " key=" + p.Key +
+                    " reason=intent_closed" +
+                    " callback_tid=" + p.CallbackThreadId +
+                    " exec_tid=" + Thread.CurrentThread.ManagedThreadId +
+                    " at=" + Cb2Log.F(SafeTime(mission)));
+                return;
+            }
             if (!string.Equals(p.IntentId, _intent.IntentId, StringComparison.Ordinal)) return;
             if (_intent.SelectedAt < 0) return;
 
@@ -649,7 +691,8 @@ namespace CombatBrain2.Host
                     " key=" + key +
                     " reason=" + decision.BlockReason +
                     " at=" + Cb2Log.F(now) +
-                    " write_attempts=" + _gate.WriteAttempts);
+                    " write_attempts_total=" + _gate.WriteAttempts +
+                    " write_attempts_intent=" + _gate.WriteAttemptsFor(_intent.IntentId));
                 return;
             }
 
@@ -703,7 +746,8 @@ namespace CombatBrain2.Host
                 " original_body_entered=" + (originalEntered ? 1 : 0) +
                 " original_body_tid=" + (originalEntered ? originalThreadId.ToString(CultureInfo.InvariantCulture) : "-1") +
                 " at=" + Cb2Log.F(now) +
-                " write_attempts=" + _gate.WriteAttempts);
+                " write_attempts_total=" + _gate.WriteAttempts +
+                " write_attempts_intent=" + _gate.WriteAttemptsFor(_intent.IntentId));
         }
 
         // 独立读取实际 MovementOrder，判断本次变化是否被后续原生改写。
@@ -739,7 +783,24 @@ namespace CombatBrain2.Host
                 "intent=" + _intent.IntentId +
                 " reason=" + reason +
                 " at=" + Cb2Log.F(now) +
-                " write_attempts=" + _gate.WriteAttempts);
+                " write_attempts_total=" + _gate.WriteAttempts +
+                " write_attempts_intent=" + _gate.WriteAttemptsFor(_intent.IntentId));
+            int hadPending = 0;
+            try
+            {
+                if (_handoff.HasPending) hadPending = 1;
+                // 取消后待写命令必须失效：不允许旧意图在取消后仍被主线程消费。
+                // 只清待写槽位，不清主线程登记（主线程执行点仍要保留）。
+                _handoff.Clear();
+            }
+            catch (Exception) { }
+
+            Cb2Log.Line("HANDOFF_CLEARED",
+                "intent=" + _intent.IntentId +
+                " reason=" + reason +
+                " had_pending=" + hadPending +
+                " at=" + Cb2Log.F(now));
+
             DisarmAllBehaviors(reason.ToString(), now);
             RevokeIfNeeded(now);
         }
@@ -823,6 +884,16 @@ namespace CombatBrain2.Host
             int teamIndex;
             if (!int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out teamIndex)) return null;
             return FormationSampler.FindFormation(mission, teamIndex, parts[1]);
+        }
+
+        internal double SafeNow(Mission mission)
+        {
+            return SafeTime(mission);
+        }
+
+        internal Formation FindFormationByKey(Mission mission, string key)
+        {
+            return FindByKey(mission, key);
         }
 
         private static string KeyOf(int teamIndex, Formation f)

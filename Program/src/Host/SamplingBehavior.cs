@@ -65,6 +65,9 @@ namespace CombatBrain2.Host
 
             TestDriver.Instance.Tick(mission);
 
+            // 测试适配：只在哨兵文件开启时改变一个真实编队的 AI 控制资格。
+            EligibilityProbe.Instance.OnMissionTick(mission);
+
             // 主线程执行点：消费非主线程回调转交过来的那一条命令。
             TestDriver.Instance.DrainPendingCommand(mission);
 

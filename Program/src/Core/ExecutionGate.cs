@@ -31,6 +31,7 @@ namespace CombatBrain2.Core
             internal bool Written;
             internal bool Closed;
             internal CancelReason CloseReason = CancelReason.None;
+            internal int WriteAttempts;
         }
 
         internal void SubmitCandidate(string intentId, string key, double missionTime)
@@ -120,8 +121,17 @@ namespace CombatBrain2.Core
 
             s.Written = true;
             _writeAttempts++;
+            s.WriteAttempts++;
             d.Allowed = true;
             return d;
+        }
+
+        // 按意图查询写入次数：全局累加会掩盖"某个具体意图是否又写了一次"。
+        internal int WriteAttemptsFor(string intentId)
+        {
+            IntentState state;
+            if (_states.TryGetValue(intentId, out state) && state.WriteAttempts > 0) return state.WriteAttempts;
+            return 0;
         }
 
         internal void Close(string intentId, CancelReason reason, double missionTime)

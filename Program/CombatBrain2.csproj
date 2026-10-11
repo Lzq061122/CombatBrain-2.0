@@ -27,6 +27,7 @@
     <Compile Include="src\Host\FormationSampler.cs" />
     <Compile Include="src\Host\IndependentObservation.cs" />
     <Compile Include="src\Host\TestDriver.cs" />
+    <Compile Include="src\Host\EligibilityProbe.cs" />
     <Compile Include="src\Host\SamplingBehavior.cs" />
     <Compile Include="src\Host\SubModule.cs" />
   </ItemGroup>

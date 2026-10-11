@@ -15,6 +15,7 @@
     <Compile Include="TestIntentTests.cs" />
     <Compile Include="SnapshotTests.cs" />
     <Compile Include="ExecutionGateTests.cs" />
+    <Compile Include="EligibilityLossTests.cs" />
     <Compile Include="RevocationTests.cs" />
     <Compile Include="ThreadHandoffTests.cs" />
     <Compile Include="OriginalMethodReceiptTests.cs" />

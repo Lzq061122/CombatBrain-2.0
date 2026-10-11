@@ -35,6 +35,7 @@ namespace CombatBrain2.Core
         ExplicitClose,
         TargetInvalid,
         PlayerEligibilityLost,
+        AiControlLost,
         MissionEnded,
     }
 
