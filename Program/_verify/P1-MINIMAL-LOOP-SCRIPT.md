@@ -1,6 +1,6 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 P1 Minimal Loop Implementation Script
-Version: 1.2
+Version: 1.3
 Author Role: CombatBrain 2.0 Development Planner
 Model: GPT-6
 Created: 2026-10-11
@@ -11,11 +11,12 @@ Reviewer: Codex
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.3 2026-10-12 01:02 | role=CombatBrain 2.0 Development Dispatcher and Reviewer | model=GPT-6 | editor=codex-cb20-p1-team-statistics-clarification-20261012 | note=明确受控队身份、双方全队统计与编队候选资格分离，保持配比阈值和任务顺序不变
 v1.2 2026-10-12 00:20 | role=CombatBrain 2.0 Development Dispatcher and Reviewer | model=GPT-6 | editor=codex-cb20-p1-driver-replacement-decision-20261012 | note=明确批准P1取代固定P0驱动，删除旧意图与专属测试，改为新通路安全要求回归，默认关闭只采样不发令
 v1.1 2026-10-11 22:21 | role=CombatBrain 2.0 Development Dispatcher and Reviewer | model=GPT-6 | editor=codex-cb20-p1-script-confirmation-20261011 | note=明确任务级执行门、多编队转交、安全退出例外与未生效反馈处置，修正时间和几何判据并确认进入限定实现
 -->
 
-# P1 最小指挥闭环 —— 实现前脚本（v1.2，Codex 已确认）
+# P1 最小指挥闭环 —— 实现前脚本（v1.3，Codex 已确认）
 
 状态：**Codex 已确认，允许按本脚本进入限定实现**。确认基于文档和现有源码约束，不是 P1 实机通过。§5 参数在本版本冻结；实测期间不得边跑边改通过口径。v1 来自 `789272c`，本轮只修改本文件，不改实现、构建或部署。
 2026-10-12 当前裁决：采用 P1 驱动取代固定 P0 测试驱动，具体范围与报告口径见 §9.4.1。本次明确授权是 v1.1 对 P0 驱动保留约定的修订，不把已有未提交重写解释为开工前该约定已不存在。其他任务、参数、效果与安全验收条件保持不变。
@@ -46,6 +47,12 @@ v1.1 2026-10-11 22:21 | role=CombatBrain 2.0 Development Dispatcher and Reviewer
 - 每场必须记录并归档：`mission_key`、双方 `team_index`/`side`/`is_player_team`、被指挥编队的 `formation_index`/`formation_class`/对象身份、以及"实际控制域"的判定依据。
 - "team1 是我方"是**本批场次的事实记录**，不是控制关系；报告中按此措辞。
 
+**受控队身份、统计范围与任务资格分开：**
+- 本批两队 CustomBattle 中，我方是实际选定的非玩家 AI 受控队，敌方是与它对立的另一队（本批为玩家队）。按实际队关系/标识建立归属，不把玩家队委派给 AI 理解为玩家身份消失，不硬编码 team/formation 号，不把“不属于某队的所有记录”泛化成任意场景的一方。没有唯一明确的受控队/对立队关系时不给未知归属填值、不生成 Plan；本单不扩展多队仲裁。
+- 两方统计按各自实际 Team 的全部非空编队记录：玩家队作为敌方照常计入敌方总人数、远程人数及中心位置；我方未受控的骑兵，或暂失去 AI 资格的我方编队，仍属于我方全队统计。不能为提高“可写性”过滤统计分母，不能把某编队资格丧失当作该编队士兵消失或队伍换边。
+- `MyFormations` 可保留我方全队记录以供统计；`PlanBuilder.PickFirst` 另对任务候选应用 §1 的完整资格门。同队合格 Infantry/Ranged 各选一支；玩家拥有、非 AI、空、陈旧或身份无效的记录不参与任务选择，但不因此删掉仍存在的士兵统计。敌方玩家编队从不参与我方候选。
+- 候选仅代表采样时合格，不保证一定可写；真实本方行为获选、主线程、对象身份及执行前即时资格复核仍按原要求执行。以上是既有归属/统计/安全门的澄清，不改变验收阈值、不新增实机场次。
+
 ---
 
 ## 2. 条件与目标
@@ -54,7 +61,7 @@ v1.1 2026-10-11 22:21 | role=CombatBrain 2.0 Development Dispatcher and Reviewer
 **条件 = 双方远程（Ranged）占比差 + 兵力基本约束。**
 
 - 判据变量：
-  - `ownRangedRatio = 我方被指挥队 Ranged 人数 / 我方被指挥队总人数`
+  - `ownRangedRatio = 我方实际受控队全队 Ranged 人数 / 我方实际受控队全队总人数`（不是仅两支受命编队或仅当前可写单位）
   - `enemyRangedRatio = 敌方队 Ranged 人数 / 敌方队总人数`
   - `rangedEdge = ownRangedRatio − enemyRangedRatio`
   - 兵力约束：我方总人数 ≥ 敌方的 80%、敌方总人数 ≥ 我方的 80%（避免一方碾压导致"胜负已分"污染对照）
@@ -157,10 +164,11 @@ v1.1 2026-10-11 22:21 | role=CombatBrain 2.0 Development Dispatcher and Reviewer
 差异必须落在**编队→任务/命令/目标位置**上，且可逐条追到 `rangedEdge` 的差异。若两场出现同一批编队、同一任务、同一命令（仅 Plan 名称不同），**不得**登记 Gate 1 通过。
 
 ### 4.5 选择与位置计算的最小定义
-- 从同一快照按实际队关系选择受控队，Infantry/Ranged 各选一支合格编队；同类别多支按 `(TeamIndex, FormationIndex)` 稳定升序选第一支，绑定实际对象，缺任一类别不生成本批双编队 Plan。
+- 从同一快照按 §1 确定受控队，Infantry/Ranged 各选一支通过完整资格门的编队；同类别多支按 `(TeamIndex, FormationIndex)` 稳定升序选第一支，绑定实际对象，缺任一类别不生成本批双编队 Plan。全队人数/中心的读取与候选过滤分开，不能用仅人数和兵种检查代替资格门。
 - `u` 为从我方全队单位数加权中心指向敌方全队单位数加权中心的归一化二维向量。P 点 = Ranged 当前位置 + `u × min(25 m, 双方中心距离/2)`；N 点 = Infantry 当前位置 − `u × 20 m`。零距离、未知/非法坐标或公开导航检查不通过时不伪造位置、不强写，记录位置无效并停止生成该任务。
 - 记录原始几何点与经引擎公开导航处理的有效请求点；0.5 m 读回容差比较的是有效请求点与实际命令目标点。无公开可达性/目标点读取入口时报告具体缺口，不读新增私有字段补值。
 - 普通任务按 Ranged、Infantry 的稳定顺序发令；后者的实际写入不早于前者实际写入 + 1.5 s。前一任务尚未完成等待时，不因后者计划时间已到而同时释放两条命令。
+- 两配置统一 `Ordinal 1 = Ranged`、`Ordinal 2 = Infantry`；P 为 Ranged Reposition / Infantry Engage，N 为 Ranged Hold / Infantry Reposition。角色、位置公式和发令顺序相互一致，不因配置改变类别序号。
 
 ---
 
