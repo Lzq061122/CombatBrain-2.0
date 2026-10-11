@@ -1,5 +1,7 @@
 # CombatBrain 2.0 — P0 第一批交接（最小命令通路）
 
+> **P0 Exit Gate 3（控制权安全边沿）本单证据已交付（2026-10-11）：** 新决定性场次 `Program\_verify\sessions\20261011-133859\`（pid 35032，build `b20261011-132044-a06f2e05`，DLL sha256 `4A7E9C1D05EFC0FE666E022789B11A99A149AF73491A579DFA83A9BEDCA918E8`）。场景 A（待写命令遇资格变化）写入尝试 0、`INTENT_CANCELLED reason=AiControlLost`、`BEHAVIOR_DISARMED weight_before=8.000 weight_after=0.000`；场景 B（已生效命令遇资格变化）取消原因同为 `AiControlLost`，资格恢复于旧截止（40.549）之前、失资格保持 3.994 s，恢复后 `same_intent_open=0` 且该意图无新写入。**这是测试接口触发的资格变化**（公开原生 API `Formation.SetControlledByAI`），不是玩家接管实机事件。**最终阶段结论仍由 Codex 复核落定**；完整证据、三条 Deviation 与未验证项见 `P0-EXIT-GATE3-RUN-REPORT.md`，场景判据见 `P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md`。下方 §1、§2 描述的是本批第一批范围，**不因 Gate 3 而改写**。
+
 > **P0 阶段退出核对（2026-10-11）：核对已完成，P0 整体尚未通过。** 第一批通过保留；阶段 Gate 1/2/4 在当前范围内满足，Gate 3 仍缺适用的玩家接管/控制资格变化实机安全证据。只补该前置，不扩大性能或全域验证，见 `P0-STAGE-EXIT-CHECK.md`。
 
 > **Codex 独立验收收口（2026-10-11）：第一批最小命令通路在已限定范围内通过。** `cbc9981` 的单槽位同步修复及 run 7 受影响通路已核对，唯一剩余阻挡关闭。本批停止整改和补场；P0 整体、玩家/失效边界、真实回退及陈旧拒绝等未验证项不升级为通过。当前决定性场次为 run 7，完整口径见 `P0A-CODEX-ACCEPTANCE.md`；下列旧审查批次保留为历史。
@@ -16,7 +18,8 @@
 
 派单：`E:\MBmod\TacticalCommandLab\_dispatch\2026-10-10-cb20-p0-minimal-command-path.md`
 工作区：`E:\MBmod\CombatBrain 2.0`，开工 HEAD `a9ace1366f9aeb6de1a0f5a2cb039713004bc8fc`
-有效实机场次：run 6 `20261010-171526\`（pid 20316，整改前）／run 4 `20261010-213621\`（pid 52288，C 路线整改后）／run 5 `20261010-225539\`（pid 17452，主线程转交整改后）／**run 7 `20261011-002337\`（pid 1512，槽位同步整改后，当前决定性）**
+有效实机场次：run 6 `20261010-171526\`（pid 20316，整改前）／run 4 `20261010-213621\`（pid 52288，C 路线整改后）／run 5 `20261010-225539\`（pid 17452，主线程转交整改后）／**run 7 `20261011-002337\`（pid 1512，槽位同步整改后，本批决定性）**
+后续批次：Exit Gate 3 `20261011-133859\`（pid 35032，控制权安全边沿，见 `P0-EXIT-GATE3-RUN-REPORT.md`）
 
 ## 1. 本批实现范围
 
@@ -297,12 +300,14 @@ L557 [CB2][MISSION_CLEANUP] intent_and_object_state_cleared
 
 ## 6. 复现入口
 
+> **2026-10-11 Exit Gate 3 追加（本批之后，源码已超出本文件 §1 描述的范围）：** Gate 3 新增 `src\Host\EligibilityProbe.cs`（测试适配，默认关闭）、`tests\EligibilityLossTests.cs`（5 例），并修改了 `TestDriver.cs` / `SamplingBehavior.cs` / `TestParameters.cs` / `ExecutionGate.cs` 与两个 csproj。测试总数由 60 变为 **65**。改的是本批同一条 Movement 通路的安全退出部分，不是新范围：控制域、时间参数、获选判据与主线程执行点均未动。Graduate 实 möglich：见 `P0-EXIT-GATE3-RUN-REPORT.md` §3 与本文件顶部 Gate 3 说明。
+
 ```powershell
 # 构建
 cd 'E:\MBmod\CombatBrain 2.0\Program'
 dotnet build CombatBrain2.csproj -c Debug
 
-# 测试（60 个；43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5 + 槽位并发 2）
+# 测试（65 个；60 + Exit Gate 3 的 5）
 dotnet test tests\CombatBrain2.Tests.csproj -c Debug
 
 # 部署（生成新 build_id、印章核验、清 bin/obj 真重编、目标目录守卫、源/部署 SHA256 比对）
@@ -322,11 +327,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\_verify\run-p0.ps1' -Comb
 
 | 项 | 值 |
 |---|---|
-| **归档（当前，覆盖 14 场）** | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run10.zip` |
-| 大小 / 条目 | **8800734 B / 610** |
-| SHA256 | `EE6EB6D1BF261252B4F5F93E162847DA12A29720955813296FDF3CBA04E49919` |
-| sidecar | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run10.zip.sha256` |
-| 覆盖面 | `Program\_verify\sessions\` 全部 **14** 个场次目录（含隐藏文件），源 607 files / 12971369 B |
+| **归档（当前，覆盖 17 场，Exit Gate 3）** | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip` |
+| 大小 / 条目 | **8829130 B / 610** |
+| SHA256 | `35F99ECB26213FF23AA1719E055310CA8D5B2437C5579B19BF6FEDADA57F4A73` |
+| sidecar | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-sessions.zip.sha256` |
+| 覆盖面 | `Program\_verify\sessions\` 全部 **17** 个场次目录 + `_lastrun\*.txt` 控制台副本 |
+| 归档（上批，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run10.zip`，8800734 B / 610，`EE6EB6D1BF261252B4F5F93E162847DA12A29720955813296FDF3CBA04E49919`；仅覆盖 14 场 |
 | 归档（上批，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run9.zip`，8774320 B / 594，`BC4FA254822B4CA468E889FDF83D1AA36EA86BE3184987C02D2AC5F791DC830A`；仅覆盖 13 场 |
 | 归档（更早，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions-run7.zip`，8768831 B / 581，`E825FF34A48F024BB5FA3436BA13F4A44430A60C295635D48197F5E10C27A2FB`；仅覆盖 11 场 |
 | 归档（第一批，已被上者取代） | `E:\MBmod\CombatBrain2-evidence\20261010-p0a-sessions.zip`，274030 B / 531，`B144E23AFCE18B7C45F21B799884ECEEF9D9CD274808A9884E6264CCDDB015FE`；仅覆盖前 7 场（855706 B），不含 C 路线整改后的场次 |

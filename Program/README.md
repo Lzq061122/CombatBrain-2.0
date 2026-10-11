@@ -23,11 +23,24 @@ Codex 2026-10-11 独立验收：第一批最小命令通路在已限定范围内
 `ThreadHandoff` 槽位同步阻挡已关闭；本批停止整改与补场，未验证边界继续保留。
 当前结论见 `_verify/P0A-CODEX-ACCEPTANCE.md`；旧复验报告保留为历史。
 
-P0 阶段退出核对已完成：Exit Gate 1/2/4 在当前已交付范围内满足，Gate 3 的适用控制资格变化实机证据仍缺；
-P0 尚未整体通过。最小剩余工作见 `_verify/P0-STAGE-EXIT-CHECK.md`，先完成该边沿再决定正式进入 P1。
+P0 Exit Gate 3（控制权安全边沿，派单 `TacticalCommandLab/_dispatch/2026-10-11-cb20-p0-stage-exit-control-safety.md`）
+已交付本机证据：决定性场次 `_verify/sessions/20261011-133859/`（build `b20261011-132044-a06f2e05`，pid 35032，
+DLL sha256 `4A7E9C1D05EFC0FE666E022789B11A99A149AF73491A579DFA83A9BEDCA918E8`）。
+同场跑通两段：场景 A（待写命令在资格变化后被 `not_ai_controlled` 否决、写入尝试 0、取消 `AiControlLost`、撤权 8.000→0.000）
+与场景 B（已生效命令遇资格变化同样取消 `AiControlLost`，失资格保持 3.994 s，恢复发生在旧截止之前，
+恢复后该意图 `same_intent_open=0` 且无新写入）。**触发方式属于"测试接口触发的资格变化"**（公开原生
+`Formation.SetControlledByAI`），不是玩家接管实机事件；玩家接管边沿仍未验证。
+场景判据见 `_verify/P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md`，证据与 Deviation 见
+`_verify/P0-EXIT-GATE3-RUN-REPORT.md`。Gate 3 是否正式通过由 Codex 复核落定，本仓库不自行把阶段判定改为通过。
 
-- 规模：`src/` 16 个 .cs（Core 8 + Host 8），`tests/` 7 个测试文件 **60 个**测试全绿
-  （43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5 + 槽位并发 2）。
+P0 阶段退出核对已完成：Exit Gate 1/2/4 在当前已交付范围内满足，Gate 3 的适用控制资格变化实机证据
+已由上述 `20261011-133859` 场交付，待 Codex 复核；P0 尚未整体通过。
+最小剩余工作见 `_verify/P0-STAGE-EXIT-CHECK.md`，正式进入 P1 前以此为准。
+
+- 规模：`src/` 17 个 .cs（Core 8 + Host 9），`tests/` 8 个测试文件 **65 个**测试全绿
+  （43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5 + 槽位并发 2 + Exit Gate 3 的 5）。
+  Gate 3 新增 `src/Host/EligibilityProbe.cs`（测试适配：哨兵文件
+  `Documents\CombatBrain2\eligibility-probe.txt` 不存在时全程无副作用）。
 - 模块身份：`Id CombatBrain2`、程序集 `CombatBrain2.dll`、
   `SubModuleClassType CombatBrain2.Host.SubModule`，与旧 1.x `CombatBrain` 完全分离。
 - 构建：`dotnet build CombatBrain2.csproj -c Debug`（.NET SDK 8，`net472`，
@@ -51,11 +64,14 @@ P0 尚未整体通过。最小剩余工作见 `_verify/P0-STAGE-EXIT-CHECK.md`�
   `WRITE_EXECUTED … order_before=Move order_after=StandYourGround original_body_entered=1 original_body_tid=33`、
   `WRITE_BLOCKED` 51 条全 `already_written` 且窗口结束后 0 条、
   行为撤权（`BEHAVIOR_DISARMED weight=0`）、末行 `MISSION_CLEANUP`。
+- 已有实机事实（Gate 3 `20261011-133859`）：控制权安全退出三条成立 —— 资格变化后的待写命令不落地（`WRITE_BLOCKED reason=not_ai_controlled write_attempts_intent=0`）、本方行为及时撤权（`weight_before=8.000 weight_after=0.000`，实读回取值而非写死常量）、资格恢复后旧意图不复活（`intent_open_now=<none> same_intent_open=0`）。Gate 3 未覆盖：`HANDOFF_DROPPED reason=intent_closed` 该场 0 条，仍无实机证据。
 - 未验证范围（不得据此推进依赖这些能力的功能）：玩家接管边沿、目标失效分支、
   选择超时分支、撤销的真实回退执行（`REVOKE_EXECUTED` 0 条，`previous_order_not_restorable`）、
   快照陈旧拒绝路径（`age` 恒 0，`over_limit=0`）、下一 Mission 无状态残留、
   主线程只登记一次（`ThreadHandoff.MarkMainThread` 不随 Mission tick 线程变化更新）、
   槽位并发测试的覆盖边界（40 轮加压跑绿 ≠ 形式化无竞态证明，见 `_verify/P0A-HANDOVER.md` §3.1 项 9/10）。
-- 详见 `_verify/P0A-HANDOVER.md`（交接与判据）、`_verify/P0A-CODEX-ACCEPTANCE.md`（当前验收）；
+- 详见 `_verify/P0A-HANDOVER.md`（交接与判据）、`_verify/P0A-CODEX-ACCEPTANCE.md`（当前验收）、
+  `_verify/P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md`（Gate 3 场景判据）、
+  `_verify/P0-EXIT-GATE3-RUN-REPORT.md`（Gate 3 证据与 Deviation）；
   之前的独立审查/复验报告保留为历史。
 - "P0 第一批通过"不等于 P0 整体通过；战术决策、预备队产品规则等均未开工。
