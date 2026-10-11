@@ -1,5 +1,7 @@
 # CombatBrain 2.0 — P0 第一批交接（最小命令通路）
 
+> **当前阶段结论（Codex，2026-10-11）：Gate 3 补证通过，P0 在限定控制范围内正式退出，可以进入 P1 最小指挥闭环开发。** 当前验收见 `P0-STAGE-EXIT-ACCEPTANCE.md`。下方各轮意见按历史保留，其中“待复核／尚未退出”不再代表当前阶段状态；未验证项不随本次通过升级。
+
 > **Codex Gate 3 复核（2026-10-11）：核心安全动作成立，P0 暂不退出。** 场景 A/B 的生产否决、资格取消、权重撤销和恢复后不复活已核对；尚缺写定的独立失资格观测，以及玩家接管“不适用”的完整依据。只补这两处证据，不重修已验命令通路。测试启用文件已备份并移除，见 `P0-EXIT-GATE3-CODEX-REVIEW.md`。
 
 > **P0 Exit Gate 3（控制权安全边沿）本单证据已交付（2026-10-11）：** 新决定性场次 `Program\_verify\sessions\20261011-133859\`（pid 35032，build `b20261011-132044-a06f2e05`，DLL sha256 `4A7E9C1D05EFC0FE666E022789B11A99A149AF73491A579DFA83A9BEDCA918E8`）。场景 A（待写命令遇资格变化）写入尝试 0、`INTENT_CANCELLED reason=AiControlLost`、`BEHAVIOR_DISARMED weight_before=8.000 weight_after=0.000`；场景 B（已生效命令遇资格变化）取消原因同为 `AiControlLost`，资格恢复于旧截止（40.549）之前、失资格保持 4.006 s，恢复后 `same_intent_open=0` 且该意图无新写入。**这是测试接口触发的资格变化**（公开原生 API `Formation.SetControlledByAI`），不是玩家接管实机事件。**最终阶段结论仍由 Codex 复核落定**；完整证据、三条 Deviation 与未验证项见 `P0-EXIT-GATE3-RUN-REPORT.md`，场景判据见 `P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md`。下方 §1、§2 描述的是本批第一批范围，**不因 Gate 3 而改写**。

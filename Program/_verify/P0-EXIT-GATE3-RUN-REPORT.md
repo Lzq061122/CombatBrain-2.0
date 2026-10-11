@@ -1,5 +1,7 @@
 # P0 Exit Gate 3 —— 控制权安全边沿：本场运行报告
 
+> **Codex 补证复核收口（2026-10-11）：两项缺口关闭，Gate 3 通过，P0 在当前 Movement／非玩家 AI 步兵编队范围内满足阶段退出条件，可以进入 P1。** 当前结论与逐条事实见 `P0-STAGE-EXIT-ACCEPTANCE.md`；下列此前审核意见保留为历史。本轮不再补场，UI 按键链等未验证边界仍保留。
+
 > **Codex 2026-10-11 复核：场景 A/B 的生产否决、取消和撤权事实成立；Gate 3/P0 仍待独立失资格观测与玩家适用域补证。** had_pending=0 接受为本场时序；probe 实读不能替代写定的独立采样；“玩家接管不可达”原推断不予采纳。完整裁定见 `P0-EXIT-GATE3-CODEX-REVIEW.md`。启用文件已备份并移除，默认测试关闭态已恢复。
 
 - Author Role：CombatBrain 2.0 Development Dispatcher / 实现方（本机会话执行）

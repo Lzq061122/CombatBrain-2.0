@@ -15,6 +15,9 @@
 
 ## 当前状态
 
+**Codex 2026-10-11 独立验收：Gate 3 两项补证通过，P0 在当前 Movement／非玩家 AI 步兵编队控制范围内正式退出，可以进入 P1 最小指挥闭环开发。**
+当前阶段结论见 `_verify/P0-STAGE-EXIT-ACCEPTANCE.md`；本批停止补场与整改，未验证边界保留。
+
 2026-10-11 第三轮：Codex Gate 3 复核提出的**两项补证已交付**。
 (a) 独立失资格观测：修 `_verify/run-p0.ps1` 取数时机后在补证场 `20261011-164000`（pid 16736，
 build `b20261011-161246-db46608a`）取得 CBATH 独立 1 Hz 时间线，`is_ai_controlled=false` 共 8 条
@@ -26,7 +29,7 @@ build `b20261011-161246-db46608a`）取得 CBATH 独立 1 Hz 时间线，`is_ai_
 另更正 run 7 身份勘误（47104 B / `27F8CBFA29AC1F13A848A61CDC2F761C7751517558CB294AD2DAA30113EF2416`，
 不是 run 6 的 37376 B / `44845964…`）。
 仍未验证：真实按键/UI 接管事件链、`JoinEnemyTeam` 后再经 `Team.AddTeamAI`/`SetPlayerRole` 重算
-`IsAIControlled` 的组合、`REVOKE_EXECUTED` 真实回退、快照陈旧拒绝路径。Gate 3 是否正式通过仍由 Codex 落定。
+`IsAIControlled` 的组合、`REVOKE_EXECUTED` 真实回退、快照陈旧拒绝路径。Gate 3 已由 Codex 在上述限定范围内判定通过。
 详见 `_verify/P0-EXIT-GATE3-RUN-REPORT.md` §2.1 / §4.7 / §4.8 / §5.2 与
 `_verify/P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md` §2.1 / §2.2。
 
@@ -44,13 +47,14 @@ DLL sha256 `4A7E9C1D05EFC0FE666E022789B11A99A149AF73491A579DFA83A9BEDCA918E8`）
 同场跑通两段：场景 A（待写命令在资格变化后被 `not_ai_controlled` 否决、写入尝试 0、取消 `AiControlLost`、撤权 8.000→0.000）
 与场景 B（已生效命令遇资格变化同样取消 `AiControlLost`，失资格保持 4.006 s，恢复发生在旧截止之前，
 恢复后该意图 `same_intent_open=0` 且无新写入）。**触发方式属于"测试接口触发的资格变化"**（公开原生
-`Formation.SetControlledByAI`），不是玩家接管实机事件；玩家接管边沿仍未验证。
+`Formation.SetControlledByAI`）；玩家队身份边沿由后续 mode c 补证，真实 UI 按键链仍未验证。
 场景判据见 `_verify/P0-EXIT-GATE3-CONTROL-SAFETY-SCENARIOS.md`，证据与 Deviation 见
-`_verify/P0-EXIT-GATE3-RUN-REPORT.md`。Gate 3 是否正式通过由 Codex 复核落定，本仓库不自行把阶段判定改为通过。
+`_verify/P0-EXIT-GATE3-RUN-REPORT.md`。当前阶段判定见 Codex 的 `_verify/P0-STAGE-EXIT-ACCEPTANCE.md`。
 
 P0 阶段退出核对：Exit Gate 1/2/4 在当前已交付范围内满足；Gate 3 的适用控制资格变化实机证据
 由上述 `20261011-133859` 场交付，Codex 复核提出的两项缺口已由补证场 `20261011-162100` /
-`20261011-164000` 补上，**待 Codex 再复核**；P0 尚未整体通过。最小剩余工作见 `_verify/P0-STAGE-EXIT-CHECK.md`，正式进入 P1 前以此为准。
+`20261011-164000` 补上并经 Codex 复核通过；P0 已在当前限定控制范围内满足四项退出条件。
+`_verify/P0-STAGE-EXIT-CHECK.md` 保留首次核对历史，当前正式阶段结论以 `_verify/P0-STAGE-EXIT-ACCEPTANCE.md` 为准。
 
 - 规模：`src/` 17 个 .cs（Core 8 + Host 9），`tests/` 8 个测试文件 **65 个**测试全绿
   （43 + 执行前三项复核 4 + 主线程转交 6 + 原方法回执 5 + 槽位并发 2 + Exit Gate 3 的 5）。
