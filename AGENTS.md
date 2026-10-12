@@ -1,18 +1,18 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 PAIPOS Workflow Entry
-Version: 1.3
+Version: 1.4
 Author Role: Project Governance Maintainer
 Model: GPT-6
 Created: 2026-10-02
-Updated: 2026-10-12
+Updated: 2026-10-13
 Target: All CombatBrain 2.0 Harness Agents
 Scope: CombatBrain 2.0 / Workflow
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.4 2026-10-13 01:30 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-development-cadence-20261013 | note=落实长期开发节奏：完整交付后集中验收，减少重复确认与碎片汇报，优先可信实机表现
 v1.3 2026-10-12 16:09 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb20-p1-stage-exit-20261012 | note=同步 P1 最小闭环阶段独立验收结论，未验证边界继续保留，观测验收仍独立
 v1.2 2026-10-12 13:43 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-exclusive-game-adoption-20261012 | note=落实用户协调通知：观测工作树禁止主线操作、提交在集成工作树审查、完整实测统一串行入口
-v1.1 2026-10-12 13:30 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-observation-isolation-20261012 | note=规定 CB2 与观测组独立工作树、文件归属、接入合并与共享实机串行边界
 -->
 
 # CombatBrain 2.0 项目入口
@@ -87,6 +87,17 @@ v1.1 2026-10-12 13:30 | role=Project Governance Maintainer | model=GPT-6 | edito
 - 小而可控的修改：开发执行、自检后结束。跨模块、核心行为或重要交付：增加独立质检，不强制每次经过三个角色。
 - 检查既要验证约定行为，也要判断是否回应了原始需求。需求或产物改变后，重新核对旧验证是否适用。
 - 完成时简短说明：改了什么、验证了什么、还有什么未确认。没有执行的验证不能写成通过。
+
+## 4a. 开发节奏与集中验收（长期要求）
+
+本节依据用户 2026-10-13 的要求，适用于后续所有开发任务，不限于 P2。目标是更快取得可信的游戏表现。
+
+- 已授权范围内连续完成实现、必要离线验证、完整验证脚本与实机取证，再集中提交验收；常规实现选择自主处理，不逐项询问“是否继续”。
+- 仅在重大歧义会改变范围、行为或验收口径，需要新增授权，或出现真实阻塞时打断用户。已经给出的授权与裁定不重复确认；真实缺陷及时处理，不能留到集中验收才排查。
+- 减少碎片汇报：中途只报告重要发现、阻塞或交付安排变化；集中交付时简短说明结果、关键证据和未覆盖项，不反复重述进度表。
+- 验证优先取得实际游戏行为、独立采样和安全退出证据。测试只覆盖关键风险、真实缺陷及必要判据；已有检查通过后，仅因相关改动、失败或必要证据缺失补验，不以增加测试数量作为进展目标。
+- 文档只保留复现、交接和验收必需的信息，不以增加篇幅代替实现与实机证据。集中验收仍区分可编译、已纳入产物、源码接入和实机执行，未执行或未覆盖不得记为通过。
+- 共享资源交接、独占入口及安全约束继续适用。实机受阻时继续完成可独立推进的离线工作，保留明确阻塞；不得以提速为由抢占资源或伪造验证完成。
 
 ## 5. 需要切换时准备交接
 
