@@ -16,6 +16,21 @@
       "content_sha256": "e6f8973faa7d3375291b7b9e377bf6518a937df0a06ff110efe875602339e39a",
       "auto_archive": false,
       "notes": "项目根 AGENTS.md 内直接包含完整 PAIPOS Lite v0.1；本登记表仅管本工作区。"
+    },
+    {
+      "prompt_id": "CB2-PROMPT-0002",
+      "series_id": "p2-multi-formation-coordination",
+      "title": "CombatBrain 2.0 P2 Multi Formation Coordination Dispatch",
+      "kind": "development-dispatch",
+      "root": "repo",
+      "path": "Program/_verify/P2-MULTI-FORMATION-DISPATCH.md",
+      "status": "ACTIVE",
+      "created_at": "2026-10-12",
+      "updated_at": "2026-10-12",
+      "owner": "project-maintainer",
+      "content_sha256": "3471ff7ba6a46a8387a5f1054732d1a3f83d1165e362485a21049f3e2ce5d77e",
+      "auto_archive": false,
+      "notes": "用户要求由 CB2 仓库维护 P2 正式派单；v1.1 从 TCL f73857f 迁入，范围及验收判据不变。登记不代表已实现或阶段通过。"
     }
   ]
 }
