@@ -1,6 +1,6 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 PAIPOS Workflow Entry
-Version: 1.1
+Version: 1.2
 Author Role: Project Governance Maintainer
 Model: GPT-6
 Created: 2026-10-02
@@ -10,9 +10,9 @@ Scope: CombatBrain 2.0 / Workflow
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.2 2026-10-12 13:43 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-exclusive-game-adoption-20261012 | note=落实用户协调通知：观测工作树禁止主线操作、提交在集成工作树审查、完整实测统一串行入口
 v1.1 2026-10-12 13:30 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-observation-isolation-20261012 | note=规定 CB2 与观测组独立工作树、文件归属、接入合并与共享实机串行边界
 v1.0 2026-10-02 00:18 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-paipos-fix-20261002 | note=在实际 2.0 Git 根建立自动加载入口，直接注入完整 PAIPOS Lite 正文
-v1.0a 2026-10-02 | role=Project Governance Maintainer | model=GPT-6 | editor=cbath-freeze-20260925 | note=新增 §3a：进游戏实测统一使用 CBATH（Zero-touch 入口 + 硬性前置 + 冻结说明）
 -->
 
 # CombatBrain 2.0 项目入口
@@ -74,6 +74,13 @@ v1.0a 2026-10-02 | role=Project Governance Maintainer | model=GPT-6 | editor=cba
 - **提交只收本组改动**：操作前核对工作树绝对路径、分支、HEAD 和脏文件；只按明确文件范围暂存，禁止用 `git add -A`、`git commit -a` 收走另一组成果。其他组拥有的文件有新变化时保留现场，不能还原为自己的旧副本。混合提交不能直接整体 cherry-pick，需按本次交付范围审查合入。
 - **构建在本组目录，部署与实机串行**：两组独立构建各自 `bin/obj`，不得清理另一组输出。游戏模块、GABS 配置、Documents 下的观测身份文件、P1/资格探针开关和游戏进程仍是共享资源；同一时间只有一组使用这些资源。未获得当前实测方交接时只做离线开发，不部署、不启动/结束游戏、不改测试开关、不停另一组进程。交接包含来源路径/提交、实际 DLL SHA256、当前配置、开关状态和场次目录；接手方核对后使用。独立工作树不等于独立实机环境。
 - **验收分开**：观测组功能不借 P1 通过状态自动通过；P1 也不把观测组件纳入其战术整改贡献。提交 `616b903` 已包含适配器，保持该历史；后续观测修复在观测分支提交、经接入审查合入。P1 当前仍待独立验收。
+
+2026-10-12 用户协调通知的具体执行安排（补充并约束上面的合入与实测方式）：
+
+- 主线不得修改、构建、切换或提交 `E:\MBmod\BattleObservation-V1\CB2`、`CBATH`、`TCL` 三个观测工作树；不顺手纳入原目录遗留的未验收观测改动。整合须按双方明确交付的提交，在另建的集成工作树合并并验证，不直接拷回或覆盖文件。
+- 开始共享游戏操作前读取 `E:\MBmod\BattleObservation-V1\README.md` 与 `coordination\handoff.md`。完整“部署配套 DLL → 既有 CBATH 启动/采集 → 结束清理”统一由 `E:\MBmod\BattleObservation-V1\coordination\Invoke-ExclusiveGame.ps1` 执行，`Owner` 填 `主线组`，`ScriptPath` 指向本组已经准备好的完整验证脚本；不能只把采集脚本套锁，却在锁外部署或改开关。现有 `Program/_verify/run-p1.ps1` 是采集/清理入口，不包含完整配套部署，不能直接称为完整流程。
+- 协调入口负责整个脚本生命周期的互斥，实际启动仍用 CBATH。锁外不得覆盖共享 DLL、强杀对方游戏或接管对方连接；占用被拒时只做离线工作。对已有运行保全证据并正常清理，不因收到通知强杀。目录和锁文件存在不等于开发 Harness 已切换，也不等于双方已采用入口。
+- 本通知不授权向其他聊天转发或自动建组；观测 Harness 切换由用户另行安排。已核实 `616b903` 的适配器含 `ShutdownAfter/_closedBattleId/ProducerSeq/FlushFailureCount`，不能以“成员消失”的未经核对汇报回退主线；成员存在也不等于 R1–R6 或 V1 已通过。
 
 ## 4. 按影响决定检查力度
 
