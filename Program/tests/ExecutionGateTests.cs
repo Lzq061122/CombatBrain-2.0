@@ -122,6 +122,38 @@ namespace CombatBrain2.Tests
             Assert.Equal(3, gate.SubmissionCountOf("i1"));
         }
 
+        // 复核第四轮 §2.2 的离线反例：首次提交 10、重投 13、22 才获选，
+        // 截止为 20，写令门必须拒绝——停止重投不能让已 arm 的候选在截止后取得资格。
+        [Fact]
+        public void LateSelectionAfterDeadlineIsRejectedAtWriteGate()
+        {
+            var gate = new ExecutionGate();
+            gate.SubmitCandidate("i1", "1/0", 10.0);
+            gate.SubmitCandidate("i1", "1/0", 13.0);
+            gate.BindObject("i1", "aaa@Infantry");
+            gate.MarkSelected("i1", "1/0", 22.0);
+
+            var d = gate.RequestWrite("i1", "1/0", 22.0, true, true, false, "aaa@Infantry", true, true);
+            Assert.False(d.Allowed);
+            Assert.Equal("selection_window_closed", d.BlockReason);
+            Assert.Equal(0, gate.WriteAttempts);
+        }
+
+        // 区分性对照：截止前已真实获选的任务保留原执行规则，不因等待时长被掐断。
+        [Fact]
+        public void SelectionBeforeDeadlineStillWritesAfterLongWait()
+        {
+            var gate = new ExecutionGate();
+            gate.SubmitCandidate("i1", "1/0", 10.0);
+            gate.SubmitCandidate("i1", "1/0", 13.0);
+            gate.BindObject("i1", "aaa@Infantry");
+            gate.MarkSelected("i1", "1/0", 19.5);
+
+            var d = gate.RequestWrite("i1", "1/0", 25.0, true, true, false, "aaa@Infantry", true, true);
+            Assert.True(d.Allowed);
+            Assert.Equal(1, gate.WriteAttempts);
+        }
+
         // 玩家拥有 / 目标失效 / 资格丢失时不得写入。
         [Fact]
         public void WriteBlockedWhenTargetInvalidOrPlayerOwned()

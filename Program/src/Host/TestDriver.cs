@@ -386,6 +386,21 @@ namespace CombatBrain2.Host
 
             if (!ours) return;
 
+            // 截止后才首次获选：等待期限已过，不得转入执行（脚本 §6.3）。
+            // 截止前已经获选的任务走原规则，由 SelectedAt 判定，不受此门影响。
+            if (task.SelectedAt < 0.0 && SelectionWindowClosed(task, SafeTime(mission)))
+            {
+                Cb2Log.Line("REAL_SELECTION_REJECTED",
+                    "task=" + task.TaskId +
+                    " plan=" + task.PlanId +
+                    " key=" + keyNow +
+                    " reason=selection_window_closed" +
+                    " first_submitted_at=" + Cb2Log.F(task.SubmittedAt) +
+                    " selection_deadline=" + Cb2Log.F(task.SelectionDeadline()) +
+                    " at=" + Cb2Log.F(SafeTime(mission)));
+                return;
+            }
+
             if (task.SelectedAt < 0.0) MarkRealSelection(mission, f, task);
         }
 
@@ -596,6 +611,22 @@ namespace CombatBrain2.Host
                     task.Describe() +
                     " reason=expired_before_write" +
                     " waited=" + Cb2Log.F(now - task.CreatedAt) +
+                    " at=" + Cb2Log.F(now));
+                return;
+            }
+
+            // 普通任务获选等待截止的最终防线：截止后不得取得写令资格。
+            // 截止前已真实获选的任务不受影响（其 SelectedAt 早于截止）。
+            if (task.SelectedAt >= task.SelectionDeadline())
+            {
+                _tasks.CloseTask(task.TaskId, now);
+                _gate.Close(task.TaskId, CancelReason.SelectionTimeout, now);
+                Cb2Log.Line("WRITE_REJECTED",
+                    task.Describe() +
+                    " reason=selection_window_closed" +
+                    " first_submitted_at=" + Cb2Log.F(task.SubmittedAt) +
+                    " selection_deadline=" + Cb2Log.F(task.SelectionDeadline()) +
+                    " selected_at=" + Cb2Log.F(task.SelectedAt) +
                     " at=" + Cb2Log.F(now));
                 return;
             }
@@ -948,6 +979,9 @@ namespace CombatBrain2.Host
             // 安全与条件检查逐 tick 做，不受决策节奏约束。
             CheckConditionsEachTick(now);
 
+            // 获选等待到期的普通任务在到期后的第一个主线程 tick 关闭、清槽、撤权。
+            SweepExpiredSelections(now);
+
             if (!SnapshotFresh(now))
             {
                 Cb2Log.Line("SNAPSHOT_REFUSED",
@@ -1281,11 +1315,14 @@ namespace CombatBrain2.Host
         }
 
         // 选择超时：任务提交候选后到点仍未获选，计划失效。
+        // 逐 tick 调用（FeedbackTick 与决策点都会进）；到期的第一个现有主线程 tick
+        // 即完成关闭，不等 3 s 决策节奏（脚本 §5.2/§6.3）。
         private void SweepExpiredSelections(double now)
         {
             foreach (var task in _tasks.OpenTasks())
             {
                 if (task.SubmittedAt < 0.0) continue;
+                // 截止前已经真实获选的正常任务保留原执行规则，不按等待期限掐断。
                 if (task.SelectedAt >= 0.0) continue;
                 if (now < task.SelectionDeadline()) continue;
                 Cb2Log.Line("TASK_SELECTION_TIMEOUT",
@@ -1297,6 +1334,16 @@ namespace CombatBrain2.Host
                     "task=" + task.TaskId + " selection_timeout", now);
                 return;
             }
+        }
+
+        // 普通任务的获选等待截止是否已过。用于拒绝截止后才到来的真实获选与写令：
+        // 停止再次投递不能让此前已 arm 的候选在截止后取得写令资格（脚本 §6.3）。
+        private static bool SelectionWindowClosed(FormationTask task, double now)
+        {
+            if (task == null) return false;
+            if (BattlePlan.IsExitTask(task)) return false;
+            if (task.SubmittedAt < 0.0) return false;
+            return now >= task.SelectionDeadline();
         }
 
         // ================= 行为注册与撤权 =================

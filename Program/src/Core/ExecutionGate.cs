@@ -28,6 +28,8 @@ namespace CombatBrain2.Core
             internal double SubmittedAt = -1.0;
             internal int SubmissionCount;
             internal double SelectedAt = -1.0;
+            // 获选等待截止由首次投递时刻固定，作为执行边界参与写令复核（脚本 §6.3）。
+            internal double SelectionDeadline = -1.0;
             internal bool Selected;
             internal bool Written;
             internal bool Closed;
@@ -39,7 +41,11 @@ namespace CombatBrain2.Core
             var s = GetOrCreate(taskId);
             s.Key = key ?? "";
             // 与 FormationTask 同语义：只记首次投递，重投不刷新等待截止（脚本 §5.2）。
-            if (s.SubmittedAt < 0.0) s.SubmittedAt = missionTime;
+            if (s.SubmittedAt < 0.0)
+            {
+                s.SubmittedAt = missionTime;
+                s.SelectionDeadline = missionTime + TestParameters.SelectionWaitSeconds;
+            }
             s.SubmissionCount++;
         }
 
@@ -95,6 +101,13 @@ namespace CombatBrain2.Core
             if (!s.Selected)
             {
                 d.BlockReason = "not_selected";
+                return d;
+            }
+            // 获选等待截止是执行边界：截止后才首次获选的不得取得写令资格（脚本 §6.3）。
+            // SelectedAt 早于截止的正常任务不受影响；截止前已获选的不因等待时长被掐断。
+            if (s.SelectedAt >= s.SelectionDeadline)
+            {
+                d.BlockReason = "selection_window_closed";
                 return d;
             }
             if (s.Written)
