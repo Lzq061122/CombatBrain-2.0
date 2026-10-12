@@ -1,11 +1,16 @@
 using System;
+using System.IO;
 using CombatBrain2.Core;
 using TaleWorlds.MountAndBlade;
 
 namespace CombatBrain2.Host
 {
-    // Mission 行为：驱动采样、触发测试意图、观测原生写入。
+    // Mission 行为：驱动采样、按决策节奏形成计划、观测原生写入与效果反馈。
     // 所有写令都经由 TestDriver，且只在主线程 Mission tick 内发生。
+    //
+    // 写令来源由哨兵文件 p1-command-loop.txt 的 enabled 决定：
+    //   开启 → P1 节奏：3 s 决策、逐 tick 条件与安全、每 tick 反馈与槽位消费；
+    //   关闭（默认）→ 不产生任何计划与命令，只保留采样与观测。
     internal sealed class SamplingBehavior : MissionBehavior
     {
         public override MissionBehaviorType BehaviorType
@@ -13,32 +18,67 @@ namespace CombatBrain2.Host
             get { return MissionBehaviorType.Other; }
         }
 
-        // 测试序列阶段。两条取消路径都必须实际触发：
-        //   阶段 1/2 → 意图 A 自然到期（窗口到期取消）
-        //   阶段 3/4 → 意图 B 由测试驱动器显式关闭（显式测试关闭）
-        //   Mission 结束 → OnEndMission 清理（Mission 结束取消）
-        private const int StageWaitDeploy = 0;
-        private const int StageArmIntentA = 1;
-        private const int StageIntentARunning = 2;
-        private const int StageArmIntentB = 3;
-        private const int StageIntentBRunning = 4;
-        private const int StageDone = 5;
-
-        private int _stage = StageWaitDeploy;
-        private double _stageAt = -1.0;
-        private double _closeAt = -1.0;
-        private double _lastDeployProbeAt = -1.0;
-
         private bool _started;
         private bool _hooked;
         private double _nextSampleAt;
         private double _lastObserveAt = -1.0;
-        private int _tickCount;
+
+        // P1 节奏状态。
+        private bool _p1Loaded;
+        private bool _p1Enabled;
+        private double _nextDecisionAt = -1.0;
+        private int _evalCount;
+
+        private static string P1ConfigPath()
+        {
+            return Path.Combine(
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CombatBrain2"),
+                "p1-command-loop.txt");
+        }
+
+        private void LoadP1Once()
+        {
+            if (_p1Loaded) return;
+            _p1Loaded = true;
+            string value = "";
+            try
+            {
+                string p = P1ConfigPath();
+                if (File.Exists(p))
+                {
+                    foreach (var raw in File.ReadAllLines(p))
+                    {
+                        string line = raw == null ? "" : raw.Trim();
+                        if (line.Length == 0 || line.StartsWith("#", StringComparison.Ordinal)) continue;
+                        int eq = line.IndexOf('=');
+                        if (eq <= 0) continue;
+                        if (string.Equals(line.Substring(0, eq).Trim(), "enabled",
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            value = line.Substring(eq + 1).Trim();
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+
+            _p1Enabled = string.Equals(value, "1", StringComparison.Ordinal) ||
+                         string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(value, "on", StringComparison.OrdinalIgnoreCase);
+
+            Cb2Log.Line("P1_MODE",
+                "enabled=" + (_p1Enabled ? 1 : 0) +
+                " value=" + (value.Length == 0 ? "<unset>" : value) +
+                " source=p1-command-loop.txt" +
+                " disabled_meaning=no_command_source");
+        }
 
         public override void OnMissionTick(float dt)
         {
             var mission = Mission.Current;
             if (mission == null) return;
+
+            LoadP1Once();
 
             if (!_started)
             {
@@ -46,7 +86,8 @@ namespace CombatBrain2.Host
                 TestDriver.Instance.OnMissionStart(mission);
                 TestDriver.Instance.MarkMainThread(CurrentThreadId());
                 Cb2Log.Line("BEHAVIOR_START",
-                    "sampling_behavior_initialized tid=" + CurrentThreadId());
+                    "sampling_behavior_initialized tid=" + CurrentThreadId() +
+                    " p1_enabled=" + (_p1Enabled ? 1 : 0));
             }
 
             double now = 0.0;
@@ -63,13 +104,8 @@ namespace CombatBrain2.Host
                     " " + string.Join(" | ", reading.Lines.ToArray()));
             }
 
-            TestDriver.Instance.Tick(mission);
-
             // 测试适配：只在哨兵文件开启时改变一个真实编队的 AI 控制资格。
             EligibilityProbe.Instance.OnMissionTick(mission);
-
-            // 主线程执行点：消费非主线程回调转交过来的那一条命令。
-            TestDriver.Instance.DrainPendingCommand(mission);
 
             if (!_hooked)
             {
@@ -77,18 +113,7 @@ namespace CombatBrain2.Host
                 HookFormations(mission);
             }
 
-            AdvanceStage(mission, now);
-
-            // 意图仍开着且尚未获选时，重复提交候选（证明候选阶段不写令）。
-            // 一旦真实获选就停止提交，避免目标失效后偷偷换另一支继续同一意图。
-            if (TestDriver.Instance.HasOpenIntent && !TestDriver.Instance.Selected)
-            {
-                _tickCount++;
-                if (_tickCount % 5 == 0)
-                {
-                    TestDriver.Instance.SubmitCandidateOnly(mission);
-                }
-            }
+            if (_p1Enabled) TickP1(mission, now);
 
             // 每 2 秒独立复读实际 MovementOrder，观测是否被原生改写。
             if (now >= _lastObserveAt + 2.0)
@@ -98,91 +123,39 @@ namespace CombatBrain2.Host
             }
         }
 
-        private void AdvanceStage(Mission mission, double now)
+        // P1 节奏：决策按 3 s，条件/安全/反馈按逐 tick，槽位消费在主线程执行点。
+        private void TickP1(Mission mission, double now)
         {
-            switch (_stage)
+            if (_nextDecisionAt < 0.0)
             {
-                case StageWaitDeploy:
-                    {
-                        bool deployed = false;
-                        bool aiTicking = false;
-                        try { deployed = mission.IsDeploymentFinished; } catch (Exception) { }
-                        try { aiTicking = mission.AllowAiTicking; } catch (Exception) { }
-                        if (deployed || aiTicking)
-                        {
-                            _stageAt = now + TestParameters.TriggerDelaySeconds;
-                            _stage = StageArmIntentA;
-                            Cb2Log.Line("TRIGGER_SCHEDULED",
-                                "intent=A at=" + Cb2Log.F(_stageAt) +
-                                " deployment_finished=" + (deployed ? 1 : 0) +
-                                " allow_ai_ticking=" + (aiTicking ? 1 : 0));
-                        }
-                        else if (now >= _lastDeployProbeAt + 5.0)
-                        {
-                            _lastDeployProbeAt = now;
-                            Cb2Log.Line("DEPLOY_GATE_WAIT",
-                                "at=" + Cb2Log.F(now) +
-                                " deployment_finished=0 allow_ai_ticking=0");
-                        }
-                        break;
-                    }
-
-                case StageArmIntentA:
-                    if (now >= _stageAt)
-                    {
-                        if (TestDriver.Instance.TriggerIntent(mission))
-                        {
-                            TestDriver.Instance.SubmitCandidateOnly(mission);
-                            _stage = StageIntentARunning;
-                        }
-                    }
-                    break;
-
-                // 意图 A 自然到期后进入下一阶段，两条路径都由 TestDriver 记日志。
-                case StageIntentARunning:
-                    if (!TestDriver.Instance.HasOpenIntent)
-                    {
-                        _stageAt = now + TestParameters.BetweenIntentSeconds;
-                        _stage = StageArmIntentB;
-                        Cb2Log.Line("SEQUENCE_INTENT_A_CLOSED",
-                            "at=" + Cb2Log.F(now) + " next_intent_at=" + Cb2Log.F(_stageAt));
-                    }
-                    break;
-
-                case StageArmIntentB:
-                    if (now >= _stageAt)
-                    {
-                        if (TestDriver.Instance.TriggerIntent(mission))
-                        {
-                            TestDriver.Instance.SubmitCandidateOnly(mission);
-                            _stage = StageIntentBRunning;
-                        }
-                    }
-                    break;
-
-                case StageIntentBRunning:
-                    if (!TestDriver.Instance.HasOpenIntent)
-                    {
-                        _stage = StageDone;
-                        Cb2Log.Line("SEQUENCE_INTENT_B_CLOSED", "at=" + Cb2Log.F(now));
-                        break;
-                    }
-                    // 已执行写令后固定延迟显式关闭，验证显式关闭路径。
-                    if (_closeAt < 0 && TestDriver.Instance.Executed)
-                    {
-                        _closeAt = now + TestParameters.ExplicitCloseAfterWriteSeconds;
-                        Cb2Log.Line("EXPLICIT_CLOSE_SCHEDULED", "at=" + Cb2Log.F(_closeAt));
-                    }
-                    if (_closeAt > 0 && now >= _closeAt)
-                    {
-                        TestDriver.Instance.ExplicitClose(mission);
-                        _stage = StageDone;
-                    }
-                    break;
-
-                case StageDone:
-                    break;
+                _nextDecisionAt = now + TestParameters.FirstCommandDelaySeconds;
+                Cb2Log.Line("P1_FIRST_DECISION_SCHEDULED",
+                    "at=" + Cb2Log.F(_nextDecisionAt) +
+                    " first_command_delay=" + Cb2Log.F(TestParameters.FirstCommandDelaySeconds) +
+                    " decision_cadence=" + Cb2Log.F(TestParameters.DecisionCadenceSeconds));
             }
+
+            if (now >= _nextDecisionAt)
+            {
+                _nextDecisionAt = now + TestParameters.DecisionCadenceSeconds;
+                _evalCount++;
+                Cb2Log.Line("EVAL_TICK",
+                    "eval=" + _evalCount +
+                    " at=" + Cb2Log.F(now) +
+                    " cadence=" + Cb2Log.F(TestParameters.DecisionCadenceSeconds));
+                TestDriver.Instance.DecisionTick(mission);
+                // 决策之后立即在同一个主线程 tick 内投递候选，缩短评价到获选的间隔。
+                TestDriver.Instance.SubmitPending(mission);
+            }
+
+            // 安全资格与条件逐 tick 检查，不受决策节奏与稳定时间约束。
+            TestDriver.Instance.FeedbackTick(mission);
+
+            // 主线程执行点：消费非主线程回调转交过来的待执行命令。
+            TestDriver.Instance.DrainPendingCommand(mission);
+
+            // 退出动作到点未获选即如实记录并撤权，安全时限不受发令间隔约束。
+            TestDriver.Instance.SweepExitStops(mission);
         }
 
         // Route C 的两个原生信号：

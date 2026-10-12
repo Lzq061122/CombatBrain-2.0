@@ -5,35 +5,6 @@ using System.Text;
 
 namespace CombatBrain2.Core
 {
-    // 测试意图：本批唯一的行为意图。窗口从触发时刻起，截止点固定。
-    internal sealed class TestIntent
-    {
-        internal string IntentId;
-        internal double TriggeredAt;
-        internal double Deadline;
-
-        // 选定后绑定实际对象；目标失效即取消，不换另一支继续同一意图。
-        internal string BoundKey = "";
-        internal string BoundObjectIdentity = "";
-        internal double SelectedAt = -1.0;
-        internal double ExecutedAt = -1.0;
-        internal double CancelledAt = -1.0;
-        internal CancelReason CancelReason = CancelReason.None;
-        internal bool IsClosed;
-
-        internal bool IsOpen(double missionTime)
-        {
-            if (IsClosed) return false;
-            if (missionTime >= Deadline) return false;
-            return true;
-        }
-
-        internal double SelectionDeadline()
-        {
-            return TriggeredAt + TestParameters.SelectionWaitSeconds;
-        }
-    }
-
     internal sealed class SelectionResult
     {
         internal FormationRecord Chosen;

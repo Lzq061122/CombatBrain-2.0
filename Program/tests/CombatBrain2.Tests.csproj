@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <Compile Include="TargetSelectorTests.cs" />
-    <Compile Include="TestIntentTests.cs" />
+    <Compile Include="TaskSelectionDeadlineTests.cs" />
     <Compile Include="SnapshotTests.cs" />
     <Compile Include="ExecutionGateTests.cs" />
     <Compile Include="EligibilityLossTests.cs" />
@@ -25,6 +25,12 @@
     <Compile Include="..\src\Core\ExecutionGate.cs" Link="Core\ExecutionGate.cs" />
     <Compile Include="..\src\Core\WriteLedger.cs" Link="Core\WriteLedger.cs" />
     <Compile Include="..\src\Core\ThreadHandoff.cs" Link="Core\ThreadHandoff.cs" />
+    <Compile Include="..\src\Core\BattleState.cs" Link="Core\BattleState.cs" />
+    <Compile Include="..\src\Core\BattlePlan.cs" Link="Core\BattlePlan.cs" />
+    <Compile Include="..\src\Core\BattleAssessment.cs" Link="Core\BattleAssessment.cs" />
+    <Compile Include="..\src\Core\TaskFeedback.cs" Link="Core\TaskFeedback.cs" />
+    <Compile Include="..\src\Core\TaskLedger.cs" Link="Core\TaskLedger.cs" />
+    <Compile Include="..\src\Core\PlanLedger.cs" Link="Core\PlanLedger.cs" />
     <Compile Include="..\src\Core\OriginalMethodReceipt.cs" Link="Core\OriginalMethodReceipt.cs" />
   </ItemGroup>
 

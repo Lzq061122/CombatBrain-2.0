@@ -15,7 +15,7 @@ namespace CombatBrain2.Core
 
     internal sealed class WriteRecord
     {
-        internal string IntentId = "";
+        internal string TaskId = "";
         internal string Key = "";
         internal string ObjectIdentity = "";
         internal string PreviousOrder = "";
@@ -30,12 +30,12 @@ namespace CombatBrain2.Core
         private readonly Dictionary<string, WriteRecord> _records = new Dictionary<string, WriteRecord>();
 
         internal void RecordOwnWrite(
-            string intentId, string key, string objectIdentity,
+            string taskId, string key, string objectIdentity,
             string previousOrder, string ourOrder, double missionTime)
         {
-            _records[intentId] = new WriteRecord
+            _records[taskId] = new WriteRecord
             {
-                IntentId = intentId,
+                TaskId = taskId,
                 Key = key,
                 ObjectIdentity = objectIdentity,
                 PreviousOrder = previousOrder,
@@ -44,11 +44,11 @@ namespace CombatBrain2.Core
             };
         }
 
-        internal RevocationPlan PlanRevocation(string intentId)
+        internal RevocationPlan PlanRevocation(string taskId)
         {
             var plan = new RevocationPlan();
             WriteRecord r;
-            if (!_records.TryGetValue(intentId, out r))
+            if (!_records.TryGetValue(taskId ?? "", out r))
             {
                 plan.SkipReason = "no_own_write";
                 return plan;
@@ -76,9 +76,9 @@ namespace CombatBrain2.Core
 
         // 目标对象身份变了，说明当前对象不是本方当时改变的那一个，
         // 不得用旧的进入时状态覆盖它。
-        internal RevocationPlan PlanRevocationIfSameObject(string intentId, string currentObjectIdentity)
+        internal RevocationPlan PlanRevocationIfSameObject(string taskId, string currentObjectIdentity)
         {
-            var plan = PlanRevocation(intentId);
+            var plan = PlanRevocation(taskId);
             if (!plan.Needed) return plan;
             if (!string.Equals(plan.ObjectIdentity, currentObjectIdentity, StringComparison.Ordinal))
             {
@@ -106,9 +106,9 @@ namespace CombatBrain2.Core
             }
         }
 
-        internal bool HasRecord(string intentId)
+        internal bool HasRecord(string taskId)
         {
-            return _records.ContainsKey(intentId);
+            return _records.ContainsKey(taskId ?? "");
         }
 
         internal int RecordCount { get { return _records.Count; } }

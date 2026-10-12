@@ -26,13 +26,16 @@ namespace CombatBrain2.Tests
             h.MarkMainThread(30);
 
             Assert.False(h.IsMainThread(56));
-            Assert.True(h.TryDefer("i1", "1/0", "aaa@Infantry", 56, 15.5));
+            Assert.True(h.TryDefer("m1", "plan-0", "t1", "1/0", "aaa@Infantry", 56, 15.5));
             Assert.True(h.HasPending);
             Assert.Equal(1, h.DeferredCount);
             Assert.Equal(0, h.DirectCount);
 
-            var p = h.TakePending();
-            Assert.Equal("i1", p.IntentId);
+            var taken = h.TakeAllPending();
+            Assert.Single(taken);
+            var p = taken[0];
+            Assert.Equal("t1", p.TaskId);
+            Assert.Equal("plan-0", p.PlanId);
             Assert.Equal("1/0", p.Key);
             Assert.Equal("aaa@Infantry", p.ObjectIdentity);
             Assert.Equal(56, p.CallbackThreadId);
@@ -53,18 +56,57 @@ namespace CombatBrain2.Tests
             Assert.False(h.HasPending);
         }
 
+        // 同一编队键上先到者保留：不同任务不得覆盖槽位里已有的命令。
         [Fact]
-        public void PendingSlotHoldsOnlyOneCommand()
+        public void SameKeyDifferentTaskKeepsFirstArrival()
         {
             var h = new ThreadHandoff();
             h.MarkMainThread(30);
 
-            Assert.True(h.TryDefer("i1", "1/0", "aaa@Infantry", 56, 15.5));
-            Assert.False(h.TryDefer("i1", "1/1", "bbb@Infantry", 57, 15.6));
+            Assert.True(h.TryDefer("m1", "plan-0", "t1", "1/0", "aaa@Infantry", 56, 15.5));
+            Assert.False(h.TryDefer("m1", "plan-0", "t2", "1/0", "aaa@Infantry", 57, 15.6));
 
-            var p = h.TakePending();
-            Assert.Equal("1/0", p.Key);
+            var taken = h.TakeAllPending();
+            Assert.Single(taken);
+            Assert.Equal("t1", taken[0].TaskId);
             Assert.Equal(1, h.DeferredCount);
+            Assert.Equal(1, h.SlotBusyCount);
+            Assert.Equal(0, h.DuplicateCount);
+        }
+
+        // 同一编队键上同一任务重复投递计入去重，不重复占用。
+        [Fact]
+        public void SameKeySameTaskCountsAsDuplicate()
+        {
+            var h = new ThreadHandoff();
+            h.MarkMainThread(30);
+
+            Assert.True(h.TryDefer("m1", "plan-0", "t1", "1/0", "aaa@Infantry", 56, 15.5));
+            Assert.False(h.TryDefer("m1", "plan-0", "t1", "1/0", "aaa@Infantry", 56, 15.6));
+
+            var taken = h.TakeAllPending();
+            Assert.Single(taken);
+            Assert.Equal(1, h.DeferredCount);
+            Assert.Equal(0, h.SlotBusyCount);
+            Assert.Equal(1, h.DuplicateCount);
+        }
+
+        // 每个编队各有独立槽位：一支编队的占用不得挡住另一支编队的命令。
+        [Fact]
+        public void DifferentKeysHaveIndependentSlots()
+        {
+            var h = new ThreadHandoff();
+            h.MarkMainThread(30);
+
+            Assert.True(h.TryDefer("m1", "plan-0", "t1", "1/0", "aaa@Infantry", 56, 15.5));
+            Assert.True(h.TryDefer("m1", "plan-0", "t2", "1/1", "bbb@Infantry", 57, 15.6));
+
+            var taken = h.TakeAllPending();
+            Assert.Equal(2, taken.Count);
+            Assert.Equal("1/0", taken[0].Key);
+            Assert.Equal("1/1", taken[1].Key);
+            Assert.Equal(2, h.DeferredCount);
+            Assert.Equal(0, h.SlotBusyCount);
         }
 
         [Fact]
@@ -72,7 +114,7 @@ namespace CombatBrain2.Tests
         {
             var h = new ThreadHandoff();
             h.MarkMainThread(30);
-            h.TryDefer("i1", "1/0", "aaa@Infantry", 56, 15.5);
+            h.TryDefer("m1", "plan-0", "t1", "1/0", "aaa@Infantry", 56, 15.5);
 
             h.Clear();
 
@@ -110,7 +152,7 @@ namespace CombatBrain2.Tests
                         threads[i] = new Thread(() =>
                         {
                             barrier.SignalAndWait();
-                            if (h.TryDefer("i1", "1/" + tid, "obj" + tid, tid, 15.5))
+                            if (h.TryDefer("m1", "plan-0", "t" + tid, "1/0", "obj" + tid, tid, 15.5))
                                 Interlocked.Increment(ref accepted);
                         });
                         threads[i].Start();
@@ -131,7 +173,7 @@ namespace CombatBrain2.Tests
             {
                 var h = new ThreadHandoff();
                 h.MarkMainThread(30);
-                h.TryDefer("i1", "1/0", "aaa@Infantry", 56, 15.5);
+                h.TryDefer("m1", "plan-0", "t1", "1/0", "aaa@Infantry", 56, 15.5);
 
                 int taken = 0;
                 int workerCount = 4;
@@ -143,8 +185,8 @@ namespace CombatBrain2.Tests
                         threads[i] = new Thread(() =>
                         {
                             barrier.SignalAndWait();
-                            var p = h.TakePending();
-                            if (p != null) Interlocked.Increment(ref taken);
+                            var p = h.TakeAllPending();
+                            if (p != null && p.Count > 0) Interlocked.Add(ref taken, p.Count);
                         });
                         threads[i].Start();
                     }

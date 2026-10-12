@@ -23,7 +23,7 @@ namespace CombatBrain2.Tests
         {
             var h = new ThreadHandoff();
             h.MarkMainThread(33);
-            Assert.True(h.TryDefer("i1", "1/0", "aaa@Infantry", 37, 15.5));
+            Assert.True(h.TryDefer("m1", "plan-0", "t1", "1/0", "aaa@Infantry", 37, 15.5));
             Assert.True(h.HasPending);
 
             h.Clear();

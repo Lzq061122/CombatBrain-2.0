@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using CombatBrain2.Core;
+using TaleWorlds.Engine;
+using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 
 namespace CombatBrain2.Host
 {
-    // 测试驱动器：把本批的测试意图落到真实宿主上。
+    // P1 最小指挥闭环的驱动器。执行层只做三件事：
+    //  1) 按决策节奏从战场状态形成计划，把普通任务分给编队；
+    //  2) 在真实获选与主线程执行点上按任务身份写令；
+    //  3) 读回实际效果，条件失效或任务失败时让计划失效并撤权。
     // Route C：不申请 Full、不关闭原生 AI、不并行抢写。
     internal sealed class TestDriver
     {
@@ -17,59 +22,259 @@ namespace CombatBrain2.Host
         private readonly WriteLedger _ledger = new WriteLedger();
         private readonly ThreadHandoff _handoff = new ThreadHandoff();
         private readonly OriginalMethodReceipt _receipt = new OriginalMethodReceipt();
+        private readonly TaskLedger _tasks = new TaskLedger();
+        private readonly PlanLedger _plans = new PlanLedger();
+
         private Formation _receiptTarget;
         private readonly Dictionary<string, CbHoldBehavior> _armedBehaviors =
             new Dictionary<string, CbHoldBehavior>();
-        private TestIntent _intent;
+
         private FormationSnapshot _snapshot;
+        private BattleState _state;
         private string _missionKey = "";
-        private int _triggerCount;
-        private int _selectionEvaluations;
+        private string _lastSampledMissionKey = "";
+
+        private int _inputCount;
         private bool _loggedSelectionDetail;
         private int _otherSelectionCount;
         private double _lastSnapshotLogAt = -1.0;
         private double _lastSnapshotDetailAt = -1.0;
-        private double _prevSampleAt = -1.0;
         private double _maxSnapshotAgeSeen;
-        private double _minSampleInterval = -1.0;
-        private double _maxSampleInterval;
+        private int _staleSnapshotCount;
+        private int _freshSnapshotCount;
+        private bool _firstCommandSeen;
+        private int _exitStopAttempts;
+        // 上一条实际写令的 mission 时刻；用于编队间 1.5 s 间隔（脚本 §6.1）。
+        private double _lastWriteAt = -1.0;
 
         internal ExecutionGate Gate { get { return _gate; } }
         internal WriteLedger Ledger { get { return _ledger; } }
         internal ThreadHandoff Handoff { get { return _handoff; } }
-        internal TestIntent Intent { get { return _intent; } }
+        internal TaskLedger Tasks { get { return _tasks; } }
+        internal PlanLedger Plans { get { return _plans; } }
+        internal BattlePlan Plan { get { return _plans.Current; } }
+        internal BattleState State { get { return _state; } }
         internal FormationSnapshot Snapshot { get { return _snapshot; } }
 
-        internal bool HasOpenIntent { get { return _intent != null && !_intent.IsClosed; } }
-        internal bool Selected { get { return _intent != null && _intent.SelectedAt >= 0; } }
-        internal bool Executed { get { return _intent != null && _intent.ExecutedAt >= 0; } }
+        // 计划仍开放即视为还有工作；普通任务全部结束且无退出任务时为 false。
+        internal bool HasOpenWork
+        {
+            get
+            {
+                if (_plans.HasPlan) return true;
+                return _tasks.OpenTasks().Count > 0;
+            }
+        }
 
-        // Route C 的获选信号：原生 FormationAI 把本方注册的行为选为 ActiveBehavior。
-        // 判定条件是行为归属（引用相等），不是"有命令写到同一编队"。
-        // 原生选中别的编队或别的行为都不算本方获选。
+        internal bool AnyTaskWritten { get { return _gate.WriteAttempts > 0; } }
+
+        // ================= 阶段一：决策节奏与计划形成 =================
+
+        // 由宿主按决策节奏调用（不是每 tick）。形成或沿用计划，并生成任务。
+        internal void DecisionTick(Mission mission)
+        {
+            if (mission == null) return;
+            double now = SafeTime(mission);
+
+            _snapshot = FormationSampler.Sample(mission, now);
+            LogSnapshotHealth(now);
+
+            if (!SnapshotFresh(now))
+            {
+                Cb2Log.Line("SNAPSHOT_REFUSED",
+                    "use=decision sampled_at=" + Cb2Log.F(_snapshot.SampledAt) +
+                    " age=" + Cb2Log.F(now - _snapshot.SampledAt) +
+                    " limit=" + Cb2Log.F(TestParameters.SnapshotMaxAgeSeconds) +
+                    " at=" + Cb2Log.F(now));
+                return;
+            }
+
+            _inputCount++;
+            var inputId = "input-" + _inputCount.ToString(CultureInfo.InvariantCulture);
+            var state = BattleAssessment.Read(_snapshot, inputId);
+            _state = state;
+
+            if (state == null)
+            {
+                Cb2Log.Line("BATTLE_STATE_UNAVAILABLE",
+                    "input=" + inputId + " at=" + Cb2Log.F(now) + " reason=enemy_team_not_found");
+                return;
+            }
+
+            var conditions = PlanConditions.From(state);
+            Cb2Log.Line("BATTLE_STATE",
+                "input=" + inputId +
+                " sampled_at=" + Cb2Log.F(state.SampledAt) +
+                " my_team=" + state.MyTeamIndex +
+                " enemy_team=" + state.EnemyTeamIndex +
+                " my_units=" + state.MyUnitCount +
+                " enemy_units=" + state.EnemyUnitCount +
+                " my_ranged=" + state.MyRangedCount +
+                " enemy_ranged=" + state.EnemyRangedCount +
+                " my_infantry=" + state.MyInfantryCount +
+                " enemy_infantry=" + state.EnemyInfantryCount +
+                " my_center=(" + Cb2Log.F(state.MyCenterX) + "," + Cb2Log.F(state.MyCenterY) + ")" +
+                " enemy_center=(" + Cb2Log.F(state.EnemyCenterX) + "," + Cb2Log.F(state.EnemyCenterY) + ")" +
+                " " + conditions.Describe() +
+                " at=" + Cb2Log.F(now));
+
+            // 条件未变且计划仍开放：继续沿用，不重建、不重发令。
+            if (_plans.CanContinue(conditions, now))
+            {
+                Cb2Log.Line("PLAN_CONTINUED",
+                    "plan=" + _plans.Current.PlanId +
+                    " input=" + inputId +
+                    " age=" + Cb2Log.F(now - _plans.Current.CreatedAt) +
+                    " at=" + Cb2Log.F(now));
+                SweepExpiredSelections(now);
+                return;
+            }
+
+            // 旧计划还开着但条件已变：先按实际原因让它失效。
+            if (_plans.HasPlan)
+            {
+                Cb2Log.Line("PLAN_CHANGED",
+                    "plan=" + _plans.Current.PlanId +
+                    " input=" + inputId +
+                    " old_goal=" + _plans.Current.Goal +
+                    " old=" + _plans.Current.Conditions.Describe() +
+                    " new=" + conditions.Describe() +
+                    " at=" + Cb2Log.F(now));
+                InvalidatePlan(PlanInvalidReason.ConditionChanged,
+                    "condition_changed old=" + _plans.Current.Conditions.Describe() +
+                    " new=" + conditions.Describe(), now);
+            }
+
+            var plan = _plans.Create(state, now);
+            if (plan == null)
+            {
+                Cb2Log.Line("PLAN_UNAVAILABLE",
+                    "input=" + inputId +
+                    " reason=missing_controlled_class" +
+                    " at=" + Cb2Log.F(now));
+                return;
+            }
+
+            Cb2Log.Line("PLAN_CREATED",
+                plan.Describe() +
+                " " + plan.Conditions.Describe() +
+                " tasks=" + plan.Tasks.Count +
+                " at=" + Cb2Log.F(now));
+
+            foreach (var t in plan.Tasks)
+            {
+                _tasks.Add(t);
+                Cb2Log.Line("TASK_CREATED",
+                    t.Describe() +
+                    " reason=" + t.Reason +
+                    " units=" + UnitCountOf(t.FormationKey) +
+                    " origin=(" + Cb2Log.F(t.OriginX) + "," + Cb2Log.F(t.OriginY) + ")" +
+                    " at=" + Cb2Log.F(now));
+            }
+
+            LogTaskCandidates(plan, now);
+        }
+
+        private void LogTaskCandidates(BattlePlan plan, double now)
+        {
+            if (_loggedSelectionDetail) return;
+            _loggedSelectionDetail = true;
+            var snapshot = _snapshot;
+            if (snapshot == null) return;
+            int eligible = 0;
+            foreach (var r in snapshot.Records)
+            {
+                bool empty = r.UnitCount <= 0;
+                bool playerOwned = r.IsPlayerTeam || r.IsPlayerControlled;
+                bool notAi = !r.IsAiControlled;
+                bool notControlled = !BattleAssessment.IsInfantry(r.FormationClass) &&
+                                     !BattleAssessment.IsRanged(r.FormationClass);
+                bool fresh = !r.IsStale(snapshot.SampledAt);
+                if (!empty && !playerOwned && !notAi && !notControlled && fresh) eligible++;
+                Cb2Log.Line("TASK_CANDIDATE",
+                    "key=" + r.Key() +
+                    " side=" + r.Side +
+                    " player_team=" + (r.IsPlayerTeam ? 1 : 0) +
+                    " player_ctrl=" + (r.IsPlayerControlled ? 1 : 0) +
+                    " ai_ctrl=" + (r.IsAiControlled ? 1 : 0) +
+                    " class=" + r.FormationClass +
+                    " units=" + r.UnitCount +
+                    " order=" + r.MovementOrder +
+                    " in_control_scope=" + ((!empty && !playerOwned && !notAi && !notControlled && fresh) ? 1 : 0));
+            }
+            Cb2Log.Line("TASK_CANDIDATES",
+                "plan=" + plan.PlanId +
+                " controlled_scope=" + eligible +
+                " sort_basis=ascending(TeamIndex,FormationIndex)" +
+                " at=" + Cb2Log.F(now));
+        }
+
+        // ================= 阶段二：候选提交与真实获选 =================
+
+        // 主线程调用：把尚无获选的任务挂到目标编队的原生行为选择链上。
+        internal void SubmitPending(Mission mission)
+        {
+            if (mission == null) return;
+            double now = SafeTime(mission);
+
+            foreach (var task in _tasks.OpenTasks())
+            {
+                if (task.WrittenAt >= 0.0) continue;
+                if (task.SelectedAt >= 0.0) continue;
+                if (task.SelectionDeadline() <= now && task.SubmittedAt >= 0.0) continue;
+
+                var f = FindByKey(mission, task.FormationKey);
+                if (f == null) continue;
+
+                // 执行前的即时资格核验：任务承担的编队必须仍在控制范围内。
+                if (!EligibleForControl(f))
+                {
+                    var reason = EligibilityFailureOf(f);
+                    Cb2Log.Line("TASK_ELIGIBILITY_LOST",
+                        task.Describe() + " reason=" + reason + " at=" + Cb2Log.F(now));
+                    InvalidatePlan(PlanInvalidReason.FormationEligibilityLost,
+                        "task=" + task.TaskId + " reason=" + reason, now);
+                    return;
+                }
+
+                var behavior = ArmBehavior(mission, f, task);
+                if (behavior == null)
+                {
+                    InvalidatePlan(PlanInvalidReason.WriteFailed, "task=" + task.TaskId +
+                        " reason=behavior_register_failed", now);
+                    return;
+                }
+
+                task.SubmittedAt = now;
+                _gate.SubmitCandidate(task.TaskId, task.FormationKey, now);
+                Cb2Log.Line("TASK_CANDIDATE_SUBMITTED",
+                    task.Describe() +
+                    " behavior_registered=1" +
+                    " behavior_weight=" + Cb2Log.F(TestParameters.HoldBehaviorWeight) +
+                    " at=" + Cb2Log.F(now) +
+                    " write_attempts_total=" + _gate.WriteAttempts +
+                    " write_attempts_task=" + _tasks.WritesOf(task.TaskId));
+            }
+        }
+
+        // 原生活动行为切换：只在这里确认"真实获选"，不在这里写令。
         internal void OnActiveBehaviorChanged(Mission mission, Formation f, int threadId)
         {
-            if (_intent == null || _intent.IsClosed) return;
-
-            var pending = _gate.PendingKey(_intent.IntentId);
-            if (pending.Length == 0) return;
+            if (f == null) return;
 
             int teamIndex = -1;
             try { if (f.Team != null) teamIndex = f.Team.TeamIndex; } catch (Exception) { }
             var keyNow = KeyOf(teamIndex, f);
 
-            if (!string.Equals(keyNow, pending, StringComparison.Ordinal))
+            var task = PendingTaskForFormation(keyNow);
+            if (task == null)
             {
                 // 别的编队切行为是常态，只记前若干条，避免淹没日志。
                 _otherSelectionCount++;
                 if (_otherSelectionCount <= 20)
                 {
                     Cb2Log.Line("ACTIVE_BEHAVIOR_CHANGED_OTHER",
-                        "intent=" + _intent.IntentId +
-                        " pending=" + pending +
-                        " native=" + keyNow +
-                        " tid=" + threadId +
-                        " seq=" + _otherSelectionCount);
+                        "native=" + keyNow + " tid=" + threadId + " seq=" + _otherSelectionCount);
                 }
                 else if (_otherSelectionCount == 21)
                 {
@@ -80,36 +285,32 @@ namespace CombatBrain2.Host
 
             bool ours = IsOurActiveBehavior(keyNow, f);
             Cb2Log.Line("ACTIVE_BEHAVIOR_CHANGED",
-                "intent=" + _intent.IntentId +
+                "task=" + task.TaskId +
+                " plan=" + task.PlanId +
                 " key=" + keyNow +
                 " active_behavior=" + FormationSampler.ActiveBehaviorNameOf(f) +
                 " ours=" + (ours ? 1 : 0) +
-                " tid=" + threadId);
+                " tid=" + threadId +
+                " at=" + Cb2Log.F(SafeTime(mission)));
 
             if (!ours) return;
 
-            if (_intent.SelectedAt < 0)
-                MarkRealSelection(mission, f);
+            if (task.SelectedAt < 0.0) MarkRealSelection(mission, f, task);
         }
 
         // 原生把命令应用到编队：只做观测与归属记录，不在这里写令。
-        // 写令由下一个 Mission tick 的执行门路径完成。
         internal void OnNativeMovementOrderApplied(Mission mission, Formation f,
                                                    MovementOrder.MovementOrderEnum orderEnum, int threadId)
         {
-            if (_intent == null || _intent.IsClosed) return;
-
-            var pending = _gate.PendingKey(_intent.IntentId);
-            if (pending.Length == 0) return;
-
+            if (f == null) return;
             int teamIndex = -1;
             try { if (f.Team != null) teamIndex = f.Team.TeamIndex; } catch (Exception) { }
             var keyNow = KeyOf(teamIndex, f);
-            if (!string.Equals(keyNow, pending, StringComparison.Ordinal)) return;
+            if (PendingTaskForFormation(keyNow) == null) return;
 
             bool ours = IsOurActiveBehavior(keyNow, f);
             Cb2Log.Line("NATIVE_MOVEMENT_APPLIED",
-                "intent=" + _intent.IntentId +
+                "key=" + keyNow +
                 " formation=" + FormationSampler.FormationClassOf(f) +
                 " order_enum=" + orderEnum +
                 " tid=" + threadId +
@@ -117,356 +318,741 @@ namespace CombatBrain2.Host
                 " source=" + (ours ? "native_apply_of_our_behavior" : "not_ours"));
         }
 
-        // 行为归属判定：原生当前行为必须就是本方注册的那个实例。
-        private bool IsOurActiveBehavior(string key, Formation f)
+        // 真实获选：唯一允许转入执行的状态转移。
+        private void MarkRealSelection(Mission mission, Formation f, FormationTask task)
         {
-            CbHoldBehavior ours;
-            if (!_armedBehaviors.TryGetValue(key, out ours) || ours == null) return false;
-            try { return ReferenceEquals(f.AI.ActiveBehavior, ours); }
-            catch (Exception) { return false; }
-        }
-
-        private bool HasArmedBehavior(string key)
-        {
-            CbHoldBehavior b;
-            return _armedBehaviors.TryGetValue(key, out b) && b != null && b.Armed;
-        }
-
-        private string ActiveBehaviorOfBound(Mission mission, FormationRecord bound)
-        {
-            var f = FormationSampler.FindFormation(
-                mission, bound.TeamIndex,
-                bound.FormationIndex.ToString(CultureInfo.InvariantCulture));
-            if (f == null) return "<formation_not_found>";
-            return FormationSampler.ActiveBehaviorNameOf(f);
-        }
-
-        // 退出时只把本方行为的权重清零并解除武装。
-        // 不用 ResetBehaviorWeights：那会抹掉原生在本方写入期间作出的新权重决策。
-        private void DisarmAllBehaviors(string reason, double now)
-        {
-            foreach (var pair in _armedBehaviors)
+            double now = SafeTime(mission);
+            int teamIndex = -1;
+            string side = "";
+            try
             {
-                var b = pair.Value;
-                if (b == null) continue;
-                var f = b.Formation;
-                float weightBefore = -1f;
-                float weightAfter = -1f;
-                int armedBefore = b.Armed ? 1 : 0;
-                string behaviorNow = "<none>";
-                string error = "";
-                try
-                {
-                    try { weightBefore = b.WeightFactor; } catch (Exception) { }
-                    b.Disarm();
-                    if (f != null)
-                    {
-                        f.AI.SetBehaviorWeight<CbHoldBehavior>(0f);
-                        try
-                        {
-                            weightAfter = ((CbHoldBehavior)f.AI.GetBehavior<CbHoldBehavior>()).WeightFactor;
-                        }
-                        catch (Exception) { }
-                        try
-                        {
-                            var active = f.AI.ActiveBehavior;
-                            behaviorNow = active == null ? "<none>" : active.GetType().Name;
-                        }
-                        catch (Exception) { }
-                    }
-                }
-                catch (Exception e) { error = e.GetType().Name + ": " + e.Message; }
+                var team = f.Team;
+                if (team != null) { teamIndex = team.TeamIndex; side = team.Side.ToString(); }
+            }
+            catch (Exception) { }
 
-                Cb2Log.Line("BEHAVIOR_DISARMED",
-                    "key=" + pair.Key +
-                    " reason=" + reason +
-                    " armed_before=" + armedBefore +
-                    " weight_before=" + Cb2Log.F(weightBefore) +
-                    " weight_after=" + Cb2Log.F(weightAfter) +
-                    " active_behavior_now=" + behaviorNow +
-                    " error=" + (error.Length == 0 ? "<none>" : error) +
+            task.FormationKey = KeyOf(teamIndex, f);
+            task.ObjectIdentity = ObjectIdentityOf(f);
+            task.SelectedAt = now;
+
+            _gate.MarkSelected(task.TaskId, task.FormationKey, now);
+            _gate.BindObject(task.TaskId, task.ObjectIdentity);
+
+            Cb2Log.Line("REAL_SELECTION",
+                "task=" + task.TaskId +
+                " plan=" + task.PlanId +
+                " key=" + task.FormationKey +
+                " side=" + side +
+                " obj=" + task.ObjectIdentity +
+                " at=" + Cb2Log.F(now));
+        }
+
+        // ================= 阶段三：主线程执行点 =================
+
+        // 原生选中本方行为后由 FormationAI 调 TickOccasionally 进入这里。
+        // 原生主循环不等于主线程：线程号等于已登记主线程号才允许就地写令。
+        internal void OnBehaviorTick(Formation f, int threadId)
+        {
+            if (f == null) return;
+            var mission = Mission.Current;
+            if (mission == null) return;
+
+            int teamIndex = -1;
+            try { if (f.Team != null) teamIndex = f.Team.TeamIndex; } catch (Exception) { }
+            var keyNow = KeyOf(teamIndex, f);
+            var task = PendingTaskForFormation(keyNow);
+            if (task == null || task.SelectedAt < 0.0) return;
+
+            if (_handoff.IsMainThread(threadId))
+            {
+                _handoff.NoteDirect();
+                Cb2Log.Line("HANDOFF_DIRECT",
+                    "task=" + task.TaskId +
+                    " key=" + keyNow +
+                    " tid=" + threadId +
+                    " at=" + Cb2Log.F(SafeTime(mission)));
+                TryExecuteTask(mission, f, task, threadId);
+                return;
+            }
+
+            bool deferred = _handoff.TryDefer(
+                _missionKey, task.PlanId, task.TaskId, keyNow, task.ObjectIdentity,
+                threadId, SafeTime(mission));
+
+            Cb2Log.Line(deferred ? "HANDOFF_DEFERRED" : "HANDOFF_SLOT_BUSY",
+                "task=" + task.TaskId +
+                " key=" + keyNow +
+                " callback_tid=" + threadId +
+                " main_tid=" + _handoff.MainThreadId +
+                " at=" + Cb2Log.F(SafeTime(mission)));
+        }
+
+        // 主线程执行点：消费待执行槽位。取出后仍要按当前任务与资格即时复核。
+        internal void DrainPendingCommand(Mission mission)
+        {
+            if (mission == null) return;
+            if (!_handoff.HasPending) return;
+
+            var pending = _handoff.TakeAllPending();
+            int tid = Thread.CurrentThread.ManagedThreadId;
+
+            foreach (var p in pending)
+            {
+                var task = _tasks.Get(p.TaskId);
+                if (task == null || task.IsClosed)
+                {
+                    Cb2Log.Line("HANDOFF_DROPPED",
+                        "task=" + p.TaskId +
+                        " key=" + p.Key +
+                        " reason=" + (task == null ? "task_unknown" : "task_closed") +
+                        " callback_tid=" + p.CallbackThreadId +
+                        " exec_tid=" + tid +
+                        " at=" + Cb2Log.F(SafeTime(mission)));
+                    continue;
+                }
+                if (task.WrittenAt >= 0.0)
+                {
+                    Cb2Log.Line("HANDOFF_DROPPED",
+                        "task=" + task.TaskId + " key=" + p.Key + " reason=already_written_at=" +
+                        Cb2Log.F(task.WrittenAt));
+                    continue;
+                }
+                if (task.SelectedAt < 0.0)
+                {
+                    Cb2Log.Line("HANDOFF_DROPPED",
+                        "task=" + task.TaskId + " key=" + p.Key + " reason=not_selected");
+                    continue;
+                }
+                // 计划已失效但任务尚未逐条关闭（关闭是同步的，这里只作兜底）。
+                var plan = _plans.Current;
+                if (plan != null && plan.IsClosed &&
+                    string.Equals(plan.PlanId, task.PlanId, StringComparison.Ordinal))
+                {
+                    Cb2Log.Line("HANDOFF_DROPPED",
+                        "task=" + task.TaskId + " key=" + p.Key + " reason=plan_closed");
+                    continue;
+                }
+
+                var f = FindByKey(mission, p.Key);
+                if (f == null)
+                {
+                    Cb2Log.Line("HANDOFF_DROPPED",
+                        "task=" + task.TaskId + " key=" + p.Key + " reason=formation_not_found");
+                    continue;
+                }
+
+                Cb2Log.Line("HANDOFF_EXECUTED",
+                    "task=" + task.TaskId +
+                    " key=" + p.Key +
+                    " obj=" + p.ObjectIdentity +
+                    " callback_tid=" + p.CallbackThreadId +
+                    " exec_tid=" + tid +
+                    " is_main_thread=" + (_handoff.IsMainThread(tid) ? 1 : 0) +
+                    " at=" + Cb2Log.F(SafeTime(mission)));
+
+                TryExecuteTask(mission, f, task, tid);
+            }
+        }
+
+        // 执行一个任务的命令。写令前即时复核：任务、计划、资格、对象、本方行为。
+        private void TryExecuteTask(Mission mission, Formation f, FormationTask task, int execThreadId)
+        {
+            if (task == null || f == null) return;
+            double now = SafeTime(mission);
+
+            int teamIndex = -1;
+            try { if (f.Team != null) teamIndex = f.Team.TeamIndex; } catch (Exception) { }
+            var key = KeyOf(teamIndex, f);
+
+            bool missionValid = mission != null && ReferenceEquals(mission, Mission.Current);
+            bool targetValid = false;
+            try { targetValid = f.CountOfUnits > 0; } catch (Exception) { }
+            bool playerOwned = false;
+            try { playerOwned = f.Team != null && f.Team.IsPlayerTeam; } catch (Exception) { }
+            try { if (f.PlayerOwner != null) playerOwned = true; } catch (Exception) { }
+
+            string currentObjectIdentity = "";
+            try { currentObjectIdentity = ObjectIdentityOf(f); } catch (Exception) { }
+
+            bool aiControlled = false;
+            try { aiControlled = f.IsAIControlled; } catch (Exception) { }
+
+            bool behaviorIsOurs = IsOurActiveBehavior(key, f);
+
+            // 普通任务在真实写令前保证：计划创建后首令延迟、以前一条实际写令为基准的 1.5 s 间隔。
+            // 退出安全动作沿用既有例外，不受此约束。
+            if (!BattlePlan.IsExitTask(task))
+            {
+                string defer = WriteDelayBlock(task, now);
+                if (defer != null)
+                {
+                    Cb2Log.Line("WRITE_DELAYED",
+                        "task=" + task.TaskId +
+                        " plan=" + task.PlanId +
+                        " key=" + key +
+                        " reason=" + defer +
+                        " at=" + Cb2Log.F(now));
+                    return;
+                }
+            }
+
+            var decision = _gate.RequestWrite(
+                task.TaskId, key, now, missionValid, targetValid, playerOwned,
+                currentObjectIdentity, aiControlled, behaviorIsOurs);
+
+            if (!decision.Allowed)
+            {
+                _tasks.NoteBlockedAttempt(task.TaskId);
+                Cb2Log.Line("WRITE_BLOCKED",
+                    "task=" + task.TaskId +
+                    " plan=" + task.PlanId +
+                    " key=" + key +
+                    " reason=" + decision.BlockReason +
+                    " at=" + Cb2Log.F(now) +
+                    " write_attempts_total=" + _gate.WriteAttempts +
+                    " write_attempts_task=" + _tasks.WritesOf(task.TaskId));
+
+                // 资格或对象层面的拒绝说明计划前提已破：立即让计划失效，
+                // 不等下一次评价，也不保持"看起来成功"的假状态。
+                var reason = FailureReasonOf(decision.BlockReason);
+                if (reason != PlanInvalidReason.None)
+                {
+                    InvalidatePlan(reason, "task=" + task.TaskId + " block=" + decision.BlockReason, now);
+                }
+                return;
+            }
+
+            var order = OrderForTask(mission, f, task, now, out string geometryNote);
+            if (order.OrderEnum == MovementOrder.MovementOrderEnum.Invalid)
+            {
+                _tasks.NoteBlockedAttempt(task.TaskId);
+                Cb2Log.Line("TASK_POSITION_INVALID",
+                    "task=" + task.TaskId + " key=" + key + " detail=" + geometryNote +
+                    " at=" + Cb2Log.F(now));
+                InvalidatePlan(PlanInvalidReason.WriteFailed,
+                    "task=" + task.TaskId + " reason=position_invalid", now);
+                return;
+            }
+
+            string before = "";
+            try { before = OrderNameOf(f); } catch (Exception e) { before = "<err:" + e.GetType().Name + ">"; }
+
+            task.OrderBefore = before;
+
+            _receiptTarget = f;
+            _receipt.Arm();
+
+            bool invoked = false;
+            string error = "";
+            try
+            {
+                InOurWrite = true;
+                f.SetMovementOrder(order);
+                invoked = true;
+            }
+            catch (Exception e)
+            {
+                error = e.GetType().Name + ": " + e.Message;
+            }
+            finally
+            {
+                InOurWrite = false;
+            }
+
+            bool originalEntered = _receipt.Disarm();
+            int originalThreadId = _receipt.EnterThreadId;
+            _receiptTarget = null;
+
+            string after = "";
+            try { after = OrderNameOf(f); } catch (Exception e) { after = "<err:" + e.GetType().Name + ">"; }
+
+            task.WrittenAt = now;
+            task.OrderAfter = after;
+            task.Feedback = TaskFeedbackState.Pending;
+            task.ObjectIdentity = currentObjectIdentity;
+            _tasks.NoteWrite(task.TaskId);
+            _ledger.RecordOwnWrite(task.TaskId, key, task.ObjectIdentity, before, after, now);
+            _lastWriteAt = now;
+
+            double delay = FirstCommandDelay(task, now);
+            Cb2Log.Line("WRITE_EXECUTED",
+                task.Describe() +
+                " invoked=" + (invoked ? 1 : 0) +
+                " error=" + (error.Length == 0 ? "<none>" : error) +
+                " route=native_behavior_apply" +
+                " geometry=" + geometryNote +
+                " exec_tid=" + execThreadId +
+                " is_main_thread=" + (_handoff.IsMainThread(execThreadId) ? 1 : 0) +
+                " original_body_entered=" + (originalEntered ? 1 : 0) +
+                " original_body_tid=" + (originalEntered ? originalThreadId.ToString(CultureInfo.InvariantCulture) : "-1") +
+                " at=" + Cb2Log.F(now) +
+                " first_command_delay=" + Cb2Log.F(delay) +
+                " write_attempts_total=" + _gate.WriteAttempts +
+                " write_attempts_task=" + _tasks.WritesOf(task.TaskId));
+
+            // 退出动作写完一次即收尾，不再留在开放任务里反复评估（脚本 §7.2）。
+            if (BattlePlan.IsExitTask(task))
+            {
+                CloseTask(task, PlanInvalidReason.None, now);
+                Cb2Log.Line("EXIT_STOP_DONE",
+                    task.Describe() +
+                    " origin_plan=" + task.PlanId +
+                    " order_after=" + after +
                     " at=" + Cb2Log.F(now));
             }
-            _armedBehaviors.Clear();
         }
 
-        // 标记本方自身的写入，避免把本方的 setter 调用误判为"原生获选"。
-        internal static volatile bool InOurWrite;
-
-        internal static double CurrentMissionTime()
+        // 返回非 null 表示本条写令尚未到可发时刻，值为延后原因。
+        private string WriteDelayBlock(FormationTask task, double now)
         {
-            var m = Mission.Current;
-            if (m == null) return 0.0;
-            return SafeTime(m);
-        }
-
-        internal void OnMissionStart(Mission mission)
-        {
-            _missionKey = FormationSampler.MissionKeyOf(mission);
-            _loggedSelectionDetail = false;
-            _lastSnapshotLogAt = -1.0;
-            _lastSnapshotDetailAt = -1.0;
-            _prevSampleAt = -1.0;
-            _maxSnapshotAgeSeen = 0.0;
-            _minSampleInterval = -1.0;
-            _maxSampleInterval = 0.0;
-            Cb2Log.Line("MISSION_START", "mission_key=" + _missionKey);
-        }
-
-        internal void OnMissionEnd()
-        {
-            var t = CurrentMissionTime();
-            if (_intent != null && !_intent.IsClosed)
+            var plan = _plans.Current;
+            if (plan == null || !string.Equals(plan.PlanId, task.PlanId, StringComparison.Ordinal))
             {
-                _intent.IsClosed = true;
-                _intent.CancelReason = CancelReason.MissionEnded;
-                _intent.CancelledAt = t;
-                _gate.Close(_intent.IntentId, CancelReason.MissionEnded, t);
-                Cb2Log.Line("INTENT_CANCELLED",
-                    "intent=" + _intent.IntentId + " reason=MissionEnded at=" + Cb2Log.F(t));
+                return null;
             }
 
-            // Mission 结束清掉本方意图与对象状态。
-            _gate.ClearMission();
-            _ledger.ClearMission();
-            _handoff.Clear();
-            _receiptTarget = null;
-            DisarmAllBehaviors("MissionEnded", t);
-            _snapshot = null;
-            _intent = null;
-            Cb2Log.Line("MISSION_CLEANUP", "intent_and_object_state_cleared");
+            double sinceCreate = now - plan.CreatedAt;
+            if (sinceCreate < TestParameters.FirstCommandDelaySeconds)
+            {
+                return "first_command_delay";
+            }
+
+            if (_lastWriteAt >= 0.0)
+            {
+                double sinceWrite = now - _lastWriteAt;
+                if (sinceWrite < TestParameters.FormationStaggerSeconds)
+                {
+                    return "formation_stagger";
+                }
+            }
+            return null;
         }
 
-        // 由宿主 Tick 驱动。写令只在本方法内、且已确认主线程时发生。
-        internal void Tick(Mission mission)
+        private double FirstCommandDelay(FormationTask task, double now)
+        {
+            var plan = _plans.Current;
+            if (plan == null || !string.Equals(plan.PlanId, task.PlanId, StringComparison.Ordinal)) return -1.0;
+            if (now - plan.CreatedAt < TestParameters.FirstCommandDelaySeconds) return -1.0;
+            if (!_firstCommandSeen)
+            {
+                _firstCommandSeen = true;
+                Cb2Log.Line("FIRST_COMMAND_DELAY",
+                    "plan=" + plan.PlanId +
+                    " task=" + task.TaskId +
+                    " delay=" + Cb2Log.F(now - plan.CreatedAt) +
+                    " required=" + Cb2Log.F(TestParameters.FirstCommandDelaySeconds) +
+                    " at=" + Cb2Log.F(now));
+            }
+            return now - plan.CreatedAt;
+        }
+
+        // 按任务类型构造真实命令。位置由发令前的当前快照几何算出，
+        // 不伪造坐标；算不出有效目标点就不写令。
+        private MovementOrder OrderForTask(Mission mission, Formation f, FormationTask task,
+                                           double now, out string note)
+        {
+            note = "";
+            switch (task.Kind)
+            {
+                case TaskKind.Hold:
+                    note = "hold_stop";
+                    return MovementOrder.MovementOrderStop;
+
+                case TaskKind.Engage:
+                {
+                    var enemy = PickEnemyFormation(mission);
+                    if (enemy == null)
+                    {
+                        note = "no_enemy_formation";
+                        return MovementOrder.MovementOrderNull;
+                    }
+                    note = "charge_enemy_formation obj=" + ObjectIdentityOf(enemy);
+                    return MovementOrder.MovementOrderCharge;
+                }
+
+                case TaskKind.Reposition:
+                {
+                    var state = _state;
+                    if (state == null)
+                    {
+                        note = "no_battle_state";
+                        return MovementOrder.MovementOrderNull;
+                    }
+                    double ux, uy;
+                    if (!state.TryUnitDirection(out ux, out uy))
+                    {
+                        note = "zero_span_no_direction";
+                        return MovementOrder.MovementOrderNull;
+                    }
+                    var record = _snapshot != null ? _snapshot.FindByKey(task.FormationKey) : null;
+                    if (record == null)
+                    {
+                        note = "no_current_record";
+                        return MovementOrder.MovementOrderNull;
+                    }
+                    double originX = record.PosX;
+                    double originY = record.PosY;
+                    double span;
+                    double direction;
+                    if (task.Reason == "ranged_advantage_advance")
+                    {
+                        double centerDistance = state.CenterDistance();
+                        span = Math.Min(TestParameters.RangedApproachMaxMeters, centerDistance / 2.0);
+                        direction = 1.0;
+                    }
+                    else
+                    {
+                        span = TestParameters.InfantryFallbackMeters;
+                        direction = -1.0;
+                    }
+                    double targetX = originX + direction * ux * span;
+                    double targetY = originY + direction * uy * span;
+                    if (!BattleState.IsFinite(targetX) || !BattleState.IsFinite(targetY))
+                    {
+                        note = "non_finite_target";
+                        return MovementOrder.MovementOrderNull;
+                    }
+                    task.SetTarget(originX, originY, targetX, targetY);
+                    note = "move_to_requested=(" + Cb2Log.F(targetX) + "," + Cb2Log.F(targetY) + ")" +
+                           " span=" + Cb2Log.F(span);
+                    return MovementOrder.MovementOrderMove(new WorldPosition(mission.Scene, new Vec3((float)targetX, (float)targetY, 0f)));
+                }
+
+                default:
+                    note = "task_kind_none";
+                    return MovementOrder.MovementOrderNull;
+            }
+        }
+
+        private Formation PickEnemyFormation(Mission mission)
+        {
+            var state = _state;
+            if (state == null || _snapshot == null) return null;
+            FormationRecord best = null;
+            foreach (var r in state.EnemyFormations)
+            {
+                if (r.UnitCount <= 0) continue;
+                if (best == null || r.UnitCount > best.UnitCount) best = r;
+            }
+            if (best == null) return null;
+            return FindByKey(mission, best.Key());
+        }
+
+        // ================= 阶段四：效果反馈与任务收尾 =================
+
+        // 每个已确认主线程的 Mission tick 都调用：读回实际效果、检查条件。
+        internal void FeedbackTick(Mission mission)
         {
             if (mission == null) return;
             double now = SafeTime(mission);
 
-            // 快照刷新（只读）。
             _snapshot = FormationSampler.Sample(mission, now);
-            LogSnapshotHealth(now);
 
-            if (_intent == null) return;
+            // 安全与条件检查逐 tick 做，不受决策节奏约束。
+            CheckConditionsEachTick(now);
 
-            // 到期：截止点固定，不因回调延长。
-            if (!_intent.IsClosed && now >= _intent.Deadline)
+            if (!SnapshotFresh(now))
             {
-                CancelIntent(CancelReason.WindowExpired, now);
+                Cb2Log.Line("SNAPSHOT_REFUSED",
+                    "use=feedback sampled_at=" + Cb2Log.F(_snapshot.SampledAt) +
+                    " age=" + Cb2Log.F(now - _snapshot.SampledAt) +
+                    " limit=" + Cb2Log.F(TestParameters.SnapshotMaxAgeSeconds) +
+                    " at=" + Cb2Log.F(now));
                 return;
             }
-            if (_intent.IsClosed) return;
 
-            // 获选等待上限：自触发时刻起算，超时取消且不自动重触发。
-            if (_intent.SelectedAt < 0)
+            foreach (var task in _tasks.OpenTasks())
             {
-                if (now >= _intent.SelectionDeadline())
+                if (task.WrittenAt < 0.0) continue;
+                var rec = _snapshot.FindByKey(task.FormationKey);
+                double enemyX = double.NaN;
+                double enemyY = double.NaN;
+                var enemyState = BattleAssessment.Read(_snapshot, _plans.Current != null
+                    ? _plans.Current.PlanInputId
+                    : "");
+                if (enemyState != null)
                 {
-                    CancelIntent(CancelReason.SelectionTimeout, now);
-                    return;
+                    enemyX = enemyState.EnemyCenterX;
+                    enemyY = enemyState.EnemyCenterY;
                 }
-            }
+                var result = TaskFeedback.Evaluate(task, rec, now, enemyX, enemyY);
+                var previous = task.Feedback;
+                task.Feedback = result.State;
+                task.FailureReason = result.Reason;
+                task.FailureDetail = result.Detail;
 
-            // 目标失效或资格变化：取消，不换另一支继续同一意图。
-            if (_intent.SelectedAt >= 0 && _intent.BoundKey.Length > 0)
-            {
-                var bound = _snapshot.FindByKey(_intent.BoundKey);
-                if (bound == null)
+                if (result.State == TaskFeedbackState.Effective && previous != TaskFeedbackState.Effective)
                 {
-                    CancelIntent(CancelReason.TargetInvalid, now);
-                    return;
-                }
-                if (likelyPlayerOwned(bound))
-                {
-                    CancelIntent(CancelReason.PlayerEligibilityLost, now);
-                    return;
-                }
-                // 控制资格丢失（IsAIControlled=false）：Route C 的前提不再成立。
-                // 只在此处取消还不够，取消路径必须同时撤权并让待写命令失效。
-                if (!bound.IsAiControlled)
-                {
-                    CancelIntent(CancelReason.AiControlLost, now);
-                    return;
-                }
-
-                // 写令不在 Mission tick 里并列进行。Route C 下它由原生
-                // FormationAI 在本方行为被选中后调用 TickOccasionally 应用，
-                // 落在原生主循环内、受原生 IsAIControlled 门控。
-                if (_intent.ExecutedAt < 0 && !_gate.HasWritten(_intent.IntentId))
-                {
-                    Cb2Log.Line("AWAITING_NATIVE_APPLY",
-                        "intent=" + _intent.IntentId +
-                        " key=" + _intent.BoundKey +
-                        " obj=" + _intent.BoundObjectIdentity +
-                        " armed_behavior=" + (HasArmedBehavior(_intent.BoundKey) ? 1 : 0) +
-                        " active_behavior_now=" + ActiveBehaviorOfBound(mission, bound) +
+                    if (task.FeedbackAt < 0.0) task.FeedbackAt = now;
+                    Cb2Log.Line("TASK_FEEDBACK",
+                        task.Describe() +
+                        " state=effective" +
+                        " since_write=" + Cb2Log.F(now - task.WrittenAt) +
+                        " detail=" + result.Detail +
                         " at=" + Cb2Log.F(now));
                 }
+                else if (result.State == TaskFeedbackState.Failed && previous != TaskFeedbackState.Failed)
+                {
+                    Cb2Log.Line("TASK_FEEDBACK",
+                        task.Describe() +
+                        " state=failed" +
+                        " reason=" + result.Reason +
+                        " since_write=" + Cb2Log.F(now - task.WrittenAt) +
+                        " detail=" + result.Detail +
+                        " at=" + Cb2Log.F(now));
+                    InvalidatePlan(result.Reason,
+                        "task=" + task.TaskId + " detail=" + result.Detail, now, task.PlanId);
+                    return;
+                }
             }
         }
 
-        // 快照健康度：年龄一律用实际采样时刻算，不允许用刷新时刻冒充。
-        // 采样每 tick 都做；这里累计时效统计并按 1 Hz 落盘。
-        private void LogSnapshotHealth(double now)
+        // 条件在每个 tick 复算：一旦不成立，立即让计划失效并处置任务。
+        private void CheckConditionsEachTick(double now)
         {
+            var plan = _plans.Current;
+            if (plan == null || plan.IsClosed) return;
+
+            // 资格检查先于快照检查：统计按全队保留失去 AI 资格的士兵，
+            // 资格变化不会改变远程/兵力比例，必须独立检查已写任务。
+            if (CheckPlanEligibilityEachTick(plan, now)) return;
+
             if (_snapshot == null) return;
 
-            // 实际刷新间隔逐 tick 统计（两次采样之间的 Mission 时间差）。
-            double interval = _prevSampleAt >= 0.0 ? _snapshot.SampledAt - _prevSampleAt : -1.0;
-            _prevSampleAt = _snapshot.SampledAt;
-            if (interval >= 0.0)
-            {
-                if (_minSampleInterval < 0.0 || interval < _minSampleInterval) _minSampleInterval = interval;
-                if (interval > _maxSampleInterval) _maxSampleInterval = interval;
-            }
+            var state = BattleAssessment.Read(_snapshot, plan.PlanInputId);
+            if (state == null) return;
+            _state = state;
 
-            double age = now - _snapshot.SampledAt;
-            if (age > _maxSnapshotAgeSeen) _maxSnapshotAgeSeen = age;
+            var conditions = PlanConditions.From(state);
+            if (conditions.SameAs(plan.Conditions)) return;
 
-            if (_lastSnapshotLogAt > 0.0 && now - _lastSnapshotLogAt < 1.0) return;
-            _lastSnapshotLogAt = now;
-
-            string dupDetail;
-            bool hasDup = _snapshot.HasDuplicateKeys(out dupDetail);
-            double maxAge = _maxSnapshotAgeSeen;
-            double minInterval = _minSampleInterval;
-            double maxInterval = _maxSampleInterval;
-            _maxSnapshotAgeSeen = 0.0;
-            _minSampleInterval = -1.0;
-            _maxSampleInterval = 0.0;
-
-            Cb2Log.Line("SNAPSHOT_HEALTH",
-                "sampled_at=" + Cb2Log.F(_snapshot.SampledAt) +
-                " age=" + Cb2Log.F(age) +
-                " max_age_seen=" + Cb2Log.F(maxAge) +
-                " max_age_limit=" + Cb2Log.F(TestParameters.SnapshotMaxAgeSeconds) +
-                " over_limit=" + (maxAge > TestParameters.SnapshotMaxAgeSeconds ? 1 : 0) +
-                " refresh_interval_min=" + Cb2Log.F(minInterval) +
-                " refresh_interval_max=" + Cb2Log.F(maxInterval) +
-                " records=" + _snapshot.CountNonEmpty() +
-                " duplicate_keys=" + (hasDup ? 1 : 0) +
-                " duplicate_detail=" + (hasDup ? dupDetail : "<none>"));
-
-            // 每 30 s 落一次双方编队明细：敌我归属、人数、位置、当前移动命令。
-            // 这是 2.0 自身的读取路径，用于与 CBATH 的独立观测对照。
-            if (_lastSnapshotDetailAt > 0.0 && now - _lastSnapshotDetailAt < 30.0) return;
-            _lastSnapshotDetailAt = now;
-            foreach (var r in _snapshot.Records)
-            {
-                Cb2Log.Line("SNAPSHOT_FORMATION",
-                    "key=" + r.Key() +
-                    " side=" + r.Side +
-                    " player_team=" + (r.IsPlayerTeam ? 1 : 0) +
-                    " player_ctrl=" + (r.IsPlayerControlled ? 1 : 0) +
-                    " ai_ctrl=" + (r.IsAiControlled ? 1 : 0) +
-                    " class=" + r.FormationClass +
-                    " units=" + r.UnitCount +
-                    " pos=(" + Cb2Log.F(r.PosX) + "," + Cb2Log.F(r.PosY) + ")" +
-                    " order=" + r.MovementOrder +
-                    " obj=" + r.ObjectIdentity +
-                    " age=" + Cb2Log.F(age));
-            }
+            Cb2Log.Line("PLAN_CONDITION_LOST",
+                "plan=" + plan.PlanId +
+                " old=" + plan.Conditions.Describe() +
+                " new=" + conditions.Describe() +
+                " at=" + Cb2Log.F(now));
+            InvalidatePlan(PlanInvalidReason.ConditionChanged,
+                "tick_condition_changed new=" + conditions.Describe(), now);
         }
 
-        private static bool likelyPlayerOwned(FormationRecord r)
+        // 逐 tick 检查当前计划的承担编队是否仍有有效对象、非玩家、AI 受控（脚本 §7.1）。
+        // 返回 true 表示已因资格失效关闭计划。
+        private bool CheckPlanEligibilityEachTick(BattlePlan plan, double now)
         {
-            return r.IsPlayerTeam || r.IsPlayerControlled;
+            foreach (var task in _tasks.OpenTasks())
+            {
+                if (BattlePlan.IsExitTask(task)) continue;
+                if (task.PlanId != plan.PlanId) continue;
+                var f = FindByKey(Mission.Current, task.FormationKey);
+                if (f == null) continue;
+                if (EligibleForControl(f)) continue;
+
+                var reason = EligibilityFailureOf(f);
+                Cb2Log.Line("TASK_ELIGIBILITY_LOST",
+                    task.Describe() + " reason=" + reason +
+                    " source=tick_eligibility_check" +
+                    " at=" + Cb2Log.F(now));
+                InvalidatePlan(PlanInvalidReason.FormationEligibilityLost,
+                    "task=" + task.TaskId + " reason=" + reason, now);
+                return true;
+            }
+            return false;
         }
 
-        // 显式触发测试意图。真实获选由原生侧回调确认后才调用 MarkSelected。
-        // 返回是否真的开启了一个新意图。
-        internal bool TriggerIntent(Mission mission)
+        // 计划失效：一次性关闭本计划的全部普通任务、清本计划的待写命令、撤权；
+        // 仍合格的编队另发一次独立退出 Stop。
+        // sourcePlanId 指定失效归属；旧计划任务触发的失效不得取消新计划（脚本 §7.2）。
+        internal void InvalidatePlan(PlanInvalidReason reason, string detail, double now)
         {
-            if (mission == null) return false;
-            double now = SafeTime(mission);
-            if (_intent != null && !_intent.IsClosed)
+            InvalidatePlan(reason, detail, now, null);
+        }
+
+        internal void InvalidatePlan(PlanInvalidReason reason, string detail, double now, string sourcePlanId)
+        {
+            var plan = _plans.Current;
+            if (plan == null || plan.IsClosed) return;
+
+            if (!string.IsNullOrEmpty(sourcePlanId) &&
+                !string.Equals(sourcePlanId, plan.PlanId, StringComparison.Ordinal))
             {
-                Cb2Log.Line("INTENT_TRIGGER_SKIPPED", "an_open_intent_exists");
-                return false;
+                Cb2Log.Line("PLAN_INVALIDATE_REJECTED",
+                    "current=" + plan.PlanId +
+                    " source_plan=" + sourcePlanId +
+                    " reason=" + reason +
+                    " note=stale_task_from_old_plan" +
+                    " at=" + Cb2Log.F(now));
+                return;
             }
 
-            _triggerCount++;
-            _loggedSelectionDetail = false;
-            var id = "intent-" + _triggerCount.ToString(CultureInfo.InvariantCulture);
-            _intent = new TestIntent
+            _plans.Invalidate(reason, detail, now);
+            Cb2Log.Line("PLAN_INVALIDATED",
+                "plan=" + plan.PlanId +
+                " goal=" + plan.Goal +
+                " reason=" + reason +
+                " detail=" + detail +
+                " at=" + Cb2Log.F(now));
+
+            var open = _tasks.OpenTasks();
+            foreach (var t in open)
             {
-                IntentId = id,
-                TriggeredAt = now,
-                Deadline = now + TestParameters.IntentWindowSeconds,
+                if (BattlePlan.IsExitTask(t)) continue;
+                if (!string.Equals(t.PlanId, plan.PlanId, StringComparison.Ordinal))
+                {
+                    // 旧计划的普通任务：按本次失效原因一并关闭，但不参与退出 Stop 排队。
+                    CloseTask(t, reason, now);
+                    Cb2Log.Line("TASK_CLOSED",
+                        t.Describe() +
+                        " reason=" + reason +
+                        " written=" + (t.WrittenAt >= 0.0 ? 1 : 0) +
+                        " feedback=" + t.Feedback +
+                        " qualified_now=0" +
+                        " note=task_belongs_to_other_plan" +
+                        " at=" + Cb2Log.F(now));
+                    continue;
+                }
+                var rec = _snapshot != null ? _snapshot.FindByKey(t.FormationKey) : null;
+                bool qualified = rec != null && !likelyPlayerOwned(rec) && rec.IsAiControlled &&
+                                 rec.UnitCount > 0;
+                CloseTask(t, reason, now);
+                Cb2Log.Line("TASK_CLOSED",
+                    t.Describe() +
+                    " reason=" + reason +
+                    " written=" + (t.WrittenAt >= 0.0 ? 1 : 0) +
+                    " feedback=" + t.Feedback +
+                    " qualified_now=" + (qualified ? 1 : 0) +
+                    " at=" + Cb2Log.F(now));
+
+                if (qualified) TryQueueExitStop(t, now);
+            }
+
+            int hadPending = _handoff.HasPending ? 1 : 0;
+            _handoff.Clear();
+            Cb2Log.Line("HANDOFF_CLEARED",
+                "plan=" + plan.PlanId +
+                " reason=" + reason +
+                " had_pending=" + hadPending +
+                " at=" + Cb2Log.F(now));
+
+            DisarmAllBehaviors(reason.ToString(), now);
+            RevokeAllWritten(plan, now);
+        }
+
+        private void TryQueueExitStop(FormationTask closed, double now)
+        {
+            // 每编队最多一次退出尝试；本阶段不建重试框架。
+            if (_exitStopAttempts >= 2) return;
+            if (closed.ObjectIdentity.Length == 0) return;
+
+            _exitStopAttempts++;
+            var exit = new FormationTask
+            {
+                TaskId = closed.TaskId + "-exit",
+                PlanId = closed.PlanId,
+                Ordinal = 90 + _exitStopAttempts,
+                FormationKey = closed.FormationKey,
+                ObjectIdentity = closed.ObjectIdentity,
+                FormationClass = closed.FormationClass,
+                TeamIndex = closed.TeamIndex,
+                FormationIndex = closed.FormationIndex,
+                Kind = TaskKind.Hold,
+                Reason = "exit_after_plan_invalidated origin_task=" + closed.TaskId,
+                CreatedAt = now,
             };
-
-            Cb2Log.Line("INTENT_TRIGGERED",
-                "intent=" + id +
-                " at=" + Cb2Log.F(now) +
-                " deadline=" + Cb2Log.F(_intent.Deadline) +
-                " window=" + Cb2Log.F(TestParameters.IntentWindowSeconds) +
-                " selection_wait=" + Cb2Log.F(TestParameters.SelectionWaitSeconds));
-            return true;
+            _tasks.Add(exit);
+            Cb2Log.Line("EXIT_STOP_QUEUED",
+                exit.Describe() +
+                " origin_plan=" + closed.PlanId +
+                " at=" + Cb2Log.F(now));
         }
 
-        // 候选阶段：只生成命令，绝不调用 setter。
-        // 返回是否已提交候选；写入尝试计数在获选前必须保持为 0。
-        internal bool SubmitCandidateOnly(Mission mission)
+        // 退出动作不因未获选就反复尝试：到点未获选即如实记录并撤权。
+        // 安全时限从已投递时刻起算；已投递但未获选的退出任务不能因此被永久跳过（脚本 §7.2）。
+        internal void SweepExitStops(Mission mission)
         {
-            if (_intent == null || _intent.IsClosed) return false;
-
-            var snapshot = _snapshot ?? FormationSampler.Sample(mission, SafeTime(mission));
+            if (mission == null) return;
             double now = SafeTime(mission);
-
-            var selection = TargetSelector.Select(snapshot, now);
-            _selectionEvaluations++;
-
-            if (!_loggedSelectionDetail)
+            foreach (var task in _tasks.OpenTasks())
             {
-                _loggedSelectionDetail = true;
-                Cb2Log.Line("SELECTION_CANDIDATES",
-                    "intent=" + _intent.IntentId +
-                    " sort_basis=" + selection.SortBasis +
-                    " candidates=" + selection.Candidates.Count +
-                    " eligible=" + (selection.HasChoice() ? selection.Chosen.Key() : "<none>"));
-                foreach (var c in selection.Candidates)
-                    Cb2Log.Line("SELECTION_CANDIDATE", c);
-                foreach (var rj in selection.Rejections)
-                    Cb2Log.Line("SELECTION_REJECTED", rj);
+                if (!BattlePlan.IsExitTask(task)) continue;
+                if (task.WrittenAt >= 0.0) continue;
+                if (task.SelectedAt >= 0.0) continue;
+                double since = task.SubmittedAt >= 0.0
+                    ? now - task.SubmittedAt
+                    : now - task.CreatedAt;
+                if (since >= TestParameters.SafetyCancelLatencySeconds)
+                {
+                    _tasks.CloseTask(task.TaskId, now);
+                    Cb2Log.Line("EXIT_STOP_NOT_APPLIED",
+                        task.Describe() +
+                        " reason=not_selected_in_time" +
+                        " submitted=" + (task.SubmittedAt >= 0.0 ? 1 : 0) +
+                        " waited=" + Cb2Log.F(since) +
+                        " at=" + Cb2Log.F(now));
+                    DisarmBehaviorsFor(task.FormationKey, "ExitNotApplied", now);
+                }
             }
-
-            if (!selection.HasChoice()) return false;
-
-            // Route C：把本方行为注册进该 Formation 的原生行为选择链。
-            // 这里只注册与设定权重，不调用任何 setter、不写 MovementOrder。
-            var f = FormationSampler.FindFormation(
-                mission,
-                selection.Chosen.TeamIndex,
-                selection.Chosen.FormationIndex.ToString(CultureInfo.InvariantCulture));
-            if (f == null)
-            {
-                Cb2Log.Line("CANDIDATE_SUBMIT_FAILED",
-                    "intent=" + _intent.IntentId +
-                    " key=" + selection.Chosen.Key() +
-                    " reason=formation_not_found");
-                return false;
-            }
-
-            var behavior = ArmBehavior(mission, f, selection.Chosen.Key());
-            if (behavior == null) return false;
-
-            _gate.SubmitCandidate(_intent.IntentId, selection.Chosen.Key(), now);
-            Cb2Log.Line("CANDIDATE_SUBMITTED",
-                "intent=" + _intent.IntentId +
-                " key=" + selection.Chosen.Key() +
-                " obj=" + selection.Chosen.ObjectIdentity +
-                " order_before=" + selection.Chosen.MovementOrder +
-                " behavior_registered=1" +
-                " behavior_weight=" + Cb2Log.F(TestParameters.HoldBehaviorWeight) +
-                " at=" + Cb2Log.F(now) +
-                " write_attempts_total=" + _gate.WriteAttempts +
-                " write_attempts_intent=" + _gate.WriteAttemptsFor(_intent.IntentId));
-            return true;
         }
 
-        // 注册本方行为并设定权重。AddAiBehavior 不设 WeightFactor，
-        // 必须显式设定非零值，否则原生 FindBestBehavior 会直接跳过。
-        private CbHoldBehavior ArmBehavior(Mission mission, Formation f, string key)
+        private void CloseTask(FormationTask task, PlanInvalidReason reason, double now)
+        {
+            task.IsClosed = true;
+            task.ClosedAt = now;
+            task.FailureReason = reason;
+            _tasks.CloseTask(task.TaskId, now);
+            _gate.Close(task.TaskId, CancelReasonFor(reason), now);
+        }
+
+        private static CancelReason CancelReasonFor(PlanInvalidReason reason)
+        {
+            switch (reason)
+            {
+                case PlanInvalidReason.ConditionChanged: return CancelReason.TargetInvalid;
+                case PlanInvalidReason.SelectionTimeout: return CancelReason.SelectionTimeout;
+                case PlanInvalidReason.WriteFailed: return CancelReason.TargetInvalid;
+                case PlanInvalidReason.NotEffective: return CancelReason.TargetInvalid;
+                case PlanInvalidReason.CommandOverridden: return CancelReason.TargetInvalid;
+                case PlanInvalidReason.FormationEligibilityLost: return CancelReason.AiControlLost;
+                case PlanInvalidReason.MissionEnded: return CancelReason.MissionEnded;
+                default: return CancelReason.None;
+            }
+        }
+
+        private static PlanInvalidReason FailureReasonOf(string blockReason)
+        {
+            switch (blockReason)
+            {
+                case "not_ai_controlled": return PlanInvalidReason.FormationEligibilityLost;
+                case "player_owned": return PlanInvalidReason.FormationEligibilityLost;
+                case "object_identity_changed": return PlanInvalidReason.FormationEligibilityLost;
+                case "behavior_not_ours": return PlanInvalidReason.WriteFailed;
+                case "target_invalid": return PlanInvalidReason.WriteFailed;
+                case "mission_invalid": return PlanInvalidReason.MissionEnded;
+                default: return PlanInvalidReason.None;
+            }
+        }
+
+        // 选择超时：任务提交候选后到点仍未获选，计划失效。
+        private void SweepExpiredSelections(double now)
+        {
+            foreach (var task in _tasks.OpenTasks())
+            {
+                if (task.SubmittedAt < 0.0) continue;
+                if (task.SelectedAt >= 0.0) continue;
+                if (now < task.SelectionDeadline()) continue;
+                Cb2Log.Line("TASK_SELECTION_TIMEOUT",
+                    task.Describe() +
+                    " waited=" + Cb2Log.F(now - task.SubmittedAt) +
+                    " limit=" + Cb2Log.F(TestParameters.SelectionWaitSeconds) +
+                    " at=" + Cb2Log.F(now));
+                InvalidatePlan(PlanInvalidReason.SelectionTimeout,
+                    "task=" + task.TaskId + " selection_timeout", now);
+                return;
+            }
+        }
+
+        // ================= 行为注册与撤权 =================
+
+        private CbHoldBehavior ArmBehavior(Mission mission, Formation f, FormationTask task)
         {
             CbHoldBehavior behavior = null;
             string error = "";
@@ -493,17 +1079,17 @@ namespace CombatBrain2.Host
             if (behavior == null)
             {
                 Cb2Log.Line("BEHAVIOR_REGISTER_FAILED",
-                    "intent=" + (_intent != null ? _intent.IntentId : "<none>") +
-                    " key=" + key +
+                    "task=" + task.TaskId +
+                    " key=" + task.FormationKey +
                     " error=" + (error.Length == 0 ? "<none>" : error));
                 return null;
             }
 
-            _armedBehaviors[key] = behavior;
+            _armedBehaviors[task.FormationKey] = behavior;
 
             Cb2Log.Line("BEHAVIOR_REGISTERED",
-                "intent=" + _intent.IntentId +
-                " key=" + key +
+                "task=" + task.TaskId +
+                " key=" + task.FormationKey +
                 " behavior=" + behavior.GetType().Name +
                 " weight=" + Cb2Log.F(TestParameters.HoldBehaviorWeight) +
                 " behavior_count=" + FormationSampler.BehaviorCountOf(f) +
@@ -511,313 +1097,99 @@ namespace CombatBrain2.Host
             return behavior;
         }
 
-        // 原生真实获选回调后调用。这是唯一允许转入执行的状态转移。
-        internal void MarkRealSelection(Mission mission, Formation f)
+        private bool IsOurActiveBehavior(string key, Formation f)
         {
-            if (_intent == null || _intent.IsClosed || f == null) return;
-            double now = SafeTime(mission);
-            int teamIndex = -1;
-            string side = "";
-            try
-            {
-                var team = f.Team;
-                if (team != null) { teamIndex = team.TeamIndex; side = team.Side.ToString(); }
-            }
-            catch (Exception) { }
-
-            var key = KeyOf(teamIndex, f);
-            var obj = ObjectIdentityOf(f);
-
-            _intent.BoundKey = key;
-            _intent.BoundObjectIdentity = obj;
-            _intent.SelectedAt = now;
-
-            _gate.MarkSelected(_intent.IntentId, key, now);
-            _gate.BindObject(_intent.IntentId, obj);
-
-            Cb2Log.Line("REAL_SELECTION",
-                "intent=" + _intent.IntentId +
-                " key=" + key +
-                " side=" + side +
-                " obj=" + obj +
-                " at=" + Cb2Log.F(now));
+            CbHoldBehavior ours;
+            if (!_armedBehaviors.TryGetValue(key, out ours) || ours == null) return false;
+            try { return ReferenceEquals(f.AI.ActiveBehavior, ours); }
+            catch (Exception) { return false; }
         }
 
-        // 原方法体入口观测：只在本方这次调用的武装窗口内、且对象就是本方目标时记入回执。
-        internal void ObserveOriginalEnter(Formation f, int threadId)
+        private bool HasArmedBehavior(string key)
         {
-            if (_receiptTarget == null || f == null) return;
-            if (!ReferenceEquals(_receiptTarget, f)) return;
-            _receipt.ObserveEnter(threadId);
+            CbHoldBehavior b;
+            return _armedBehaviors.TryGetValue(key, out b) && b != null && b.Armed;
         }
 
-        // 主线程执行点的登记来源：Mission tick。只登记第一次，之后不再改。
-        internal void MarkMainThread(int threadId)
+
+        // 退出时只把本方行为的权重清零并解除武装。
+        // 不用 ResetBehaviorWeights：那会抹掉原生在本方写入期间作出的新权重决策。
+        private void DisarmAllBehaviors(string reason, double now)
         {
-            bool first = !_handoff.HasMainThread;
-            _handoff.MarkMainThread(threadId);
-            if (first)
-            {
-                Cb2Log.Line("MAIN_THREAD_MARKED",
-                    "tid=" + threadId +
-                    " source=mission_tick");
-            }
+            var keys = new List<string>(_armedBehaviors.Keys);
+            foreach (var key in keys) DisarmBehavior(key, reason, now);
         }
 
-        // 原生选中本方行为后由 FormationAI 调 TickOccasionally 进入这里。
-        // 原生主循环不等于主线程：只有线程号等于已登记的主线程号才允许就地写令，
-        // 否则把本次这一条命令最小转交给 Mission tick，不在这里执行。
-        internal void OnBehaviorTick(Formation f, int threadId)
+        private void DisarmBehaviorsFor(string key, string reason, double now)
         {
-            if (f == null) return;
-            var mission = Mission.Current;
-            if (mission == null) return;
-            if (_intent == null || _intent.IsClosed) return;
-            if (_intent.SelectedAt < 0) return;
-
-            if (_handoff.IsMainThread(threadId))
-            {
-                _handoff.NoteDirect();
-                Cb2Log.Line("HANDOFF_DIRECT",
-                    "intent=" + _intent.IntentId +
-                    " key=" + _intent.BoundKey +
-                    " tid=" + threadId +
-                    " at=" + Cb2Log.F(SafeTime(mission)));
-                TryExecuteStop(mission, f, threadId);
-                return;
-            }
-
-            bool deferred = _handoff.TryDefer(
-                _intent.IntentId, _intent.BoundKey, _intent.BoundObjectIdentity,
-                threadId, SafeTime(mission));
-
-            Cb2Log.Line(deferred ? "HANDOFF_DEFERRED" : "HANDOFF_SLOT_BUSY",
-                "intent=" + _intent.IntentId +
-                " key=" + _intent.BoundKey +
-                " callback_tid=" + threadId +
-                " main_tid=" + _handoff.MainThreadId +
-                " at=" + Cb2Log.F(SafeTime(mission)));
+            DisarmBehavior(key, reason, now);
         }
 
-        // 主线程执行点：只消费转交槽位里那一条命令，不重放历史、不批量。
-        internal void DrainPendingCommand(Mission mission)
+        private void DisarmBehavior(string key, string reason, double now)
         {
-            if (mission == null) return;
-            if (!_handoff.HasPending) return;
+            CbHoldBehavior b;
+            if (!_armedBehaviors.TryGetValue(key, out b)) return;
+            _armedBehaviors.Remove(key);
+            if (b == null) return;
 
-            var p = _handoff.TakePending();
-            if (_intent == null || _intent.IsClosed)
-            {
-                // 意图已取消：这条命令已经失效，丢弃而不执行，且要留下可核查记录。
-                Cb2Log.Line("HANDOFF_DROPPED",
-                    "intent=" + p.IntentId +
-                    " key=" + p.Key +
-                    " reason=intent_closed" +
-                    " callback_tid=" + p.CallbackThreadId +
-                    " exec_tid=" + Thread.CurrentThread.ManagedThreadId +
-                    " at=" + Cb2Log.F(SafeTime(mission)));
-                return;
-            }
-            if (!string.Equals(p.IntentId, _intent.IntentId, StringComparison.Ordinal)) return;
-            if (_intent.SelectedAt < 0) return;
-
-            var f = FindByKey(mission, p.Key);
-            if (f == null)
-            {
-                Cb2Log.Line("HANDOFF_DROPPED",
-                    "intent=" + p.IntentId + " key=" + p.Key + " reason=formation_not_found");
-                return;
-            }
-
-            int tid = Thread.CurrentThread.ManagedThreadId;
-            Cb2Log.Line("HANDOFF_EXECUTED",
-                "intent=" + p.IntentId +
-                " key=" + p.Key +
-                " obj=" + p.ObjectIdentity +
-                " callback_tid=" + p.CallbackThreadId +
-                " exec_tid=" + tid +
-                " is_main_thread=" + (_handoff.IsMainThread(tid) ? 1 : 0) +
-                " at=" + Cb2Log.F(SafeTime(mission)));
-
-            TryExecuteStop(mission, f, tid);
-        }
-
-        private static Formation FindByKey(Mission mission, string key)
-        {
-            var parts = key.Split('/');
-            if (parts.Length != 2) return null;
-            int teamIndex;
-            if (!int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out teamIndex)) return null;
-            return FormationSampler.FindFormation(mission, teamIndex, parts[1]);
-        }
-
-        // 执行站定。仅在真实获选且已落到主线程执行点之后调用一次；重复回调被执行门去重。
-        internal void TryExecuteStop(Mission mission, Formation f, int execThreadId)
-        {
-            if (_intent == null || f == null) return;
-            double now = SafeTime(mission);
-
-            int teamIndex = -1;
-            try { if (f.Team != null) teamIndex = f.Team.TeamIndex; } catch (Exception) { }
-            var key = KeyOf(teamIndex, f);
-
-            bool missionValid = mission != null && ReferenceEquals(mission, Mission.Current);
-            bool targetValid = false;
-            try { targetValid = f.CountOfUnits > 0; } catch (Exception) { }
-            bool playerOwned = false;
-            try { playerOwned = f.Team != null && f.Team.IsPlayerTeam; } catch (Exception) { }
-            try { if (f.PlayerOwner != null) playerOwned = true; } catch (Exception) { }
-
-            // 执行前三项复核，独立于快照，全部即时求值：
-            //  1) 对象身份仍是获选时绑定的那个；
-            //  2) 目标仍由 AI 控制（Route C 的前提，不申请 Full）；
-            //  3) 原生当前行为仍是本方注册的那个实例。
-            string currentObjectIdentity = "";
-            try { currentObjectIdentity = ObjectIdentityOf(f); } catch (Exception) { }
-
-            bool aiControlled = false;
-            try { aiControlled = f.IsAIControlled; } catch (Exception) { }
-
-            bool behaviorIsOurs = IsOurActiveBehavior(key, f);
-
-            var decision = _gate.RequestWrite(
-                _intent.IntentId, key, now, missionValid, targetValid, playerOwned,
-                currentObjectIdentity, aiControlled, behaviorIsOurs);
-
-            if (!decision.Allowed)
-            {
-                Cb2Log.Line("WRITE_BLOCKED",
-                    "intent=" + _intent.IntentId +
-                    " key=" + key +
-                    " reason=" + decision.BlockReason +
-                    " at=" + Cb2Log.F(now) +
-                    " write_attempts_total=" + _gate.WriteAttempts +
-                    " write_attempts_intent=" + _gate.WriteAttemptsFor(_intent.IntentId));
-                return;
-            }
-
-            string before = "";
-            try { before = OrderNameOf(f); } catch (Exception e) { before = "<err:" + e.GetType().Name + ">"; }
-
-            // 原方法完成/跳过回执：setter 普通返回只能说明调用回来了，
-            // 不能说明原方法体真的执行过。观测点是原方法体第一句的原生事件——
-            // 它被跳过时不会触发。这里在调用前后夹住武装窗口，拿到的才是本次调用的回执。
-            _receiptTarget = f;
-            _receipt.Arm();
-
-            bool invoked = false;
+            var f = b.Formation;
+            float weightBefore = -1f;
+            float weightAfter = -1f;
+            int armedBefore = b.Armed ? 1 : 0;
+            string behaviorNow = "<none>";
             string error = "";
             try
             {
-                InOurWrite = true;
-                f.SetMovementOrder(MovementOrder.MovementOrderStop);
-                invoked = true;
+                try { weightBefore = b.WeightFactor; } catch (Exception) { }
+                b.Disarm();
+                if (f != null)
+                {
+                    f.AI.SetBehaviorWeight<CbHoldBehavior>(0f);
+                    try
+                    {
+                        weightAfter = ((CbHoldBehavior)f.AI.GetBehavior<CbHoldBehavior>()).WeightFactor;
+                    }
+                    catch (Exception) { }
+                    try
+                    {
+                        var active = f.AI.ActiveBehavior;
+                        behaviorNow = active == null ? "<none>" : active.GetType().Name;
+                    }
+                    catch (Exception) { }
+                }
             }
-            catch (Exception e)
-            {
-                error = e.GetType().Name + ": " + e.Message;
-            }
-            finally
-            {
-                InOurWrite = false;
-            }
+            catch (Exception e) { error = e.GetType().Name + ": " + e.Message; }
 
-            bool originalEntered = _receipt.Disarm();
-            int originalThreadId = _receipt.EnterThreadId;
-            _receiptTarget = null;
-
-            string after = "";
-            try { after = OrderNameOf(f); } catch (Exception e) { after = "<err:" + e.GetType().Name + ">"; }
-
-            _intent.ExecutedAt = now;
-            _ledger.RecordOwnWrite(_intent.IntentId, key, _intent.BoundObjectIdentity, before, after, now);
-
-            Cb2Log.Line("WRITE_EXECUTED",
-                "intent=" + _intent.IntentId +
-                " key=" + key +
-                " obj=" + _intent.BoundObjectIdentity +
-                " invoked=" + (invoked ? 1 : 0) +
+            Cb2Log.Line("BEHAVIOR_DISARMED",
+                "key=" + key +
+                " reason=" + reason +
+                " armed_before=" + armedBefore +
+                " weight_before=" + Cb2Log.F(weightBefore) +
+                " weight_after=" + Cb2Log.F(weightAfter) +
+                " active_behavior_now=" + behaviorNow +
                 " error=" + (error.Length == 0 ? "<none>" : error) +
-                " order_before=" + before +
-                " order_after=" + after +
-                " route=native_behavior_apply" +
-                " exec_tid=" + execThreadId +
-                " is_main_thread=" + (_handoff.IsMainThread(execThreadId) ? 1 : 0) +
-                " original_body_entered=" + (originalEntered ? 1 : 0) +
-                " original_body_tid=" + (originalEntered ? originalThreadId.ToString(CultureInfo.InvariantCulture) : "-1") +
-                " at=" + Cb2Log.F(now) +
-                " write_attempts_total=" + _gate.WriteAttempts +
-                " write_attempts_intent=" + _gate.WriteAttemptsFor(_intent.IntentId));
-        }
-
-        // 独立读取实际 MovementOrder，判断本次变化是否被后续原生改写。
-        internal void ObservePostState(Mission mission)
-        {
-            if (_intent == null) return;
-            if (_intent.BoundKey.Length == 0) return;
-            var snapshot = FormationSampler.Sample(mission, SafeTime(mission));
-            var rec = snapshot.FindByKey(_intent.BoundKey);
-            if (rec == null)
-            {
-                Cb2Log.Line("POST_OBSERVE", "intent=" + _intent.IntentId + " target_gone");
-                return;
-            }
-            bool sameObject = string.Equals(rec.ObjectIdentity, _intent.BoundObjectIdentity, StringComparison.Ordinal);
-            Cb2Log.Line("POST_OBSERVE",
-                "intent=" + _intent.IntentId +
-                " key=" + rec.Key() +
-                " order=" + rec.MovementOrder +
-                " same_object=" + (sameObject ? 1 : 0) +
-                " obj_now=" + rec.ObjectIdentity +
-                " at=" + Cb2Log.F(snapshot.SampledAt));
-        }
-
-        internal void CancelIntent(CancelReason reason, double now)
-        {
-            if (_intent == null || _intent.IsClosed) return;
-            _intent.IsClosed = true;
-            _intent.CancelReason = reason;
-            _intent.CancelledAt = now;
-            _gate.Close(_intent.IntentId, reason, now);
-            Cb2Log.Line("INTENT_CANCELLED",
-                "intent=" + _intent.IntentId +
-                " reason=" + reason +
-                " at=" + Cb2Log.F(now) +
-                " write_attempts_total=" + _gate.WriteAttempts +
-                " write_attempts_intent=" + _gate.WriteAttemptsFor(_intent.IntentId));
-            int hadPending = 0;
-            try
-            {
-                if (_handoff.HasPending) hadPending = 1;
-                // 取消后待写命令必须失效：不允许旧意图在取消后仍被主线程消费。
-                // 只清待写槽位，不清主线程登记（主线程执行点仍要保留）。
-                _handoff.Clear();
-            }
-            catch (Exception) { }
-
-            Cb2Log.Line("HANDOFF_CLEARED",
-                "intent=" + _intent.IntentId +
-                " reason=" + reason +
-                " had_pending=" + hadPending +
                 " at=" + Cb2Log.F(now));
-
-            DisarmAllBehaviors(reason.ToString(), now);
-            RevokeIfNeeded(now);
         }
 
-        internal void ExplicitClose(Mission mission)
+        // 只撤销本方确实改变且仍由本方负责的状态；只撤本计划写下的令，
+        // 不追撤其他计划的写入（脚本 §7.2）。
+        private void RevokeAllWritten(BattlePlan plan, double now)
         {
-            CancelIntent(CancelReason.ExplicitClose, SafeTime(mission));
+            foreach (var task in _tasks.AllTasksSorted())
+            {
+                if (task.WrittenAt < 0.0) continue;
+                if (plan != null && !string.Equals(task.PlanId, plan.PlanId, StringComparison.Ordinal)) continue;
+                RevokeTask(task, now);
+            }
         }
 
-        // 只撤销本方确实改变且仍由本方负责的状态。
-        private void RevokeIfNeeded(double now)
+        private void RevokeTask(FormationTask task, double now)
         {
-            var plan = _ledger.PlanRevocation(_intent.IntentId);
+            var plan = _ledger.PlanRevocation(task.TaskId);
             if (!plan.Needed)
             {
                 Cb2Log.Line("REVOKE_SKIPPED",
-                    "intent=" + _intent.IntentId + " reason=" + plan.SkipReason);
+                    "task=" + task.TaskId + " reason=" + plan.SkipReason);
                 return;
             }
 
@@ -825,17 +1197,16 @@ namespace CombatBrain2.Host
             var f = FindByPlan(mission, plan.Key);
             if (f == null)
             {
-                Cb2Log.Line("REVOKE_SKIPPED", "intent=" + _intent.IntentId + " reason=target_gone");
+                Cb2Log.Line("REVOKE_SKIPPED", "task=" + task.TaskId + " reason=target_gone");
                 return;
             }
 
-            // 对象身份变了就不覆盖新对象。
             var currentObj = ObjectIdentityOf(f);
-            var guarded = _ledger.PlanRevocationIfSameObject(_intent.IntentId, currentObj);
+            var guarded = _ledger.PlanRevocationIfSameObject(task.TaskId, currentObj);
             if (!guarded.Needed)
             {
                 Cb2Log.Line("REVOKE_SKIPPED",
-                    "intent=" + _intent.IntentId + " reason=" + guarded.SkipReason);
+                    "task=" + task.TaskId + " reason=" + guarded.SkipReason);
                 return;
             }
 
@@ -847,7 +1218,7 @@ namespace CombatBrain2.Host
             if (!string.Equals(before, guarded.OurOrder, StringComparison.Ordinal))
             {
                 Cb2Log.Line("REVOKE_SKIPPED",
-                    "intent=" + _intent.IntentId +
+                    "task=" + task.TaskId +
                     " reason=native_rewrote_after_us order_now=" + before +
                     " our_order=" + guarded.OurOrder);
                 return;
@@ -868,7 +1239,7 @@ namespace CombatBrain2.Host
             try { after = OrderNameOf(f); } catch (Exception) { }
 
             Cb2Log.Line("REVOKE_EXECUTED",
-                "intent=" + _intent.IntentId +
+                "task=" + task.TaskId +
                 " key=" + guarded.Key +
                 " ok=" + (ok ? 1 : 0) +
                 " error=" + (err.Length == 0 ? "<none>" : err) +
@@ -877,13 +1248,232 @@ namespace CombatBrain2.Host
                 " at=" + Cb2Log.F(now));
         }
 
-        private static Formation FindByPlan(Mission mission, string key)
+        // ================= 资格判定 =================
+
+        private static bool EligibleForControl(Formation f)
         {
+            try
+            {
+                if (f == null) return false;
+                if (f.CountOfUnits <= 0) return false;
+                if (f.Team != null && f.Team.IsPlayerTeam) return false;
+                if (f.PlayerOwner != null) return false;
+                return f.IsAIControlled;
+            }
+            catch (Exception) { return false; }
+        }
+
+        private static string EligibilityFailureOf(Formation f)
+        {
+            try
+            {
+                if (f == null) return "formation_null";
+                if (f.CountOfUnits <= 0) return "empty";
+                if (f.Team != null && f.Team.IsPlayerTeam) return "player_team";
+                if (f.PlayerOwner != null) return "player_owner";
+                if (!f.IsAIControlled) return "ai_control_lost";
+            }
+            catch (Exception e) { return "probe_error:" + e.GetType().Name; }
+            return "eligible";
+        }
+
+        private static bool likelyPlayerOwned(FormationRecord r)
+        {
+            return r.IsPlayerTeam || r.IsPlayerControlled;
+        }
+
+        private FormationTask PendingTaskForFormation(string key)
+        {
+            var task = _tasks.OpenTaskForFormation(key);
+            if (task == null || task.IsClosed) return null;
+            if (task.WrittenAt >= 0.0) return null;
+            return task;
+        }
+
+        private int UnitCountOf(string key)
+        {
+            if (_snapshot == null) return -1;
+            var r = _snapshot.FindByKey(key);
+            return r == null ? -1 : r.UnitCount;
+        }
+
+        // ================= 观测与生命周期 =================
+
+        internal void ObserveOriginalEnter(Formation f, int threadId)
+        {
+            if (_receiptTarget == null || f == null) return;
+            if (!ReferenceEquals(_receiptTarget, f)) return;
+            _receipt.ObserveEnter(threadId);
+        }
+
+        internal void MarkMainThread(int threadId)
+        {
+            bool first = !_handoff.HasMainThread;
+            _handoff.MarkMainThread(threadId);
+            if (first)
+            {
+                Cb2Log.Line("MAIN_THREAD_MARKED", "tid=" + threadId + " source=mission_tick");
+            }
+        }
+
+        internal static double CurrentMissionTime()
+        {
+            var m = Mission.Current;
+            if (m == null) return 0.0;
+            return SafeTime(m);
+        }
+
+        internal static volatile bool InOurWrite;
+
+        internal void OnMissionStart(Mission mission)
+        {
+            _missionKey = FormationSampler.MissionKeyOf(mission);
+            _lastSampledMissionKey = _missionKey;
+            _loggedSelectionDetail = false;
+            _lastSnapshotLogAt = -1.0;
+            _lastSnapshotDetailAt = -1.0;
+            _maxSnapshotAgeSeen = 0.0;
+            _staleSnapshotCount = 0;
+            _freshSnapshotCount = 0;
+            _firstCommandSeen = false;
+            _exitStopAttempts = 0;
+            _lastWriteAt = -1.0;
+            Cb2Log.Line("MISSION_START", "mission_key=" + _missionKey);
+        }
+
+        internal void OnMissionEnd()
+        {
+            var t = CurrentMissionTime();
+
+            var plan = _plans.Current;
+            if (plan != null && !plan.IsClosed)
+            {
+                Cb2Log.Line("PLAN_INVALIDATED",
+                    "plan=" + plan.PlanId + " goal=" + plan.Goal +
+                    " reason=" + PlanInvalidReason.MissionEnded +
+                    " detail=mission_ended at=" + Cb2Log.F(t));
+            }
+
+            foreach (var task in _tasks.OpenTasks())
+            {
+                CloseTask(task, PlanInvalidReason.MissionEnded, t);
+                Cb2Log.Line("TASK_CLOSED",
+                    task.Describe() + " reason=MissionEnded at=" + Cb2Log.F(t));
+            }
+
+            _gate.ClearMission();
+            _ledger.ClearMission();
+            _handoff.Clear();
+            _tasks.ClearMission();
+            _plans.ClearMission();
+            _receiptTarget = null;
+            DisarmAllBehaviors("MissionEnded", t);
+            _snapshot = null;
+            _state = null;
+            Cb2Log.Line("MISSION_CLEANUP", "plan_task_and_object_state_cleared");
+        }
+
+        // 快照新鲜度：年龄一律用实际采样时刻与实际 Mission 时间算。
+        // 超过上限的快照不得用于生成任务或判断效果，不是仅记日志。
+        private bool SnapshotFresh(double now)
+        {
+            if (_snapshot == null) return false;
+            return (now - _snapshot.SampledAt) <= TestParameters.SnapshotMaxAgeSeconds;
+        }
+
+        // 快照健康度：年龄一律用实际采样时刻算，不允许用刷新时刻冒充。
+        internal void LogSnapshotHealth(double now)
+        {
+            if (_snapshot == null) return;
+
+            double age = now - _snapshot.SampledAt;
+            if (age > _maxSnapshotAgeSeen) _maxSnapshotAgeSeen = age;
+            if (age > TestParameters.SnapshotMaxAgeSeconds) _staleSnapshotCount++;
+            else _freshSnapshotCount++;
+
+            if (_lastSnapshotLogAt > 0.0 && now - _lastSnapshotLogAt < 1.0) return;
+            _lastSnapshotLogAt = now;
+
+            string dupDetail;
+            bool hasDup = _snapshot.HasDuplicateKeys(out dupDetail);
+            double maxAge = _maxSnapshotAgeSeen;
+            _maxSnapshotAgeSeen = 0.0;
+
+            Cb2Log.Line("SNAPSHOT_HEALTH",
+                "sampled_at=" + Cb2Log.F(_snapshot.SampledAt) +
+                " age=" + Cb2Log.F(age) +
+                " max_age_seen=" + Cb2Log.F(maxAge) +
+                " max_age_limit=" + Cb2Log.F(TestParameters.SnapshotMaxAgeSeconds) +
+                " over_limit=" + (maxAge > TestParameters.SnapshotMaxAgeSeconds ? 1 : 0) +
+                " refused_stale_total=" + _staleSnapshotCount +
+                " accepted_fresh_total=" + _freshSnapshotCount +
+                " records=" + _snapshot.CountNonEmpty() +
+                " duplicate_keys=" + (hasDup ? 1 : 0) +
+                " duplicate_detail=" + (hasDup ? dupDetail : "<none>"));
+
+            if (_lastSnapshotDetailAt > 0.0 && now - _lastSnapshotDetailAt < 30.0) return;
+            _lastSnapshotDetailAt = now;
+            foreach (var r in _snapshot.Records)
+            {
+                Cb2Log.Line("SNAPSHOT_FORMATION",
+                    "key=" + r.Key() +
+                    " side=" + r.Side +
+                    " player_team=" + (r.IsPlayerTeam ? 1 : 0) +
+                    " player_ctrl=" + (r.IsPlayerControlled ? 1 : 0) +
+                    " ai_ctrl=" + (r.IsAiControlled ? 1 : 0) +
+                    " class=" + r.FormationClass +
+                    " units=" + r.UnitCount +
+                    " pos=(" + Cb2Log.F(r.PosX) + "," + Cb2Log.F(r.PosY) + ")" +
+                    " order=" + r.MovementOrder +
+                    " obj=" + r.ObjectIdentity +
+                    " age=" + Cb2Log.F(age));
+            }
+        }
+
+        // 独立读取实际 MovementOrder，供反馈窗口外的交叉核对。
+        internal void ObservePostState(Mission mission)
+        {
+            if (mission == null) return;
+            var snapshot = FormationSampler.Sample(mission, SafeTime(mission));
+            var plan = _plans.Current;
+            if (plan == null) return;
+
+            foreach (var task in plan.Tasks)
+            {
+                if (task.WrittenAt < 0.0) continue;
+                var rec = snapshot.FindByKey(task.FormationKey);
+                if (rec == null)
+                {
+                    Cb2Log.Line("POST_OBSERVE", "task=" + task.TaskId + " target_gone");
+                    continue;
+                }
+                bool sameObject = string.Equals(rec.ObjectIdentity, task.ObjectIdentity, StringComparison.Ordinal);
+                Cb2Log.Line("POST_OBSERVE",
+                    "task=" + task.TaskId +
+                    " key=" + rec.Key() +
+                    " order=" + rec.MovementOrder +
+                    " same_object=" + (sameObject ? 1 : 0) +
+                    " obj_now=" + rec.ObjectIdentity +
+                    " feedback=" + task.Feedback +
+                    " at=" + Cb2Log.F(snapshot.SampledAt));
+            }
+        }
+
+        // ================= 查找与转换 =================
+
+        private static Formation FindByKey(Mission mission, string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
             var parts = key.Split('/');
             if (parts.Length != 2) return null;
             int teamIndex;
             if (!int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out teamIndex)) return null;
             return FormationSampler.FindFormation(mission, teamIndex, parts[1]);
+        }
+
+        private static Formation FindByPlan(Mission mission, string key)
+        {
+            return FindByKey(mission, key);
         }
 
         internal double SafeNow(Mission mission)
@@ -908,8 +1498,6 @@ namespace CombatBrain2.Host
                    "@" + FormationSampler.FormationClassOf(f);
         }
 
-        // 实际生效的移动命令类型。读的是 OrderController 的真实当前值，
-        // 不是本方记录，也不是缓存。
         private static string OrderNameOf(Formation f)
         {
             try { return ActiveOrderOf(f).ToString(); }

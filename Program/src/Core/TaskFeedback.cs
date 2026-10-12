@@ -1,0 +1,210 @@
+using System;
+using System.Globalization;
+
+namespace CombatBrain2.Core
+{
+    // 命令生效判据。对每条已写命令，在同一份后续快照上复算，
+    // 不把"写令调用返回了"当成"命令生效了"。
+    internal static class TaskFeedback
+    {
+        internal sealed class Result
+        {
+            internal TaskFeedbackState State = TaskFeedbackState.Pending;
+            internal PlanInvalidReason Reason = PlanInvalidReason.None;
+            internal string Detail = "";
+        }
+
+        // 在反馈窗口内判定；窗口未到时返回 Pending，不提前下结论。
+        // enemyX/enemyY 为敌方中心参考点（无有效敌方时为 NaN），用于 Engage 的朝敌位移判定。
+        internal static Result Evaluate(FormationTask task, FormationRecord now, double missionTime,
+                                        double enemyX, double enemyY)
+        {
+            var result = new Result();
+            if (task == null)
+            {
+                result.State = TaskFeedbackState.Failed;
+                result.Reason = PlanInvalidReason.NotEffective;
+                result.Detail = "no_task";
+                return result;
+            }
+            if (task.WrittenAt < 0.0)
+            {
+                result.State = TaskFeedbackState.Pending;
+                result.Detail = "not_written_yet";
+                return result;
+            }
+
+            if (now == null)
+            {
+                result.State = TaskFeedbackState.Failed;
+                result.Reason = PlanInvalidReason.CommandOverridden;
+                result.Detail = "object_gone";
+                return result;
+            }
+
+            if (!string.Equals(now.ObjectIdentity, task.ObjectIdentity, StringComparison.Ordinal))
+            {
+                result.State = TaskFeedbackState.Failed;
+                result.Reason = PlanInvalidReason.CommandOverridden;
+                result.Detail = "object_identity_changed obj_now=" + now.ObjectIdentity;
+                return result;
+            }
+
+            // 已被原生改写成别的命令：本任务的命令不再生效。
+            if (!SameOrderFamily(now.MovementOrder, task.OrderAfter))
+            {
+                result.State = TaskFeedbackState.Failed;
+                result.Reason = PlanInvalidReason.CommandOverridden;
+                result.Detail = "order_now=" + now.MovementOrder + " order_after=" + task.OrderAfter;
+                return result;
+            }
+
+            bool effective = false;
+            string detail = "";
+
+            if (task.Kind == TaskKind.Engage)
+            {
+                // Engage：必须朝敌方向产生位移；原地不动或后退不算生效。
+                bool haveEnemy = !double.IsNaN(enemyX) && !double.IsNaN(enemyY);
+                if (!haveEnemy)
+                {
+                    detail = "engage_no_enemy_anchor";
+                }
+                else
+                {
+                    double ex = enemyX - task.OriginX;
+                    double ey = enemyY - task.OriginY;
+                    double span = Math.Sqrt(ex * ex + ey * ey);
+                    if (span <= 0.0001)
+                    {
+                        detail = "engage_zero_span_no_direction";
+                    }
+                    else
+                    {
+                        double moveX = now.PosX - task.OriginX;
+                        double moveY = now.PosY - task.OriginY;
+                        double toward = (moveX * ex + moveY * ey) / span;
+                        if (toward >= TestParameters.EffectiveDisplacementMeters)
+                        {
+                            effective = true;
+                            detail = "engage_toward_enemy=" +
+                                     toward.ToString("F2", CultureInfo.InvariantCulture);
+                        }
+                        else
+                        {
+                            detail = "engage_toward_enemy=" +
+                                     toward.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " (<" + TestParameters.EffectiveDisplacementMeters.ToString("F1",
+                                         CultureInfo.InvariantCulture) + ")";
+                        }
+                    }
+                }
+            }
+            else if (task.HasPosition)
+            {
+                double dx = now.PosX - task.RequestedX;
+                double dy = now.PosY - task.RequestedY;
+                double distance = Math.Sqrt(dx * dx + dy * dy);
+                if (distance <= TestParameters.TargetPointToleranceMeters)
+                {
+                    effective = true;
+                    task.ReachedTargetPoint = true;
+                    detail = "reached_target_point distance=" +
+                             distance.ToString("F2", CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    // 朝目标方向的位移投影达到门槛才算偏移动效；横向漂移不算。
+                    double originDx = task.RequestedX - task.OriginX;
+                    double originDy = task.RequestedY - task.OriginY;
+                    double span = Math.Sqrt(originDx * originDx + originDy * originDy);
+                    if (span > 0.0001)
+                    {
+                        double moveX = now.PosX - task.OriginX;
+                        double moveY = now.PosY - task.OriginY;
+                        double projection = (moveX * originDx + moveY * originDy) / span;
+                        // 起点到请求点的距离就是 span；当前距离必须比它小才算靠近目标。
+                        double originDistance = span;
+                        bool closing = distance < originDistance;
+                        if (projection >= TestParameters.EffectiveDisplacementMeters && closing)
+                        {
+                            effective = true;
+                            detail = "projected_displacement=" +
+                                     projection.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " distance=" + distance.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " from=" + originDistance.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " closing=1";
+                        }
+                        else
+                        {
+                            detail = "projected_displacement=" +
+                                     projection.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " (<" + TestParameters.EffectiveDisplacementMeters.ToString("F1",
+                                         CultureInfo.InvariantCulture) + ")" +
+                                     " distance=" + distance.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " from=" + originDistance.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " closing=" + (closing ? 1 : 0);
+                        }
+                    }
+                    else
+                    {
+                        // 目标点与起点重合：没有可判定的位移方向，只能凭到达容差判定；
+                        // 达不到即视为未生效，但不伪造一个方向。
+                        detail = "zero_span_no_displacement_direction";
+                    }
+                }
+            }
+            else if (task.Kind == TaskKind.Hold)
+            {
+                // Hold：位置保持即可，不对位移作要求。
+                detail = "hold_no_displacement_required";
+                effective = true;
+            }
+            else
+            {
+                // 其余类型没有可判定的几何依据：不冒充生效，也不编造方向。
+                detail = "no_criteria_for_kind=" + task.Kind;
+            }
+
+            if (effective)
+            {
+                result.State = TaskFeedbackState.Effective;
+                result.Detail = detail;
+                return result;
+            }
+
+            if (missionTime >= task.FeedbackDeadline())
+            {
+                result.State = TaskFeedbackState.Failed;
+                result.Reason = PlanInvalidReason.NotEffective;
+                result.Detail = detail;
+                return result;
+            }
+
+            result.State = TaskFeedbackState.Pending;
+            result.Detail = detail;
+            return result;
+        }
+
+        // 命令族比较：同名或同族视为仍是本任务写入的那条命令。
+        private static bool SameOrderFamily(string a, string b)
+        {
+            string fa = Family(a);
+            string fb = Family(b);
+            if (fa.Length == 0 || fb.Length == 0) return false;
+            return string.Equals(fa, fb, StringComparison.Ordinal);
+        }
+
+        private static string Family(string order)
+        {
+            if (string.IsNullOrEmpty(order)) return "";
+            if (order.IndexOf("Charge", StringComparison.OrdinalIgnoreCase) >= 0) return "Charge";
+            if (order.IndexOf("Stop", StringComparison.OrdinalIgnoreCase) >= 0) return "Stop";
+            if (order.IndexOf("StandYourGround", StringComparison.OrdinalIgnoreCase) >= 0) return "Stop";
+            if (order.IndexOf("Move", StringComparison.OrdinalIgnoreCase) >= 0) return "Move";
+            if (order.IndexOf("Advance", StringComparison.OrdinalIgnoreCase) >= 0) return "Advance";
+            if (order.IndexOf("FallBack", StringComparison.OrdinalIgnoreCase) >= 0) return "FallBack";
+            return "";
+        }
+    }
+}

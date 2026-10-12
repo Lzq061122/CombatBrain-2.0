@@ -41,6 +41,58 @@ namespace CombatBrain2.Tests
             Assert.Equal(1, gate.WriteAttempts);
         }
 
+        // 多编队不得共用一次写入额度：两个任务各自拥有独立额度，
+        // 先写者不消耗后写者的额度。
+        [Fact]
+        public void WriteCreditIsIndependentPerTask()
+        {
+            var gate = new ExecutionGate();
+            gate.SubmitCandidate("task-a", "1/0", 100.0);
+            gate.BindObject("task-a", "aaa@Infantry");
+            gate.MarkSelected("task-a", "1/0", 101.0);
+            gate.SubmitCandidate("task-b", "1/1", 100.0);
+            gate.BindObject("task-b", "bbb@Ranged");
+            gate.MarkSelected("task-b", "1/1", 101.0);
+
+            var da = gate.RequestWrite("task-a", "1/0", 101.1, true, true, false, "aaa@Infantry", true, true);
+            Assert.True(da.Allowed);
+            // task-a 已写，不得再写第二次。
+            var da2 = gate.RequestWrite("task-a", "1/0", 101.2, true, true, false, "aaa@Infantry", true, true);
+            Assert.False(da2.Allowed);
+            Assert.Equal("already_written", da2.BlockReason);
+
+            // task-b 的额度未被 task-a 消耗，仍可独立写入。
+            var db = gate.RequestWrite("task-b", "1/1", 101.3, true, true, false, "bbb@Ranged", true, true);
+            Assert.True(db.Allowed);
+            Assert.Equal(1, gate.WriteAttemptsFor("task-b"));
+
+            // 总计 2 次：每个任务各一次，没有共用。
+            Assert.Equal(2, gate.WriteAttempts);
+
+            // 关闭一个任务不影响另一个任务的额度。
+            gate.Close("task-a", CancelReason.ExplicitClose, 102.0);
+            Assert.Equal(0, gate.WriteAttemptsFor("task-c"));
+        }
+
+        // 一个任务的关闭/额度不影响另一个任务。
+        [Fact]
+        public void ClosingOneTaskDoesNotAffectAnother()
+        {
+            var gate = new ExecutionGate();
+            gate.SubmitCandidate("task-a", "1/0", 100.0);
+            gate.MarkSelected("task-a", "1/0", 101.0);
+            gate.Close("task-a", CancelReason.PlayerEligibilityLost, 102.0);
+            Assert.Equal("intent_closed",
+                gate.RequestWrite("task-a", "1/0", 102.1, true, true, false, "aaa@Infantry", true, true).BlockReason);
+
+            gate.SubmitCandidate("task-b", "1/1", 100.0);
+            gate.BindObject("task-b", "bbb@Ranged");
+            gate.MarkSelected("task-b", "1/1", 101.0);
+            var db = gate.RequestWrite("task-b", "1/1", 102.2, true, true, false, "bbb@Ranged", true, true);
+            Assert.True(db.Allowed);
+            Assert.Equal(1, gate.WriteAttemptsFor("task-b"));
+        }
+
         // 同一意图/激活的重复回调必须去重，不得重复写。
         [Fact]
         public void DuplicateCallbacksAreDeduplicated()

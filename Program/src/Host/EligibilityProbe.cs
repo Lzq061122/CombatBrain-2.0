@@ -7,19 +7,24 @@ using TaleWorlds.MountAndBlade;
 
 namespace CombatBrain2.Host
 {
-    // 测试适配（默认关闭）：用公开原生接口改变一个真实编队的"本方可控资格"，给资格变化边界提供实机触发与观测。
+    // 测试适配（默认关闭）：用公开原生接口改变一个真实编队的"本方可控资格"，
+    // 给 P1 计划的真实失效提供实机触发与观测。触发条件按脚本 §7.1：
+    // 同一计划连续存活 ≥ 8 s 且两个编队的普通任务都已取得正面反馈之后，
+    // 只触发一次，保持 ≥ 4 s 再恢复；稳定性前提不满足时如实记录未触发。
     //   mode a/b：Formation.SetControlledByAI(false) —— AI 控制资格丢失。
     //   mode c  ：Mission.JoinEnemyTeam()          —— 公开原生入口，把 PlayerTeam 换成绑目标所在的队，
     //              使同一实际对象在引擎里变成玩家队（Team.IsPlayerTeam 由 Mission.PlayerTeam 派生）。
     // 不伪造玩家事件、不写私有字段、不绕过生产过滤与执行门、不自行写 MovementOrder。
-    // 触发方式按意图序号配置：intents=A,B 表示 intent-1 走场景 A、intent-2 走场景 B。
     internal sealed class EligibilityProbe
     {
         internal static EligibilityProbe Instance = new EligibilityProbe();
 
         private const string ConfigFileName = "eligibility-probe.txt";
 
-        private sealed class Plan
+        // 失资格保持窗口：至少 4 秒，留出独立采样与逐 tick 检查的机会（脚本 §7.1）。
+        private const double HoldSeconds = 4.0;
+
+        private sealed class Applied
         {
             internal string Mode = "";
             internal bool LossApplied;
@@ -27,12 +32,15 @@ namespace CombatBrain2.Host
             internal double RestoreAt = -1.0;
             internal Formation Target;
             internal string TargetKey = "";
+            internal string PlanId = "";
+            internal string TaskId = "";
             internal Team OriginalPlayerTeam;
         }
 
-        private readonly Dictionary<string, Plan> _plans = new Dictionary<string, Plan>();
+        private readonly List<Applied> _applied = new List<Applied>();
         private readonly List<string> _modes = new List<string>();
         private bool _loaded;
+        private bool _fired;
 
         private EligibilityProbe() { }
 
@@ -47,7 +55,6 @@ namespace CombatBrain2.Host
         {
             if (_loaded) return;
             _loaded = true;
-            string rawLine = "";
             try
             {
                 string p = ConfigPath();
@@ -60,10 +67,9 @@ namespace CombatBrain2.Host
                     if (eq <= 0) continue;
                     string k = line.Substring(0, eq).Trim();
                     string v = line.Substring(eq + 1).Trim();
-                    if (string.Equals(k, "intents", StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(k, "mode", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(k, "mode", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(k, "modes", StringComparison.OrdinalIgnoreCase))
                     {
-                        rawLine = v;
                         foreach (var piece in v.Split(','))
                         {
                             string one = piece.Trim().ToLowerInvariant();
@@ -78,101 +84,74 @@ namespace CombatBrain2.Host
             Cb2Log.Line("PROBE_CONFIG",
                 "modes=" + (_modes.Count == 0 ? "<off>" : string.Join(",", _modes.ToArray())) +
                 " source=" + ConfigFileName +
+                " hold_seconds=" + Cb2Log.F(HoldSeconds) +
+                " stable_seconds_required=" + Cb2Log.F(TestParameters.PlanMinStableSeconds) +
                 " note=test-adapter_triggered_eligibility_change");
         }
 
-        private string ModeFor(string intentId)
-        {
-            // intent-N -> 第 N 个配置。
-            int index = -1;
-            int dash = intentId == null ? -1 : intentId.LastIndexOf('-');
-            if (dash >= 0 && dash + 1 < intentId.Length)
-            {
-                int parsed;
-                if (int.TryParse(intentId.Substring(dash + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed))
-                {
-                    index = parsed - 1;
-                }
-            }
-            if (index < 0 || index >= _modes.Count) return "";
-            return _modes[index];
-        }
-
-        private Plan PlanFor(string intentId)
-        {
-            Plan p;
-            if (!_plans.TryGetValue(intentId, out p))
-            {
-                p = new Plan();
-                p.Mode = ModeFor(intentId);
-                _plans[intentId] = p;
-            }
-            return p;
-        }
-
-        // 插入点：TestDriver.Tick 之后、DrainPendingCommand 之前。
+        // 每个已确认主线程的 Mission tick 调用。
+        // 触发与恢复分开：恢复即使计划已经失效也必须执行，这是"恢复后旧计划不复活"观测的前提。
         internal void OnMissionTick(Mission mission)
         {
             LoadOnce();
-            if (_modes.Count == 0) return;
             if (mission == null) return;
 
             double now = TestDriver.Instance.SafeNow(mission);
-            var intent = TestDriver.Instance.Intent;
 
-            if (intent != null && !intent.IsClosed && intent.BoundKey.Length > 0)
-            {
-                var active = PlanFor(intent.IntentId);
-                if (active.Mode.Length != 0 && !active.LossApplied)
-                {
-                    var planMode = active.Mode;
-                    if (planMode == "a")
-                    {
-                        // 场景 A：已真实获选、命令已真实转交但尚未被主线程消费。
-                        if (intent.SelectedAt >= 0 && intent.ExecutedAt < 0 && TestDriver.Instance.Handoff.HasPending)
-                        {
-                            ApplyLoss(mission, intent, active, now, "scenario_a");
-                            return;
-                        }
-                    }
-                    else if (planMode == "b")
-                    {
-                        // 场景 B：本方命令已经主线程执行并生效。
-                        if (intent.ExecutedAt >= 0)
-                        {
-                            ApplyLoss(mission, intent, active, now, "scenario_b");
-                            return;
-                        }
-                    }                    else if (planMode == "c")
-                    {
-                        // 场景 C：同一绑目标通过原生 JoinEnemyTeam 变成玩家队成员。
-                        if (intent.SelectedAt >= 0)
-                        {
-                            ApplyTeamJoin(mission, intent, active, now);
-                            return;
-                        }
-                    }
-                }
-            }
-
-            // 恢复：即使意图已经被取消也要执行。这只撤回本适配自己的环境改动，
-            // 且这是观测"资格恢复后旧意图不复活"的前提。
-            var keys = new List<string>(_plans.Keys);
-            foreach (var id in keys)
-            {
-                var plan = _plans[id];
-                if (!plan.LossApplied || plan.Restored) continue;
-                if (plan.RestoreAt < 0 || now < plan.RestoreAt) continue;
-                ApplyRestore(intent == null ? id : intent.IntentId, plan, now, intent);
-            }
+            if (_modes.Count > 0 && !_fired) TryTrigger(mission, now);
+            SweepRestores(mission, now);
         }
 
-        private void ApplyLoss(Mission mission, TestIntent intent, Plan plan, double now, string scenario)
+        // 触发前提（脚本 §7.1）：计划连续存活 ≥ 8 s，且两个编队的普通任务都已取得正面反馈。
+        // 前提不满足就如实记录未触发，不为凑数提前让计划失效。
+        private void TryTrigger(Mission mission, double now)
         {
-            var f = TestDriver.Instance.FindFormationByKey(mission, intent.BoundKey);
+            var plan = TestDriver.Instance.Plan;
+            if (plan == null || plan.IsClosed) return;
+
+            double age = now - plan.CreatedAt;
+            if (age < TestParameters.PlanMinStableSeconds) return;
+
+            var tasks = TestDriver.Instance.Tasks.OpenTasks();
+            int effective = 0;
+            int normal = 0;
+            FormationTask chosen = null;
+            foreach (var t in tasks)
+            {
+                if (BattlePlan.IsExitTask(t)) continue;
+                if (t.WrittenAt < 0.0) continue;
+                normal++;
+                if (t.Feedback != TaskFeedbackState.Effective) continue;
+                effective++;
+                if (chosen == null) chosen = t;
+            }
+
+            // 需要"两个编队的普通任务都已取得正面反馈"：脚本要求先有稳定与生效证据再触发资格失效。
+            if (normal < 2 || effective < 2 || chosen == null) return;
+
+            var f = TestDriver.Instance.FindFormationByKey(mission, chosen.FormationKey);
             if (f == null) return;
 
-            plan.Target = f;
+            _fired = true;
+            var mode = _modes[0];
+            var a = new Applied
+            {
+                Mode = mode,
+                Target = f,
+                PlanId = chosen.PlanId,
+                TaskId = chosen.TaskId,
+                TargetKey = chosen.FormationKey,
+            };
+            _applied.Add(a);
+
+            if (mode == "c") ApplyTeamJoin(mission, a, now);
+            else ApplyLoss(a, now, mode);
+        }
+
+        private void ApplyLoss(Applied plan, double now, string mode)
+        {
+            var f = plan.Target;
+            plan.TargetKey = KeyOf(f);
             plan.LossApplied = true;
 
             string before = StateOf(f, now, plan);
@@ -186,34 +165,26 @@ namespace CombatBrain2.Host
             catch (Exception e) { error = e.GetType().Name + ": " + e.Message; }
 
             Cb2Log.Line("PROBE_ELIGIBILITY_LOST",
-                "scenario=" + scenario +
-                " intent=" + intent.IntentId +
-                " mode=" + plan.Mode +
+                "scenario=" + mode +
+                " plan=" + plan.PlanId +
+                " task=" + plan.TaskId +
                 " key=" + plan.TargetKey +
                 " before[" + before + "]" +
                 " after[" + StateOf(f, now, plan) + "]" +
                 " applied=" + (became ? 1 : 0) +
                 " error=" + (error.Length == 0 ? "<none>" : error) +
+                " note=test-adapter_triggered_eligibility_change" +
                 " at=" + Cb2Log.F(now));
 
-            // 失资格保持窗口：至少 2 秒，留出独立采样机会；且必须早于旧意图截止。
-            double hold = TestParameters.SnapshotMaxAgeSeconds + 2.0;
-            plan.RestoreAt = now + hold;
-            Cb2Log.Line("PROBE_RESTORE_SCHEDULED",
-                "intent=" + intent.IntentId +
-                " at=" + Cb2Log.F(plan.RestoreAt) +
-                " intent_deadline=" + Cb2Log.F(intent.Deadline) +
-                " before_deadline=" + (plan.RestoreAt < intent.Deadline ? 1 : 0));
+            ScheduleRestore(plan, now);
         }
 
         // mode c：调用原生公开入口 Mission.JoinEnemyTeam()，把 PlayerTeam 换成绑目标所在队。
         // 这是真实原生控制链（UI 用的同一入口），不是伪造 PlayerOwner、也不是 F1/F6 按键。
-        private void ApplyTeamJoin(Mission mission, TestIntent intent, Plan plan, double now)
+        private void ApplyTeamJoin(Mission mission, Applied plan, double now)
         {
-            var f = TestDriver.Instance.FindFormationByKey(mission, intent.BoundKey);
-            if (f == null) return;
-
-            plan.Target = f;
+            var f = plan.Target;
+            plan.TargetKey = KeyOf(f);
             plan.LossApplied = true;
 
             Team before0 = null;
@@ -229,7 +200,7 @@ namespace CombatBrain2.Host
                 {
                     // 方向不对：JoinEnemyTeam 会把 PlayerTeam 换到另一队，反而远离绑目标。
                     Cb2Log.Line("PROBE_TEAM_JOIN_SKIPPED",
-                        "intent=" + intent.IntentId + " mode=c key=" + intent.BoundKey +
+                        "plan=" + plan.PlanId + " mode=c key=" + plan.TargetKey +
                         " reason=bound_team_is_already_player_team" +
                         " state[" + StateOf(f, now, plan) + "]" +
                         " at=" + Cb2Log.F(now));
@@ -246,9 +217,9 @@ namespace CombatBrain2.Host
             try { afterIds = MissionIds(mission.PlayerTeam, f.Team); } catch (Exception) { }
 
             Cb2Log.Line("PROBE_TEAM_JOIN",
-                "intent=" + intent.IntentId +
+                "plan=" + plan.PlanId +
                 " mode=c" +
-                " key=" + intent.BoundKey +
+                " key=" + plan.TargetKey +
                 " applied=" + (flipped ? 1 : 0) +
                 " before[" + pre + "]" +
                 " after[" + afterIds + "]" +
@@ -258,13 +229,17 @@ namespace CombatBrain2.Host
                 " note=test-adapter_triggered_playerteam_change" +
                 " at=" + Cb2Log.F(now));
 
-            double hold = TestParameters.SnapshotMaxAgeSeconds + 2.0;
-            plan.RestoreAt = now + hold;
+            ScheduleRestore(plan, now);
+        }
+
+        private void ScheduleRestore(Applied plan, double now)
+        {
+            plan.RestoreAt = now + HoldSeconds;
             Cb2Log.Line("PROBE_RESTORE_SCHEDULED",
-                "intent=" + intent.IntentId +
+                "plan=" + plan.PlanId +
                 " at=" + Cb2Log.F(plan.RestoreAt) +
-                " intent_deadline=" + Cb2Log.F(intent.Deadline) +
-                " before_deadline=" + (plan.RestoreAt < intent.Deadline ? 1 : 0));
+                " hold=" + Cb2Log.F(HoldSeconds) +
+                " at_now=" + Cb2Log.F(now));
         }
 
         // 记录原生控制链的可达性前置：Attacker/Defender Leader 与 MainAgent 是否存在。
@@ -286,7 +261,18 @@ namespace CombatBrain2.Host
             string t = targetTeam == null ? "<none>" : targetTeam.TeamIndex.ToString(CultureInfo.InvariantCulture);
             return "player_team=" + p + " bound_team=" + t;
         }
-        private void ApplyRestore(string intentLabel, Plan plan, double now, TestIntent current)
+
+        private void SweepRestores(Mission mission, double now)
+        {
+            foreach (var plan in _applied)
+            {
+                if (!plan.LossApplied || plan.Restored) continue;
+                if (plan.RestoreAt < 0 || now < plan.RestoreAt) continue;
+                ApplyRestore(plan, now);
+            }
+        }
+
+        private void ApplyRestore(Applied plan, double now)
         {
             plan.Restored = true;
             var f = plan.Target;
@@ -314,8 +300,10 @@ namespace CombatBrain2.Host
             }
             catch (Exception e) { error = e.GetType().Name + ": " + e.Message; }
 
+            var currentPlan = TestDriver.Instance.Plan;
             Cb2Log.Line("PROBE_ELIGIBILITY_RESTORED",
-                "source_intent=" + intentLabel +
+                "source_plan=" + plan.PlanId +
+                " source_task=" + plan.TaskId +
                 " mode=" + plan.Mode +
                 " key=" + plan.TargetKey +
                 " before[" + before + "]" +
@@ -323,21 +311,31 @@ namespace CombatBrain2.Host
                 " applied=" + (became ? 1 : 0) +
                 " error=" + (error.Length == 0 ? "<none>" : error) +
                 " at=" + Cb2Log.F(now) +
-                " intent_open_now=" + (current != null && !current.IsClosed ? current.IntentId : "<none>") +
-                " same_intent_open=" + (current != null && !current.IsClosed &&
-                    string.Equals(current.IntentId, intentLabel, StringComparison.Ordinal) ? 1 : 0) +
+                " plan_open_now=" + (currentPlan != null && !currentPlan.IsClosed ? currentPlan.PlanId : "<none>") +
+                " same_plan_open=" + (currentPlan != null && !currentPlan.IsClosed &&
+                    string.Equals(currentPlan.PlanId, plan.PlanId, StringComparison.Ordinal) ? 1 : 0) +
                 " write_attempts_total=" + TestDriver.Instance.Gate.WriteAttempts +
-                " write_attempts_source_intent=" + TestDriver.Instance.Gate.WriteAttemptsFor(intentLabel) +
+                " write_attempts_source_task=" + TestDriver.Instance.Gate.WriteAttemptsFor(plan.TaskId) +
                 " note=" + (plan.Mode == "c"
                     ? "any_state_change_here_is_native_PlayerTeam_change_side_effect"
                     : "any_order_change_here_is_native_SetControlledByAI_side_effect"));
         }
 
-        private string StateOf(Formation f, double now, Plan plan)
+        private static string KeyOf(Formation f)
+        {
+            if (f == null) return "";
+            try
+            {
+                return f.Team.TeamIndex.ToString(CultureInfo.InvariantCulture) + "/" +
+                       FormationSampler.FormationKeyOf(f);
+            }
+            catch (Exception) { return ""; }
+        }
+
+        private string StateOf(Formation f, double now, Applied plan)
         {
             if (f == null) return "<none>";
-            plan.TargetKey = f.Team.TeamIndex.ToString(CultureInfo.InvariantCulture) + "/" +
-                FormationSampler.FormationKeyOf(f);
+            plan.TargetKey = KeyOf(f);
             return "obj=" + FormationSampler.ObjectIdentityOf(f) +
                 " ai_ctrl=" + (f.IsAIControlled ? 1 : 0) +
                 " player_owner=" + (f.PlayerOwner != null ? 1 : 0) +

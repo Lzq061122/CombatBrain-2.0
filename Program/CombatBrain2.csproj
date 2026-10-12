@@ -21,6 +21,12 @@
     <Compile Include="src\Core\WriteLedger.cs" />
     <Compile Include="src\Core\ThreadHandoff.cs" />
     <Compile Include="src\Core\OriginalMethodReceipt.cs" />
+    <Compile Include="src\Core\BattleState.cs" />
+    <Compile Include="src\Core\BattleAssessment.cs" />
+    <Compile Include="src\Core\BattlePlan.cs" />
+    <Compile Include="src\Core\TaskFeedback.cs" />
+    <Compile Include="src\Core\TaskLedger.cs" />
+    <Compile Include="src\Core\PlanLedger.cs" />
     <Compile Include="src\Host\RuntimeIdentity.cs" />
     <Compile Include="src\Host\BuildIdentity.g.cs" />
     <Compile Include="src\Host\CbHoldBehavior.cs" />
