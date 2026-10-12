@@ -1,15 +1,16 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 PAIPOS Workflow Entry
-Version: 1.0
+Version: 1.1
 Author Role: Project Governance Maintainer
 Model: GPT-6
 Created: 2026-10-02
-Updated: 2026-10-02
+Updated: 2026-10-12
 Target: All CombatBrain 2.0 Harness Agents
 Scope: CombatBrain 2.0 / Workflow
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.1 2026-10-12 13:30 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-observation-isolation-20261012 | note=规定 CB2 与观测组独立工作树、文件归属、接入合并与共享实机串行边界
 v1.0 2026-10-02 00:18 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-paipos-fix-20261002 | note=在实际 2.0 Git 根建立自动加载入口，直接注入完整 PAIPOS Lite 正文
 v1.0a 2026-10-02 | role=Project Governance Maintainer | model=GPT-6 | editor=cbath-freeze-20260925 | note=新增 §3a：进游戏实测统一使用 CBATH（Zero-touch 入口 + 硬性前置 + 冻结说明）
 -->
@@ -61,6 +62,18 @@ v1.0a 2026-10-02 | role=Project Governance Maintainer | model=GPT-6 | editor=cba
 - 入口与执行：`E:\MBmod\CombatBrain Autonomous test harness\tools\zero-touch-3x.ps1`（标准执行 `powershell -File tools\zero-touch-3x.ps1 -Rounds 3 -CombatHoldSec 180`）；基线/收口细节见同仓库 `RD\CombatBrain-Autonomous-Test-Harness\16-Phase2-Freeze-CBATH-Baseline.md`。
 - 硬性前置：①框架模块（Harmony/ButterLib/UIExtenderEx/MCM）必须排在 `Native` 之前，否则表现为“崩溃”（全线程 Suspended、零日志）；②启动前 `safely_exited = 1`（先杀进程再复位）；③确认 steam 在跑（被强杀会带走 steam.exe 主进程，需重启等 45s+）。
 - CBATH 已冻结，新能力需求驱动；`cb-legacy-offset2mission.ps1`/`cb-correlate.ps1` 只读 CombatBrain 日志做关联，不是进游戏入口。
+
+## 3b. CB2 与 Observation adapter 并行开发
+
+本节依据用户 2026-10-12 的隔离要求，避免两组在同一目录覆盖未提交工作。规则只改变开发协作，不改变 P1 战术要求、观测功能范围或验收判据。
+
+- **开发目录分开**：CB2 主线使用 `E:\MBmod\CombatBrain 2.0`；观测组使用自己的 CB2 Git worktree 和 `codex/` 分支，不再写主线目录。观测组涉及的 CBATH、TCL 也各用自己的工作树。Git 分支本身不会隔离磁盘文件，不能在共享目录切分支冒充隔离。当前工作树路径以 `git worktree list` 和观测组的隔离交接为准；未核实目录前不声称隔离完成。
+- **文件归属**：CB2 组维护 `Program/src/Core/`、`TestDriver.cs`、`FormationSampler.cs`、`SamplingBehavior.cs`、`EligibilityProbe.cs`、原生行为与命令执行。观测组维护 `Program/src/Host/ObservationAdapter.cs`，以及自身 CBATH `Observation/`、TCL 观测工具、测试和查看器。CB2 的 `IndependentObservation.cs` 是现有验收采样，不因名称相似移交给观测组。
+- **共有接入由 CB2 组合入**：`TestDriver.cs` 内的事件位置、字段及生命周期接入，以及 `CombatBrain2.csproj`、构建身份、部署/实测脚本，由 CB2 组作为单一合入方。观测组可在自己的工作树制作最小接入补丁，交付基线提交、准确文件范围与 diff；不得直接回写主线。CB2 组重新读取当前内容并审查合入，不能拿旧的完整文件覆盖。观测组改 CBATH 工程/启动接入时同样提交独立补丁，不把原工作区的他方未提交改动顺手归入。
+- **接口按约定调整**：现有 `Resolve/Emit/Shutdown` 接口及事件字段是双方接入约定，不在修战术行为时随意改名、删除或吞掉；观测组也不得借增加记录改变资格门、计划条件、发令次数或反馈判据。需要改变接口或移动事件位置时，随补丁写清理由与双方调用影响，再由 CB2 组合入。此次先保留现有目录与已提交适配器，不重写历史、不另建 SDK。
+- **提交只收本组改动**：操作前核对工作树绝对路径、分支、HEAD 和脏文件；只按明确文件范围暂存，禁止用 `git add -A`、`git commit -a` 收走另一组成果。其他组拥有的文件有新变化时保留现场，不能还原为自己的旧副本。混合提交不能直接整体 cherry-pick，需按本次交付范围审查合入。
+- **构建在本组目录，部署与实机串行**：两组独立构建各自 `bin/obj`，不得清理另一组输出。游戏模块、GABS 配置、Documents 下的观测身份文件、P1/资格探针开关和游戏进程仍是共享资源；同一时间只有一组使用这些资源。未获得当前实测方交接时只做离线开发，不部署、不启动/结束游戏、不改测试开关、不停另一组进程。交接包含来源路径/提交、实际 DLL SHA256、当前配置、开关状态和场次目录；接手方核对后使用。独立工作树不等于独立实机环境。
+- **验收分开**：观测组功能不借 P1 通过状态自动通过；P1 也不把观测组件纳入其战术整改贡献。提交 `616b903` 已包含适配器，保持该历史；后续观测修复在观测分支提交、经接入审查合入。P1 当前仍待独立验收。
 
 ## 4. 按影响决定检查力度
 
