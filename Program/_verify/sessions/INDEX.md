@@ -1,6 +1,6 @@
 ## P1 第一批 — 实机场次索引
 
-**Codex 当前裁定（2026-10-12，第四轮待判）：第三轮唯一整改已完成并按 §5.5 复验。** `P1-CODEX-REVERIFY-3.md` §3 指出的获选等待截止被重投刷新，已改为同一 task_id 固定首次候选提交锚点（`BattlePlan.NoteSubmission` / `ExecutionGate.SubmitCandidate` 首次投递才记时刻，重复投递只累加计数）。P 场复验 `20261012-145644` 直接证据：`plan-4-task-1` 投递由上一轮 15 次降为 4 次，`first_submitted_at=94.654` 与 `selection_deadline=104.654` 四次不变，截止后停止投递，106.664 触发 `TASK_SELECTION_TIMEOUT waited=12.010 limit=10.000`，`plan-4` 以 `reason=SelectionTimeout` 失效（上一轮为 42.213 s 后以 `FormationEligibilityLost` 结束）。N 场 `20261012-150054` 5 次投递全部一次获选，无重投场景，不构成该修复点的验证。第三轮已关闭的两处不重开，验收项目未增加。历史自检及 RESULT: OK 不替代阶段判定。
+**Codex当前裁定（2026-10-12，第四轮）：锚点修复通过，P1尚未退出。** 544324e固定首次提交时间；但P场104.654截止、106.664才关闭，期间晚到获选仍可进入写令门。受审N DLL离线反例也证实首次10、截止20、22才获选仍Allowed=true。唯一待整改是同一10 s截止的执行边界，见 `../P1-CODEX-REVERIFY-4.md` §2；已通过整改不重开，失效原因优先级不另加任务。
 
 
 **2026-10-12 第三轮：获选等待锚点整改后复验完成，再次交回独立验收。** 依据 `../P1-CODEX-REVERIFY-3.md` §3，整改仅一处：同一 task_id 固定首次候选提交时刻，重复投递不刷新 10 s 获选截止。决定性场次 `20261012-145644`（P）与 `20261012-150054`（N）。原始材料归档 `E:\MBmod\CombatBrain2-evidence\20261012-p1-reverify3-sessions.zip`（280479 B / 46 条目，SHA256 `91141A4ACE2530C06B545D4476D0C068606CFD77E442AE0ABCAD96D1FAF59051`，逐文件 46/46 一致）。**本批结论同样不预先登记 P1 阶段通过。**
