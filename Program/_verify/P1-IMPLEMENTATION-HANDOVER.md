@@ -1,5 +1,7 @@
 # P1 最小指挥闭环 · 实现交接报告
 
+> **Codex 独立复验（2026-10-12）：P1 尚未通过。** 行为权重撤销已实测，14 条写令已补齐独立时间线对齐；仍须关闭发令顺序、反馈基线/实际目标读回、退出超时、逐 tick 继续条件四处既定实现问题。当前裁定见 `P1-CODEX-REVERIFY.md`；下文实现方自检结论不替代独立判定。
+
 状态：**实现完成，六项修复已实机复验，交回独立验收。本报告不预先登记 P1 阶段通过。**
 依据脚本：`Program/_verify/P1-MINIMAL-LOOP-SCRIPT.md` v1.3（提交 `bad514d`）；修复依据 `Program/_verify/P1-CODEX-FIRST-LIVE-REVIEW.md`（提交 `113dbb2`）。
 日期：2026-10-12。基线上游：`df4cf3d`（P0 可追溯基线）。
@@ -55,7 +57,7 @@
 - 修复前用阻塞次数才是字段来源错误。此项已修正，不构成 V5 §6.1 第 1 项的语义阻挡。
 
 ### 2.4 陈旧 `build_id` 的说明
-日志 `RUNTIME_IDENTITY` 中 `build_id=b20261011-161246-db46608a` 与 `mvid=db3888be-…` 未随本次构建刷新（`BuildIdentity.g.cs` 为自动生成件，本轮未重生成），但 `assembly_file_sha256=1cb4f9a2…` 与部署文件完全一致。V1 的判定依据是 sha256，故 V1 成立；`build_id` 不可单独用于判断 DLL 新旧。
+日志 `RUNTIME_IDENTITY` 中 `build_id=b20261011-161246-db46608a` 未随本次构建刷新（`BuildIdentity.g.cs` 本轮未重生成）；MVID 则已由前轮 `5c451a72-…` 变为本轮 `db3888be-…`。`assembly_file_sha256=1cb4f9a2…` 与部署文件完全一致；`build_id` 不可单独用于判断 DLL 新旧。
 
 ### 2.5 实现侧对 §12 的核对结果
 CBATH `h3_start_from_screen` 的配置参数已按 §3.4 选项 1 落地（`ArmyCompositionGroupVM.ArmySize` + `CompositionValues`，并按 `IsDefault` 设 `IsSelected`；阵营文化走 `FactionItemVM → OnFactionSelected → SetCurrentSelectedCulture`）。每步回读事实：`army_size_readback` / `composition_readback` / `percentage_text` / `troop_selection` / `map_selected_id`。配置报错或地图不匹配则 fail-loud 不发令。
@@ -128,7 +130,7 @@ CBATH `h3_start_from_screen` 的配置参数已按 §3.4 选项 1 落地（`Army
 
 ## 7. 未验证项（不宣称通过）
 
-1. **撤权通道未真正执行。** 两场 `REVOKE_EXECUTED = 0`，仅 `REVOKE_SKIPPED`（P 9 / N 4，跳过原因属 `WriteLedger.PlanRevocation` 的既有分类）。V12 的"撤权"一项在本批证据下**只到"撤权计划已生成并记录跳过原因"这一层**，未观察到实际执行的撤权。
+1. **旧 MovementOrder 恢复通道未执行。** 两场 `REVOKE_EXECUTED = 0`，仅 `REVOKE_SKIPPED`（P 9 / N 4，跳过原因属 `WriteLedger.PlanRevocation` 的既有分类）。这不等于行为撤权未发生：BEHAVIOR_DISARMED 已实读权重 8→0。旧命令恢复继续未验证，V12 的行为撤权事实按实际权重记录判定，见独立复验报告。
 2. **`§12` 原生签名未做独立探针。** `ArmyCompositionGroupVM.CompositionValues` 等签名的可见性与写入语义仍属代码入口证据（§2.5）。
 3. **`Move` 目标读回的独立核对**。`Reposition` 的 0.5 m 容差判定依赖 `FormationSampler` 读回的实际目标位置；CBATH 1 Hz 时间线与之的交叉核对仅覆盖采样时刻，不宣称精确执行瞬间一致。V5 第 5 项的"独立效果"在本次核对中**只确认了时间线文件含 `movement_order` 字段并已归档**，**未做逐条时刻对齐核对**。
 4. **原生周期性 `Move` 与反馈窗口的相互影响未单独量化**。P 场 129 条 `our_write=0 source=not_ours` 的 `Move` 虽未使命令失效，但其与本方命令的时间交叠对位移投影的贡献未做分离。

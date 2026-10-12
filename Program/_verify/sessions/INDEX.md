@@ -1,5 +1,7 @@
 ## P1 第一批 — 实机场次索引
 
+**Codex 当前裁定（2026-10-12）：P1 尚未通过。** 加载、配置、同 tick 资格取消和行为撤权成果保留；14 条写令的 CBATH 时间线对齐已完成。剩余四处既定实现问题及限定整改见 `../P1-CODEX-REVERIFY.md`。下方 RESULT: OK 与实现方自检描述不替代阶段判定。
+
 **2026-10-12：P1 最小指挥闭环两场主对照已跑完，交回独立验收。** 实现交接见 `../P1-IMPLEMENTATION-HANDOVER.md`，六项修复复验证据见 `../_p1_reverify_evidence.md`，修复依据 `../P1-CODEX-FIRST-LIVE-REVIEW.md`（提交 `113dbb2`）。本批结论**不预先登记 P1 阶段通过**。
 
 | 场次 | 配置 | files / bytes | RESULT | 有效 | 说明 |
