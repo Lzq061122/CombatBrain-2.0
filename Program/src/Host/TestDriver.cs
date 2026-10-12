@@ -76,6 +76,8 @@ namespace CombatBrain2.Host
             if (mission == null) return;
             double now = SafeTime(mission);
 
+            ObservationAdapter.Resolve(now);
+
             _snapshot = FormationSampler.Sample(mission, now);
             LogSnapshotHealth(now);
 
@@ -86,6 +88,12 @@ namespace CombatBrain2.Host
                     " age=" + Cb2Log.F(now - _snapshot.SampledAt) +
                     " limit=" + Cb2Log.F(TestParameters.SnapshotMaxAgeSeconds) +
                     " at=" + Cb2Log.F(now));
+                ObservationAdapter.Emit("input.refused", now,
+                    new EventFields()
+                        .Add("reason", "stale_snapshot")
+                        .Add("sampled_at", _snapshot.SampledAt)
+                        .Add("age", now - _snapshot.SampledAt)
+                        .ToString());
                 return;
             }
 
@@ -98,6 +106,11 @@ namespace CombatBrain2.Host
             {
                 Cb2Log.Line("BATTLE_STATE_UNAVAILABLE",
                     "input=" + inputId + " at=" + Cb2Log.F(now) + " reason=enemy_team_not_found");
+                ObservationAdapter.Emit("input.unavailable", now,
+                    new EventFields()
+                        .Add("input_id", inputId)
+                        .Add("reason", "enemy_team_not_found")
+                        .ToString());
                 return;
             }
 
@@ -118,6 +131,24 @@ namespace CombatBrain2.Host
                 " " + conditions.Describe() +
                 " at=" + Cb2Log.F(now));
 
+            ObservationAdapter.Emit("input.read", now,
+                new EventFields()
+                    .Add("input_id", inputId)
+                    .Add("sampled_at", state.SampledAt)
+                    .Add("my_team", state.MyTeamIndex)
+                    .Add("enemy_team", state.EnemyTeamIndex)
+                    .Add("my_units", state.MyUnitCount)
+                    .Add("enemy_units", state.EnemyUnitCount)
+                    .Add("my_ranged", state.MyRangedCount)
+                    .Add("enemy_ranged", state.EnemyRangedCount)
+                    .Add("my_infantry", state.MyInfantryCount)
+                    .Add("enemy_infantry", state.EnemyInfantryCount)
+                    .Add("my_center_x", state.MyCenterX)
+                    .Add("my_center_y", state.MyCenterY)
+                    .Add("enemy_center_x", state.EnemyCenterX)
+                    .Add("enemy_center_y", state.EnemyCenterY)
+                    .ToString());
+
             // 条件未变且计划仍开放：继续沿用，不重建、不重发令。
             if (_plans.CanContinue(conditions, now))
             {
@@ -126,6 +157,12 @@ namespace CombatBrain2.Host
                     " input=" + inputId +
                     " age=" + Cb2Log.F(now - _plans.Current.CreatedAt) +
                     " at=" + Cb2Log.F(now));
+                ObservationAdapter.Emit("plan.continued", now,
+                    new EventFields()
+                        .Add("plan_id", _plans.Current.PlanId)
+                        .Add("input_id", inputId)
+                        .Add("age", now - _plans.Current.CreatedAt)
+                        .ToString());
                 SweepExpiredSelections(now);
                 return;
             }
@@ -140,6 +177,14 @@ namespace CombatBrain2.Host
                     " old=" + _plans.Current.Conditions.Describe() +
                     " new=" + conditions.Describe() +
                     " at=" + Cb2Log.F(now));
+                ObservationAdapter.Emit("plan.changed", now,
+                    new EventFields()
+                        .Add("plan_id", _plans.Current.PlanId)
+                        .Add("input_id", inputId)
+                        .Add("old_goal", _plans.Current.Goal)
+                        .Add("old_conditions", _plans.Current.Conditions.Describe())
+                        .Add("new_conditions", conditions.Describe())
+                        .ToString());
                 InvalidatePlan(PlanInvalidReason.ConditionChanged,
                     "condition_changed old=" + _plans.Current.Conditions.Describe() +
                     " new=" + conditions.Describe(), now);
@@ -152,6 +197,11 @@ namespace CombatBrain2.Host
                     "input=" + inputId +
                     " reason=missing_controlled_class" +
                     " at=" + Cb2Log.F(now));
+                ObservationAdapter.Emit("plan.unavailable", now,
+                    new EventFields()
+                        .Add("input_id", inputId)
+                        .Add("reason", "missing_controlled_class")
+                        .ToString());
                 return;
             }
 
@@ -160,6 +210,15 @@ namespace CombatBrain2.Host
                 " " + plan.Conditions.Describe() +
                 " tasks=" + plan.Tasks.Count +
                 " at=" + Cb2Log.F(now));
+
+            ObservationAdapter.Emit("plan.created", now,
+                new EventFields()
+                    .Add("plan_id", plan.PlanId)
+                    .Add("input_id", inputId)
+                    .Add("goal", plan.Goal)
+                    .Add("conditions", plan.Conditions.Describe())
+                    .Add("task_count", plan.Tasks.Count)
+                    .ToString());
 
             foreach (var t in plan.Tasks)
             {
@@ -170,6 +229,17 @@ namespace CombatBrain2.Host
                     " units=" + UnitCountOf(t.FormationKey) +
                     " origin=(" + Cb2Log.F(t.OriginX) + "," + Cb2Log.F(t.OriginY) + ")" +
                     " at=" + Cb2Log.F(now));
+
+                ObservationAdapter.Emit("task.created", now,
+                    new EventFields()
+                        .Add("task_id", t.TaskId)
+                        .Add("plan_id", plan.PlanId)
+                        .Add("formation_key", t.FormationKey)
+                        .Add("reason", t.Reason)
+                        .Add("unit_count", UnitCountOf(t.FormationKey))
+                        .Add("origin_x", t.OriginX)
+                        .Add("origin_y", t.OriginY)
+                        .ToString());
             }
 
             LogTaskCandidates(plan, now);
@@ -235,6 +305,24 @@ namespace CombatBrain2.Host
                     InvalidatePlan(PlanInvalidReason.FormationEligibilityLost,
                         "task=" + task.TaskId + " reason=" + reason, now);
                     return;
+                }
+
+                // 延迟与顺序门必须在 arm 之前问：原生获选是一次性事件，
+                // 若先 arm 再在写令路径拒绝，该次获选即被消耗，不会再重来（脚本 §6.1）。
+                if (!BattlePlan.IsExitTask(task))
+                {
+                    string defer = WriteDelayBlock(task, now);
+                    if (defer != null)
+                    {
+                        Cb2Log.Line("WRITE_DELAYED",
+                            "task=" + task.TaskId +
+                            " plan=" + task.PlanId +
+                            " key=" + task.FormationKey +
+                            " reason=" + defer +
+                            " source=submit_pending" +
+                            " at=" + Cb2Log.F(now));
+                        continue;
+                    }
                 }
 
                 var behavior = ArmBehavior(mission, f, task);
@@ -345,6 +433,16 @@ namespace CombatBrain2.Host
                 " side=" + side +
                 " obj=" + task.ObjectIdentity +
                 " at=" + Cb2Log.F(now));
+
+            ObservationAdapter.Resolve(now);
+            ObservationAdapter.Emit("selection.real", now,
+                new EventFields()
+                    .Add("task_id", task.TaskId)
+                    .Add("plan_id", task.PlanId)
+                    .Add("formation_key", task.FormationKey)
+                    .Add("side", side)
+                    .Add("object_identity", task.ObjectIdentity)
+                    .ToString());
         }
 
         // ================= 阶段三：主线程执行点 =================
@@ -479,27 +577,26 @@ namespace CombatBrain2.Host
 
             bool behaviorIsOurs = IsOurActiveBehavior(key, f);
 
-            // 普通任务在真实写令前保证：计划创建后首令延迟、以前一条实际写令为基准的 1.5 s 间隔。
-            // 退出安全动作沿用既有例外，不受此约束。
-            if (!BattlePlan.IsExitTask(task))
+            // 延迟与顺序门已在 SubmitPending 中于 arm 之前判定，此处不再重复，
+            // 否则会在原生获选之后再次拒绝并丢失该次获选。
+
+            // 过期退出动作不得在安全时限之后仍写出（脚本 §7.2）：
+            // 到点即关闭，最终 setter 前再拦一次，避免跨入新计划期间。
+            if (BattlePlan.IsExitTask(task) &&
+                now - task.CreatedAt >= TestParameters.SafetyCancelLatencySeconds)
             {
-                string defer = WriteDelayBlock(task, now);
-                if (defer != null)
-                {
-                    Cb2Log.Line("WRITE_DELAYED",
-                        "task=" + task.TaskId +
-                        " plan=" + task.PlanId +
-                        " key=" + key +
-                        " reason=" + defer +
-                        " at=" + Cb2Log.F(now));
-                    return;
-                }
+                _tasks.CloseTask(task.TaskId, now);
+                Cb2Log.Line("EXIT_STOP_EXPIRED",
+                    task.Describe() +
+                    " reason=expired_before_write" +
+                    " waited=" + Cb2Log.F(now - task.CreatedAt) +
+                    " at=" + Cb2Log.F(now));
+                return;
             }
 
             var decision = _gate.RequestWrite(
                 task.TaskId, key, now, missionValid, targetValid, playerOwned,
                 currentObjectIdentity, aiControlled, behaviorIsOurs);
-
             if (!decision.Allowed)
             {
                 _tasks.NoteBlockedAttempt(task.TaskId);
@@ -511,6 +608,18 @@ namespace CombatBrain2.Host
                     " at=" + Cb2Log.F(now) +
                     " write_attempts_total=" + _gate.WriteAttempts +
                     " write_attempts_task=" + _tasks.WritesOf(task.TaskId));
+
+                ObservationAdapter.Emit("write.blocked", now,
+                    new EventFields()
+                        .Add("task_id", task.TaskId)
+                        .Add("plan_id", task.PlanId)
+                        .Add("formation_key", key)
+                        .Add("reason", decision.BlockReason)
+                        .Add("ai_controlled", aiControlled)
+                        .Add("behavior_is_ours", behaviorIsOurs)
+                        .Add("target_valid", targetValid)
+                        .Add("player_owned", playerOwned)
+                        .ToString());
 
                 // 资格或对象层面的拒绝说明计划前提已破：立即让计划失效，
                 // 不等下一次评价，也不保持"看起来成功"的假状态。
@@ -539,6 +648,19 @@ namespace CombatBrain2.Host
 
             task.OrderBefore = before;
 
+            // 位移基线在真实写令这一刻固定：计划创建到发令之间的原生移动
+            // 不能计入本命令的效果（P1-CODEX-REVERIFY §3.2）。
+            try
+            {
+                var posNow = f.CurrentPosition;
+                task.SetBaseline(posNow.x, posNow.y);
+                if (task.HasPosition)
+                {
+                    task.DistanceToTargetAtWrite = task.BaselineDistanceTo(task.RequestedX, task.RequestedY);
+                }
+            }
+            catch (Exception) { }
+
             _receiptTarget = f;
             _receipt.Arm();
 
@@ -566,6 +688,24 @@ namespace CombatBrain2.Host
             string after = "";
             try { after = OrderNameOf(f); } catch (Exception e) { after = "<err:" + e.GetType().Name + ">"; }
 
+            // 读回实际命令目标点：取自原生 MovementOrder，不是请求值。
+            // 只对位置任务有意义；读不到就不冒充有目标点。
+            string readbackNote = "";
+            if (task.HasPosition)
+            {
+                if (TryReadOrderTarget(f, out double orderTargetX, out double orderTargetY))
+                {
+                    task.SetOrderTarget(orderTargetX, orderTargetY);
+                    readbackNote = " order_target=(" + Cb2Log.F(orderTargetX) + "," +
+                                   Cb2Log.F(orderTargetY) + ")" +
+                                   " readback_error=" + Cb2Log.F(task.OrderTargetReadbackError());
+                }
+                else
+                {
+                    readbackNote = " order_target=<unreadable>";
+                }
+            }
+
             task.WrittenAt = now;
             task.OrderAfter = after;
             task.Feedback = TaskFeedbackState.Pending;
@@ -586,9 +726,30 @@ namespace CombatBrain2.Host
                 " original_body_entered=" + (originalEntered ? 1 : 0) +
                 " original_body_tid=" + (originalEntered ? originalThreadId.ToString(CultureInfo.InvariantCulture) : "-1") +
                 " at=" + Cb2Log.F(now) +
+                readbackNote +
                 " first_command_delay=" + Cb2Log.F(delay) +
                 " write_attempts_total=" + _gate.WriteAttempts +
                 " write_attempts_task=" + _tasks.WritesOf(task.TaskId));
+
+            ObservationAdapter.Emit("write.executed", now,
+                new EventFields()
+                    .Add("task_id", task.TaskId)
+                    .Add("plan_id", task.PlanId)
+                    .Add("formation_key", key)
+                    .Add("invoked", invoked)
+                    .Add("error", error)
+                    .Add("order_before", before)
+                    .Add("order_after", after)
+                    .Add("target_x", task.RequestedX)
+                    .Add("target_y", task.RequestedY)
+                    .Add("target_available", task.HasPosition)
+                    .Add("order_enum", order.OrderEnum.ToString())
+                    .Add("geometry", geometryNote)
+                    .Add("exec_tid", execThreadId)
+                    .Add("is_main_thread", _handoff.IsMainThread(execThreadId))
+                    .Add("original_body_entered", originalEntered)
+                    .Add("original_body_tid", originalEntered ? originalThreadId : -1)
+                    .ToString());
 
             // 退出动作写完一次即收尾，不再留在开放任务里反复评估（脚本 §7.2）。
             if (BattlePlan.IsExitTask(task))
@@ -599,6 +760,14 @@ namespace CombatBrain2.Host
                     " origin_plan=" + task.PlanId +
                     " order_after=" + after +
                     " at=" + Cb2Log.F(now));
+                ObservationAdapter.Emit("task.closed", now,
+                    new EventFields()
+                        .Add("task_id", task.TaskId)
+                        .Add("plan_id", task.PlanId)
+                        .Add("formation_key", key)
+                        .Add("reason", "exit_stop_done")
+                        .Add("order_after", after)
+                        .ToString());
             }
         }
 
@@ -617,6 +786,13 @@ namespace CombatBrain2.Host
                 return "first_command_delay";
             }
 
+            // 发令顺序遵守既定 Ordinal：前序普通任务尚未实际写令时，
+            // 后序必须等待（脚本 §4.5，Ordinal 1 = 远程，2 = 步兵）。
+            if (PredecessorNotWritten(plan, task))
+            {
+                return "predecessor_not_written";
+            }
+
             if (_lastWriteAt >= 0.0)
             {
                 double sinceWrite = now - _lastWriteAt;
@@ -626,6 +802,21 @@ namespace CombatBrain2.Host
                 }
             }
             return null;
+        }
+
+        // 本计划的普通任务里，是否存在 Ordinal 小于本任务、且尚未实际写令的前序任务。
+        private bool PredecessorNotWritten(BattlePlan plan, FormationTask task)
+        {
+            foreach (var other in plan.Tasks)
+            {
+                if (other == null) continue;
+                if (BattlePlan.IsExitTask(other)) continue;
+                if (other.Ordinal >= task.Ordinal) continue;
+                // 已关闭的前序任务不会再写令，不应拖住后序。
+                if (other.IsClosed) continue;
+                if (other.WrittenAt < 0.0) return true;
+            }
+            return false;
         }
 
         private double FirstCommandDelay(FormationTask task, double now)
@@ -790,6 +981,14 @@ namespace CombatBrain2.Host
                         " since_write=" + Cb2Log.F(now - task.WrittenAt) +
                         " detail=" + result.Detail +
                         " at=" + Cb2Log.F(now));
+                    ObservationAdapter.Emit("task.feedback", now,
+                        new EventFields()
+                            .Add("task_id", task.TaskId)
+                            .Add("plan_id", task.PlanId)
+                            .Add("state", "effective")
+                            .Add("since_write", now - task.WrittenAt)
+                            .Add("detail", result.Detail)
+                            .ToString());
                 }
                 else if (result.State == TaskFeedbackState.Failed && previous != TaskFeedbackState.Failed)
                 {
@@ -800,6 +999,15 @@ namespace CombatBrain2.Host
                         " since_write=" + Cb2Log.F(now - task.WrittenAt) +
                         " detail=" + result.Detail +
                         " at=" + Cb2Log.F(now));
+                    ObservationAdapter.Emit("task.feedback", now,
+                        new EventFields()
+                            .Add("task_id", task.TaskId)
+                            .Add("plan_id", task.PlanId)
+                            .Add("state", "failed")
+                            .Add("reason", result.Reason.ToString())
+                            .Add("since_write", now - task.WrittenAt)
+                            .Add("detail", result.Detail)
+                            .ToString());
                     InvalidatePlan(result.Reason,
                         "task=" + task.TaskId + " detail=" + result.Detail, now, task.PlanId);
                     return;
@@ -824,13 +1032,21 @@ namespace CombatBrain2.Host
             _state = state;
 
             var conditions = PlanConditions.From(state);
-            if (conditions.SameAs(plan.Conditions)) return;
+            // 逐 tick 战略条件路径与决策路径使用同一套继续语义（脚本 §4.5）：
+            // 不用创建时的一次布尔相等当继续条件。
+            if (conditions.CanContinueAs(plan)) return;
 
             Cb2Log.Line("PLAN_CONDITION_LOST",
                 "plan=" + plan.PlanId +
                 " old=" + plan.Conditions.Describe() +
                 " new=" + conditions.Describe() +
                 " at=" + Cb2Log.F(now));
+            ObservationAdapter.Emit("plan.condition_lost", now,
+                new EventFields()
+                    .Add("plan_id", plan.PlanId)
+                    .Add("old_conditions", plan.Conditions.Describe())
+                    .Add("new_conditions", conditions.Describe())
+                    .ToString());
             InvalidatePlan(PlanInvalidReason.ConditionChanged,
                 "tick_condition_changed new=" + conditions.Describe(), now);
         }
@@ -891,6 +1107,13 @@ namespace CombatBrain2.Host
                 " reason=" + reason +
                 " detail=" + detail +
                 " at=" + Cb2Log.F(now));
+            ObservationAdapter.Emit("plan.invalidated", now,
+                new EventFields()
+                    .Add("plan_id", plan.PlanId)
+                    .Add("goal", plan.Goal)
+                    .Add("reason", reason.ToString())
+                    .Add("detail", detail)
+                    .ToString());
 
             var open = _tasks.OpenTasks();
             foreach (var t in open)
@@ -908,6 +1131,17 @@ namespace CombatBrain2.Host
                         " qualified_now=0" +
                         " note=task_belongs_to_other_plan" +
                         " at=" + Cb2Log.F(now));
+                    ObservationAdapter.Emit("task.closed", now,
+                        new EventFields()
+                            .Add("task_id", t.TaskId)
+                            .Add("plan_id", t.PlanId)
+                            .Add("formation_key", t.FormationKey)
+                            .Add("reason", reason.ToString())
+                            .Add("written", t.WrittenAt >= 0.0)
+                            .Add("feedback", t.Feedback.ToString())
+                            .Add("qualified_now", false)
+                            .Add("note", "task_belongs_to_other_plan")
+                            .ToString());
                     continue;
                 }
                 var rec = _snapshot != null ? _snapshot.FindByKey(t.FormationKey) : null;
@@ -921,6 +1155,16 @@ namespace CombatBrain2.Host
                     " feedback=" + t.Feedback +
                     " qualified_now=" + (qualified ? 1 : 0) +
                     " at=" + Cb2Log.F(now));
+                ObservationAdapter.Emit("task.closed", now,
+                    new EventFields()
+                        .Add("task_id", t.TaskId)
+                        .Add("plan_id", t.PlanId)
+                        .Add("formation_key", t.FormationKey)
+                        .Add("reason", reason.ToString())
+                        .Add("written", t.WrittenAt >= 0.0)
+                        .Add("feedback", t.Feedback.ToString())
+                        .Add("qualified_now", qualified)
+                        .ToString());
 
                 if (qualified) TryQueueExitStop(t, now);
             }
@@ -965,8 +1209,9 @@ namespace CombatBrain2.Host
                 " at=" + Cb2Log.F(now));
         }
 
-        // 退出动作不因未获选就反复尝试：到点未获选即如实记录并撤权。
-        // 安全时限从已投递时刻起算；已投递但未获选的退出任务不能因此被永久跳过（脚本 §7.2）。
+        // 退出动作不因未获选就反复尝试：到点未完成即如实记录并撤权。
+        // 安全时限从入队时刻起算，不因提交或获选而重置；
+        // 已提交、已获选、已转交但未写出的退出任务都必须受此期限覆盖（脚本 §7.2）。
         internal void SweepExitStops(Mission mission)
         {
             if (mission == null) return;
@@ -975,17 +1220,15 @@ namespace CombatBrain2.Host
             {
                 if (!BattlePlan.IsExitTask(task)) continue;
                 if (task.WrittenAt >= 0.0) continue;
-                if (task.SelectedAt >= 0.0) continue;
-                double since = task.SubmittedAt >= 0.0
-                    ? now - task.SubmittedAt
-                    : now - task.CreatedAt;
+                double since = now - task.CreatedAt;
                 if (since >= TestParameters.SafetyCancelLatencySeconds)
                 {
                     _tasks.CloseTask(task.TaskId, now);
                     Cb2Log.Line("EXIT_STOP_NOT_APPLIED",
                         task.Describe() +
-                        " reason=not_selected_in_time" +
+                        " reason=not_completed_in_time" +
                         " submitted=" + (task.SubmittedAt >= 0.0 ? 1 : 0) +
+                        " selected=" + (task.SelectedAt >= 0.0 ? 1 : 0) +
                         " waited=" + Cb2Log.F(since) +
                         " at=" + Cb2Log.F(now));
                     DisarmBehaviorsFor(task.FormationKey, "ExitNotApplied", now);
@@ -1246,6 +1489,15 @@ namespace CombatBrain2.Host
                 " order_before_revoke=" + before +
                 " order_after_revoke=" + after +
                 " at=" + Cb2Log.F(now));
+            ObservationAdapter.Emit("revoke.executed", now,
+                new EventFields()
+                    .Add("task_id", task.TaskId)
+                    .Add("formation_key", guarded.Key)
+                    .Add("ok", ok)
+                    .Add("error", err)
+                    .Add("order_before_revoke", before)
+                    .Add("order_after_revoke", after)
+                    .ToString());
         }
 
         // ================= 资格判定 =================
@@ -1339,11 +1591,23 @@ namespace CombatBrain2.Host
             _exitStopAttempts = 0;
             _lastWriteAt = -1.0;
             Cb2Log.Line("MISSION_START", "mission_key=" + _missionKey);
+            ObservationAdapter.Resolve(0.0);
+            ObservationAdapter.Emit("mission.start", 0.0,
+                new EventFields()
+                    .Add("mission_key", _missionKey)
+                    .Add("scene", _missionKey)
+                    .ToString());
         }
 
         internal void OnMissionEnd()
         {
             var t = CurrentMissionTime();
+
+            ObservationAdapter.Emit("mission.end", t,
+                new EventFields()
+                    .Add("mission_key", _missionKey)
+                    .ToString());
+            ObservationAdapter.Shutdown();
 
             var plan = _plans.Current;
             if (plan != null && !plan.IsClosed)
@@ -1359,6 +1623,13 @@ namespace CombatBrain2.Host
                 CloseTask(task, PlanInvalidReason.MissionEnded, t);
                 Cb2Log.Line("TASK_CLOSED",
                     task.Describe() + " reason=MissionEnded at=" + Cb2Log.F(t));
+                ObservationAdapter.Emit("task.closed", t,
+                    new EventFields()
+                        .Add("task_id", task.TaskId)
+                        .Add("plan_id", task.PlanId)
+                        .Add("formation_key", task.FormationKey)
+                        .Add("reason", "MissionEnded")
+                        .ToString());
             }
 
             _gate.ClearMission();
@@ -1507,6 +1778,26 @@ namespace CombatBrain2.Host
         private static OrderType ActiveOrderOf(Formation f)
         {
             return OrderController.GetActiveMovementOrderOf(f);
+        }
+
+        // 读回原生实际命令目标点。GetPosition 返回 Vec2，取不到即返回 false，
+        // 不用当前位置或请求值顶替。
+        private static bool TryReadOrderTarget(Formation f, out double x, out double y)
+        {
+            x = 0.0;
+            y = 0.0;
+            try
+            {
+                var order = f.GetReadonlyMovementOrderReference();
+                var pos = order.GetPosition(f);
+                x = pos.x;
+                y = pos.y;
+                return !double.IsNaN(x) && !double.IsNaN(y);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private static MovementOrder OrderFromName(string name)

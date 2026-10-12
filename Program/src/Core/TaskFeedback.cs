@@ -65,6 +65,7 @@ namespace CombatBrain2.Core
             if (task.Kind == TaskKind.Engage)
             {
                 // Engage：必须朝敌方向产生位移；原地不动或后退不算生效。
+                // 位移基线取实际写令时的位置，不含发令前的原生移动。
                 bool haveEnemy = !double.IsNaN(enemyX) && !double.IsNaN(enemyY);
                 if (!haveEnemy)
                 {
@@ -72,8 +73,8 @@ namespace CombatBrain2.Core
                 }
                 else
                 {
-                    double ex = enemyX - task.OriginX;
-                    double ey = enemyY - task.OriginY;
+                    double ex = enemyX - task.BaselineX;
+                    double ey = enemyY - task.BaselineY;
                     double span = Math.Sqrt(ex * ex + ey * ey);
                     if (span <= 0.0001)
                     {
@@ -81,76 +82,87 @@ namespace CombatBrain2.Core
                     }
                     else
                     {
-                        double moveX = now.PosX - task.OriginX;
-                        double moveY = now.PosY - task.OriginY;
+                        double moveX = now.PosX - task.BaselineX;
+                        double moveY = now.PosY - task.BaselineY;
                         double toward = (moveX * ex + moveY * ey) / span;
                         if (toward >= TestParameters.EffectiveDisplacementMeters)
                         {
                             effective = true;
                             detail = "engage_toward_enemy=" +
-                                     toward.ToString("F2", CultureInfo.InvariantCulture);
+                                     toward.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " since_write=" +
+                                     Fmt(missionTime - task.WrittenAt);
                         }
                         else
                         {
                             detail = "engage_toward_enemy=" +
                                      toward.ToString("F2", CultureInfo.InvariantCulture) +
                                      " (<" + TestParameters.EffectiveDisplacementMeters.ToString("F1",
-                                         CultureInfo.InvariantCulture) + ")";
+                                         CultureInfo.InvariantCulture) + ")" +
+                                     " since_write=" +
+                                     Fmt(missionTime - task.WrittenAt);
                         }
                     }
                 }
             }
-            else if (task.HasPosition)
+            else if (task.Kind == TaskKind.Reposition && task.HasPosition)
             {
-                double dx = now.PosX - task.RequestedX;
-                double dy = now.PosY - task.RequestedY;
-                double distance = Math.Sqrt(dx * dx + dy * dy);
-                if (distance <= TestParameters.TargetPointToleranceMeters)
+                // Reposition：先核对实际命令目标点的读回误差，
+                // 再按到目标距离减少 >=3 m 或已到达判定进度。
+                double readback = task.OrderTargetReadbackError();
+                if (readback >= 0.0 && readback > TestParameters.TargetPointToleranceMeters)
                 {
-                    effective = true;
-                    task.ReachedTargetPoint = true;
-                    detail = "reached_target_point distance=" +
-                             distance.ToString("F2", CultureInfo.InvariantCulture);
+                    // 命令目标点与有效请求点不符：本命令没有落在请求的位置上。
+                    detail = "order_target_readback_error=" +
+                             readback.ToString("F2", CultureInfo.InvariantCulture) +
+                             " (>" + TestParameters.TargetPointToleranceMeters.ToString("F1",
+                                 CultureInfo.InvariantCulture) + ")" +
+                             " order_target=(" +
+                             Fmt(task.OrderTargetX) + "," +
+                             Fmt(task.OrderTargetY) + ")" +
+                             " requested=(" +
+                             Fmt(task.RequestedX) + "," +
+                             Fmt(task.RequestedY) + ")";
                 }
                 else
                 {
-                    // 朝目标方向的位移投影达到门槛才算偏移动效；横向漂移不算。
-                    double originDx = task.RequestedX - task.OriginX;
-                    double originDy = task.RequestedY - task.OriginY;
-                    double span = Math.Sqrt(originDx * originDx + originDy * originDy);
-                    if (span > 0.0001)
+                    double dx = now.PosX - task.RequestedX;
+                    double dy = now.PosY - task.RequestedY;
+                    double distance = Math.Sqrt(dx * dx + dy * dy);
+                    double from = task.BaselineDistanceTo(task.RequestedX, task.RequestedY);
+                    if (distance <= TestParameters.TargetPointToleranceMeters)
                     {
-                        double moveX = now.PosX - task.OriginX;
-                        double moveY = now.PosY - task.OriginY;
-                        double projection = (moveX * originDx + moveY * originDy) / span;
-                        // 起点到请求点的距离就是 span；当前距离必须比它小才算靠近目标。
-                        double originDistance = span;
-                        bool closing = distance < originDistance;
-                        if (projection >= TestParameters.EffectiveDisplacementMeters && closing)
-                        {
-                            effective = true;
-                            detail = "projected_displacement=" +
-                                     projection.ToString("F2", CultureInfo.InvariantCulture) +
-                                     " distance=" + distance.ToString("F2", CultureInfo.InvariantCulture) +
-                                     " from=" + originDistance.ToString("F2", CultureInfo.InvariantCulture) +
-                                     " closing=1";
-                        }
-                        else
-                        {
-                            detail = "projected_displacement=" +
-                                     projection.ToString("F2", CultureInfo.InvariantCulture) +
-                                     " (<" + TestParameters.EffectiveDisplacementMeters.ToString("F1",
-                                         CultureInfo.InvariantCulture) + ")" +
-                                     " distance=" + distance.ToString("F2", CultureInfo.InvariantCulture) +
-                                     " from=" + originDistance.ToString("F2", CultureInfo.InvariantCulture) +
-                                     " closing=" + (closing ? 1 : 0);
-                        }
+                        effective = true;
+                        task.ReachedTargetPoint = true;
+                        detail = "reached_target_point distance=" +
+                                 distance.ToString("F2", CultureInfo.InvariantCulture) +
+                                 " from=" + from.ToString("F2", CultureInfo.InvariantCulture);
                     }
                     else
                     {
-                        // 目标点与起点重合：没有可判定的位移方向，只能凭到达容差判定；
-                        // 达不到即视为未生效，但不伪造一个方向。
-                        detail = "zero_span_no_displacement_direction";
+                        // 进度：到目标距离减少至少 3 m 才算本命令产生了位移效果。
+                        double closed = from - distance;
+                        if (closed >= TestParameters.EffectiveDisplacementMeters)
+                        {
+                            effective = true;
+                            detail = "closed_distance=" +
+                                     closed.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " distance=" + distance.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " from=" + from.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " since_write=" +
+                                     Fmt(missionTime - task.WrittenAt);
+                        }
+                        else
+                        {
+                            detail = "closed_distance=" +
+                                     closed.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " (<" + TestParameters.EffectiveDisplacementMeters.ToString("F1",
+                                         CultureInfo.InvariantCulture) + ")" +
+                                     " distance=" + distance.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " from=" + from.ToString("F2", CultureInfo.InvariantCulture) +
+                                     " since_write=" +
+                                     Fmt(missionTime - task.WrittenAt);
+                        }
                     }
                 }
             }
@@ -159,6 +171,11 @@ namespace CombatBrain2.Core
                 // Hold：位置保持即可，不对位移作要求。
                 detail = "hold_no_displacement_required";
                 effective = true;
+            }
+            else if (task.HasPosition)
+            {
+                // 有位置但类型不适用位移判据：不冒充生效，也不编造方向。
+                detail = "no_displacement_criteria_for_kind=" + task.Kind;
             }
             else
             {
@@ -193,6 +210,11 @@ namespace CombatBrain2.Core
             string fb = Family(b);
             if (fa.Length == 0 || fb.Length == 0) return false;
             return string.Equals(fa, fb, StringComparison.Ordinal);
+        }
+
+        private static string Fmt(double v)
+        {
+            return v.ToString("F3", CultureInfo.InvariantCulture);
         }
 
         private static string Family(string order)

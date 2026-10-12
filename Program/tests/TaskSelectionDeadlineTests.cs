@@ -349,12 +349,14 @@ namespace CombatBrain2.Tests
                 WrittenAt = 10.0,
             };
             t.SetTarget(0.0, 0.0, 20.0, 0.0);
+            t.SetBaseline(0.0, 0.0);
+            t.SetOrderTarget(20.0, 0.0);
 
-            // 起点距离 20；远离到 -30 时距离变为 50 > 20，投影为负、closing=0 → 不生效。
+            // 起点距离 20；远离到 -30 时距离变为 50 > 20，进度为 -50 → 不生效。
             var awayRec = Rec("0/0", team: 0, playerTeam: false, cls: "Infantry", units: 50, x: -30.0, order: "Move");
             var away = TaskFeedback.Evaluate(t, awayRec, 11.0, double.NaN, double.NaN);
             Assert.Equal(TaskFeedbackState.Pending, away.State);
-            Assert.Contains("closing=0", away.Detail);
+            Assert.Contains("closed_distance=-30.00", away.Detail);
 
             // 靠近过程中进入 0.5 m 容差 → 到达判定生效。
             var arrived = Rec("0/0", team: 0, playerTeam: false, cls: "Infantry", units: 50, x: 19.8, order: "Move");
@@ -416,6 +418,138 @@ namespace CombatBrain2.Tests
             Assert.Equal("hold_observation", plan.Goal);
             Assert.Equal(2, plan.Tasks.Count);
             Assert.All(plan.Tasks, t => Assert.Equal(TaskKind.Hold, t.Kind));
+        }
+
+        // 位移基线取自实际写令时，不含发令前的原生移动：
+        // 计划创建位置远离目标、写令时位置已靠近，进度必须按写令时位置算。
+        [Fact]
+        public void RepositionProgressUsesWriteTimeBaseline()
+        {
+            var t = new FormationTask
+            {
+                TaskId = "t1",
+                PlanId = "plan-1",
+                Kind = TaskKind.Reposition,
+                FormationKey = "0/1",
+                ObjectIdentity = "obj@0/1@Ranged",
+                OrderAfter = "Move",
+                WrittenAt = 10.0,
+            };
+            // 计划创建位置在 0，请求点在 25；写令时编队已原生移动到 20。
+            t.SetTarget(0.0, 0.0, 25.0, 0.0);
+            t.SetBaseline(20.0, 0.0);
+            t.SetOrderTarget(25.0, 0.0);
+
+            // 写令时到目标 5 m（基线 20，目标 25）。
+            // x=24 → distance=1，closed=4 ≥ 3 → 生效。
+            var rec3 = Rec("0/1", team: 0, playerTeam: false, cls: "Ranged", units: 20, x: 24.0, order: "Move");
+            var r3 = TaskFeedback.Evaluate(t, rec3, 11.0, double.NaN, double.NaN);
+            Assert.Equal(TaskFeedbackState.Effective, r3.State);
+            Assert.Contains("closed_distance=4.00", r3.Detail);
+            Assert.Contains("from=5.00", r3.Detail);
+
+            // x=22 → distance=3，closed=2 < 3 → 未达门槛。
+            // 若误用计划创建位置（0）当基线，from 会变成 25、closed 会算成 22 而错误判生效。
+            var rec2 = Rec("0/1", team: 0, playerTeam: false, cls: "Ranged", units: 20, x: 22.0, order: "Move");
+            var r2 = TaskFeedback.Evaluate(t, rec2, 11.0, double.NaN, double.NaN);
+            Assert.Equal(TaskFeedbackState.Pending, r2.State);
+            Assert.Contains("closed_distance=2.00", r2.Detail);
+            Assert.Contains("from=5.00", r2.Detail);
+        }
+
+        // 实际命令目标点与请求点误差超过 0.5 m 时不得判生效。
+        [Fact]
+        public void RepositionRejectsMismatchedOrderTarget()
+        {
+            var t = new FormationTask
+            {
+                TaskId = "t1",
+                PlanId = "plan-1",
+                Kind = TaskKind.Reposition,
+                FormationKey = "0/1",
+                ObjectIdentity = "obj@0/1@Ranged",
+                OrderAfter = "Move",
+                WrittenAt = 10.0,
+            };
+            t.SetTarget(0.0, 0.0, 25.0, 0.0);
+            t.SetBaseline(0.0, 0.0);
+            // 原生实际命令目标点落在别处（30），与请求点 25 差 5 m。
+            t.SetOrderTarget(30.0, 0.0);
+
+            // 编队已到请求点，但命令目标点不符 → 不判生效。
+            var rec = Rec("0/1", team: 0, playerTeam: false, cls: "Ranged", units: 20, x: 25.0, order: "Move");
+            var r = TaskFeedback.Evaluate(t, rec, 11.0, double.NaN, double.NaN);
+            Assert.Equal(TaskFeedbackState.Pending, r.State);
+            Assert.Contains("order_target_readback_error=5.00", r.Detail);
+        }
+
+        // Engage 位移基线同样按写令时位置：发令前的原生接近不计入。
+        [Fact]
+        public void EngageProgressUsesWriteTimeBaseline()
+        {
+            var t = new FormationTask
+            {
+                TaskId = "t1",
+                PlanId = "plan-1",
+                Kind = TaskKind.Engage,
+                FormationKey = "0/0",
+                ObjectIdentity = "obj@0/0@Infantry",
+                OrderAfter = "Charge",
+                WrittenAt = 10.0,
+            };
+            t.SetTarget(0.0, 0.0, 0.0, 0.0);
+            // 写令时编队已移动到 x=50，敌人在 x=100。
+            t.SetBaseline(50.0, 0.0);
+
+            // 从写令基线只朝敌推进 1 m：不足门槛，不得因“计划创建后已移动 51 m”判生效。
+            var rec = Rec("0/0", team: 0, playerTeam: false, cls: "Infantry", units: 50, x: 51.0, order: "Charge");
+            var r = TaskFeedback.Evaluate(t, rec, 11.0, 100.0, 0.0);
+            Assert.Equal(TaskFeedbackState.Pending, r.State);
+            Assert.Contains("engage_toward_enemy=1.00", r.Detail);
+
+            // 从写令基线推进 4 m：达标。
+            var rec2 = Rec("0/0", team: 0, playerTeam: false, cls: "Infantry", units: 50, x: 54.0, order: "Charge");
+            var r2 = TaskFeedback.Evaluate(t, rec2, 11.0, 100.0, 0.0);
+            Assert.Equal(TaskFeedbackState.Effective, r2.State);
+            Assert.Contains("engage_toward_enemy=4.00", r2.Detail);
+        }
+
+        // 继续判定的两组门槛必须一致：创建用 ±0.10，继续用 ±0.05。
+        [Fact]
+        public void ContinueAndCreateThresholdsAreDistinct()
+        {
+            var plan = new BattlePlan { PlanId = "plan-1", Goal = "mitigate_ranged_disadvantage" };
+
+            // −0.07：够继续（≥0.05），但不够创建新计划（需要 ≤−0.10）。
+            var mid = new PlanConditions { RangedEdge = -0.07, StrengthRatio = 0.90 };
+            Assert.True(mid.CanContinueAs(plan));
+
+            // −0.03：两侧都不满足。
+            var weak = new PlanConditions { RangedEdge = -0.03, StrengthRatio = 0.90 };
+            Assert.False(weak.CanContinueAs(plan));
+        }
+
+        // 退出动作的安全期限从入队时刻起算，不因提交或获选而重置。
+        [Fact]
+        public void ExitStopDeadlineIsNotResetBySubmissionOrSelection()
+        {
+            var t = new FormationTask
+            {
+                TaskId = "t1-exit",
+                PlanId = "plan-1",
+                Kind = TaskKind.Hold,
+                FormationKey = "0/1",
+                ObjectIdentity = "obj@0/1@Ranged",
+                CreatedAt = 10.0,
+                SubmittedAt = 12.0,
+                SelectedAt = 13.0,
+            };
+            // 入队 1.0 s 后到点：即便提交/获选时刻更晚，也必须按入队时刻判过期。
+            double now = 11.0;
+            Assert.True(now - t.CreatedAt >= TestParameters.SafetyCancelLatencySeconds);
+            // 若误按提交或获选起算，则都还没到点，会被永久跳过。
+            Assert.True(now - t.SubmittedAt < TestParameters.SafetyCancelLatencySeconds);
+            Assert.True(now - t.SelectedAt < TestParameters.SafetyCancelLatencySeconds);
         }
     }
 }

@@ -28,7 +28,10 @@
     <Compile Include="src\Core\TaskLedger.cs" />
     <Compile Include="src\Core\PlanLedger.cs" />
     <Compile Include="src\Host\RuntimeIdentity.cs" />
+    <Compile Include="src\Host\ObservationAdapter.cs" />
     <Compile Include="src\Host\BuildIdentity.g.cs" />
+    <Compile Include="src\Host\BuildIdentity.Cb2.g.cs"
+             Condition="Exists('src\Host\BuildIdentity.Cb2.g.cs')" />
     <Compile Include="src\Host\CbHoldBehavior.cs" />
     <Compile Include="src\Host\FormationSampler.cs" />
     <Compile Include="src\Host\IndependentObservation.cs" />

@@ -97,6 +97,17 @@ namespace CombatBrain2.Core
         internal bool HasPosition;
         internal bool ReachedTargetPoint;
 
+        // 位移基线：实际写令那一刻的位置。计划创建到发令之间的原生移动
+        // 不计入本命令效果（P1-CODEX-REVERIFY §3.2）。
+        internal double BaselineX;
+        internal double BaselineY;
+        internal double DistanceToTargetAtWrite = -1.0;
+
+        // 实际命令目标点的读回值，取自原生 MovementOrder，不是请求值。
+        internal bool HasOrderTarget;
+        internal double OrderTargetX;
+        internal double OrderTargetY;
+
         // 位置任务的目标点由执行层在发令前按当前几何计算并写入。
         internal void SetTarget(double originX, double originY, double requestedX, double requestedY)
         {
@@ -105,6 +116,40 @@ namespace CombatBrain2.Core
             RequestedX = requestedX;
             RequestedY = requestedY;
             HasPosition = true;
+        }
+
+        // 写令时固定位移基线；基线缺失时不得用计划创建时刻的位置顶替。
+        internal void SetBaseline(double x, double y)
+        {
+            BaselineX = x;
+            BaselineY = y;
+        }
+
+        internal void SetOrderTarget(double x, double y)
+        {
+            OrderTargetX = x;
+            OrderTargetY = y;
+            HasOrderTarget = true;
+        }
+
+        internal double BaselineDistanceTo(double x, double y)
+        {
+            double dx = x - BaselineX;
+            double dy = y - BaselineY;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        internal double DistanceFromBaseline(double x, double y)
+        {
+            return BaselineDistanceTo(x, y);
+        }
+
+        internal double OrderTargetReadbackError()
+        {
+            if (!HasOrderTarget || !HasPosition) return -1.0;
+            double dx = OrderTargetX - RequestedX;
+            double dy = OrderTargetY - RequestedY;
+            return Math.Sqrt(dx * dx + dy * dy);
         }
 
         internal string OrderBefore = "";
