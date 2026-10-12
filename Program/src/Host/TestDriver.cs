@@ -333,13 +333,16 @@ namespace CombatBrain2.Host
                     return;
                 }
 
-                task.SubmittedAt = now;
+                task.NoteSubmission(now);
                 _gate.SubmitCandidate(task.TaskId, task.FormationKey, now);
                 Cb2Log.Line("TASK_CANDIDATE_SUBMITTED",
                     task.Describe() +
                     " behavior_registered=1" +
                     " behavior_weight=" + Cb2Log.F(TestParameters.HoldBehaviorWeight) +
                     " at=" + Cb2Log.F(now) +
+                    " submission_count=" + task.SubmissionCount +
+                    " first_submitted_at=" + Cb2Log.F(task.SubmittedAt) +
+                    " selection_deadline=" + Cb2Log.F(task.SelectionDeadline()) +
                     " write_attempts_total=" + _gate.WriteAttempts +
                     " write_attempts_task=" + _tasks.WritesOf(task.TaskId));
             }

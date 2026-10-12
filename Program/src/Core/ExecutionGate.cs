@@ -26,6 +26,7 @@ namespace CombatBrain2.Core
             internal string Key = "";
             internal string ObjectIdentity = "";
             internal double SubmittedAt = -1.0;
+            internal int SubmissionCount;
             internal double SelectedAt = -1.0;
             internal bool Selected;
             internal bool Written;
@@ -37,7 +38,25 @@ namespace CombatBrain2.Core
         {
             var s = GetOrCreate(taskId);
             s.Key = key ?? "";
-            s.SubmittedAt = missionTime;
+            // 与 FormationTask 同语义：只记首次投递，重投不刷新等待截止（脚本 §5.2）。
+            if (s.SubmittedAt < 0.0) s.SubmittedAt = missionTime;
+            s.SubmissionCount++;
+        }
+
+        // 该任务首次候选投递时刻；未投递过返回 -1.0。
+        internal double SubmissionTimeOf(string taskId)
+        {
+            IntentState s;
+            if (!_states.TryGetValue(taskId ?? "", out s)) return -1.0;
+            return s.SubmittedAt;
+        }
+
+        // 该任务候选投递次数；未投递过返回 0。
+        internal int SubmissionCountOf(string taskId)
+        {
+            IntentState s;
+            if (!_states.TryGetValue(taskId ?? "", out s)) return 0;
+            return s.SubmissionCount;
         }
 
         internal void MarkSelected(string taskId, string key, double missionTime)

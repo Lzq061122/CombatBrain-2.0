@@ -18,6 +18,22 @@ namespace CombatBrain2.Tests
             Assert.Equal(12.0 + TestParameters.SelectionWaitSeconds, t.SelectionDeadline());
         }
 
+        // 获选等待从首次提交起算：同一任务重复投递不得刷新截止（脚本 §5.2）。
+        [Fact]
+        public void RepeatedSubmissionDoesNotExtendDeadline()
+        {
+            var t = new FormationTask { TaskId = "t1", CreatedAt = 10.0 };
+            t.NoteSubmission(20.0);
+            var original = t.SelectionDeadline();
+            Assert.Equal(20.0 + TestParameters.SelectionWaitSeconds, original);
+
+            t.NoteSubmission(23.0);
+            t.NoteSubmission(26.0);
+            Assert.Equal(original, t.SelectionDeadline());
+            Assert.Equal(20.0, t.SubmittedAt);
+            Assert.Equal(3, t.SubmissionCount);
+        }
+
         // 截止点是固定的：重复读取不延长，已获选也不延长。
         [Fact]
         public void RepeatedReadsDoNotExtendDeadline()

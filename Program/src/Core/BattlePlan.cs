@@ -86,6 +86,7 @@ namespace CombatBrain2.Core
 
         internal double CreatedAt;
         internal double SubmittedAt = -1.0;
+        internal int SubmissionCount;
         internal double SelectedAt = -1.0;
         internal double WrittenAt = -1.0;
         internal double FeedbackAt = -1.0;
@@ -166,6 +167,14 @@ namespace CombatBrain2.Core
         {
             return SubmittedAt < 0.0 ? CreatedAt + TestParameters.SelectionWaitSeconds
                                      : SubmittedAt + TestParameters.SelectionWaitSeconds;
+        }
+
+        // 记一次候选投递。SubmittedAt 只记首次投递时刻：获选等待从首次提交起算，
+        // 重复投递（3 s 决策节奏下的常态）不得刷新截止（脚本 §5.2）。
+        internal void NoteSubmission(double missionTime)
+        {
+            SubmissionCount++;
+            if (SubmittedAt < 0.0) SubmittedAt = missionTime;
         }
 
         internal double FeedbackDeadline()

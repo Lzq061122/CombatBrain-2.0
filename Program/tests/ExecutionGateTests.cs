@@ -110,6 +110,18 @@ namespace CombatBrain2.Tests
             Assert.Equal(1, gate.WriteAttempts);
         }
 
+        // 与 FormationTask 同语义：执行门也只记首次候选投递，重投不刷新等待截止。
+        [Fact]
+        public void GateKeepsFirstSubmissionTime()
+        {
+            var gate = new ExecutionGate();
+            gate.SubmitCandidate("i1", "1/0", 100.0);
+            gate.SubmitCandidate("i1", "1/0", 103.0);
+            gate.SubmitCandidate("i1", "1/0", 106.0);
+            Assert.Equal(100.0, gate.SubmissionTimeOf("i1"));
+            Assert.Equal(3, gate.SubmissionCountOf("i1"));
+        }
+
         // 玩家拥有 / 目标失效 / 资格丢失时不得写入。
         [Fact]
         public void WriteBlockedWhenTargetInvalidOrPlayerOwned()
