@@ -1,7 +1,14 @@
 ## P1 第一批 — 实机场次索引
 
-**Codex 当前裁定（2026-10-12，第三轮）：两处整改通过，P1 尚未退出。** `7a8bf3c` 关闭缺失目标误判生效和已获选退出误挡；P/N新两场12条写令已独立对齐。但P场同一普通任务重投15次，不断刷新首次获选截止，等待42.213 s未触发原定10 s超时。唯一待整改见 `../P1-CODEX-REVERIFY-3.md` §3；此前整改成果保留。历史自检及 RESULT: OK 不替代阶段判定。
+**Codex 当前裁定（2026-10-12，第四轮待判）：第三轮唯一整改已完成并按 §5.5 复验。** `P1-CODEX-REVERIFY-3.md` §3 指出的获选等待截止被重投刷新，已改为同一 task_id 固定首次候选提交锚点（`BattlePlan.NoteSubmission` / `ExecutionGate.SubmitCandidate` 首次投递才记时刻，重复投递只累加计数）。P 场复验 `20261012-145644` 直接证据：`plan-4-task-1` 投递由上一轮 15 次降为 4 次，`first_submitted_at=94.654` 与 `selection_deadline=104.654` 四次不变，截止后停止投递，106.664 触发 `TASK_SELECTION_TIMEOUT waited=12.010 limit=10.000`，`plan-4` 以 `reason=SelectionTimeout` 失效（上一轮为 42.213 s 后以 `FormationEligibilityLost` 结束）。N 场 `20261012-150054` 5 次投递全部一次获选，无重投场景，不构成该修复点的验证。第三轮已关闭的两处不重开，验收项目未增加。历史自检及 RESULT: OK 不替代阶段判定。
 
+
+**2026-10-12 第三轮：获选等待锚点整改后复验完成，再次交回独立验收。** 依据 `../P1-CODEX-REVERIFY-3.md` §3，整改仅一处：同一 task_id 固定首次候选提交时刻，重复投递不刷新 10 s 获选截止。决定性场次 `20261012-145644`（P）与 `20261012-150054`（N）。原始材料归档 `E:\MBmod\CombatBrain2-evidence\20261012-p1-reverify3-sessions.zip`（280479 B / 46 条目，SHA256 `91141A4ACE2530C06B545D4476D0C068606CFD77E442AE0ABCAD96D1FAF59051`，逐文件 46/46 一致）。**本批结论同样不预先登记 P1 阶段通过。**
+
+| 场次 | 配置 | files | RESULT | 有效 | 说明 |
+|---|---|---|---|---|---|
+| **`20261012-145644`** | P | 22 | **OK** | **是** | **第三轮整改后决定性场（P）**。build `b20261012-145642-5d9874f4`，sha256 `467A10531BF01722F5E1146E8D9248141AFC3B7FE3CBDDDE630B6F0443B439E6`（96768 B）。`ranged_edge=0.397 strength_ratio=0.929`。**本轮修复点直接证据**：`plan-4-task-1` 投递 4 次（94.654/97.659/100.662/103.662），`first_submitted_at=94.654`、`selection_deadline=104.654` 四次不变；104.654 后停止投递；106.664 `TASK_SELECTION_TIMEOUT waited=12.010 limit=10.000`；`plan-4` 关闭 `reason=SelectionTimeout`。9 条写令顺序严格 Ranged(task-1)→Infantry(task-2)，间隔 2.950–8.551 s 均 ≥1.5 s。`REAL_SELECTION=9 / WRITE_EXECUTED=9`，`PLAN_CHANGED=0 / HANDOFF_DROPPED=0 / PLAN_INVALIDATE_REJECTED=0 / SNAPSHOT_REFUSED=0 / EXIT_STOP_EXPIRED=0`。退出动作 `EXIT_STOP_DONE=1 / NOT_APPLIED=1` |
+| **`20261012-150054`** | N | 22 | **OK** | **是** | **第三轮整改后决定性场（N）**。build `b20261012-150053-d975e954`，sha256 `1C42FE3307A7643B2D03034BC4136DFF472317319C4A5EC78BF83F75A69F4E4E`（96768 B）。`ranged_edge=-0.335 strength_ratio=0.919`。5 次投递全部一次获选，**无重投场景，不构成该修复点的验证**，但与修复不冲突。写令顺序 `plan-1/4-task-1`（Hold）先、`-task-2`（Reposition）后，间隔 3.451–8.547 s。`EXIT_STOP_DONE=1 / NOT_APPLIED=0`，`plan-1-task-2-exit` 11.039 实际写出 `StandYourGround`。`PLAN_CHANGED=0 / HANDOFF_DROPPED=0 / MISSION_CLEANUP=1`。反馈按 TaskKind 分支：Hold `hold_no_displacement_required`、Reposition `closed_distance=3.18/3.17 from=20.00` |
 **2026-10-12：P1 最小指挥闭环两场主对照已跑完，交回独立验收。** 实现交接见 `../P1-IMPLEMENTATION-HANDOVER.md`，六项修复复验证据见 `../_p1_reverify_evidence.md`，修复依据 `../P1-CODEX-FIRST-LIVE-REVIEW.md`（提交 `113dbb2`）。本批结论**不预先登记 P1 阶段通过**。
 
 | 场次 | 配置 | files / bytes | RESULT | 有效 | 说明 |
