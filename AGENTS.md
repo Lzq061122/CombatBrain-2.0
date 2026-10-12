@@ -1,6 +1,6 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 PAIPOS Workflow Entry
-Version: 1.2
+Version: 1.3
 Author Role: Project Governance Maintainer
 Model: GPT-6
 Created: 2026-10-02
@@ -10,9 +10,9 @@ Scope: CombatBrain 2.0 / Workflow
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.3 2026-10-12 16:09 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb20-p1-stage-exit-20261012 | note=同步 P1 最小闭环阶段独立验收结论，未验证边界继续保留，观测验收仍独立
 v1.2 2026-10-12 13:43 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-exclusive-game-adoption-20261012 | note=落实用户协调通知：观测工作树禁止主线操作、提交在集成工作树审查、完整实测统一串行入口
 v1.1 2026-10-12 13:30 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-observation-isolation-20261012 | note=规定 CB2 与观测组独立工作树、文件归属、接入合并与共享实机串行边界
-v1.0 2026-10-02 00:18 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-paipos-fix-20261002 | note=在实际 2.0 Git 根建立自动加载入口，直接注入完整 PAIPOS Lite 正文
 -->
 
 # CombatBrain 2.0 项目入口
@@ -73,7 +73,7 @@ v1.0 2026-10-02 00:18 | role=Project Governance Maintainer | model=GPT-6 | edito
 - **接口按约定调整**：现有 `Resolve/Emit/Shutdown` 接口及事件字段是双方接入约定，不在修战术行为时随意改名、删除或吞掉；观测组也不得借增加记录改变资格门、计划条件、发令次数或反馈判据。需要改变接口或移动事件位置时，随补丁写清理由与双方调用影响，再由 CB2 组合入。此次先保留现有目录与已提交适配器，不重写历史、不另建 SDK。
 - **提交只收本组改动**：操作前核对工作树绝对路径、分支、HEAD 和脏文件；只按明确文件范围暂存，禁止用 `git add -A`、`git commit -a` 收走另一组成果。其他组拥有的文件有新变化时保留现场，不能还原为自己的旧副本。混合提交不能直接整体 cherry-pick，需按本次交付范围审查合入。
 - **构建在本组目录，部署与实机串行**：两组独立构建各自 `bin/obj`，不得清理另一组输出。游戏模块、GABS 配置、Documents 下的观测身份文件、P1/资格探针开关和游戏进程仍是共享资源；同一时间只有一组使用这些资源。未获得当前实测方交接时只做离线开发，不部署、不启动/结束游戏、不改测试开关、不停另一组进程。交接包含来源路径/提交、实际 DLL SHA256、当前配置、开关状态和场次目录；接手方核对后使用。独立工作树不等于独立实机环境。
-- **验收分开**：观测组功能不借 P1 通过状态自动通过；P1 也不把观测组件纳入其战术整改贡献。提交 `616b903` 已包含适配器，保持该历史；后续观测修复在观测分支提交、经接入审查合入。P1 当前仍待独立验收。
+- **验收分开**：观测组功能不借 P1 通过状态自动通过；P1 也不把观测组件纳入其战术整改贡献。提交 `616b903` 已包含适配器，保持该历史；后续观测修复在观测分支提交、经接入审查合入。P1 阶段结论以 `Program/_verify/P1-STAGE-EXIT-ACCEPTANCE.md` 为准；未验证边界不得改写成已实机验证。
 
 2026-10-12 用户协调通知的具体执行安排（补充并约束上面的合入与实测方式）：
 
