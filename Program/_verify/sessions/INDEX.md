@@ -1,4 +1,20 @@
-# P0 第一批 — 实机场次索引
+## P1 第一批 — 实机场次索引
+
+**2026-10-12：P1 最小指挥闭环两场主对照已跑完，交回独立验收。** 实现交接见 `../P1-IMPLEMENTATION-HANDOVER.md`，六项修复复验证据见 `../_p1_reverify_evidence.md`，修复依据 `../P1-CODEX-FIRST-LIVE-REVIEW.md`（提交 `113dbb2`）。本批结论**不预先登记 P1 阶段通过**。
+
+| 场次 | 配置 | files / bytes | RESULT | 有效 | 说明 |
+|---|---|---|---|---|---|
+| **`20261012-094559`** | P | 16 / 1102.9 KB | **OK** | **是** | **P1 主对照（远程优势成立）**。build 载入 sha256 `1CB4F9A264A8C408205E36B63FB1F62F47E18CD848783739B10EF6B8ED57DF53`（83456 B），pid 40848。请求我方 30/55/15/0、敌方 70/20/10/0；CBATH 独立读数我方 team=1 共 92 人（远程 56 / 步兵 15）、玩家队 team=0 共 99 人（远程 21 / 步兵 66）→ `rangedEdge=+0.3966`。`PLAN_CREATED=9 / PLAN_INVALIDATED=9 / PLAN_CHANGED=1 / PLAN_CONTINUED=27`；`WRITE_EXECUTED=10`（含 1 条退出）、`TASK_FEEDBACK effective=6 / failed=0`；首令 `at=3.041 first_command_delay=1.505`，编队间隔 1.544 s；资格失效 `at=9.539` 同 tick 关闭计划 |
+| **`20261012-094953`** | N | 16 / 1174.7 KB | **OK** | **是** | **P1 主对照（远程优势不成立）**。同 build sha256，pid 20924。请求我方 70/20/10/0、敌方 30/55/15/0；CBATH 独立读数我方 team=1 共 91 人（远程 21 / 步兵 58）、玩家队 team=0 共 99 人（远程 56 / 步兵 22）→ `rangedEdge=−0.3349`。`PLAN_CREATED=3 / PLAN_INVALIDATED=3 / PLAN_CHANGED=0 / PLAN_CONTINUED=47`；`WRITE_EXECUTED=4`、`TASK_FEEDBACK effective=3 / failed=1`（`plan-1-task-2` `NotEffective projected_displacement=2.51 <3.0`）；资格失效 `at=15.542` 同 tick 关闭计划 |
+| `20261012-013102` | P | 16 / 1014.5 KB | OK | 否（已被取代） | P1 前轮场次。**保留为被复核的失败证据**：V9 首令延迟 0.014 s、编队间隔 0.043 s；V10 失资格后 4.005 s 计划仍开放；V11 旧计划退出任务反馈取消新计划。载入 sha256 `51F53C56…` |
+| `20261012-013618` | N | 16 / 1137.8 KB | OK | 否（已被取代） | 同上，V9 为 0.063/0.441 s。载入 sha256 `51F53C56…` |
+| `20261012-012443` | P | 10 / 5.4 KB | FAILURES (3) | 否 | **runner 参数名缺陷场**：`h3_start_from_screen` 以扁平参数调用，桥接层拒绝 `Unknown argument "enemyArmySize"`。属 §5.5(c) 相关源码改变，**2.0 代码未执行**，不构成对 §12 VM 路径的证据 |
+
+- P1 两场的逐项验收（V1～V14）与未验证项登记见 `../P1-IMPLEMENTATION-HANDOVER.md` §4 与 §7。
+- 前轮两场**不重写**，作为修复前后对照保留。
+- `_lastrun*.txt` 控制台副本按既有约定不入库。
+
+## P0 批次 — 实机场次索引
 
 **当前阶段结论（Codex，2026-10-11）：Gate 3 两项补证经独立复核通过，P0 在限定控制范围内正式退出，可以进入 P1。** 本轮补证场为 `20261011-162100`（玩家队身份边沿）与 `20261011-164000`（独立失资格时间线），阶段验收见 `../P0-STAGE-EXIT-ACCEPTANCE.md`。下方既有批次描述保留为历史，待复核措辞不代表当前状态。
 
@@ -6,13 +22,21 @@
 
 Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的单槽位同步修复及受影响通路已独立核对，原有阻挡关闭。当前决定性场次为 **run 7 `20261011-002337`**，当前验收见 `../P0A-CODEX-ACCEPTANCE.md`。未验证边界保留；不以单场 RESULT: OK 代替 P0 整体验收。
 
-本文件是唯一提交进仓库的场次索引。**完整场次材料（含 2.0 日志、引擎日志、控制面 JSON、CBATH 独立采样）外置归档，不入库**；归档摘要不写入归档内部（自指即失效）。
+# CombatBrain 2.0 实机场次索引
+
+本文件是唯一提交进仓库的场次索引。**完整场次材料外置归档，不入库**；归档摘要不写入归档内部（自指即失效）。
 
 ## 外置归档
 
 | 项 | 值 |
 |---|---|
-| **归档（当前，覆盖 19 场，含 Gate 3 补证两场）** | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-supplement-sessions.zip` |
+| **归档（当前，P1 两场主对照 + 两场前轮失败场 + 一场 runner 失败场，共 5 场）** | `E:\MBmod\CombatBrain2-evidence\20261012-p1-live-sessions.zip` |
+| 大小 / 条目 | **228231 B / 74**（解压后约 4.4 MB） |
+| SHA256 | `CE9541ABBF77FCC82C06AB7F0AD69B40421F230D431886FA683466DB07F95EB1` |
+| sidecar | `E:\MBmod\CombatBrain2-evidence\20261012-p1-live-sessions.zip.sha256` |
+| 覆盖面 | `20261012-094559`（P1 配置 P）、`20261012-094953`（P1 配置 N）、`20261012-013102`（前轮 P，含被复核的 V9/V10/V11 失败证据）、`20261012-013618`（前轮 N）、`20261012-012443`（runner 参数名缺陷场，2.0 代码未执行） |
+| 逐场次哈希校验 | 已对 5 个场次逐个「解压后文件集合哈希 vs 源目录」比对，全部 MATCH |
+| 归档（上批，覆盖 19 场，含 Gate 3 补证两场） | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-supplement-sessions.zip` |
 | 大小 / 条目 | **8925131 B / 666** |
 | SHA256 | `C86C44A5A7B323A8D9D9AE4733BC24EB22C79FFB3514A8D5A0E1A254799183C4` |
 | sidecar | `E:\MBmod\CombatBrain2-evidence\20261011-gate3-supplement-sessions.zip.sha256` |
