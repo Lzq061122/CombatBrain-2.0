@@ -110,7 +110,13 @@ namespace CombatBrain2.Core
                 // Reposition：先核对实际命令目标点的读回误差，
                 // 再按到目标距离减少 >=3 m 或已到达判定进度。
                 double readback = task.OrderTargetReadbackError();
-                if (readback >= 0.0 && readback > TestParameters.TargetPointToleranceMeters)
+                if (readback < 0.0)
+                {
+                    // 没有读到实际命令目标点：这不是"目标已正确落地"的事实。
+                    // 保持 Pending，到既定反馈截止再报失败，不借缺失值继续距离判定。
+                    detail = "order_target_unreadable";
+                }
+                else if (readback > TestParameters.TargetPointToleranceMeters)
                 {
                     // 命令目标点与有效请求点不符：本命令没有落在请求的位置上。
                     detail = "order_target_readback_error=" +

@@ -483,6 +483,38 @@ namespace CombatBrain2.Tests
             Assert.Contains("order_target_readback_error=5.00", r.Detail);
         }
 
+        // 没有读到实际命令目标点时不得判生效：缺失不是"目标已正确落地"的事实。
+        // 反馈窗口内保持 Pending，到既定截止报失败。
+        [Fact]
+        public void RepositionWithoutOrderTargetReadbackIsNeverEffective()
+        {
+            var t = new FormationTask
+            {
+                TaskId = "t1",
+                PlanId = "plan-1",
+                Kind = TaskKind.Reposition,
+                FormationKey = "0/1",
+                ObjectIdentity = "obj@0/1@Ranged",
+                OrderAfter = "Move",
+                WrittenAt = 10.0,
+            };
+            t.SetTarget(0.0, 0.0, 20.0, 0.0);
+            t.SetBaseline(0.0, 0.0);
+            // 不调用 SetOrderTarget：模拟读回失败。
+
+            // 位移已达标，但目标未知 → 窗口内不得报生效。
+            var rec = Rec("0/1", team: 0, playerTeam: false, cls: "Ranged", units: 20, x: 4.0, order: "Move");
+            var pending = TaskFeedback.Evaluate(t, rec, 11.0, double.NaN, double.NaN);
+            Assert.Equal(TaskFeedbackState.Pending, pending.State);
+            Assert.Equal("order_target_unreadable", pending.Detail);
+
+            // 超过反馈截止 → 失败，且仍不得报生效。
+            var expired = TaskFeedback.Evaluate(t, rec, 14.0, double.NaN, double.NaN);
+            Assert.Equal(TaskFeedbackState.Failed, expired.State);
+            Assert.Equal(PlanInvalidReason.NotEffective, expired.Reason);
+            Assert.Equal("order_target_unreadable", expired.Detail);
+        }
+
         // Engage 位移基线同样按写令时位置：发令前的原生接近不计入。
         [Fact]
         public void EngageProgressUsesWriteTimeBaseline()

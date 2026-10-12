@@ -236,5 +236,16 @@ namespace CombatBrain2.Tests
             Assert.Equal("1/0", gate.PendingKey("i1"));
             Assert.NotEqual("1/3", gate.PendingKey("i1"));
         }
+
+        // 独立退出动作必须能被单独识别：普通任务的"计划已关闭"兜底门只对普通任务成立，
+        // 否则已获选的退出 Stop 会被误挡（脚本 §7.2）。
+        [Fact]
+        public void IndependentExitTaskIsDistinguishableFromNormalTask()
+        {
+            var exit = new FormationTask { TaskId = "plan-1-task-1-exit", PlanId = "plan-1", Kind = TaskKind.Hold };
+            var normal = new FormationTask { TaskId = "plan-1-task-1", PlanId = "plan-1", Kind = TaskKind.Reposition };
+            Assert.True(BattlePlan.IsExitTask(exit));
+            Assert.False(BattlePlan.IsExitTask(normal));
+        }
     }
 }

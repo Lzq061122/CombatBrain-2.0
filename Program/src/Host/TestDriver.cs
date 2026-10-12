@@ -522,8 +522,11 @@ namespace CombatBrain2.Host
                     continue;
                 }
                 // 计划已失效但任务尚未逐条关闭（关闭是同步的，这里只作兜底）。
+                // 独立退出动作不受此门约束：它按自己的身份、来源与 1 s 截止判定，
+                // 否则已获选的退出 Stop 会被普通任务的兜底误挡（脚本 §7.2）。
                 var plan = _plans.Current;
-                if (plan != null && plan.IsClosed &&
+                if (!BattlePlan.IsExitTask(task) &&
+                    plan != null && plan.IsClosed &&
                     string.Equals(plan.PlanId, task.PlanId, StringComparison.Ordinal))
                 {
                     Cb2Log.Line("HANDOFF_DROPPED",
