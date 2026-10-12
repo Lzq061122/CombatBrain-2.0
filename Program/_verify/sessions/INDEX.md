@@ -124,3 +124,22 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 - `gabs-config/bannerlord148-cb2/`：GABS 运行时状态（`bridge.json` / `runtime.json` / `history.json` / `launch.log`），非交付物。配置本体 `gabs-config/config.json` 已提交。
 - `Program/_scratch/`：构建期反射探针与反编译产物（临时工具，非交付物），磁盘保留、不入库。
 - `_verify/_lastrun*.txt`：实机脚本控制台输出副本，非交付物。
+
+## 第三轮 P1 复验（2026-10-12，两处缺口修复后）
+
+第三轮针对 `P1-CODEX-REVERIFY-2.md` §3 两处缺口修复后的复验，两场均由共享协调入口 `coordination/Invoke-ExclusiveGame.ps1`（Owner=主线组）串行执行完整流程。
+
+- **配置 P `20261012-142820`**：`RESULT: OK`，exit 0。载入模块 SHA256 `36545E1984F92FF76817D4D25D74243946D1E86BA691CBFE61AC5AEBFF444D8D`（96256 B，与部署文件一致）。
+- **配置 N `20261012-143135`**：`RESULT: OK`，exit 0。载入模块 SHA256 `3A3D66E7282280D8742A1DB10848CD6AD34ED9CB89C45967A587FF1AEC0EB7E9`（96256 B，与部署文件一致，同源码重复构建摘要不同属既定事实）。
+
+两场关键事实：
+
+- 缺口 1（读回）：P 两条 Reposition `readback_error=0.000`；N 三条 Reposition `readback_error=0.000`。缺失读回不再判生效。
+- 缺口 2（退出生命周期）：N `plan-1-task-2-exit` 10.269 入队 → 11.031 `REAL_SELECTION` → 11.038 `EXIT_STOP_DONE`（`order_after=StandYourGround`）；P `plan-3-task-1-exit` 94.536 入队 → 95.089 `EXIT_STOP_DONE`。两场 `HANDOFF_DROPPED=0`。
+- 未获得退出实例：P `plan-1-task-2-exit`、N `plan-4-task-1-exit` 均在 1 s 期限内按 `not_completed_in_time` 关闭并撤权。
+- 发令顺序：两场每个计划均先 Ranged（task-1）后 Infantry（task-2）。
+- 写令延迟：均 ≥1.5 s（P 首令 3.014/3.491，N 由 `first_command_delay` 6 次与 `predecessor_not_written` 3 次拦截）。
+- 继续条件：两场 `PLAN_CONDITION_LOST=0`、`PLAN_CHANGED=0`；但 strength_ratio 分别为 P 恒 0.929、N 恒 0.919，**均未落入 (0.70,0.80) 区间，继续条件未被实机触发**，不得登记为已验证。
+- 两场 `MISSION_CLEANUP=1`、`PLAN_INVALIDATE_REJECTED=0`、无新崩溃目录、无残留进程。
+
+外置归档：`E:\MBmod\CombatBrain2-evidence\20261012-p1-reverify2-sessions.zip`，309541 B / 46 条目，SHA256 `AD10F24223A864C481D1A8A7BCCECBF72534996B48DAF12C47866A60CADEF9C7`；逐文件对盘 **46/46 MATCH**。含两场次目录与 `_p1_exclusive_P.log` / `_p1_exclusive_N.log`。
