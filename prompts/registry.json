@@ -31,6 +31,21 @@
       "content_sha256": "3471ff7ba6a46a8387a5f1054732d1a3f83d1165e362485a21049f3e2ce5d77e",
       "auto_archive": false,
       "notes": "用户要求由 CB2 仓库维护 P2 正式派单；v1.1 从 TCL f73857f 迁入，范围及验收判据不变。登记不代表已实现或阶段通过。"
+    },
+    {
+      "prompt_id": "CB2-PROMPT-0003",
+      "series_id": "p2-multi-formation-coordination",
+      "title": "CombatBrain 2.0 P2 Restart Remediation Dispatch",
+      "kind": "development-dispatch",
+      "root": "repo",
+      "path": "Program/_verify/P2-RESTART-REMEDIATION-DISPATCH.md",
+      "status": "ACTIVE",
+      "created_at": "2026-10-13",
+      "updated_at": "2026-10-13",
+      "owner": "project-maintainer",
+      "content_sha256": "648065c3a2905277c78dfb54580dc185c0d150151c9fbf1dd6c7ba4b284396dc",
+      "auto_archive": false,
+      "notes": "用户要求更换开发会话前先复核并派单；接续未提交的P2修复，限定整改和集中实机交回。CB2-PROMPT-0002继续作为验收合同；本登记不代表阶段通过。"
     }
   ]
 }
