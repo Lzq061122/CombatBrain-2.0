@@ -1,0 +1,3449 @@
+{
+  "repositories": {
+    "E:\\MBmod\\CombatBrain 2.0": {
+      "head": "f60f8c0a281f85758e7f9ae0a1a53f682ee0563a",
+      "branch": "master",
+      "status": "M Program/src/Core/CoordinationDriver.cs\n M Program/src/Core/CoordinationPlan.cs\n M Program/src/Core/EligibilityTrigger.cs\n M Program/src/Host/BuildIdentity.g.cs\n M Program/src/Host/EligibilityProbe.cs\n M Program/src/Host/SamplingBehavior.cs\n M Program/src/Host/TestDriver.cs\n M Program/tests/CoordinationDriverTests.cs\n M Program/tests/CoordinationIntegrationTests.cs\n M Program/tests/DependencyReadinessTests.cs\n M Program/tests/EligibilityTriggerTests.cs\n?? Program/_scratch/\n?? Program/_verify/_lastrun-A-reweight.txt\n?? Program/_verify/_lastrun-B-reweight.txt\n?? Program/_verify/_lastrun-a5.txt\n?? Program/_verify/_lastrun-a5b.txt\n?? Program/_verify/_lastrun-p1N-a5.txt\n?? Program/_verify/_lastrun-p1P-a5.txt\n?? Program/_verify/_lastrun-p1n.txt\n?? Program/_verify/_lastrun-p1p.txt\n?? Program/_verify/_lastrun-p2-A-2.txt\n?? Program/_verify/_lastrun-p2B-a5.txt\n?? Program/_verify/_lastrun-step1-A.txt\n?? Program/_verify/_lastrun-step1-A2.txt\n?? Program/_verify/_lastrun-step2-B.txt\n?? Program/_verify/_lastrun-tests-bc19105.txt\n?? Program/_verify/_lastrun.txt\n?? Program/_verify/_lastrun10.txt\n?? Program/_verify/_lastrun11.txt\n?? Program/_verify/_lastrun12.txt\n?? Program/_verify/_lastrun2.txt\n?? Program/_verify/_lastrun3.txt\n?? Program/_verify/_lastrun4.txt\n?? Program/_verify/_lastrun5.txt\n?? Program/_verify/_lastrun6.txt\n?? Program/_verify/_lastrun8.txt\n?? Program/_verify/_lastrun9.txt\n?? Program/_verify/gabs-config/bannerlord148-cb2/\n?? _scratch/",
+      "tracked_dirty_sha256": {
+        "Program/src/Core/CoordinationDriver.cs": "0821d4e09610c9b6fc94241e1fec5eeb5f419bffb9365a35b5e9af44cd976aae",
+        "Program/src/Core/CoordinationPlan.cs": "c0f5ea4654498ce2809e6e2b0a774c5a231c8b32459329e329b63749fcb0caed",
+        "Program/src/Core/EligibilityTrigger.cs": "9d975eccc215ddf0bb83dd7d077c8f3542c04908677fb85e8ff5ecbbc2e82934",
+        "Program/src/Host/BuildIdentity.g.cs": "35b66865e389e9d5e36233a10c65c86e9776fdfec1b9209506c17ebd9aa7a6fa",
+        "Program/src/Host/EligibilityProbe.cs": "4e6b2d45c47db6125aec243b4adb76a69364772c9bdc13bd141045cd05c24019",
+        "Program/src/Host/SamplingBehavior.cs": "e79cd6dd6bcbb611b2f6f8c619895b881facccbbe08a59301f6b5f122985d307",
+        "Program/src/Host/TestDriver.cs": "ee9e2fa8539e9b5833b0864e11ee7adaeb557f73eb675a6f9cdc8360a8256848",
+        "Program/tests/CoordinationDriverTests.cs": "69fd865d7c4bbd2852fe506e370b775e72694ad9f27b89a100a1008a3acea19c",
+        "Program/tests/CoordinationIntegrationTests.cs": "66f47c22d724e9080fdfb247a05dfe1c7893ffc9651f70d4fcce3f6e685e4567",
+        "Program/tests/DependencyReadinessTests.cs": "f9503ae408edb6e4d37ba036538051be2280f0b47656e6dd1ead1b8acaa9e181",
+        "Program/tests/EligibilityTriggerTests.cs": "84a40d3be4fe38513b102f06a782595b19117b96f975ff3d65390de6fc26ea9f"
+      }
+    },
+    "E:\\MBmod\\CBATH-P2": {
+      "head": "b9fcef7ddf3c455c76529da7d7a722d84374041b",
+      "branch": "codex/cb20-p2-evidence",
+      "status": "M RD/CombatBrain-Autonomous-Test-Harness/experiments/test-mod/CBATH/P2FormationEvidence.cs",
+      "tracked_dirty_sha256": {
+        "RD/CombatBrain-Autonomous-Test-Harness/experiments/test-mod/CBATH/P2FormationEvidence.cs": "c23fa6edb0fd2e2ff06872a986ea09a601f36c867895b6ae18a8fdf0ffdb40fb"
+      }
+    }
+  },
+  "sessions": {
+    "p2-A-20261013-210823": {
+      "file_sha256": {
+        "build-identity.json": "8666027c212314da635d9a54dd792b47371b94145a37a933d0a1374b13d5878a",
+        "cbath-timeline.json": "f49d60447a8c8f4fdbc8cda9e3f0ae7d8e822c1c591935b6f6d800ef827928dd",
+        "CombatBrain2.log": "cf5722da24bac4f3caa411f8be510231e456b39b079de243eb4050c1bbad4b61",
+        "delegate.json": "b5081063bb9afde5b0b016eb3892a722c6488f5e33f09309a539e0b559e6ae60",
+        "deployed-module.json": "dd52a5249d39b1adc667fec295aeba5da418327e6a044fcb6bf7d3c5114ccd72",
+        "deployment.json": "9a5fc5cabba6e97e87046a11f954805704e8f769ce533a3336fa199b90380d95",
+        "formations-early.json": "f0a094057428830bc43a48998bc21f6cc93363bc5c37e3cec4b79ce233c8c022",
+        "formations-late.json": "d903cfe6a038687af0c3df941aa0238c841381158e7b6dab8197845841155f55",
+        "last-run.json": "373bea95599187b31e733ccee92ee8beb4e3bb14dbe1576c87248996af60962e",
+        "mission-state-end.json": "94774ad6d8847185d8caf2cd88ca27e539cb6d6688df034dcd815928d6f5093f",
+        "p2-evidence-0001.json": "dcc1cec423b70223f0d00bb338d5343d89b4214e5498bd7c6a99ef02aa0a6445",
+        "p2-evidence-0002.json": "b8686707862c79e6ee2b518d42d29b904e35a890478bc006fc3a272a15c1a75d",
+        "p2-evidence-0003.json": "477b56358ff0869c8f98334464ee8e5a3c9f07002c1f9a97c4bdcc412cb60a9c",
+        "p2-evidence-0004.json": "33049eab9e02329c92e358715cfe23afca42297cdb21a5eddd1f1af92ef05391",
+        "p2-evidence-0005.json": "2481a39b421b3d97d83944f3213368c8b9e4252edfee778bcc60cf82f74d6a12",
+        "p2-evidence-0006.json": "e776e7bb52db3dc92ae9376fe15f73e5e211afb5cfd001bbbbc2f985f70dc38f",
+        "p2-evidence-0007.json": "dcf4978e020a9e6066e9c77d23da8a35c5a01afd606d65968ea2f5d38e8258fb",
+        "p2-evidence-0008.json": "60450b1366a1e9ae8434e4c31b6290828f2289c8cf2fe461bfc23f8a45adb2f0",
+        "p2-evidence-0009.json": "852de3304f9d7fe73fe481971dbf87e2bc752ceba3f317b3edb7284a42576e02",
+        "p2-evidence-0010.json": "10d63a11827af1bead5ebdce0ed6c5afdce66ef4e7a473ff6b1f5ebd8e5a5bf1",
+        "p2-evidence-0011.json": "4365495985dac9dd35e11ee664dc78afbff2d96816ac63e981c6acb718ec42e8",
+        "p2-evidence-0012.json": "6a2e8cfe7c7bdb93821e182be57fab548f605060c8374f98c09f72328fa1eff5",
+        "p2-evidence-0013.json": "a68bc9e943b9fde387b5f6f67f9d3f6aff0dba691a25e44280ce2897a2e5db7f",
+        "p2-evidence-0014.json": "1bedd04733b52403eea42e7bb713570805eb1296f2f3f22c5dcd6cd0f662a0d8",
+        "p2-evidence-0015.json": "e57f22f23367366736f6560c3b8460d76c72f8e796a97acf0535bb9419e8e530",
+        "p2-evidence-0016.json": "7092a26a0ca7b22c0c420b2751c4da87b3241dd6144057c9c5cc817ac7e20c4f",
+        "p2-evidence-0017.json": "be63ed1205a688f0032dae83a4c54e47c57ed3327d3b97695bfbd2678230ad6b",
+        "p2-evidence-0018.json": "918ec024e604de5652f4aa0b3b6d3fb263c27536c5cf5bc6e00dff569d355f95",
+        "p2-evidence-0019.json": "6c6837311c260c36f0b48d697d179a900e8373a263ae9a86ab547142802ac49b",
+        "p2-evidence-0020.json": "9906ac3f4d19c5e34b5d6f1b4a472d89f0f1ee86ed0d1ad3d67d597ec5a55180",
+        "p2-evidence-0021.json": "56527cfab4b6b40ce9f166b624ae435c517abec5df065fb802ad248f93decb02",
+        "p2-evidence-0022.json": "a4a8ccb62e9c675793b2e06227891073729192478bd6be1d31e7c5b1470a3a23",
+        "p2-evidence-0023.json": "107d7e2bc63098966c875e675bff10fbdacdb5778693d10ee8c1e79bff2f1869",
+        "p2-evidence-0024.json": "a7ed2b09e519fb6c09f33548ddb951b584ce20bf048df1c9e05be53f7a8582bb",
+        "p2-evidence-0025.json": "302f58dc6688f85a5af9c3a131ac285a1665829249661c336a0ec30e804ddaab",
+        "p2-evidence-0026.json": "e963f7c7502ed0a82bce406a44bf6a87942ba3e460af512c8fc5d65d551582db",
+        "p2-evidence-0027.json": "beceec380366df4bdebc13acb298ffe920554195cac162e0a833147f29843376",
+        "p2-evidence-0028.json": "a31636c78c8484c497474a3870fe8eae4a56b546934988bafab7d0bec63bf78c",
+        "p2-evidence-0029.json": "e47d998d98d8811198ba73f042741bffb84c93f59071dae149922eb6072a2387",
+        "p2-evidence-0030.json": "15ade95e40e34fab4efebf0ebb95429d6fc4581ff29129df3b469a94ae1719b5",
+        "p2-evidence-0031.json": "705607a6385c986d4bf1240ed16f97500e590114ac9e0e857d470cccffdcd85a",
+        "p2-evidence-0032.json": "58acf2c10a9b2e459611872e108f4e869b24c803f72c5e215c70e9d253637360",
+        "p2-evidence-0033.json": "c1b989658f4600bc19ae6fbfc40e339ec69a95a6d33dea34d084f73a04a1424f",
+        "p2-evidence-0034.json": "3418dadf960c75b6703cbb6f53a0d451200e7953576402ea2678debddba5a700",
+        "p2-evidence-0035.json": "a52ff507dc65d02abab8b83c58d99e05870a1cd6016d891b3b46000726bb7215",
+        "p2-evidence-0036.json": "8e7913c02ef987e2b28d566fdfddbc77d7269e7dc432427e226bb99a1af6664b",
+        "p2-evidence-0037.json": "74de4477a76904ccb5a96f462e6e762c9f3e8315589570f9604c84f70e8dac87",
+        "p2-evidence-0038.json": "8badb0f435d1f446e03ef490f787efcbafddc18409f228139daf61ba5f6fd918",
+        "p2-evidence-0039.json": "f5539251a756d31732fa805fe680ae54718b88456a30c1fe25b7576e7fa95a2b",
+        "p2-evidence-0040.json": "aa15dbf0abdd3a72b52124cb134e0910976d535d25026fd13762912b43e40fdc",
+        "p2-evidence-0041.json": "bfaf51a516b4e9ecd05fe25663d6dce80346f7016bc11470575823919f42bb98",
+        "p2-evidence-0042.json": "b63efb15690dc2b86068aadab2011477d23c47ea54b89130ad8d9ee0c39ea6e3",
+        "p2-evidence-0043.json": "d206854002ced6212e55e54463d1fdeff92c1c18fdb37c9a663bf57076f698b7",
+        "p2-evidence-0044.json": "c8eded822a65b127698ac06e9fdc1713a84859afadbd49302576f3dea5f7de8d",
+        "p2-evidence-0045.json": "2c32f28717ec200dd2fe8278539a040028f818bc9e32bab1fb5dec4109d666de",
+        "p2-evidence-0046.json": "072d250743bfc3723fa72c327a30ffb4c931eccb5e7ce871f5978b7247381856",
+        "p2-evidence-0047.json": "7d6ea79720820386cfb02feb2049e753b63259923c278653ad6321a0cb573c9d",
+        "p2-evidence-0048.json": "8f0d26974fe5d4ab7e15c399b7324e22f3e13c3af48581f82181ae8c389defcf",
+        "p2-evidence-0049.json": "ecdea5dac56f48f280345a075616894bd765967d5e5abbfe9a45feb8d952b4b8",
+        "p2-evidence-0050.json": "253dcf8980ffd2754e8e8b2178ec6f55b39530283e5651f7efcc9daae052e9d7",
+        "p2-evidence-0051.json": "d06c10c4666eacb7bf94e1b5877658368b8addf49e026059369a0e81d7b0c586",
+        "p2-evidence-0052.json": "d5e4b54a3009c227245a1f0f09fa6f83907cd2e939f85943ca289ab752b9bf63",
+        "p2-evidence-0053.json": "12a6620ef68507eb014a6c4c30f73ab4c597a2d55f0a02e73ad16986c5d5fb09",
+        "p2-evidence-0054.json": "147a68b7f2d3ac508f21342feee1e32f7568be15cb08c43bfaad438bdfa4a07e",
+        "p2-evidence-0055.json": "24d14df34a9de5a8a2b3d0eaa5f9e866c072fdc2a9f9ee02d7ca31194914db59",
+        "p2-evidence-0056.json": "ea8d0f2818e915703fc457a0f42ca85a4ee22df9bc1761af9f39284c4e0c7e43",
+        "p2-evidence-0057.json": "5c047661b391ec9f35cf570fe7fa5823802783503dd8c1c53478954d0b213bb4",
+        "p2-evidence-0058.json": "4497e4946e317145b23a3d53c0adcbed832ca1254d009e3ccf80a072fca7ce6a",
+        "p2-evidence-0059.json": "ec11126fe6141d558c0a1f6172215f962744bc3cde67754af47ad50d006f46e3",
+        "p2-evidence-0060.json": "e4bc72e2d8c4f78f4d4f1418a5fcc8068f261315b63a88af724544a13956fbb7",
+        "p2-evidence-0061.json": "b174d045c7e35e839abee01f325a8975ccc7acfa748f34d5d593ce9dbded889f",
+        "p2-evidence-0062.json": "5d79e88651f6b7183e43cadb3a68d8245b10311696a549c6a27af0150cf34f85",
+        "p2-evidence-0063.json": "d321d21424fbe087f73530a1708308ddae76af250d79c28ff88e68655dc67459",
+        "p2-evidence-0064.json": "c584e3db722fedbcf511bc24d2a1449f334fa03f61ed94082bfd161a8496454c",
+        "p2-evidence-0065.json": "83de9c88ea723af6de73bb392e2e2527a636b4102f0bab2f008e3c335d97e941",
+        "p2-evidence-0066.json": "8880b63371db3496d564b2ddd47edb264827152a1f393fd0e2de965095d7f559",
+        "p2-evidence-0067.json": "b303ac6a873172714746459da22b992f5ba495f2eea1952ceffa6a01667f1953",
+        "p2-evidence-0068.json": "ea9d87ab82c26e576b36f748842241ad9438aaaba1b30211c9d6481a7f4e867a",
+        "p2-evidence-0069.json": "b0195e509d91fd11a51c515356bc637a9977849ca8847166774b1b7ee792a7ec",
+        "p2-evidence-0070.json": "690bb22571d1b899385cfe15f4da67fb9898d9579e5486b12e561f020697850a",
+        "p2-evidence-0071.json": "943035c02a26e0a41c843838137323c97c53c3c6f0d161eadc783c0ce51a0b11",
+        "p2-evidence-0072.json": "a5ff1070dc41d612eb4cc21742a24d92ce34ca663c4d210797f43ed0f189b03c",
+        "p2-evidence-0073.json": "9aa75ccb0de616ea8c091493c126a03d6aedcfb442436dc2b3450c278a179dda",
+        "p2-evidence-0074.json": "ac3e51ccebf4eb18b0e42731a0132ed3ae0a292e6e805bd01bfcde98f85dba47",
+        "p2-evidence-0075.json": "221280e60e10ee9914f92759d26c2b9a187a2239332e8d043ffe7717ab2eaf88",
+        "p2-evidence-0076.json": "bea908f4becb5ce9df19d775df9a95a5d29c37fec4ac280dfb3c28bfc5e0a841",
+        "p2-evidence-0077.json": "60fbb43a969eb85f2e2f72c4b55e64cdf282627f9d49671062f49eea6ac0016a",
+        "p2-evidence-0078.json": "c56dfb8eaa200fe5f64441dc13ae616abc9664f005e68c0ffb66ab259e1eef74",
+        "p2-evidence-0079.json": "5fa27e49b87a15430231fe79569fbf75d72a2a81e789f15fffc99b072de34072",
+        "p2-evidence-0080.json": "8e9b8c852229fe08ebfc904af9ee637b1cd79444d61d1b7f4efe7fa3899a83ff",
+        "p2-evidence-0081.json": "09528764c3eae4962816b132ab1d6964b566a36a90f80e46f1f9c6019d9a0adf",
+        "p2-evidence-0082.json": "d612b647d9f2b32a02d1c9ace7c0c9e640af654b21938f425118bf75c85413ec",
+        "p2-evidence-0083.json": "128378b37a5e4e009a6d75de78be8ac0d54441ca85a093cce26328dd15a37df9",
+        "p2-evidence-0084.json": "a74b3ffbfaf4ff0306d80eb4cf3210b44faa57b316b3004f9e66d2ed2926f2d8",
+        "p2-evidence-0085.json": "68df863323eff37887a7e6554cc152b477da70d8ed7dec6240be59364ef016f0",
+        "p2-evidence-0086.json": "692761da5c3a3bd3fa61d6d980c90282aa47945d9d74d425ca06f02318db2adb",
+        "p2-evidence-0087.json": "1b79719c02668477e0aad82ff5a893943c66c0e87565d5951e8d551a06fda668",
+        "p2-evidence-0088.json": "e50a45ca4d7774d1968b734453931287433f320f3cae5d66eca1879dd6e3d570",
+        "p2-evidence-0089.json": "5a5fc1dfa335495667669d9407a539c5557982220b08360256aeb003bef8778c",
+        "p2-evidence-0090.json": "cfe29c1425445d60fcdda4d89795873dada4957e6113808a7562e56e4f64c3b3",
+        "p2-evidence-0091.json": "841e2b889d2d3c62330d08d8fbbb7198d698de07fa7d9b40b6059ede3fc71bc6",
+        "p2-evidence-0092.json": "8c006f21675f3e34c1850943aac9951041e83469ff524fcbcde50048471364bc",
+        "p2-evidence-0093.json": "ffed1f7cc87846d851ab5a101c9a7c71325381fbeac5dde08cdb3bff82d1adbd",
+        "p2-evidence-0094.json": "d905f0654a609b230cacfce004283a130c9867ea60edc28a3a811337f9a814b5",
+        "p2-evidence-0095.json": "a368063d1ff525a061a4c39a34a731e4d1d1628309029015574a5dbd3c19be6e",
+        "p2-evidence-0096.json": "5d1a86a4a1291b16cfe8eec2b789b7301bda3db173a2a6ef7c1dcf294a0dd66b",
+        "p2-evidence-0097.json": "170684f72f1409b786b9444317b142e94538e6f8c8249e9c8f23cb0de65915ea",
+        "p2-evidence-0098.json": "e684accc7bc0bd7c6fa93a474e639e268dab1aedcfccbb599ad98ecbe372e28d",
+        "p2-evidence-0099.json": "9757705b943fe7cb0c54539ba3e0d35b43de4fc15537f762c6992b7d2af8bae9",
+        "p2-evidence-0100.json": "6c1c5d71ad3cb26eaf8323ef841141d292926a18bd7857d2d7bdf8bdd1b90272",
+        "p2-evidence-0101.json": "48eac6900f36ab3c9055785395b28cfbacd070f492bbbf2792dd3168a6fa12b8",
+        "p2-evidence-0102.json": "3ee434404320416303193f74656cbeb153e21803f7f63cebd404e0434a170d77",
+        "p2-evidence-0103.json": "327ab8dd4793c4556f5185da41546188516232102c08499ac500cbd10f12c811",
+        "p2-evidence-0104.json": "c1cbaf3f8fe1dfa86e502bba0a3887b2feae3738518b1c211f931c5a5ea3172f",
+        "p2-evidence-0105.json": "5acf85195e5e398ecaf389ae3b3bf1144655068dbc980fb2339402762b5ee901",
+        "p2-evidence-0106.json": "c2c7baa49533ead91b19c20d8ef0759a1b28df66f211bf56fd8c80480a194299",
+        "p2-evidence-0107.json": "44876e6bdf04eff85b8e4865d8cfdaf4a8faf780422971730ab4b09838d5cac6",
+        "p2-evidence-0108.json": "4e60535944e1cdd6f2d0260b11ceba0b5ea2bf32595c4dcfc3b4df4678aac412",
+        "p2-evidence-0109.json": "d37ca240e5c7613433ba37f031478df57035426eda9276855396de4529d1fecc",
+        "p2-evidence-0110.json": "8ddcbe0142f0c7f8dfe94d50e4e17b45e8820171630697fe6a3c02cfe5cfce6a",
+        "p2-evidence-0111.json": "42fb2bae74825e2a3e1e6002df4799b63d6cf94b6fd1d2b6744ff80d3fef4b59",
+        "p2-evidence-0112.json": "dfadfabf3b5c42b9ad7a7e665dcbdd866bbb9d3eab4c9cbcdda15a176c8647a2",
+        "p2-evidence-0113.json": "bc8b62704e06b90ef94bafa08969284eeca17185c7d7a1549e9404af1fddcb55",
+        "p2-evidence-0114.json": "4143a4c8e2aafe6bb19e91ece8ed2321a005fd48e6e9a109d1e74c502b022e1d",
+        "p2-evidence-0115.json": "3f6e7265e76a3f2675674b7c987c77ac6ceea0bf1ad677a1e64c9f10765ccc90",
+        "p2-evidence-0116.json": "72ec91d42824404457ae671d438077b4b0cff74ca1d5540496473fdd2621dc67",
+        "p2-evidence-0117.json": "1727e9af6fa0ac49fbd6e45eb042495c5d65f87a8445b8088c2fd24b1444dd00",
+        "p2-evidence-0118.json": "36304f649fe3309038badebb9b555be56de20d1154e8c3f0dd9967644a5e7bf7",
+        "p2-evidence-0119.json": "75f5012243859b633bd7aa3881e7ecb78db66f1cb8974a54a4e82e222717784a",
+        "p2-evidence-0120.json": "c9f545029868e3c8a57c22fcc7cd808ef48aeedb7c314e0626d9c2aab9665a17",
+        "p2-evidence-0121.json": "c3ae4952023123963d3fc254840e356246b2a3fb8fa34122462e54b0a7db01e2",
+        "p2-evidence-0122.json": "c11d9a0704dfda4ee4f733696321b6acf66ddd00ce9fd8e0c45363125fbc73f8",
+        "p2-evidence-0123.json": "b10759fe2b815e4a708d4a8a45c329ae89450520782032ec5f25134dd77020c2",
+        "p2-evidence-0124.json": "1e1e79b9ec5a45f17b325b9f8ff512e470a6324ae4fbf2f58c77be4ee3c186fc",
+        "p2-evidence-0125.json": "96e74dfa81cc5aea3c474d6bc42fb3ae739806d2e75e2170402071781873df7c",
+        "p2-evidence-0126.json": "4ace4ea134c040faf5229f92d8b338c23bb623e7f5ff1f34562da1ee67b2a271",
+        "p2-evidence-0127.json": "7dfb64376591f78163d3e43b4916c04660c7145d0f5ba6cdb81ca2cbee9905fb",
+        "p2-evidence-0128.json": "040319a74da264ae905d453182cdda447473c851a638e01fb331e1d26f7250d0",
+        "p2-evidence-0129.json": "0d52cbdbdddffd4b3b7c5e22df86dfd805b58129922085d90e145065674968b7",
+        "p2-evidence-0130.json": "af4a6c9d150c236649192a806a0f6f8c6415c0ab21456d9e4c4ea3276101fe9c",
+        "p2-evidence-0131.json": "7c768a7d8d09acfd4786d73490c68985725d0665a0d282bc8d03abeca9b07306",
+        "p2-evidence-0132.json": "34dc8aa50c2f3cdc6e265d7560b44c8bfb81c765367e8dad25f97ec5f2769dca",
+        "p2-evidence-0133.json": "22e39313ccded52a3a45b99f5170b4dc9266676f44546fc981da35d29bd469c2",
+        "p2-evidence-0134.json": "274f88161f9fcc968772ef7f0de439bc20566f0a2519117798e05f71a04ba857",
+        "p2-evidence-0135.json": "d7ed8558f6101ccabe8c74c669831ed3807be8777d88f56ad0d7bcb0b58425a8",
+        "p2-evidence-0136.json": "bb595e306424dc330b90fabeee708925bc9ffabe33d914f10bb7a193c8d2f900",
+        "p2-evidence-0137.json": "1ae04ec097a0e3188421eed75031463222ee4a6378620e24c99be6c24d3f1c1e",
+        "p2-evidence-0138.json": "f5ea6ac54f55fc01ada4bd050902846b816e546c72b0d00fd55547251733ba77",
+        "p2-evidence-0139.json": "b7c39ef25ae74be9e69c0140ab9b6754bd9ab4f4342c8e17ea327d1e42ef4930",
+        "p2-evidence-0140.json": "d0ea43514172a3074709bb429918dff09bf353b6bea7131ce74703fd017674a4",
+        "p2-evidence-0141.json": "b5a98ddb5fcdbf790a776539f20c0143d5ea129cacfbaa32bcd51e85f85ebc03",
+        "p2-evidence-0142.json": "a7a40500960de56aa2ad6d37a5bf5593fd567fc3933c529cb047d6f213d293b7",
+        "p2-evidence-0143.json": "93f4ca648fff7794e49540ce9a6e98e040ef6ecd210b0a78c7bd1f573b7e710a",
+        "p2-evidence-0144.json": "f1eadf7ffedccf24fc7234b639af9c77d5f62ab8150c1a1a6f2124c8826a2834",
+        "p2-evidence-0145.json": "31e26ea946cba57f94ad95fb54b2351e341d8964fcb339082d07132037134b0c",
+        "p2-evidence-0146.json": "03cb746f67a789e67f991897605aeab0df68764d10388a11f514accd75296992",
+        "p2-evidence-0147.json": "097d2d711901ba89b13aadbe551bef4686a3686aae9da0bd0593f51fe0d7fcce",
+        "p2-evidence-0148.json": "140d0b58d0600d0568b4e4fb9741753341552108aa4c627ce2acacf96dd99a4e",
+        "p2-evidence-0149.json": "4002a419c64d623ccd18bbce15bc690fcf11460c79557e12becc2a29009b4f59",
+        "p2-evidence-0150.json": "882885f7299b72cc605edb0caf45865aae1700c0751bfbcd4a44eabc3db9d67c",
+        "p2-evidence-0151.json": "118e4a3a87dbca96f4507dae255014efea691fb486fa5472589ad93d4be3279f",
+        "p2-evidence-0152.json": "70a98081f30eeec108357cbf24f19eedfee5ba78f119ebc5276ce6e64668ba73",
+        "p2-evidence-0153.json": "34459088aa8cd022594b03d4f5ac98a70f226f4ce13ad91a450b9962cb84f688",
+        "p2-evidence-0154.json": "21e7bb603603bfd09872d68017b394ed3adcdb503a5e19764b98dd94e9956592",
+        "p2-evidence-0155.json": "c34c8107649c1730596ce8f906b18369ad5eea1c5f9f94c6920a11276b38da9d",
+        "p2-evidence-0156.json": "b33b6740dba9a4fdb0c4fc2f8f11ee941227a53693f0aee72827868af24172fc",
+        "p2-evidence-0157.json": "c98986896ce89d9ab1b7944ce87a94114686b6824954c8a4a2944bda1c71e977",
+        "p2-evidence-0158.json": "78c57d158858743628674307be4eafac30bcc25eb353e21ad5bae652056b5824",
+        "p2-evidence-0159.json": "94c714dd957a6ca8e91c87c7c81d566f683bda3399705d2f377d8df4812603ec",
+        "p2-evidence-0160.json": "748d97cfb5d4c6c4a2ab5a8b9b97a475648e55b363cdd37366fb4b877499bfd1",
+        "p2-evidence-0161.json": "a91680d35ff4128df1596db0e2c94daa81eed62ba00e275662eb86434ff368e7",
+        "p2-evidence-0162.json": "ccfcfd6bf914c6c55db970426192952443e25631c01632b467f33c05797988f5",
+        "p2-evidence-0163.json": "5a2a0dd78c905789d02dfc2026cff5d9bd98132e0b609cce27ef555537331de7",
+        "p2-evidence-0164.json": "e94b8b3d1fe841467014bacc1b732c7b67b5892ee8854f635ff62debbff0afbc",
+        "p2-evidence-0165.json": "b663158e751f38e4460849d0e508fc59ab5dbb25d10bd44da826427cbb35c794",
+        "p2-evidence-0166.json": "668ada413464ce330e8959fdad9ac5990946f84271ebc9fa43110fe908d5441b",
+        "p2-evidence-0167.json": "b40091058e2946e8ef43226826dc7101e4e60aadc0d3dbf40c422b2800917171",
+        "p2-evidence-0168.json": "f7180a22b5869b1f386889a82f92d1cc7f8d4c3089967376b09898e199302d34",
+        "p2-evidence-0169.json": "f5091165a4ad403d95baa9c9ee1495fc97d761e8a6a8a102e738d02cd6022b80",
+        "p2-evidence-0170.json": "f47ff40a1c841d850e4b70481233f750143b73d011b504ce458c699e09727392",
+        "p2-evidence-0171.json": "751c1589ec467cd3f85b727efcfcda8260a882a69af98fa875c230ac77daaef7",
+        "p2-evidence-0172.json": "ea2c150764b1c306c1d4b91d798b22d9e9306be0a6610dad09fc4cc965cf3864",
+        "p2-evidence-0173.json": "68bbdbbbfc636fb7fece5a0b4d7591289f75b150b59bb5249a51293d47dcc213",
+        "p2-evidence-0174.json": "c0ee87b82ad8dac78c836b41a959ebcde8be9813f0b4a9ef9674fa065992b92b",
+        "p2-evidence-0175.json": "fcd9755fe6eb500a64883e6ec0912f7e97b1c2022540fb933893e0f3ca731f38",
+        "p2-evidence-0176.json": "c04f2443086da581830932f2d4af625f77b9d2333f22b6c7642c84b68cda8e77",
+        "p2-evidence-0177.json": "6a7b18c38fb04f77d7e53107219d14cb4095876d6acd278e07aacb59d9585a6e",
+        "p2-evidence-0178.json": "03ebe50c8f0665a858f50d52fa8b8cd6d266f905d0f8940337100e5155a23b6d",
+        "p2-evidence-0179.json": "a92be13f1f450a63e64852ae65828cc34db8e2b4b58364f93445d8ea03556c21",
+        "p2-evidence-0180.json": "d22e44df30d0e266624c5a7561e4391a74b1739b36339e5d1b66e6af60e92cb2",
+        "p2-evidence-0181.json": "2d14d94199fc0103f0547274a3998ffa1300ed4c81a1bd4775809bfc3630a1e0",
+        "p2-evidence-0182.json": "cf8593bc794208d93d03cc5bc1379f9fec91b1b6e18ea8d7e97aa585adaf84f3",
+        "p2-evidence-0183.json": "1f65097e415c858b2f9a8042e56e29609ee048781b1d99806d5f481a1218c6b9",
+        "p2-evidence-0184.json": "f17ebcd4e7e867f7bd053bd923630e4cd89960c607d72c34fd03c93dfb0d237a",
+        "p2-evidence-0185.json": "29e43739d3013782650b8be572b558fbf5b36a13ab31ffb5f7881676c4a28bed",
+        "p2-evidence-0186.json": "50482c7368cbb292240e7f67fbceadb28ae44793e3f447883ef278fb41b8c750",
+        "p2-evidence-0187.json": "31ddc8c2fb8ca3c049de6739716e7cdef8c7274f242e17e2f6dcf5a37fd282a1",
+        "p2-evidence-0188.json": "b1918c1155a88e489d73ea5b5d9120eefb838295ad5aa25fd6b345d0a6aa174d",
+        "p2-evidence-0189.json": "d5a636439a07a2bd27f660ecc6a25248c4bcf80ab1e21b5180260e72fa47ae4c",
+        "p2-evidence-0190.json": "677e63fb53854a1a74d7512ffb9946d8bfb3277bf75970e79b575bdfd56f5a10",
+        "p2-evidence-0191.json": "7c64d18ec39d1f414119015587ab02060396eddb688fa49fc359906fd116e106",
+        "p2-evidence-early.json": "54e466ea9ad2224e2da1b1b985ca0ebb6f9899748313bda70f4db5be1188ffef",
+        "p2-evidence-end.json": "d53281240424846695fffb82d464fe56d70738e2a982e9fae7e7af352b89e8c8",
+        "provider-start.json": "f926c9729898718b469961ea035616970c59022e3ce4d53003bab983fca8b7ca",
+        "requested-config.json": "923b8cda628dd1669315ec02f6f99957bb5f806cf17737dfdc19ac8e9bcd05e1",
+        "start-from-screen.json": "340f4a670db3d43449d07155727744c847b9a949a74a0cf2b4323cbaace96637"
+      },
+      "events": [
+        {
+          "line": 1,
+          "event": "RUNTIME_IDENTITY",
+          "fields": {
+            "module": "CombatBrain2",
+            "build_id": "b20261013-210820-0446060a",
+            "assembly_version": "0.0.0.0",
+            "mvid": "ccfbf523-2c27-46c8-b3c2-47592d311437",
+            "assembly_location": "E:\\SteamLibrary\\steamapps\\common\\Mount",
+            "assembly_file_sha256": "d986740da972372e4b285618739ace0241517b6bcc063f7f87db267255f80258",
+            "game_version": "v1.4.8.0",
+            "pid": "19324",
+            "active_modules": "Harmony,ButterLib,UIExtenderEx,Mod"
+          }
+        },
+        {
+          "line": 38,
+          "event": "ASSIGNMENT_PUBLISHED",
+          "fields": {
+            "task": "plan-1-task-1",
+            "plan": "plan-1",
+            "revision": "1",
+            "role": "Main",
+            "obj": "03eeb226@Infantry",
+            "at": "1.553"
+          }
+        },
+        {
+          "line": 40,
+          "event": "ASSIGNMENT_PUBLISHED",
+          "fields": {
+            "task": "plan-1-task-2",
+            "plan": "plan-1",
+            "revision": "1",
+            "role": "Guard",
+            "obj": "0347c55c@Ranged",
+            "at": "1.553"
+          }
+        },
+        {
+          "line": 42,
+          "event": "ASSIGNMENT_PUBLISHED",
+          "fields": {
+            "task": "plan-1-task-3",
+            "plan": "plan-1",
+            "revision": "1",
+            "role": "Support",
+            "obj": "032a7394@Cavalry",
+            "at": "1.553"
+          }
+        },
+        {
+          "line": 60,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/0",
+            "plan": "plan-1",
+            "revision": "1",
+            "task": "plan-1-task-1",
+            "source": "TaskSubmission",
+            "kind": "Hold",
+            "target": "1000.504,978.566",
+            "target_error": "0.000",
+            "outcome": "winner",
+            "reason": "selected_by_competition_order",
+            "at": "1.553"
+          }
+        },
+        {
+          "line": 62,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/1",
+            "plan": "plan-1",
+            "revision": "1",
+            "task": "plan-1-task-2",
+            "source": "TaskSubmission",
+            "kind": "Reposition",
+            "target": "999.548,968.612",
+            "target_error": "0.000",
+            "outcome": "winner",
+            "reason": "selected_by_competition_order",
+            "at": "1.553"
+          }
+        },
+        {
+          "line": 63,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/1",
+            "plan": "plan-1",
+            "revision": "1",
+            "task": "plan-1-task-2",
+            "source": "TestInjection",
+            "kind": "Reposition",
+            "target": "999.548,968.612",
+            "target_error": "0.000",
+            "outcome": "loser",
+            "reason": "proposal_id_order",
+            "at": "1.553"
+          }
+        },
+        {
+          "line": 64,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/1",
+            "plan": "plan-1",
+            "revision": "1",
+            "task": "plan-1-task-2",
+            "source": "TestInjection",
+            "kind": "Reposition",
+            "target": "1001.539,968.420",
+            "target_error": "2.000",
+            "outcome": "loser",
+            "reason": "higher_target_error",
+            "at": "1.553"
+          }
+        },
+        {
+          "line": 66,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/2",
+            "plan": "plan-1",
+            "revision": "1",
+            "task": "plan-1-task-3",
+            "source": "TaskSubmission",
+            "kind": "Reposition",
+            "target": "1012.449,977.419",
+            "target_error": "0.000",
+            "outcome": "winner",
+            "reason": "selected_by_competition_order",
+            "at": "1.553"
+          }
+        },
+        {
+          "line": 112,
+          "event": "WRITE_EXECUTED",
+          "fields": {
+            "task": "plan-1-task-1",
+            "plan": "plan-1",
+            "kind": "Hold",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "order_before": "Move",
+            "order_after": "StandYourGround",
+            "invoked": "1",
+            "error": "<none>",
+            "route": "native_behavior_apply",
+            "geometry": "hold_stop",
+            "exec_tid": "31",
+            "is_main_thread": "1",
+            "original_body_entered": "1",
+            "original_body_tid": "31",
+            "at": "5.035",
+            "first_command_delay": "3.482",
+            "write_attempts_total": "1",
+            "write_attempts_task": "1"
+          }
+        },
+        {
+          "line": 113,
+          "event": "TASK_FEEDBACK",
+          "fields": {
+            "task": "plan-1-task-1",
+            "plan": "plan-1",
+            "kind": "Hold",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "order_before": "Move",
+            "order_after": "StandYourGround",
+            "state": "effective",
+            "since_write": "0.008",
+            "detail": "hold_no_displacement_required",
+            "at": "5.043"
+          }
+        },
+        {
+          "line": 146,
+          "event": "WRITE_EXECUTED",
+          "fields": {
+            "task": "plan-1-task-2",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/1",
+            "obj": "0347c55c@Ranged",
+            "order_before": "Move",
+            "order_after": "Move",
+            "invoked": "1",
+            "error": "<none>",
+            "route": "native_behavior_apply",
+            "geometry": "move_to_role_point",
+            "role": "Guard",
+            "requested": "(999.548,968.612)",
+            "origin": "(1001.727,987.226)",
+            "revision": "1",
+            "exec_tid": "31",
+            "is_main_thread": "1",
+            "original_body_entered": "1",
+            "original_body_tid": "31",
+            "at": "7.583",
+            "order_target": "(999.548,968.612)",
+            "readback_error": "0.000",
+            "first_command_delay": "6.030",
+            "write_attempts_total": "2",
+            "write_attempts_task": "1"
+          }
+        },
+        {
+          "line": 150,
+          "event": "TASK_FEEDBACK",
+          "fields": {
+            "task": "plan-1-task-2",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/1",
+            "obj": "0347c55c@Ranged",
+            "order_before": "Move",
+            "order_after": "Move",
+            "state": "effective",
+            "since_write": "0.820",
+            "detail": "closed_distance=3.08",
+            "distance": "14.22",
+            "from": "17.30",
+            "at": "8.403"
+          }
+        },
+        {
+          "line": 177,
+          "event": "WRITE_EXECUTED",
+          "fields": {
+            "task": "plan-1-task-3",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/2",
+            "obj": "032a7394@Cavalry",
+            "order_before": "Move",
+            "order_after": "Move",
+            "invoked": "1",
+            "error": "<none>",
+            "route": "native_behavior_apply",
+            "geometry": "move_to_role_point",
+            "role": "Support",
+            "requested": "(1012.449,977.419)",
+            "origin": "(1053.207,991.272)",
+            "revision": "1",
+            "exec_tid": "31",
+            "is_main_thread": "1",
+            "original_body_entered": "1",
+            "original_body_tid": "31",
+            "at": "10.633",
+            "order_target": "(1012.449,977.419)",
+            "readback_error": "0.000",
+            "first_command_delay": "9.080",
+            "write_attempts_total": "3",
+            "write_attempts_task": "1"
+          }
+        },
+        {
+          "line": 193,
+          "event": "TASK_FEEDBACK",
+          "fields": {
+            "task": "plan-1-task-3",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/2",
+            "obj": "032a7394@Cavalry",
+            "order_before": "Move",
+            "order_after": "Move",
+            "state": "effective",
+            "since_write": "2.929",
+            "detail": "closed_distance=3.23",
+            "distance": "37.80",
+            "from": "41.03",
+            "at": "13.562"
+          }
+        },
+        {
+          "line": 230,
+          "event": "ASSIGNMENT_PUBLISHED",
+          "fields": {
+            "task": "plan-1-task-4-g1",
+            "plan": "plan-1",
+            "revision": "1",
+            "role": "Main",
+            "obj": "03eeb226@Infantry",
+            "at": "21.103"
+          }
+        },
+        {
+          "line": 231,
+          "event": "COORDINATION_ADVANCE",
+          "fields": {
+            "task": "plan-1-task-4-g1",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "replaced": "|plan-1-task-2|plan-1-task-3|",
+            "at": "21.103"
+          }
+        },
+        {
+          "line": 242,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/0",
+            "plan": "plan-1",
+            "revision": "1",
+            "task": "plan-1-task-4-g1",
+            "source": "TaskSubmission",
+            "kind": "Reposition",
+            "target": "1000.504,978.566",
+            "target_error": "0.000",
+            "outcome": "winner",
+            "reason": "selected_by_competition_order",
+            "at": "22.564"
+          }
+        },
+        {
+          "line": 272,
+          "event": "WRITE_EXECUTED",
+          "fields": {
+            "task": "plan-1-task-4-g1",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "order_before": "StandYourGround",
+            "order_after": "Move",
+            "invoked": "1",
+            "error": "<none>",
+            "route": "native_behavior_apply",
+            "geometry": "move_to_role_point",
+            "role": "Main",
+            "requested": "(1000.504,978.566)",
+            "origin": "(1000.891,988.933)",
+            "revision": "1",
+            "exec_tid": "31",
+            "is_main_thread": "1",
+            "original_body_entered": "1",
+            "original_body_tid": "31",
+            "at": "26.034",
+            "order_target": "(1000.504,978.566)",
+            "readback_error": "0.000",
+            "first_command_delay": "4.930",
+            "write_attempts_total": "4",
+            "write_attempts_task": "1"
+          }
+        },
+        {
+          "line": 281,
+          "event": "TASK_FEEDBACK",
+          "fields": {
+            "task": "plan-1-task-4-g1",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "order_before": "StandYourGround",
+            "order_after": "Move",
+            "state": "effective",
+            "since_write": "1.560",
+            "detail": "closed_distance=3.18",
+            "distance": "7.42",
+            "from": "10.59",
+            "at": "27.594"
+          }
+        },
+        {
+          "line": 322,
+          "event": "P2_PROBE_TRIGGER",
+          "fields": {
+            "scenario": "guard_loss_after_established",
+            "plan": "plan-1",
+            "revision": "1",
+            "task": "plan-1-task-2",
+            "target": "target=guard",
+            "key": "1/1",
+            "task_rev": "1",
+            "plan_rev": "1",
+            "phase": "MainAdvancing",
+            "note": "real_guard_object_selected_by_revision",
+            "at": "34.034"
+          }
+        },
+        {
+          "line": 326,
+          "event": "ASSIGNMENT_PUBLISHED",
+          "fields": {
+            "task": "plan-1-task-92-r2-guard",
+            "plan": "plan-1",
+            "revision": "2",
+            "role": "Guard",
+            "obj": "032a7394@Cavalry",
+            "at": "34.034"
+          }
+        },
+        {
+          "line": 327,
+          "event": "COORDINATION_REBOUND_TASK",
+          "fields": {
+            "task": "plan-1-task-92-r2-guard",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/2",
+            "obj": "032a7394@Cavalry",
+            "at": "34.034"
+          }
+        },
+        {
+          "line": 328,
+          "event": "ASSIGNMENT_PUBLISHED",
+          "fields": {
+            "task": "plan-1-task-92-r2-support",
+            "plan": "plan-1",
+            "revision": "2",
+            "role": "Support",
+            "obj": "00643dce@HorseArcher",
+            "at": "34.034"
+          }
+        },
+        {
+          "line": 329,
+          "event": "COORDINATION_REBOUND_TASK",
+          "fields": {
+            "task": "plan-1-task-92-r2-support",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/3",
+            "obj": "00643dce@HorseArcher",
+            "at": "34.034"
+          }
+        },
+        {
+          "line": 330,
+          "event": "ASSIGNMENT_PUBLISHED",
+          "fields": {
+            "task": "plan-1-task-92-1",
+            "plan": "plan-1",
+            "revision": "2",
+            "role": "Main",
+            "obj": "03eeb226@Infantry",
+            "at": "34.034"
+          }
+        },
+        {
+          "line": 331,
+          "event": "COORDINATION_REBOUND_TASK",
+          "fields": {
+            "task": "plan-1-task-92-1",
+            "plan": "plan-1",
+            "kind": "Hold",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "at": "34.034"
+          }
+        },
+        {
+          "line": 332,
+          "event": "COORDINATION_REASSIGNED",
+          "fields": {
+            "plan": "plan-1",
+            "revision": "2",
+            "role": "Guard",
+            "old": "plan-1-task-2",
+            "new": "plan-1-task-92-r2-guard",
+            "obj": "032a7394@Cavalry",
+            "baseline": "11",
+            "replaced": "2",
+            "at": "34.034"
+          }
+        },
+        {
+          "line": 334,
+          "event": "BEHAVIOR_REWEIGHTED",
+          "fields": {
+            "key": "1/0",
+            "cause": "native_reset_behavior_weights",
+            "weight_before": "0.000",
+            "weight_after": "8.000",
+            "error": "<none>",
+            "at": "34.073"
+          }
+        },
+        {
+          "line": 335,
+          "event": "BEHAVIOR_REWEIGHTED",
+          "fields": {
+            "key": "1/1",
+            "cause": "native_reset_behavior_weights",
+            "weight_before": "0.000",
+            "weight_after": "8.000",
+            "error": "<none>",
+            "at": "34.073"
+          }
+        },
+        {
+          "line": 336,
+          "event": "BEHAVIOR_REWEIGHTED",
+          "fields": {
+            "key": "1/2",
+            "cause": "native_reset_behavior_weights",
+            "weight_before": "0.000",
+            "weight_after": "8.000",
+            "error": "<none>",
+            "at": "34.073"
+          }
+        },
+        {
+          "line": 349,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/0",
+            "plan": "plan-1",
+            "revision": "2",
+            "task": "plan-1-task-92-1",
+            "source": "TaskSubmission",
+            "kind": "Hold",
+            "target": "1000.504,978.566",
+            "target_error": "0.000",
+            "outcome": "winner",
+            "reason": "selected_by_competition_order",
+            "at": "34.568"
+          }
+        },
+        {
+          "line": 351,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/3",
+            "plan": "plan-1",
+            "revision": "2",
+            "task": "plan-1-task-92-r2-support",
+            "source": "TaskSubmission",
+            "kind": "Reposition",
+            "target": "1012.449,977.419",
+            "target_error": "0.000",
+            "outcome": "winner",
+            "reason": "selected_by_competition_order",
+            "at": "34.568"
+          }
+        },
+        {
+          "line": 353,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/2",
+            "plan": "plan-1",
+            "revision": "2",
+            "task": "plan-1-task-92-r2-guard",
+            "source": "TaskSubmission",
+            "kind": "Reposition",
+            "target": "999.548,968.612",
+            "target_error": "0.000",
+            "outcome": "winner",
+            "reason": "selected_by_competition_order",
+            "at": "34.568"
+          }
+        },
+        {
+          "line": 354,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/2",
+            "plan": "plan-1",
+            "revision": "2",
+            "task": "plan-1-task-92-r2-guard",
+            "source": "TestInjection",
+            "kind": "Reposition",
+            "target": "999.548,968.612",
+            "target_error": "0.000",
+            "outcome": "loser",
+            "reason": "proposal_id_order",
+            "at": "34.568"
+          }
+        },
+        {
+          "line": 355,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/2",
+            "plan": "plan-1",
+            "revision": "2",
+            "task": "plan-1-task-92-r2-guard",
+            "source": "TestInjection",
+            "kind": "Reposition",
+            "target": "1001.539,968.420",
+            "target_error": "2.000",
+            "outcome": "loser",
+            "reason": "higher_target_error",
+            "at": "34.568"
+          }
+        },
+        {
+          "line": 408,
+          "event": "WRITE_EXECUTED",
+          "fields": {
+            "task": "plan-1-task-92-1",
+            "plan": "plan-1",
+            "kind": "Hold",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "order_before": "Move",
+            "order_after": "StandYourGround",
+            "invoked": "1",
+            "error": "<none>",
+            "route": "native_behavior_apply",
+            "geometry": "hold_stop",
+            "exec_tid": "31",
+            "is_main_thread": "1",
+            "original_body_entered": "1",
+            "original_body_tid": "31",
+            "at": "38.047",
+            "first_command_delay": "4.013",
+            "write_attempts_total": "5",
+            "write_attempts_task": "1"
+          }
+        },
+        {
+          "line": 409,
+          "event": "TASK_FEEDBACK",
+          "fields": {
+            "task": "plan-1-task-92-1",
+            "plan": "plan-1",
+            "kind": "Hold",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "order_before": "Move",
+            "order_after": "StandYourGround",
+            "state": "effective",
+            "since_write": "0.016",
+            "detail": "hold_no_displacement_required",
+            "at": "38.063"
+          }
+        },
+        {
+          "line": 411,
+          "event": "BEHAVIOR_REWEIGHTED",
+          "fields": {
+            "key": "1/0",
+            "cause": "native_reset_behavior_weights",
+            "weight_before": "0.000",
+            "weight_after": "8.000",
+            "error": "<none>",
+            "at": "38.126"
+          }
+        },
+        {
+          "line": 412,
+          "event": "BEHAVIOR_REWEIGHTED",
+          "fields": {
+            "key": "1/1",
+            "cause": "native_reset_behavior_weights",
+            "weight_before": "0.000",
+            "weight_after": "8.000",
+            "error": "<none>",
+            "at": "38.126"
+          }
+        },
+        {
+          "line": 413,
+          "event": "BEHAVIOR_REWEIGHTED",
+          "fields": {
+            "key": "1/2",
+            "cause": "native_reset_behavior_weights",
+            "weight_before": "0.000",
+            "weight_after": "8.000",
+            "error": "<none>",
+            "at": "38.126"
+          }
+        },
+        {
+          "line": 449,
+          "event": "WRITE_EXECUTED",
+          "fields": {
+            "task": "plan-1-task-92-r2-guard",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/2",
+            "obj": "032a7394@Cavalry",
+            "order_before": "Move",
+            "order_after": "Move",
+            "invoked": "1",
+            "error": "<none>",
+            "route": "native_behavior_apply",
+            "geometry": "move_to_role_point",
+            "role": "Guard",
+            "requested": "(999.548,968.612)",
+            "origin": "(1012.782,978.444)",
+            "revision": "2",
+            "exec_tid": "31",
+            "is_main_thread": "1",
+            "original_body_entered": "1",
+            "original_body_tid": "31",
+            "at": "40.643",
+            "order_target": "(999.548,968.612)",
+            "readback_error": "0.000",
+            "first_command_delay": "6.608",
+            "write_attempts_total": "6",
+            "write_attempts_task": "1"
+          }
+        },
+        {
+          "line": 454,
+          "event": "WRITE_EXECUTED",
+          "fields": {
+            "task": "plan-1-task-92-r2-support",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/3",
+            "obj": "00643dce@HorseArcher",
+            "order_before": "Move",
+            "order_after": "Move",
+            "invoked": "1",
+            "error": "<none>",
+            "route": "native_behavior_apply",
+            "geometry": "move_to_role_point",
+            "role": "Support",
+            "requested": "(1012.449,977.419)",
+            "origin": "(948.766,997.421)",
+            "revision": "2",
+            "exec_tid": "31",
+            "is_main_thread": "1",
+            "original_body_entered": "1",
+            "original_body_tid": "31",
+            "at": "40.705",
+            "order_target": "(1012.449,977.419)",
+            "readback_error": "0.000",
+            "first_command_delay": "6.670",
+            "write_attempts_total": "7",
+            "write_attempts_task": "1"
+          }
+        },
+        {
+          "line": 465,
+          "event": "TASK_FEEDBACK",
+          "fields": {
+            "task": "plan-1-task-92-r2-guard",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/2",
+            "obj": "032a7394@Cavalry",
+            "order_before": "Move",
+            "order_after": "Move",
+            "state": "effective",
+            "since_write": "1.538",
+            "detail": "closed_distance=3.06",
+            "distance": "12.51",
+            "from": "15.58",
+            "at": "42.181"
+          }
+        },
+        {
+          "line": 474,
+          "event": "TASK_FEEDBACK",
+          "fields": {
+            "task": "plan-1-task-92-r2-support",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/3",
+            "obj": "00643dce@HorseArcher",
+            "order_before": "Move",
+            "order_after": "Move",
+            "state": "effective",
+            "since_write": "2.428",
+            "detail": "closed_distance=3.16",
+            "distance": "61.94",
+            "from": "65.10",
+            "at": "43.133"
+          }
+        },
+        {
+          "line": 547,
+          "event": "ASSIGNMENT_PUBLISHED",
+          "fields": {
+            "task": "plan-1-task-4-g2",
+            "plan": "plan-1",
+            "revision": "2",
+            "role": "Main",
+            "obj": "03eeb226@Infantry",
+            "at": "53.639"
+          }
+        },
+        {
+          "line": 548,
+          "event": "COORDINATION_ADVANCE",
+          "fields": {
+            "task": "plan-1-task-4-g2",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "replaced": "|plan-1-task-92-r2-guard|plan-1-task-92-r2-support|",
+            "at": "53.639"
+          }
+        },
+        {
+          "line": 570,
+          "event": "ARBITRATION_CANDIDATE",
+          "fields": {
+            "key": "1/0",
+            "plan": "plan-1",
+            "revision": "2",
+            "task": "plan-1-task-4-g2",
+            "source": "TaskSubmission",
+            "kind": "Reposition",
+            "target": "1000.504,978.566",
+            "target_error": "0.000",
+            "outcome": "winner",
+            "reason": "selected_by_competition_order",
+            "at": "55.629"
+          }
+        },
+        {
+          "line": 576,
+          "event": "WRITE_EXECUTED",
+          "fields": {
+            "task": "plan-1-task-4-g2",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "order_before": "StandYourGround",
+            "order_after": "Move",
+            "invoked": "1",
+            "error": "<none>",
+            "route": "native_behavior_apply",
+            "geometry": "move_to_role_point",
+            "role": "Main",
+            "requested": "(1000.504,978.566)",
+            "origin": "(1001.053,978.454)",
+            "revision": "2",
+            "exec_tid": "31",
+            "is_main_thread": "1",
+            "original_body_entered": "1",
+            "original_body_tid": "31",
+            "at": "56.059",
+            "order_target": "(1000.504,978.566)",
+            "readback_error": "0.000",
+            "first_command_delay": "2.419",
+            "write_attempts_total": "8",
+            "write_attempts_task": "1"
+          }
+        },
+        {
+          "line": 577,
+          "event": "TASK_FEEDBACK",
+          "fields": {
+            "task": "plan-1-task-4-g2",
+            "plan": "plan-1",
+            "kind": "Reposition",
+            "key": "1/0",
+            "obj": "03eeb226@Infantry",
+            "order_before": "StandYourGround",
+            "order_after": "Move",
+            "state": "effective",
+            "since_write": "0.014",
+            "detail": "reached_target_point",
+            "distance": "0.28",
+            "from": "0.28",
+            "at": "56.073"
+          }
+        },
+        {
+          "line": 1518,
+          "event": "PLAN_INVALIDATED",
+          "fields": {
+            "plan": "plan-1",
+            "goal": "coordination_ranged_advantage",
+            "reason": "MissionEnded",
+            "detail": "mission_ended",
+            "at": "181.402"
+          }
+        },
+        {
+          "line": 1526,
+          "event": "MISSION_CLEANUP",
+          "fields": {}
+        }
+      ],
+      "selected_samples": [
+        {
+          "file": "p2-evidence-0036.json",
+          "time": 33.254,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.218",
+                "y": "978.562"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1000.504",
+                "y": "978.566"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1012.625",
+                "y": "978.427"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "947.677",
+                "y": "997.389"
+              },
+              "active_member_count": 10,
+              "member_digest": "003cff399b5a2a17",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "949.874",
+                "y": "995.262"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0037.json",
+          "time": 34.178,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.218",
+                "y": "978.562"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1000.504",
+                "y": "978.566"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": false,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1012.775",
+                "y": "978.571"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "948.080",
+                "y": "997.639"
+              },
+              "active_member_count": 10,
+              "member_digest": "003cff399b5a2a17",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "949.874",
+                "y": "995.262"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0038.json",
+          "time": 35.113,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.218",
+                "y": "978.562"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1000.504",
+                "y": "978.566"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": false,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1012.915",
+                "y": "978.452"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "948.442",
+                "y": "997.533"
+              },
+              "active_member_count": 10,
+              "member_digest": "003cff399b5a2a17",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "949.874",
+                "y": "995.262"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0039.json",
+          "time": 36.042,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.213",
+                "y": "978.541"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1000.504",
+                "y": "978.566"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": false,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1012.905",
+                "y": "978.374"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "948.709",
+                "y": "997.486"
+              },
+              "active_member_count": 10,
+              "member_digest": "003cff399b5a2a17",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "949.874",
+                "y": "995.262"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0040.json",
+          "time": 36.974,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.213",
+                "y": "978.541"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1000.504",
+                "y": "978.566"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": false,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1012.778",
+                "y": "978.404"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "948.765",
+                "y": "997.418"
+              },
+              "active_member_count": 10,
+              "member_digest": "003cff399b5a2a17",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "949.874",
+                "y": "995.262"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0041.json",
+          "time": 37.896,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.213",
+                "y": "978.541"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1000.504",
+                "y": "978.566"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": false,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1012.766",
+                "y": "978.436"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "948.766",
+                "y": "997.421"
+              },
+              "active_member_count": 10,
+              "member_digest": "003cff399b5a2a17",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "949.874",
+                "y": "995.262"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0042.json",
+          "time": 38.826,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.213",
+                "y": "978.541"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1012.781",
+                "y": "978.444"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "948.766",
+                "y": "997.421"
+              },
+              "active_member_count": 10,
+              "member_digest": "003cff399b5a2a17",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "949.874",
+                "y": "995.262"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0043.json",
+          "time": 39.88,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.213",
+                "y": "978.541"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1012.782",
+                "y": "978.444"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "948.766",
+                "y": "997.421"
+              },
+              "active_member_count": 10,
+              "member_digest": "003cff399b5a2a17",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "949.874",
+                "y": "995.262"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0044.json",
+          "time": 40.808,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.213",
+                "y": "978.541"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1012.781",
+                "y": "978.440"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "948.766",
+                "y": "997.422"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0045.json",
+          "time": 41.738,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.162",
+                "y": "978.523"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1011.880",
+                "y": "977.109"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "949.078",
+                "y": "997.114"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0046.json",
+          "time": 42.677,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.099",
+                "y": "978.488"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1000.055",
+                "y": "970.347"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1008.862",
+                "y": "975.254"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "951.622",
+                "y": "997.066"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0047.json",
+          "time": 43.617,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.078",
+                "y": "978.474"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1000.017",
+                "y": "970.329"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1005.906",
+                "y": "973.470"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "955.676",
+                "y": "997.340"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0048.json",
+          "time": 44.793,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.061",
+                "y": "978.465"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.984",
+                "y": "970.292"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1004.093",
+                "y": "972.381"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "961.941",
+                "y": "996.725"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0049.json",
+          "time": 45.732,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.054",
+                "y": "978.464"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.966",
+                "y": "970.266"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1003.303",
+                "y": "971.868"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "967.198",
+                "y": "995.724"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0050.json",
+          "time": 46.645,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.054",
+                "y": "978.464"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.944",
+                "y": "970.253"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1002.433",
+                "y": "971.422"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "972.594",
+                "y": "994.042"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0051.json",
+          "time": 47.588,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.054",
+                "y": "978.464"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.928",
+                "y": "970.238"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.842",
+                "y": "971.083"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "978.644",
+                "y": "991.609"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0052.json",
+          "time": 48.522,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.054",
+                "y": "978.464"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.909",
+                "y": "970.224"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.381",
+                "y": "970.778"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "985.431",
+                "y": "988.784"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0053.json",
+          "time": 49.452,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.054",
+                "y": "978.464"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.899",
+                "y": "970.200"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.928",
+                "y": "970.485"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "992.330",
+                "y": "985.941"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0054.json",
+          "time": 50.392,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.054",
+                "y": "978.464"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.891",
+                "y": "970.187"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.768",
+                "y": "970.285"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "998.090",
+                "y": "983.765"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0055.json",
+          "time": 51.323,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.054",
+                "y": "978.464"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.882",
+                "y": "970.181"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.626",
+                "y": "970.182"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1003.398",
+                "y": "981.945"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0056.json",
+          "time": 52.256,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.054",
+                "y": "978.464"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.873",
+                "y": "970.176"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.539",
+                "y": "970.137"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1007.323",
+                "y": "980.605"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0057.json",
+          "time": 53.178,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.053",
+                "y": "978.462"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.868",
+                "y": "970.172"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.412",
+                "y": "970.072"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1009.108",
+                "y": "979.888"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0058.json",
+          "time": 54.115,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.053",
+                "y": "978.454"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.857",
+                "y": "970.164"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.207",
+                "y": "969.926"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1009.340",
+                "y": "979.775"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0059.json",
+          "time": 55.05,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.053",
+                "y": "978.454"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.853",
+                "y": "970.158"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.178",
+                "y": "969.905"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1009.367",
+                "y": "979.760"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0060.json",
+          "time": 55.988,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "1001.053",
+                "y": "978.454"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.847",
+                "y": "970.151"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.155",
+                "y": "969.880"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1009.373",
+                "y": "979.757"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0061.json",
+          "time": 56.934,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.207",
+                "y": "978.484"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1000.504",
+                "y": "978.566"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.841",
+                "y": "970.151"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.140",
+                "y": "969.823"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1009.378",
+                "y": "979.768"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        },
+        {
+          "file": "p2-evidence-0062.json",
+          "time": 57.86,
+          "mission_identity": "02129872@Mission",
+          "formations": [
+            {
+              "formation_index": 0,
+              "formation_identity": "03eeb226@Formation",
+              "formation_class": "Infantry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1001.207",
+                "y": "978.484"
+              },
+              "active_member_count": 15,
+              "member_digest": "90f1a440d11097be",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1000.504",
+                "y": "978.566"
+              }
+            },
+            {
+              "formation_index": 1,
+              "formation_identity": "0347c55c@Formation",
+              "formation_class": "Ranged",
+              "movement_order": "StandYourGround",
+              "active_center": {
+                "x": "999.846",
+                "y": "970.151"
+              },
+              "active_member_count": 56,
+              "member_digest": "e800fb3c0abe7371",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "StandYourGround",
+                "readable": false,
+                "reason": "order_not_move"
+              }
+            },
+            {
+              "formation_index": 2,
+              "formation_identity": "032a7394@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1000.067",
+                "y": "969.699"
+              },
+              "active_member_count": 11,
+              "member_digest": "070ffd41167ab600",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "999.548",
+                "y": "968.612"
+              }
+            },
+            {
+              "formation_index": 3,
+              "formation_identity": "00643dce@Formation",
+              "formation_class": "Cavalry",
+              "movement_order": "Move",
+              "active_center": {
+                "x": "1009.398",
+                "y": "979.786"
+              },
+              "active_member_count": 10,
+              "member_digest": "003b8c5787408603",
+              "is_ai_controlled": true,
+              "move_target": {
+                "order_type": "Move",
+                "readable": true,
+                "x": "1012.449",
+                "y": "977.419"
+              }
+            }
+          ]
+        }
+      ],
+      "sample_errors": [],
+      "counts": {
+        "RUNTIME_IDENTITY": 1,
+        "P1_MODE": 1,
+        "P2_MODE": 1,
+        "MISSION_START": 1,
+        "MAIN_THREAD_MARKED": 1,
+        "BEHAVIOR_START": 1,
+        "INDEPENDENT_SAMPLE": 180,
+        "PROBE_CONFIG": 1,
+        "P2_PROBE_CONFIG": 1,
+        "HOOK_FORMATIONS": 1,
+        "P2_FIRST_DECISION_SCHEDULED": 1,
+        "ACTIVE_BEHAVIOR_CHANGED_OTHER": 13,
+        "EVAL_TICK": 60,
+        "SNAPSHOT_HEALTH": 60,
+        "SNAPSHOT_FORMATION": 48,
+        "BATTLE_STATE": 60,
+        "PLAN_CREATED": 1,
+        "ASSIGNMENT_PUBLISHED": 8,
+        "TASK_CREATED": 3,
+        "TASK_CANDIDATE": 8,
+        "TASK_CANDIDATES": 1,
+        "COORDINATION_BOUND": 1,
+        "WRITE_DELAYED": 12,
+        "COMPETITION_INJECT_BEGIN": 1,
+        "ARBITRATION_INJECT": 24,
+        "ARBITRATION_CANDIDATE": 12,
+        "PROPOSAL_PUBLISHED": 8,
+        "COORDINATION_STATE": 179,
+        "NATIVE_MOVEMENT_APPLIED": 49,
+        "PLAN_CONTINUED": 59,
+        "BEHAVIOR_REGISTERED": 8,
+        "TASK_CANDIDATE_SUBMITTED": 8,
+        "ACTIVE_BEHAVIOR_CHANGED": 4,
+        "REAL_SELECTION": 8,
+        "HANDOFF_DEFERRED": 8,
+        "HANDOFF_EXECUTED": 8,
+        "FIRST_COMMAND_DELAY": 1,
+        "WRITE_EXECUTED": 8,
+        "TASK_FEEDBACK": 8,
+        "POST_OBSERVE": 608,
+        "COMPETITION_INJECT_WINDOW_SATISFIED": 1,
+        "COORDINATION_ADVANCE": 2,
+        "REAL_SELECTION_NOT_SUBMITTED": 33,
+        "P2_PROBE_TRIGGER": 1,
+        "P2_PROBE_ELIGIBILITY_LOST": 1,
+        "P2_PROBE_RESTORE_SCHEDULED": 1,
+        "COORDINATION_DEPENDENCY_LOST": 1,
+        "COORDINATION_REBOUND_TASK": 3,
+        "COORDINATION_REASSIGNED": 1,
+        "BEHAVIOR_REWEIGHTED": 6,
+        "PROBE_ELIGIBILITY_RESTORED": 1,
+        "PLAN_INVALIDATED": 1,
+        "TASK_CLOSED": 3,
+        "BEHAVIOR_DISARMED": 4,
+        "MISSION_CLEANUP": 1
+      },
+      "ordinary_stagger_violations": [
+        {
+          "previous_line": 449,
+          "line": 454,
+          "previous_task": "plan-1-task-92-r2-guard",
+          "task": "plan-1-task-92-r2-support",
+          "gap": 0.062
+        }
+      ],
+      "deployment_matches_runtime_disk_hash": true
+    },
+    "p2-B-20261013-211339": {
+      "file_sha256": {
+        "build-identity.json": "8791eaf77a8c72a4f961ba8f9f262b0de3a5548c8199b69b9ed3329a8f4608a0",
+        "delegate.json": "2468a984d3ebcf7f8c14e89e5945d6a983a56e36ca3c470affa4b92fbfdd01ec",
+        "deployed-module.json": "3f1ad305b47f640a254dcd2f5bb3e6a19351d62a8a12e06bc4190c71a1b8e850",
+        "deployment.json": "c7606d438ecce7eaef403d65064ab7cf28f5eeb137d59e6e4bd5f88f41a126bb",
+        "formations-early.json": "2e0beb3941573e694ed19f927a6954eda1e3850caa67b890198da1f6978babad",
+        "p2-evidence-0001.json": "0c5e7a7c47df51353bf802a8e59eb70d30084a346bf0f853d061020808a0846b",
+        "p2-evidence-0002.json": "f4ad3928d4f14b5bc58d5df6eb8d50e0685b915200f28e03f1ce39e0bab4ee9c",
+        "p2-evidence-0003.json": "9a8a13ab0e3a45b7335a247fda1f4ecca3aa7a6b3a0dfd1ece2969595f12932a",
+        "p2-evidence-0004.json": "756c93c45afca08d27bfc6896f4464f5b731fe0b5517931a81bae6484e0685b6",
+        "p2-evidence-0005.json": "fa6b77e968e66ef14425e50c56ddfd0b82b5c962ac303a73e7e8e27125b4e530",
+        "p2-evidence-0006.json": "58e70613b9cb9fd3586ffc1a0efc4a8e2ae407d9600bc604749f70a1d71c89b3",
+        "p2-evidence-0007.json": "9d649cd296a346284584e5633eed12e5bb328376bb0aec66c0c917970e8ec3af",
+        "p2-evidence-0008.json": "e4decc3d9cc2cce39d03bb7761b7bcb0a3304b65e41e683c062e6f2a52611119",
+        "p2-evidence-0009.json": "053db362c4539b2c4022df75b625d6a9db400aed97e18927b14f13202e5e921e",
+        "p2-evidence-0010.json": "bbbf7c8b9471753855d722da2c8229e8c9afedfc8027af26931982e6e0a64969",
+        "p2-evidence-0011.json": "26fa339faeccb0551280f122ac142860e7cbd60f9d3e871a7d105c323ef6c2c1",
+        "p2-evidence-0012.json": "397a47a662f059b2576df5394c06f5e1bb945887c73af1bf82cb0be8ffaebaf4",
+        "p2-evidence-0013.json": "e1ac3e3ad9df78593538425d301ee166f2537c33c5d1990ff9f1421d3612729c",
+        "p2-evidence-0014.json": "fc5c253ea6afcecf973a548c289f5dde53dc4e15918bdc0d91b72ad8bc417cc9",
+        "p2-evidence-0015.json": "b759f3f20ff7e13e2f6271f885b333c1279e1e6ea1adaf7f3acf0945e92f09a8",
+        "p2-evidence-0016.json": "0a5556898e2f2d5610287d765a4474af43a6b27816da4d9c0e94a39d372b7218",
+        "p2-evidence-0017.json": "3315cfcee0f7c27bab418ef79eca16d2474c0e9502860bc21570e9e39f0af70b",
+        "p2-evidence-0018.json": "ac9002f93fe293f48a9b2dc29eed5cc0423eba671bff85de5b949e64451d7316",
+        "p2-evidence-0019.json": "65025a490f70f949109cb83a8af83b612fef65cd20acabb7eabd3b624c2f9adf",
+        "p2-evidence-0020.json": "1b5e9e115e3b760fb20d2087714e4838c632a2b7a2763fd7ed275a671e810730",
+        "p2-evidence-0021.json": "ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7",
+        "p2-evidence-early.json": "4a66a0876a90eedfe7fe4602fd6ee8615b390c404b3c73dd3ee7e25fe4b91dd4",
+        "provider-start.json": "573ea7244badb3919f0fed2b0e2a6597c22f97f0b6c1d42f7b05eced0ce19965",
+        "start-from-screen.json": "82d71213bf68f310ddd773700748e839b62b3dd937751be7681f5282cc37b272"
+      },
+      "events": [],
+      "selected_samples": [],
+      "sample_errors": [
+        {
+          "file": "p2-evidence-0020.json",
+          "reason": "JSONDecodeError"
+        },
+        {
+          "file": "p2-evidence-0021.json",
+          "reason": "JSONDecodeError"
+        }
+      ]
+    }
+  },
+  "shared_log_at_review": {
+    "path": "C:\\Users\\Administrator\\Documents\\CombatBrain2\\CombatBrain2.log",
+    "sha256": "276933af71a28de1978955c75af76d61fed9005d219b4a7d17c4b82b6744b3a2",
+    "bytes": 43220,
+    "nul_bytes": 42629,
+    "first_line": "[CB2][RUNTIME_IDENTITY] module=CombatBrain2 build_id=b20261013-211336-11880d6a assembly_version=0.0.0.0 mvid=8fdcc376-606c-4fa3-9b77-ae2579c30feb assembly_location=E:\\SteamLibrary\\steamapps\\common\\Mount & Blade II Bannerlord\\Modules\\CombatBrain2\\bin\\Win64_Shipping_Client\\CombatBrain2.dll assembly_file_sha256=fa945c31af0330589d6b4a9ef418acd18abfc99e67e526e500b93eb2f735870f game_version=v1.4.8.0 pid=57412 active_modules=Harmony,ButterLib,UIExtenderEx,Mod Configuration Menu v5,Native,SandBox Core,Sandbox,StoryMode,CustomBattle,CombatBrain 2.0 (P0a),CombatBrain Autonomous Test Harness",
+    "preserved_copy": "recovered-B-log.bin"
+  }
+}

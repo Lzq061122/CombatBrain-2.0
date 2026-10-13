@@ -1,0 +1,11 @@
+{
+  "unwritten_allowed": false,
+  "unwritten_advance_created": false,
+  "changed_readback_error": 20.0,
+  "changed_readback_still_allows_advance": true,
+  "guard_dependency_matches_new_main": true,
+  "support_dependency_matches_new_main": true,
+  "first_advance_id": "plan-1-task-4-g1",
+  "second_advance_id": "plan-1-task-4-g2",
+  "advance_ids_distinct": true
+}
