@@ -1,7 +1,7 @@
 # P2 多 Formation 协同 · 实现交接报告
 
 状态：**开发自检完成，实机执行已完成（场景 A ×2、场景 B ×1、P1 P/N 回归各 ×1）；独立验收未发生 — 待独立验收**
-提交：CB2 主线本单提交 **`8fb1efa`**（实现，28 files / +7112 / −24）+ **`bc19105`**（交接报告正文：A1–A13 验收表、命令/裁决全表、时间线、限制与检查项，1 file / +15）；CBATH 配套提交 **`b9fcef7`**（工作树 `E:\MBmod\CBATH-P2`，分支 `codex/cb20-p2-evidence`）。三者均**未 push**。
+提交：CB2 主线本单提交 **`8fb1efa`**（实现）+ **`bc19105`**（报告正文）+ **`b23161d`**（报告警告口径更正），三条均在 `master`、**均未 push**；CBATH 配套提交 **`b9fcef7`**（工作树 `E:\MBmod\CBATH-P2`，分支 `codex/cb20-p2-evidence`，未 push）。提交链与范围见 §0。
 派单依据：`Program/_verify/P2-MULTI-FORMATION-DISPATCH.md` v1.1（登记 `CB2-PROMPT-0002`，ACTIVE；磁盘原始字节 SHA-256 = `3471FF7BA6A46A8387A5F1054732D1A3F83D1165E362485A21049F3E2CE5D77E`，与登记一致）
 日期：2026-10-12 初版（2026-10-13 实机结果更新；本文件状态段按 2026-10-13 17:4x 实测重写）
 接手者：CombatBrain 2.0 主线开发组（单 AI 执行，未启用 AgentTeams）
@@ -21,21 +21,26 @@
 | 项 | 派单 §1 旧快照 | 本轮实测 | 结论 |
 |---|---|---|---|
 | CB2 cwd | `E:\MBmod\CombatBrain 2.0` | 同 | 一致 |
-| CB2 分支 / HEAD | `master` / `f353715` | `master` / **`bc19105`** | **已前进**；`aec0f32` 派单迁入 → `f44cc3b` 开发节奏 → `1853b48` 登记 `BattleSizeResized` 工具（与本单源码无关）→ `8fb1efa` 本单实现 → `bc19105` 本单交接报告 |
-| CB2 脏文件 | `BuildIdentity.g.cs` 修改 + `_scratch`/`_lastrun*` 等 | 2 个已修改（`M`）+ 24 个未跟踪 | P2 实现与报告**已提交**（`8fb1efa`、`bc19105`），见 §1.3 |
+| CB2 分支 / HEAD | `master` / `f353715` | `master` / 见下方提交链 | **已前进**；沿革 `aec0f32` 派单迁入 → `f44cc3b` 开发节奏 → `1853b48` 登记 `BattleSizeResized` 工具（与本单源码无关）→ `8fb1efa` 本单实现 → `bc19105` 本单交接报告 → `b23161d` 本单报告更正。**HEAD 不在此写死**：本文件每更正一次就会产生新提交，请用 `git log --oneline -1` 现场核。 |
+| CB2 脏文件 | `BuildIdentity.g.cs` 修改 + `_scratch`/`_lastrun*` 等 | 仅 `Program/src/Host/BuildIdentity.g.cs` 修改 + 25 项非交付未跟踪 | P2 实现与报告**已提交**；剩余脏项全属自动生成或运行产物，见 §1.3。数量随部署重写而变，现场核用 `git status --porcelain`。 |
 | 观测组 worktree | 3feafda | `E:\MBmod\BattleObservation-V1\CB2` / `codex/battle-observation-v1` / **`c8c0a98`** | 本轮只读，未修改/构建/切换/提交 |
 | 派单文件身份 | registry `content_sha256=3471ff7b…` | 磁盘原始字节 SHA-256 = `3471FF7BA6A46A8387A5F1054732D1A3F83D1165E362485A21049F3E2CE5D77E` | **一致**（仅大小写表示差异） |
 
-**本轮收尾提交（两次，2026-10-13 17:41:49 / 17:43:00）**：
-- `8fb1efa`「feat(p2): implement multi-formation coordination with unique arbitration」——28 files changed / 7112 insertions / 24 deletions（实现 + 脚本 + 测试 + 报告初版），**未 push**。
-- `bc19105`「docs(p2): record live evidence, acceptance table and closure state in the handover report」——1 file changed / 15 insertions（报告正文：A1–A13 验收表、命令/裁决全表、时间线、限制与检查项、现场基线与产物身份），**未 push**。
-- 两次提交范围均与 §1.3 清单一致；已核验**不含** `ObservationAdapter.cs`、`E:\MBmod\BattleObservation-V1\*`、`BuildIdentity.g.cs`、`_scratch/`、`_lastrun*.txt`、`gabs-config/`、`sessions/`。
-- 提交后工作树剩余脏项：`Program/src/Host/BuildIdentity.g.cs`（部署脚本自动重写）+ 非交付运行产物（`_scratch/`、`_lastrun*.txt`、`gabs-config/`、`sessions/`）。
-- **本文件在 `8fb1efa`/`bc19105` 之后另有一次更正提交**（§2.2 第 5 条的构建/测试警告口径：原文误称测试工程 `xUnit2013` 已消除，实际仍在；另更正行号 `:385` → `:563`）。提交号见 `git log --oneline -3`。
+**本单提交链（全部 `master`、全部未 push）**：
 
-`git worktree list`（实测）：
+| 提交 | 内容 | 规模 |
+|---|---|---|
+| `8fb1efa` | `feat(p2): implement multi-formation coordination with unique arbitration`——实现 + 验证脚本 + 测试 + 报告初版 | 28 files / +7112 / −24 |
+| `bc19105` | `docs(p2): record live evidence, acceptance table and closure state in the handover report`——报告正文（A1–A13 表、命令/裁决全表、时间线、限制与检查项） | 1 file / +15 |
+| `b23161d` | `docs(p2): correct the build and test warning record in the handover report`——§2.2 第 5 条警告口径更正（原文误称测试工程 `xUnit2013` 已消除，实际仍在；行号 `:385`→`:563`） | 1 file / +18 / −13 |
+
+- 提交范围均与 §1.3 清单一致；已核验**不含** `ObservationAdapter.cs`、`E:\MBmod\BattleObservation-V1\*`、`BuildIdentity.g.cs`、`_scratch/`、`_lastrun*.txt`、`gabs-config/`、`sessions/`。
+- **提交链不在此终结**：每次更正本文件都会追加新提交（本条即因改为不自引用写法而追加）。现场核对用 `git log --oneline -6` 与 `git status --porcelain`。
+- 提交后工作树剩余脏项：`Program/src/Host/BuildIdentity.g.cs`（部署脚本自动重写）+ 非交付运行产物（`_scratch/`、`_lastrun*.txt`、`gabs-config/`、`sessions/`）。
+
+`git worktree list`（实测；主线 HEAD 随本文件更正而前进，现场核用该命令）：
 ```
-E:/MBmod/CombatBrain 2.0           bc19105 [master]
+E:/MBmod/CombatBrain 2.0           <master HEAD> [master]
 E:/MBmod/BattleObservation-V1/CB2  c8c0a98 [codex/battle-observation-v1]
 ```
 
@@ -155,7 +160,7 @@ P2 独立采样文件 `p2-evidence-*.json`：场景 A 175 个、场景 B 188 个
 | `Program/_scratch/`、`_scratch/`、`Program/_verify/_lastrun*.txt`、`Program/_verify/gabs-config/`、`Program/_verify/sessions/` | 非交付物（草稿 / 运行产物 / 场次归档） | 保持原样，不进提交 |
 | `E:\MBmod\BattleObservation-V1\*` | **观测组** | 只读，未写入/构建/切换/提交 |
 
-**本单已提交的明确范围**（两次提交，禁 `git add -A` / `git commit -a`，已按清单逐项暂存）：`Program/src/Core/` 下 `BattlePlan.cs`、`BattleAssessment.cs`、`TestParameters.cs`、`PlanLedger.cs`、`FormationSnapshot.cs`、`CoordinationPlan.cs`、`CoordinationDriver.cs`、`ProposalArbiter.cs`、`EligibilityTrigger.cs`、`ExitStopLedger.cs`；`Program/src/Host/` 下 `TestDriver.cs`、`EligibilityProbe.cs`、`FormationSampler.cs`、`SamplingBehavior.cs`、`CbHoldBehavior.cs`；`Program/CombatBrain2.csproj`、`Program/tests/CombatBrain2.Tests.csproj` 与 `Program/tests/` 下 7 个 P2 测试文件；`Program/_verify/` 下 `run-p2.ps1`、`run-p2-exclusive.ps1`、`_p2-exclusive-stage.ps1`、`P2-IMPLEMENTATION-HANDOVER.md`。落在 `8fb1efa`（实现 + 脚本 + 测试 + 报告初版）与 `bc19105`（报告正文）两个提交。
+**本单已提交的明确范围**（禁 `git add -A` / `git commit -a`，已按清单逐项暂存）：`Program/src/Core/` 下 `BattlePlan.cs`、`BattleAssessment.cs`、`TestParameters.cs`、`PlanLedger.cs`、`FormationSnapshot.cs`、`CoordinationPlan.cs`、`CoordinationDriver.cs`、`ProposalArbiter.cs`、`EligibilityTrigger.cs`、`ExitStopLedger.cs`；`Program/src/Host/` 下 `TestDriver.cs`、`EligibilityProbe.cs`、`FormationSampler.cs`、`SamplingBehavior.cs`、`CbHoldBehavior.cs`；`Program/CombatBrain2.csproj`、`Program/tests/CombatBrain2.Tests.csproj` 与 `Program/tests/` 下 7 个 P2 测试文件；`Program/_verify/` 下 `run-p2.ps1`、`run-p2-exclusive.ps1`、`_p2-exclusive-stage.ps1`、`P2-IMPLEMENTATION-HANDOVER.md`。落在 `8fb1efa`（实现 + 脚本 + 测试 + 报告初版）与 `bc19105`/`b23161d`（报告正文与更正）三个提交。
 
 **不在本单提交范围但需说明的两点**：
 - `Program/_verify/run-p1-exclusive.ps1` 与 `_p1-exclusive-stage.ps1` **已由 2026-10-12 的 P1 提交 `68103be` 收录**（`git log -1 -- <path>` 可核），本轮 A12 直接复用，**不构成本单增量**。
@@ -300,7 +305,7 @@ CBATH 提交：仓库 `E:\MBmod\CombatBrain Autonomous test harness`，基线 `7
 | A10 反馈及异常如实 | **PASS** | `TASK_FEEDBACK` 12 条逐条与写令对齐；失败分支带真实原因（`closed_distance=2.87 (<3.0)`、`CommandOverridden`） |
 | A11 安全与边沿 | **PASS** | `EXIT_STOP_QUEUED 6` / `NOT_APPLIED 3`（`waited=1.001`，未写成小于 1.000）/ `SUPERSEDED 2` / `DONE 1`；`HANDOFF_CLEARED 2`；`MISSION_CLEANUP 1` |
 | A12 受影响的 P1 回归 | **PASS** | P 场 `WRITE_EXECUTED 9` + N 场 `5`，均 `WRITE_BLOCKED=0`、`TASK_SELECTION_TIMEOUT=0`；两场 `P1_MODE enabled=1` / `P2_MODE enabled=0`；`COORDINATION_ADVANCE 0`、`ARBITRATION_INJECT 0`（P2 路径未激活） |
-| A13 交付可复查 | **PASS** | 本文件 + §4/§5 全表可复查；CB2 提交 `8fb1efa`（实现）+ `bc19105`（本报告正文）、CBATH 提交 `b9fcef7`；§1.3 已列提交范围与排除项 |
+| A13 交付可复查 | **PASS** | 本文件 + §4/§5 全表可复查；CB2 提交 `8fb1efa`（实现）+ `bc19105`（报告正文）+ `b23161d`（报告更正）、CBATH 提交 `b9fcef7`；§1.3 已列提交范围与排除项 |
 
 ### 3.1 A2 明细（部分覆盖的原因）
 
