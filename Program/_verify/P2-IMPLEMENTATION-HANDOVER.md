@@ -186,6 +186,31 @@ P2 独立采样文件 `p2-evidence-*.json`：场景 A 175 个、场景 B 188 个
 | A11 安全边沿 | 反例测试 + 实机资格撤销/清理 | 测试输出 + `EXIT_STOP_*` + `HANDOFF_CLEARED` + `MISSION_CLEANUP` |
 | A12 P1 回归 | 新产物跑 P/N 两场 | 场次索引 + `WRITE_EXECUTED` 任务类型对照 |
 
+### 1.5 实际引用的只读工具依据（派单 §12 L281 必填）
+
+本轮为判定「本方行为已在位时原生为何不再发 `OnActiveBehaviorChanged`」这一机制问题，**只读反编译**了原生产物。
+全部为离线只读，未修改游戏文件、未注入、未参与任何实机行为；**不构成实现增量**。
+
+| 项 | 值 |
+|---|---|
+| 工具 | `C:\Users\Administrator\.dotnet\tools\ilspycmd.exe`（本机已安装；无 ildasm / monodis / dnSpy） |
+| 被反编译程序集 | `E:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll` |
+| 程序集身份 | 2600408 B / LastWrite 2026-08-23 15:41:53 / SHA-256 `19387F31557FF840D14F378F6BBDF1D58FCFF406AB9FF2294DFBB3E49A50B87E` |
+| 调用形式 | `& <ilspycmd> -t <Type> -o <outDir> <dll>`（**不可用 `> file` 重定向**，会写出二进制） |
+| 产物 1 | `Program\_scratch\decomp-natural\TaleWorlds.MountAndBlade.FormationAI.decompiled.cs`，8894 B / SHA-256 `F30AA3994F654F15BE55DD7B6C2939FD50BF3EC0850CF1370BAA1FFE8D697C4A` |
+| 产物 2 | `Program\_scratch\decomp-natural\TaleWorlds.MountAndBlade.BehaviorComponent.decompiled.cs`，4825 B / SHA-256 `365B37BA6E84C2DEF7CC61C2B72D8E2C4B69D95C4CE08AFB27D9295ECBE51A6E` |
+| 产物归属 | `Program\_scratch\` 为草稿目录，**不进提交**（见 §1.3）；复核者可按上表命令与 SHA 自行重生成 |
+
+**由该依据得出的两条结论（决定了本轮修法形状，非源码改动）**：
+
+1. `FormationAI.ActiveBehavior` 的 setter 有**双重短路**：外层 `if (_activeBehavior != value)` 是引用比较，同一实例再次当选直接短路；内层
+   `if (OnActiveBehaviorChanged != null && (activeBehavior == null || !activeBehavior.Equals(value)))` 走 `BehaviorComponent.Equals`，而后者被重写为
+   `return obj != null && GetType() == obj.GetType();`（**类型比较**）。→ 同一类型的第二个任务不会触发获选事件，**这是结构性的，不是时序问题**。
+2. `FormationAI.TickOccasionally` 中 `ActiveBehavior.TickOccasionally()`（`FindBestBehavior()` 为真分支）是本方行为 tick 的**唯一上游**。
+   因此「进入 `CbHoldBehavior.TickOccasionally()`」本身就是「原生此刻选中本行为」的硬证据，不必依赖获选事件。
+
+→ 直接后果：缺陷修复走 `AcceptRealSelection(... source=behavior_tick)`，而不是继续依赖 `OnActiveBehaviorChanged`；已否决的候选修法（代版权重、每任务新建实例）见 §6.3。
+
 ---
 
 ## 2. 当前进度
@@ -531,3 +556,15 @@ foreach ($s in '20261013-170546','20261013-170928') {
 2. **A5**（真实冲突裁决）：§3.2 的两次竞争是否满足「同级合法」「预定唯一赢家」「非法先过滤」。
 3. **A7**（结构/职责变化联动）：§3.3 的 `COORDINATION_REASSIGNED` + revision 1→2 + 三新任务 ID 是否算「实际职责改变」，以及新 Guard/Support 未获选是否影响联动结论。
 4. **A8**（不可执行）：§3.4 的四件套形态是否等价于判据要求的「明确报告不可执行」。
+
+### 6.3 已否决的候选修法（记录否决依据，避免独立验收者重复评估）
+
+本轮「原生不再发获选事件」缺陷的三个候选修法均**已实测/实测性依据否决**，最终采用 `AcceptRealSelection(... source=behavior_tick)`（§1.5 结论 2）。
+
+| 候选修法 | 否决依据 |
+|---|---|
+| ① 代次权重：`GetAiWeight()` 返回 `1f + generation * 0.001f` | **结构性无效，且实测已被覆盖**。其一，`FormationAI.ActiveBehavior` 的 setter 外层守卫 `if (_activeBehavior != value)` 是**引用比较**：同一实例再次当选直接短路，与它的权重值无关，给同一实例加权重增量不可能触发重估。其二，宿主 `TestDriver.cs` 在 arm 时显式调用 `ai.SetBehaviorWeight<CbHoldBehavior>(8.0)`，而 `SetBehaviorWeight<T>` 写的是 `WeightFactor`（乘数因子），**并不改变 `GetAiWeight()` 的返回值**，故该增量进不了原生的比较式 `GetAIWeight() * WeightFactor`。实测：场景 A 首跑（`p2-A-20261013-121816`）判据 1（`generation=` 递增）成立而判据 2/3 全灭，task-4 的 `PROPOSAL_PUBLISHED` 与 `WRITE_EXECUTED` 均为 0 条。 |
+| ② 每个任务新建 `CbHoldBehavior` 实例 | **结构性无效**。内层守卫走 `BehaviorComponent.Equals`，而该类把它重写为 `return obj != null && GetType() == obj.GetType();`（**类型比较**）。新实例与旧实例子类型相同 → `Equals` 为真 → 事件条件不成立，仍然不发。 |
+| ③ 仅依赖 `OnActiveBehaviorChanged`（不引入 tick 证据源） | **结构上不可能对连续第二个任务成立**。同一类型行为连续获选时两条短路路径都会命中（见①②），该事件对「本方行为始终在位」的场景不是可用信号源 —— 这正是缺陷的表象，不是偶发。 |
+
+**共同点**：三者都试图让原生「再发一次信号」，而反编译证明该信号在同一类型连续获选时被结构性抑制。因此正确做法是把「本方行为被 tick」本身当作获选硬证据（§1.5 结论 2），而不是去构造信号。三个候选**均未进入最终代码**；`Program/src/Host/CbHoldBehavior.cs` 已回退为 54 行无代次版本。
