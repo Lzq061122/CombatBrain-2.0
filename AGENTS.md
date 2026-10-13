@@ -1,6 +1,6 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 PAIPOS Workflow Entry
-Version: 1.4
+Version: 1.5
 Author Role: Project Governance Maintainer
 Model: GPT-6
 Created: 2026-10-02
@@ -10,9 +10,9 @@ Scope: CombatBrain 2.0 / Workflow
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.5 2026-10-13 16:47 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-battlesize-tool-20261013 | note=将 BattleSizeResized 登记为可选实机测试工具，明确用途、独占配置流程与证据边界
 v1.4 2026-10-13 01:30 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-development-cadence-20261013 | note=落实长期开发节奏：完整交付后集中验收，减少重复确认与碎片汇报，优先可信实机表现
 v1.3 2026-10-12 16:09 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb20-p1-stage-exit-20261012 | note=同步 P1 最小闭环阶段独立验收结论，未验证边界继续保留，观测验收仍独立
-v1.2 2026-10-12 13:43 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-exclusive-game-adoption-20261012 | note=落实用户协调通知：观测工作树禁止主线操作、提交在集成工作树审查、完整实测统一串行入口
 -->
 
 # CombatBrain 2.0 项目入口
@@ -81,6 +81,14 @@ v1.2 2026-10-12 13:43 | role=Project Governance Maintainer | model=GPT-6 | edito
 - 开始共享游戏操作前读取 `E:\MBmod\BattleObservation-V1\README.md` 与 `coordination\handoff.md`。完整“部署配套 DLL → 既有 CBATH 启动/采集 → 结束清理”统一由 `E:\MBmod\BattleObservation-V1\coordination\Invoke-ExclusiveGame.ps1` 执行，`Owner` 填 `主线组`，`ScriptPath` 指向本组已经准备好的完整验证脚本；不能只把采集脚本套锁，却在锁外部署或改开关。现有 `Program/_verify/run-p1.ps1` 是采集/清理入口，不包含完整配套部署，不能直接称为完整流程。
 - 协调入口负责整个脚本生命周期的互斥，实际启动仍用 CBATH。锁外不得覆盖共享 DLL、强杀对方游戏或接管对方连接；占用被拒时只做离线工作。对已有运行保全证据并正常清理，不因收到通知强杀。目录和锁文件存在不等于开发 Harness 已切换，也不等于双方已采用入口。
 - 本通知不授权向其他聊天转发或自动建组；观测 Harness 切换由用户另行安排。已核实 `616b903` 的适配器含 `ShutdownAfter/_closedBattleId/ProducerSeq/FlushFailureCount`，不能以“成员消失”的未经核对汇报回退主线；成员存在也不等于 R1–R6 或 V1 已通过。
+
+## 3c. 可用实机测试工具：BattleSizeResized
+
+- 用户于 2026-10-13 授权将 `BattleSizeResized` 作为可选测试工具。安装路径：`E:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\Modules\BattleSizeResized`；本次读取 `SubModule.xml` 登记版本为 `v2.0.4`，后续使用前核对现场版本与依赖。
+- 用于需要扩大测试人数或提高同场单位容量的场景。开发组可在已授权任务范围内按实际需要使用，无需逐次请求确认；它不改变兵种能力白名单，也不保证独立 Formation 数量、AI 资格或合格替补。
+- 优先采用满足判据的最小规模；当前 P2 可从双方各 200～300 人、保持原配比试起，以实际编队与有效活跃人数确认条件，不把该建议当作固定验收参数，不直接拉满上限。原版人数设置已能满足时，不要求额外启用此 mod。
+- 启用、配置修改及恢复纳入既有完整验证脚本，在取得共享资源交接后经 `Invoke-ExclusiveGame.ps1` 独占执行；实际启动与采集仍使用 CBATH。场前保存原配置，场后按交接约定恢复或明确交付当前状态；不在锁外修改共享设置。
+- 同组对照固定 mod 版本与相关配置，归档加载模块、请求人数、实际人数/编队和帧率。登记为可用工具不代表已加载或兼容性已实机验证；提高人数不能替代对写令、裁决、重分配与安全退出缺陷的验证。
 
 ## 4. 按影响决定检查力度
 
