@@ -1,0 +1,34 @@
+{
+  "unwritten_dependencies": {
+    "guard_written_at": -1.0,
+    "support_written_at": -1.0,
+    "guard_feedback": "None",
+    "support_feedback": "None",
+    "advance_allowed": true,
+    "advance_created": true
+  },
+  "rebound_dependencies": {
+    "old_support_object": "obj02",
+    "new_support_object": "obj02",
+    "old_main_dependency": "",
+    "current_guard_id": "plan-1-task-92-r2",
+    "current_support_id": "plan-1-task-92-3",
+    "guard_guards_task": "",
+    "support_supports_task": "plan-1-task-1",
+    "current_main_id": "plan-1-task-92-1"
+  },
+  "second_advance_identity": {
+    "first_id": "plan-1-task-4",
+    "second_id": "plan-1-task-4",
+    "first_revision": 1,
+    "second_revision": 2,
+    "ids_equal": true,
+    "first_write_allowed": true,
+    "second_write_allowed": false,
+    "second_write_reason": "already_written",
+    "after_old_identity_closed_reason": "intent_closed",
+    "gate_still_closed_after_new_submission": true,
+    "first_submission_anchor_after_new_submission": 201.0,
+    "old_lookup_now_returns_new_task": true
+  }
+}
