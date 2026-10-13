@@ -21,8 +21,15 @@ namespace CombatBrain2.Host
 
         private const string ConfigFileName = "eligibility-probe.txt";
 
+        // P2 测试适配的独立配置文件（默认关闭）。与 P1 探针分开，
+        // 保证 P1 契约不受影响，且只有在 P2 路径开启时才会生效。
+        private const string P2ConfigFileName = "p2-eligibility-probe.txt";
+
         // 失资格保持窗口：至少 4 秒，留出独立采样与逐 tick 检查的机会（脚本 §7.1）。
         private const double HoldSeconds = 4.0;
+
+        // 场景 B 的替补保持窗口：须覆盖保护失资格后的处置证据采集，明显长于 4 s。
+        private const double P2SubstituteKeepSeconds = 30.0;
 
         private sealed class Applied
         {
@@ -42,6 +49,18 @@ namespace CombatBrain2.Host
         private bool _loaded;
         private bool _fired;
 
+        // ---- P2 测试适配状态（与上面的 P1 探针完全独立）----
+        private P2AdaptationMode _p2Mode = P2AdaptationMode.None;
+        private bool _p2Loaded;
+        private bool _p2Fired;
+        // 场景 B 的准备期已处理的替补对象；记录原状态以便只恢复自己改过的对象。
+        private readonly List<Applied> _p2Substitutes = new List<Applied>();
+        private bool _p2PrepareDone;
+
+        // A5 竞争注入开关：只在 p2 配置文件显式给出 competition=1 时打开，
+        // 缺文件或未设即关闭（派单 §9.1「P2 测试注入单独显式开启、默认关闭」）。
+        internal bool P2CompetitionEnabled;
+
         private EligibilityProbe() { }
 
         private static string ConfigPath()
@@ -49,6 +68,61 @@ namespace CombatBrain2.Host
             return Path.Combine(
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CombatBrain2"),
                 ConfigFileName);
+        }
+
+        private static string P2ConfigPath()
+        {
+            return Path.Combine(
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CombatBrain2"),
+                P2ConfigFileName);
+        }
+
+        // P2 适配配置：只在 p2_mode 明确给出时生效，缺文件或未设即为关闭。
+        private void LoadP2Once()
+        {
+            if (_p2Loaded) return;
+            _p2Loaded = true;
+            string raw = "";
+            string competition = "";
+            try
+            {
+                string p = P2ConfigPath();
+                if (File.Exists(p))
+                {
+                    foreach (var line in File.ReadAllLines(p))
+                    {
+                        string one = line == null ? "" : line.Trim();
+                        if (one.Length == 0 || one.StartsWith("#", StringComparison.Ordinal)) continue;
+                        int eq = one.IndexOf('=');
+                        if (eq <= 0) continue;
+                        string k = one.Substring(0, eq).Trim();
+                        string v = one.Substring(eq + 1).Trim();
+                        if (string.Equals(k, "p2_mode", StringComparison.OrdinalIgnoreCase))
+                        {
+                            raw = v.ToLowerInvariant();
+                            continue;
+                        }
+                        if (string.Equals(k, "competition", StringComparison.OrdinalIgnoreCase))
+                        {
+                            competition = v.ToLowerInvariant();
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+
+            if (raw == "guard_loss_after_established") _p2Mode = P2AdaptationMode.GuardLossAfterEstablished;
+            else if (raw == "guard_loss_before_established") _p2Mode = P2AdaptationMode.GuardLossBeforeEstablished;
+            else _p2Mode = P2AdaptationMode.None;
+
+            P2CompetitionEnabled = competition == "1" || competition == "on" || competition == "true";
+
+            Cb2Log.Line("P2_PROBE_CONFIG",
+                "p2_mode=" + (raw.Length == 0 ? "<off>" : raw) +
+                " source=" + P2ConfigFileName +
+                " hold_seconds=" + Cb2Log.F(HoldSeconds) +
+                " competition=" + (P2CompetitionEnabled ? "1" : "0") +
+                " note=test_adapter_only_never_changes_production_gating");
         }
 
         private void LoadOnce()
@@ -100,6 +174,231 @@ namespace CombatBrain2.Host
 
             if (_modes.Count > 0 && !_fired) TryTrigger(mission, now);
             SweepRestores(mission, now);
+
+            // P2 适配独立推进：默认关闭，且只在 P2 路径运行时才起作用。
+            LoadP2Once();
+            if (_p2Mode != P2AdaptationMode.None && TestDriver.Instance.CoordinationMode)
+            {
+                P2PrepareSubstitutes(mission, now);
+                if (!_p2Fired) P2TryTrigger(mission, now);
+                P2SweepRestores(mission, now);
+            }
+        }
+
+        // ================= P2 测试适配（派单 §9.2） =================
+
+        // 场景 B 的准备期：读取真实候选，保留能建立合法三职责计划的三支对象，
+        // 把其余合格替补的 AI 资格关闭。额外对象继续计入全队人数。
+        // 本适配只改资格，不关计划、不改依赖结果、不删士兵。
+        private void P2PrepareSubstitutes(Mission mission, double now)
+        {
+            if (_p2Mode != P2AdaptationMode.GuardLossBeforeEstablished) return;
+            if (_p2PrepareDone) return;
+
+            var snapshot = TestDriver.Instance.Snapshot;
+            var plan = TestDriver.Instance.Plan;
+            if (snapshot == null || plan == null) return;
+
+            // 计划尚未建立时先等：要保留的正是"能建立合法三职责计划"的那三支。
+            if (!CoordinationDriver.IsCoordinationPlan(plan)) return;
+
+            var keep = new List<string>();
+            var d = TestDriver.Instance.Coordination;
+            if (d != null)
+            {
+                if (d.MainWaitTask != null) keep.Add(d.MainWaitTask.FormationKey);
+                if (d.GuardTask != null) keep.Add(d.GuardTask.FormationKey);
+                if (d.SupportTask != null) keep.Add(d.SupportTask.FormationKey);
+            }
+            if (keep.Count < 3) return;
+
+            int processed = 0;
+            var keys = new List<string>();
+            foreach (var r in snapshot.Records)
+            {
+                if (r.IsPlayerTeam || r.IsPlayerControlled) continue;
+                if (!r.IsAiControlled) continue;
+                if (!PlanBuilder.ClassAllows(r.FormationClass, TaskKind.Reposition)) continue;
+                if (keep.Contains(r.Key())) continue;
+
+                var f = TestDriver.Instance.FindFormationByKey(mission, r.Key());
+                if (f == null) continue;
+
+                var a = new Applied
+                {
+                    Mode = "p2_substitute",
+                    Target = f,
+                    TargetKey = r.Key(),
+                    PlanId = plan.PlanId,
+                };
+                _p2Substitutes.Add(a);
+                P2ApplyLoss(a, now);
+                processed++;
+                keys.Add(r.Key());
+            }
+
+            _p2PrepareDone = true;
+            Cb2Log.Line("P2_PROBE_SUBSTITUTES",
+                "plan=" + plan.PlanId +
+                " kept=" + string.Join(",", keep.ToArray()) +
+                " disabled_count=" + processed +
+                " disabled=" + (keys.Count == 0 ? "<none>" : string.Join(",", keys.ToArray())) +
+                " note=extra_substitutes_keep_counting_toward_team_strength" +
+                " at=" + Cb2Log.F(now));
+        }
+
+        // 触发判据全部交给纯逻辑 EligibilityTrigger，便于离线反例逐条钉住。
+        private void P2TryTrigger(Mission mission, double now)
+        {
+            var plan = TestDriver.Instance.Plan;
+            var d = TestDriver.Instance.Coordination;
+            if (d == null) return;
+
+            var input = new EligibilityTriggerInput
+            {
+                Mode = _p2Mode,
+                PlanOpen = plan != null && !plan.IsClosed,
+                PlanIsCoordination = plan != null && CoordinationDriver.IsCoordinationPlan(plan),
+                GuardTaskPresent = d.GuardTask != null,
+                GuardTaskRevision = d.GuardTask != null ? d.GuardTask.Revision : -1,
+                PlanRevision = plan != null ? plan.Revision : -1,
+                RelationshipEstablished = d.GuardReadiness != null && d.GuardReadiness.Ready &&
+                                          d.SupportReadiness != null && d.SupportReadiness.Ready,
+                MainAdvancing = d.Phase == CoordinationPhase.MainAdvancing,
+                GuardCommandWritten = d.GuardTask != null && d.GuardTask.WrittenAt >= 0.0,
+                SupportCommandWritten = d.SupportTask != null && d.SupportTask.WrittenAt >= 0.0,
+                MainStillWaiting = d.MainWaitTask != null && !d.MainWaitTask.IsClosed,
+                PlanAgeSeconds = plan != null ? now - plan.CreatedAt : 0.0,
+                StableSecondsRequired = TestParameters.PlanMinStableSeconds,
+            };
+
+            var decision = EligibilityTrigger.Decide(input);
+            if (!decision.Fire) return;
+
+            // 目标永远是版本绑定的实际保护编队，不是 OpenTasks 里第一个已生效对象。
+            var f = TestDriver.Instance.FindFormationByKey(mission, d.GuardTask.FormationKey);
+            if (f == null)
+            {
+                Cb2Log.Line("P2_PROBE_TARGET_MISSING",
+                    "plan=" + plan.PlanId +
+                    " key=" + d.GuardTask.FormationKey +
+                    " reason=guard_formation_not_found at=" + Cb2Log.F(now));
+                return;
+            }
+
+            _p2Fired = true;
+            var a = new Applied
+            {
+                Mode = "p2",
+                Target = f,
+                TargetKey = d.GuardTask.FormationKey,
+                PlanId = plan.PlanId,
+                TaskId = d.GuardTask.TaskId,
+            };
+            _applied.Add(a);
+
+            Cb2Log.Line("P2_PROBE_TRIGGER",
+                "scenario=" + decision.Reason +
+                " plan=" + plan.PlanId +
+                " revision=" + plan.Revision +
+                " task=" + d.GuardTask.TaskId +
+                " target=" + EligibilityTrigger.DescribeTarget(d.GuardTask.FormationKey,
+                                                            d.GuardTask.Revision, plan.Revision) +
+                " phase=" + d.Phase +
+                " note=real_guard_object_selected_by_revision" +
+                " at=" + Cb2Log.F(now));
+
+            P2ApplyLoss(a, now);
+        }
+
+        // 与 P1 的 ApplyLoss 同样的公开原生入口，但日志前缀独立，便于区分两路适配。
+        private void P2ApplyLoss(Applied plan, double now)
+        {
+            var f = plan.Target;
+            plan.LossApplied = true;
+
+            string before = StateOf(f, now, plan);
+            string error = "";
+            bool became = false;
+            try
+            {
+                f.SetControlledByAI(false);
+                became = !f.IsAIControlled;
+            }
+            catch (Exception e) { error = e.GetType().Name + ": " + e.Message; }
+
+            Cb2Log.Line("P2_PROBE_ELIGIBILITY_LOST",
+                "scenario=" + plan.Mode +
+                " plan=" + plan.PlanId +
+                " task=" + plan.TaskId +
+                " key=" + plan.TargetKey +
+                " before[" + before + "]" +
+                " after[" + StateOf(f, now, plan) + "]" +
+                " applied=" + (became ? 1 : 0) +
+                " error=" + (error.Length == 0 ? "<none>" : error) +
+                " note=test_adapter_triggered_eligibility_change" +
+                " at=" + Cb2Log.F(now));
+
+            plan.RestoreAt = now + P2SubstituteHoldSeconds(plan);
+            Cb2Log.Line("P2_PROBE_RESTORE_SCHEDULED",
+                "plan=" + plan.PlanId +
+                " key=" + plan.TargetKey +
+                " at=" + Cb2Log.F(plan.RestoreAt) +
+                " hold=" + Cb2Log.F(P2SubstituteHoldSeconds(plan)) +
+                " at_now=" + Cb2Log.F(now));
+        }
+
+        // 场景 B 的替补应在本次失效处置证据采集完成前保持不可用，
+        // 因此保持窗口明显长于保护编队的 4 s；场景 A 的保护编队按合同保持至少 4 s。
+        private static double P2SubstituteHoldSeconds(Applied plan)
+        {
+            return plan.Mode == "p2_substitute" ? P2SubstituteKeepSeconds : HoldSeconds;
+        }
+
+        private void P2SweepRestores(Mission mission, double now)
+        {
+            foreach (var plan in _applied)
+            {
+                if (plan.Mode != "p2") continue;
+                if (!plan.LossApplied || plan.Restored) continue;
+                if (plan.RestoreAt < 0 || now < plan.RestoreAt) continue;
+                P2ApplyRestore(plan, now);
+            }
+            foreach (var plan in _p2Substitutes)
+            {
+                if (!plan.LossApplied || plan.Restored) continue;
+                if (plan.RestoreAt < 0 || now < plan.RestoreAt) continue;
+                P2ApplyRestore(plan, now);
+            }
+        }
+
+        // 只恢复本适配实际改过资格的对象，逐一记原状态。
+        private void P2ApplyRestore(Applied plan, double now)
+        {
+            plan.Restored = true;
+            var f = plan.Target;
+            if (f == null) return;
+            string before = StateOf(f, now, plan);
+            string error = "";
+            bool became = false;
+            try
+            {
+                f.SetControlledByAI(true);
+                became = f.IsAIControlled;
+            }
+            catch (Exception e) { error = e.GetType().Name + ": " + e.Message; }
+
+            Cb2Log.Line("P2_PROBE_ELIGIBILITY_RESTORED",
+                "scenario=" + plan.Mode +
+                " plan=" + plan.PlanId +
+                " task=" + plan.TaskId +
+                " key=" + plan.TargetKey +
+                " before[" + before + "]" +
+                " after[" + StateOf(f, now, plan) + "]" +
+                " applied=" + (became ? 1 : 0) +
+                " error=" + (error.Length == 0 ? "<none>" : error) +
+                " at=" + Cb2Log.F(now) +
+                " note=only_objects_this_adapter_changed");
         }
 
         // 触发前提（脚本 §7.1）：计划连续存活 ≥ 8 s，且两个编队的普通任务都已取得正面反馈。

@@ -44,6 +44,23 @@ namespace CombatBrain2.Core
             return plan;
         }
 
+        // P2 路径：与 P1 的 Create 互斥，同一时刻只有一条路径在跑（派单 §7）。
+        internal BattlePlan CreateCoordination(BattleState state, double now)
+        {
+            _planCount++;
+            var id = "plan-" + _planCount.ToString(CultureInfo.InvariantCulture);
+            var plan = PlanBuilder.BuildCoordination(state, id, now);
+            if (plan != null) _current = plan;
+            return plan;
+        }
+
+        // 分配改变必须增版本：旧版本任务不得写令，也不得取消或清掉新版本的槽位。
+        internal static void BumpRevision(BattlePlan plan)
+        {
+            if (plan == null) return;
+            plan.Revision++;
+        }
+
         internal void Invalidate(PlanInvalidReason reason, string detail, double now)
         {
             if (_current == null || _current.IsClosed) return;

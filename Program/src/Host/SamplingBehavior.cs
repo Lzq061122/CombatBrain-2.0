@@ -29,31 +29,52 @@ namespace CombatBrain2.Host
         private double _nextDecisionAt = -1.0;
         private int _evalCount;
 
-        private static string P1ConfigPath()
+        // P2 节奏状态。与 P1 互斥：两者同时开启时不跑任何一路。
+        private bool _p2Enabled;
+        private double _nextP2DecisionAt = -1.0;
+        private int _p2EvalCount;
+
+        private static string ConfigPathOf(string fileName)
         {
             return Path.Combine(
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "CombatBrain2"),
-                "p1-command-loop.txt");
+                fileName);
         }
 
-        private void LoadP1Once()
+        private static string P1ConfigPath()
         {
-            if (_p1Loaded) return;
-            _p1Loaded = true;
+            return ConfigPathOf("p1-command-loop.txt");
+        }
+
+        private static string P2ConfigPath()
+        {
+            return ConfigPathOf("p2-command-loop.txt");
+        }
+
+        // 读哨兵文件里的 enabled。文件缺失或未设 = 关闭。
+        private static bool ReadEnabledFlag(string path)
+        {
+            string value = ReadFlagValue(path, "enabled");
+            return string.Equals(value, "1", StringComparison.Ordinal) ||
+                   string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(value, "on", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // 开关之外的参数也走同一格式，便于测试注入显式配置。
+        private static string ReadFlagValue(string path, string key)
+        {
             string value = "";
             try
             {
-                string p = P1ConfigPath();
-                if (File.Exists(p))
+                if (File.Exists(path))
                 {
-                    foreach (var raw in File.ReadAllLines(p))
+                    foreach (var raw in File.ReadAllLines(path))
                     {
                         string line = raw == null ? "" : raw.Trim();
                         if (line.Length == 0 || line.StartsWith("#", StringComparison.Ordinal)) continue;
                         int eq = line.IndexOf('=');
                         if (eq <= 0) continue;
-                        if (string.Equals(line.Substring(0, eq).Trim(), "enabled",
-                                StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(line.Substring(0, eq).Trim(), key, StringComparison.OrdinalIgnoreCase))
                         {
                             value = line.Substring(eq + 1).Trim();
                         }
@@ -61,16 +82,45 @@ namespace CombatBrain2.Host
                 }
             }
             catch (Exception) { }
+            return value;
+        }
 
-            _p1Enabled = string.Equals(value, "1", StringComparison.Ordinal) ||
-                         string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ||
-                         string.Equals(value, "on", StringComparison.OrdinalIgnoreCase);
+        private void LoadP1Once()
+        {
+            if (_p1Loaded) return;
+            _p1Loaded = true;
+
+            string p1Value = ReadFlagValue(P1ConfigPath(), "enabled");
+            string p2Value = ReadFlagValue(P2ConfigPath(), "enabled");
+            bool p1Wanted = IsOn(p1Value);
+            bool p2Wanted = IsOn(p2Value);
+
+            // P1 与 P2 互斥：两条路径都会写同一批编队的 MovementOrder，
+            // 同时开启无法归因，因此拒绝运行，不静默挑一条。
+            bool both = p1Wanted && p2Wanted;
+            _p1Enabled = p1Wanted && !both;
+            _p2Enabled = p2Wanted && !both;
 
             Cb2Log.Line("P1_MODE",
                 "enabled=" + (_p1Enabled ? 1 : 0) +
-                " value=" + (value.Length == 0 ? "<unset>" : value) +
+                " value=" + (p1Value.Length == 0 ? "<unset>" : p1Value) +
                 " source=p1-command-loop.txt" +
                 " disabled_meaning=no_command_source");
+
+            Cb2Log.Line("P2_MODE",
+                "enabled=" + (_p2Enabled ? 1 : 0) +
+                " value=" + (p2Value.Length == 0 ? "<unset>" : p2Value) +
+                " source=p2-command-loop.txt" +
+                (both ? " rejected=both_enabled" : "") +
+                " p1_enabled=" + (_p1Enabled ? 1 : 0) +
+                " disabled_meaning=no_command_source");
+        }
+
+        private static bool IsOn(string value)
+        {
+            return string.Equals(value, "1", StringComparison.Ordinal) ||
+                   string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(value, "on", StringComparison.OrdinalIgnoreCase);
         }
 
         public override void OnMissionTick(float dt)
@@ -87,7 +137,8 @@ namespace CombatBrain2.Host
                 TestDriver.Instance.MarkMainThread(CurrentThreadId());
                 Cb2Log.Line("BEHAVIOR_START",
                     "sampling_behavior_initialized tid=" + CurrentThreadId() +
-                    " p1_enabled=" + (_p1Enabled ? 1 : 0));
+                    " p1_enabled=" + (_p1Enabled ? 1 : 0) +
+                    " p2_enabled=" + (_p2Enabled ? 1 : 0));
             }
 
             double now = 0.0;
@@ -114,6 +165,7 @@ namespace CombatBrain2.Host
             }
 
             if (_p1Enabled) TickP1(mission, now);
+            else if (_p2Enabled) TickP2(mission, now);
 
             // 每 2 秒独立复读实际 MovementOrder，观测是否被原生改写。
             if (now >= _lastObserveAt + 2.0)
@@ -123,9 +175,50 @@ namespace CombatBrain2.Host
             }
         }
 
+        // P2 节奏：与 P1 同一套决策骨架，但建立协同计划并在逐 tick 复核依赖。
+        private void TickP2(Mission mission, double now)
+        {
+            TestDriver.Instance.SetCommandLoop(true);
+
+            if (_nextP2DecisionAt < 0.0)
+            {
+                _nextP2DecisionAt = now + TestParameters.FirstCommandDelaySeconds;
+                Cb2Log.Line("P2_FIRST_DECISION_SCHEDULED",
+                    "at=" + Cb2Log.F(_nextP2DecisionAt) +
+                    " first_command_delay=" + Cb2Log.F(TestParameters.FirstCommandDelaySeconds) +
+                    " decision_cadence=" + Cb2Log.F(TestParameters.DecisionCadenceSeconds));
+            }
+
+            if (now >= _nextP2DecisionAt)
+            {
+                _nextP2DecisionAt = now + TestParameters.DecisionCadenceSeconds;
+                _p2EvalCount++;
+                Cb2Log.Line("EVAL_TICK",
+                    "eval=" + _p2EvalCount +
+                    " mode=p2" +
+                    " at=" + Cb2Log.F(now) +
+                    " cadence=" + Cb2Log.F(TestParameters.DecisionCadenceSeconds));
+                TestDriver.Instance.DecisionTick(mission);
+                TestDriver.Instance.SubmitPending(mission);
+                // 提案收集与公布在评价点一次完成：写前门只消费已公布结果，
+                // 否则首个到达写前门的提案会被当作唯一竞争者提前公布。
+                TestDriver.Instance.PublishCoordinationProposals(mission, now);
+            }
+
+            // 协同观察按逐 tick 进行：依赖是否成立不能等到下个 3 s 评价点，
+            // 否则"保护已离开到位区"会被延迟发现。
+            TestDriver.Instance.CoordinationTick(mission);
+
+            TestDriver.Instance.FeedbackTick(mission);
+            TestDriver.Instance.DrainPendingCommand(mission);
+            TestDriver.Instance.SweepExitStops(mission);
+        }
+
         // P1 节奏：决策按 3 s，条件/安全/反馈按逐 tick，槽位消费在主线程执行点。
         private void TickP1(Mission mission, double now)
         {
+            TestDriver.Instance.SetCommandLoop(false);
+
             if (_nextDecisionAt < 0.0)
             {
                 _nextDecisionAt = now + TestParameters.FirstCommandDelaySeconds;

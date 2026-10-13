@@ -33,6 +33,8 @@ namespace CombatBrain2.Host
         // 原生选中本行为后由 FormationAI 调用（受 IsAIControlled 门控）。
         // 原生主循环不等于主线程：这里只负责把本次命令交给 TestDriver 判决，
         // 由它决定就地执行还是最小转交给已确认的主线程执行点。
+        // 本方法只有 FormationAI.TickOccasionally 的 ActiveBehavior 分支会调用，
+        // 所以每次进入这里本身就是「原生已选中本行为」的真实证据。
         public override void TickOccasionally()
         {
             if (!_armed) return;

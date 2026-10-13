@@ -16,6 +16,9 @@ namespace CombatBrain2.Core
         internal bool StrengthWithinTolerance;
         internal bool StrengthCritical;
 
+        // P2 协同的继续判定：只在更窄的继续门槛上成立。
+        internal bool CoordinationCanContinue;
+
         internal static PlanConditions From(BattleState state)
         {
             var c = new PlanConditions();
@@ -25,6 +28,7 @@ namespace CombatBrain2.Core
             c.RangedDisadvantageHolds = c.RangedEdge <= -TestParameters.RangedEdgeThreshold;
             c.StrengthWithinTolerance = c.StrengthRatio >= TestParameters.StrengthTolerance;
             c.StrengthCritical = c.StrengthRatio < TestParameters.StrengthDisadvantageLine;
+            c.CoordinationCanContinue = c.RangedEdge >= TestParameters.RangedEdgeContinueThreshold;
             return c;
         }
 
@@ -52,6 +56,11 @@ namespace CombatBrain2.Core
             if (plan.Goal == "mitigate_ranged_disadvantage")
             {
                 return RangedEdge <= -TestParameters.RangedEdgeContinueThreshold;
+            }
+            // P2 协同计划与 P1 远程优势同门槛继续，但兵力安全线同样先行。
+            if (plan.Goal == PlanBuilder.GoalCoordination)
+            {
+                return CoordinationCanContinue;
             }
             return false;
         }
@@ -84,6 +93,27 @@ namespace CombatBrain2.Core
         internal TaskKind Kind = TaskKind.None;
         internal string Reason = "";
 
+        // ---- P2 协同字段（派单 §3）----
+        // 任务在同一开放 Plan 下的完整分配版本。职责/对象/依赖集改变必须增版本，
+        // 并让三者旧普通任务全部关闭后用新 ID 重新绑定；旧版本不得写令。
+        internal int Revision = 1;
+        internal FormationRole Role = FormationRole.None;
+        // 依赖字段：本任务保护谁 / 辅助谁 / 依赖哪条状态。
+        internal string GuardsTaskId = "";
+        internal string SupportsTaskId = "";
+        internal string DependsOnTaskId = "";
+        // 依赖实际成立后才关等待任务并原子指定新推进任务 ID。
+        internal string ReplacesTaskId = "";
+        // 命令建议身份：由内容派生，可稳定比较，不能按接收先后编号。
+        internal string ProposalId = "";
+        internal ProposalSource Source = ProposalSource.TaskSubmission;
+        // 职责分配时的实读人数基线，用于人数继续线（>=6 且 >= 该基线 50%）。
+        internal int RoleBaselineUnits;
+        internal double RoleAssignedAt = -1.0;
+        // 退出任务专用：它由哪次普通任务关闭产生。
+        // 归属判定需要这个身份才能把「这次关闭」与「这条退出任务」关联起来。
+        internal string OriginTaskId = "";
+
         internal double CreatedAt;
         internal double SubmittedAt = -1.0;
         internal int SubmissionCount;
@@ -108,6 +138,20 @@ namespace CombatBrain2.Core
         internal bool HasOrderTarget;
         internal double OrderTargetX;
         internal double OrderTargetY;
+
+        // 计划几何给出的规范目标点（主力 M*、保护 G*、辅助 S*）。
+        // 提案阶段任务还没写令，RequestedX/Y 仍是空值；首次竞争的
+        //「距规范目标点的误差」必须取这个点，否则该规则在首次裁决时失效（派单 §5 第 3 条）。
+        internal bool HasCanonicalTarget;
+        internal double CanonicalX;
+        internal double CanonicalY;
+
+        internal void SetCanonicalTarget(double x, double y)
+        {
+            CanonicalX = x;
+            CanonicalY = y;
+            HasCanonicalTarget = true;
+        }
 
         // 位置任务的目标点由执行层在发令前按当前几何计算并写入。
         internal void SetTarget(double originX, double originY, double requestedX, double requestedY)
@@ -206,6 +250,24 @@ namespace CombatBrain2.Core
         internal double CreatedAt;
         internal double InputSampledAt;
 
+        // P2：同一开放 Plan 下一次完整任务分配的版本号。分配改变即增，
+        // 旧版本任务不得写令，也不得取消或清掉新版本的槽位。
+        internal int Revision = 1;
+
+        // P2：本计划的三职责协同几何。主路径没有几何时为 null。
+        internal CoordinationGeometry Geometry;
+
+        // P2：任务种类按职责/类别的相称性判定，不靠调用点约定。
+        internal bool Allows(TaskKind kind)
+        {
+            foreach (var t in Tasks)
+            {
+                if (IsExitTask(t)) continue;
+                if (t.Kind == kind) return true;
+            }
+            return false;
+        }
+
         internal PlanConditions Conditions = new PlanConditions();
 
         internal readonly List<FormationTask> Tasks = new List<FormationTask>();
@@ -238,6 +300,7 @@ namespace CombatBrain2.Core
               .Append(" goal=").Append(Goal)
               .Append(" reason=").Append(Reason)
               .Append(" input=").Append(PlanInputId)
+              .Append(" revision=").Append(Revision.ToString(CultureInfo.InvariantCulture))
               .Append(" created_at=").Append(CreatedAt.ToString("F3", CultureInfo.InvariantCulture))
               .Append(" input_sampled_at=").Append(InputSampledAt.ToString("F3", CultureInfo.InvariantCulture))
               .Append(" formations=").Append(string.Join(",", RequiredFormations.ToArray()));

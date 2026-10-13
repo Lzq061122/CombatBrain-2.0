@@ -117,6 +117,305 @@ namespace CombatBrain2.Core
     // 计划不包含具体 Order，命令由任务在真实获选后产生。
     internal static class PlanBuilder
     {
+        internal const string GoalCoordination = "coordination_ranged_advantage";
+
+        // P2 控制组合白名单。精确匹配，不沿用 IsRanged（后者把 HorseArcher 也算远程）。
+        // 骑兵本单只开放 Hold/Reposition；骑兵 Engage 与所有 HorseArcher/未知类别一律拒绝。
+        internal static bool ClassAllows(string formationClass, TaskKind kind)
+        {
+            if (string.IsNullOrEmpty(formationClass)) return false;
+            if (kind != TaskKind.Hold && kind != TaskKind.Engage && kind != TaskKind.Reposition)
+            {
+                return false;
+            }
+
+            bool infantry = string.Equals(formationClass, "Infantry", StringComparison.OrdinalIgnoreCase);
+            bool ranged = string.Equals(formationClass, "Ranged", StringComparison.OrdinalIgnoreCase);
+            bool cavalry = string.Equals(formationClass, "Cavalry", StringComparison.OrdinalIgnoreCase);
+
+            if (infantry || ranged) return true;
+            if (cavalry) return kind != TaskKind.Engage;
+            return false;
+        }
+
+        // P2 协同计划：同一开放 Plan 下三个不同对象分别承担主力/保护/辅助。
+        // 只在远程优势成立时创建，且三支编队必须都能承担所分配的职责。
+        internal static BattlePlan BuildCoordination(BattleState state, string planId, double now)
+        {
+            if (state == null) return null;
+
+            var conditions = PlanConditions.From(state);
+            if (!conditions.RangedAdvantageHolds) return null;
+            if (conditions.StrengthCritical) return null;
+            if (state.MyTeamIndex < 0 || state.EnemyTeamIndex < 0) return null;
+
+            var candidates = CoordinationCandidates(state);
+            // 三职责必须由不同对象承担：不足三支就不形成协同计划，不做兼任降级。
+            if (candidates.Count < 3) return null;
+
+            double enemyX, enemyY;
+            if (!TryActiveCenter(state.EnemyFormations, out enemyX, out enemyY)) return null;
+
+            // 主力职责先定：按稳定序取第一支，几何的原点 M0 用该编队自己的实际质心，
+            // 不用全队加权中心（那是另一件事，不能拿来充当主力位置）。
+            var main = candidates[0];
+            double mainX, mainY;
+            if (!MainOriginOf(main, out mainX, out mainY)) return null;
+
+            var rest = new List<FormationRecord>();
+            for (int i = 1; i < candidates.Count; i++) rest.Add(candidates[i]);
+
+            double supportOriginX, supportOriginY;
+            if (!MainOriginOf(rest[0], out supportOriginX, out supportOriginY)) return null;
+            var geometry = CoordinationGeometry.Compute(mainX, mainY, enemyX, enemyY,
+                                                        supportOriginX, supportOriginY);
+            if (geometry == null) return null;
+
+            // 几何定下后按职责的实际位置要求分配，不再按候选顺序硬性指派：
+            // 距离规范点更近的承担该职责，减少无谓移动。
+            FormationRecord guard;
+            FormationRecord support;
+            if (!AssignGuardAndSupport(geometry, rest, out guard, out support)) return null;
+
+            var plan = new BattlePlan
+            {
+                PlanId = planId,
+                MissionKey = state.MissionKey,
+                PlanInputId = state.PlanInputId,
+                CreatedAt = now,
+                InputSampledAt = state.SampledAt,
+                Conditions = conditions,
+                Goal = GoalCoordination,
+                Revision = 1,
+                Geometry = geometry,
+                Reason = "ranged_edge=" + conditions.RangedEdge.ToString("F3", CultureInfo.InvariantCulture) +
+                         ">=threshold " + geometry.Describe(),
+            };
+
+            plan.RequiredFormations.Add(main.Key());
+            plan.RequiredFormations.Add(guard.Key());
+            plan.RequiredFormations.Add(support.Key());
+
+            var mainTask = MakeCoordinationTask(plan, 1, main, TaskKind.Hold, FormationRole.Main,
+                "coordination_main_hold_wait");
+            var guardTask = MakeCoordinationTask(plan, 2, guard, TaskKind.Reposition, FormationRole.Guard,
+                "coordination_guard_reposition");
+            var supportTask = MakeCoordinationTask(plan, 3, support, TaskKind.Reposition, FormationRole.Support,
+                "coordination_support_reposition");
+
+            // 任务还没写令，RequestedX/Y 仍是空值；首次竞争的"距规范目标点误差"
+            // 必须取计划几何点，否则两个候选误差同为 0（派单 §5 第 3 条）。
+            mainTask.SetCanonicalTarget(geometry.MainX, geometry.MainY);
+            guardTask.SetCanonicalTarget(geometry.GuardX, geometry.GuardY);
+            supportTask.SetCanonicalTarget(geometry.SupportX, geometry.SupportY);
+
+            guardTask.DependsOnTaskId = mainTask.TaskId;
+            guardTask.GuardsTaskId = mainTask.TaskId;
+            supportTask.DependsOnTaskId = mainTask.TaskId;
+            supportTask.SupportsTaskId = mainTask.TaskId;
+            mainTask.DependsOnTaskId = "";
+            mainTask.ReplacesTaskId = "|" + guardTask.TaskId + "|" + supportTask.TaskId + "|";
+
+            plan.Tasks.Add(mainTask);
+            plan.Tasks.Add(guardTask);
+            plan.Tasks.Add(supportTask);
+            return plan;
+        }
+
+        // 保护职责：实际中心至有效 G* <=5 m，且相对有效 M* 朝敌投影在 [5,15] m、侧向绝对偏差 <=5 m。
+        internal static bool GuardInPosition(CoordinationGeometry g, double x, double y)
+        {
+            if (g == null) return false;
+            if (!CoordinationGeometry.IsFinite(x) || !CoordinationGeometry.IsFinite(y)) return false;
+            if (CoordinationGeometry.Distance(x, y, g.GuardX, g.GuardY) >
+                TestParameters.CoordinationArrivalRadiusMeters) return false;
+
+            double forward = g.ForwardOffsetFrom(g.MainX, g.MainY, x, y);
+            if (forward < TestParameters.GuardForwardMinMeters) return false;
+            if (forward > TestParameters.GuardForwardMaxMeters) return false;
+
+            double lateral = g.LateralOffsetFrom(g.MainX, g.MainY, x, y);
+            return Math.Abs(lateral) <= TestParameters.GuardLateralMaxMeters;
+        }
+
+        // 辅助职责：实际中心至有效 S* <=5 m，且相对 M* 的侧向绝对投影在 [7,17] m。
+        internal static bool SupportInPosition(CoordinationGeometry g, double x, double y)
+        {
+            if (g == null) return false;
+            if (!CoordinationGeometry.IsFinite(x) || !CoordinationGeometry.IsFinite(y)) return false;
+            if (CoordinationGeometry.Distance(x, y, g.SupportX, g.SupportY) >
+                TestParameters.CoordinationArrivalRadiusMeters) return false;
+
+            double lateral = Math.Abs(g.LateralOffsetFrom(g.MainX, g.MainY, x, y));
+            return lateral >= TestParameters.SupportLateralMinMeters &&
+                   lateral <= TestParameters.SupportLateralMaxMeters;
+        }
+
+        // 职责人数继续线：剩余有效人数 >=6 且 >= 该职责分配时基线的 50%。相等允许继续。
+        internal static bool RoleStrengthHolds(int currentUnits, int baselineUnits)
+        {
+            if (baselineUnits <= 0) return false;
+            if (currentUnits < TestParameters.RoleUnitFloor) return false;
+            return (double)currentUnits >= baselineUnits * TestParameters.RoleUnitRatioFloor;
+        }
+
+        // 职责前提失效判定（§6 第 133 行）：按固定顺序逐条核对，
+        // 位置未知单独成项，不与人数不足混为一谈。
+        internal static RolePremiseFailure PremiseFailureOf(bool objectPresent, string formationClass,
+                                                            int currentUnits, int baselineUnits,
+                                                            bool eligible, bool positionKnown)
+        {
+            if (!objectPresent) return RolePremiseFailure.ObjectGone;
+            if (!positionKnown) return RolePremiseFailure.PositionUnknown;
+            if (!eligible) return RolePremiseFailure.EligibilityLost;
+            if (!ClassAllows(formationClass, TaskKind.Reposition)) return RolePremiseFailure.ClassNotInCombination;
+            if (!RoleStrengthHolds(currentUnits, baselineUnits)) return RolePremiseFailure.StrengthBelowLine;
+            return RolePremiseFailure.None;
+        }
+
+        internal static RolePremiseFailure PremiseFailureOf(bool objectPresent, string formationClass,
+                                                            int currentUnits, int baselineUnits, bool eligible)
+        {
+            return PremiseFailureOf(objectPresent, formationClass, currentUnits, baselineUnits, eligible, true);
+        }
+
+        // 实际活跃成员加权中心。任一记录位置非有限即返回失败，不用残缺值凑中心。
+        // 位置优先取成员级实际质心；只有采样本就没读到质心时，才退回编队参考位置。
+        // 两条口径分列，日志可区分，不把参考位置冒充成实际中心。
+        private static bool TryActiveCenter(List<FormationRecord> records, out double cx, out double cy)
+        {
+            return TryActiveCenter(records, out cx, out cy, out _);
+        }
+
+        private static bool TryActiveCenter(List<FormationRecord> records, out double cx, out double cy,
+                                            out int usedFallbackCount)
+        {
+            cx = 0.0;
+            cy = 0.0;
+            usedFallbackCount = 0;
+            double weight = 0.0;
+            double sx = 0.0;
+            double sy = 0.0;
+            foreach (var r in records)
+            {
+                if (r.UnitCount <= 0) continue;
+                double px = r.PosX;
+                double py = r.PosY;
+                if (r.HasActiveCenter)
+                {
+                    px = r.ActiveCenterX;
+                    py = r.ActiveCenterY;
+                }
+                else
+                {
+                    usedFallbackCount++;
+                }
+                if (!CoordinationGeometry.IsFinite(px) || !CoordinationGeometry.IsFinite(py)) return false;
+                weight += r.UnitCount;
+                sx += px * r.UnitCount;
+                sy += py * r.UnitCount;
+            }
+            if (weight <= 0.0) return false;
+            cx = sx / weight;
+            cy = sy / weight;
+            return CoordinationGeometry.IsFinite(cx) && CoordinationGeometry.IsFinite(cy);
+        }
+
+        // 单个编队的几何原点：优先成员级实际质心，缺少质心读数时才退回参考位置。
+        private static bool MainOriginOf(FormationRecord r, out double x, out double y)
+        {
+            x = r.PosX;
+            y = r.PosY;
+            if (r.HasActiveCenter)
+            {
+                x = r.ActiveCenterX;
+                y = r.ActiveCenterY;
+            }
+            return CoordinationGeometry.IsFinite(x) && CoordinationGeometry.IsFinite(y);
+        }
+
+        // 三职责的候选池：合格 + 类别可参与本单控制组合，按稳定序排列。
+        private static List<FormationRecord> CoordinationCandidates(BattleState state)
+        {
+            var list = new List<FormationRecord>();
+            foreach (var r in state.MyFormations)
+            {
+                if (!EligibleAsTaskCandidate(r)) continue;
+                if (!ClassAllows(r.FormationClass, TaskKind.Reposition)) continue;
+                list.Add(r);
+            }
+            list.Sort(CompareStable);
+            return list;
+        }
+
+        // 按候选到两个规范点的实际距离分配保护与辅助职责。
+        // 让更接近某规范点的编队去承担该职责，避免"按序指派"造成无谓横移。
+        // 距离相同则按稳定序（rest 已排序），保证同一输入得到同一分配。
+        private static bool AssignGuardAndSupport(CoordinationGeometry g, List<FormationRecord> rest,
+                                                  out FormationRecord guard, out FormationRecord support)
+        {
+            guard = null;
+            support = null;
+            if (g == null || rest == null || rest.Count < 2) return false;
+
+            double bestGuardError = double.MaxValue;
+            double bestSupportError = double.MaxValue;
+            int guardAt = -1;
+            int supportAt = -1;
+
+            for (int i = 0; i < rest.Count; i++)
+            {
+                var r = rest[i];
+                double rx, ry;
+                if (!MainOriginOf(r, out rx, out ry)) continue;
+
+                double guardError = CoordinationGeometry.Distance(rx, ry, g.GuardX, g.GuardY);
+                double supportError = CoordinationGeometry.Distance(rx, ry, g.SupportX, g.SupportY);
+
+                if (guardError < bestGuardError) { bestGuardError = guardError; guardAt = i; }
+                if (supportError < bestSupportError) { bestSupportError = supportError; supportAt = i; }
+            }
+
+            // 两个职责不能落在同一对象上；冲突时让保护先占位，辅助在其余候选里重挑。
+            if (guardAt < 0 || supportAt < 0) return false;
+            if (guardAt == supportAt)
+            {
+                supportAt = -1;
+                bestSupportError = double.MaxValue;
+                for (int i = 0; i < rest.Count; i++)
+                {
+                    if (i == guardAt) continue;
+                    var r = rest[i];
+                    if (!CoordinationGeometry.IsFinite(r.PosX) || !CoordinationGeometry.IsFinite(r.PosY)) continue;
+                    double error = CoordinationGeometry.Distance(r.PosX, r.PosY, g.SupportX, g.SupportY);
+                    if (error < bestSupportError)
+                    {
+                        bestSupportError = error;
+                        supportAt = i;
+                    }
+                }
+                if (supportAt < 0) return false;
+            }
+
+            guard = rest[guardAt];
+            support = rest[supportAt];
+            return guard != null && support != null && !ReferenceEquals(guard, support);
+        }
+
+        private static FormationTask MakeCoordinationTask(BattlePlan plan, int ordinal, FormationRecord record,
+                                                         TaskKind kind, FormationRole role, string reason)
+        {
+            var t = MakeTask(plan, ordinal, record, kind, reason);
+            t.Role = role;
+            t.Revision = plan.Revision;
+            // 基线必须是实际有效活跃人数。没有实际中心就无从判定人数，
+            // 记 0 并让 PremiseFailure 报 PositionUnknown，不回退引擎人数——
+            // 引擎人数含 detached/不可用成员，与质心不是同一批人。
+            t.RoleBaselineUnits = record.HasActiveCenter ? record.ActiveMemberCount : 0;
+            t.RoleAssignedAt = plan.CreatedAt;
+            return t;
+        }
+
         internal static BattlePlan Build(BattleState state, string planId, double now)
         {
             if (state == null) return null;

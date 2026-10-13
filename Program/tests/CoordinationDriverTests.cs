@@ -1,0 +1,736 @@
+using System.Collections.Generic;
+using CombatBrain2.Core;
+using Xunit;
+
+namespace CombatBrain2.Tests
+{
+    // P2 协同状态机（派单 §3/§4/§6）。纯逻辑测试：外部喂读数，断言阶段与释放。
+    public class CoordinationDriverTests
+    {
+        // 我方 30/55/15、敌方 100 含 10 远程 → RangedEdge = 0.45。
+        // 实际中心与引擎人数分开给：P2 职责基线必须来自实际有效活跃成员，
+        // 因此夹具默认给出实际中心，与生产采样一致；要测缺质心的分支
+        // 用 RecWithoutCenter。
+        private static FormationRecord Rec(int team, int index, string cls, int units,
+                                           double x, double y, bool playerTeam)
+        {
+            var r = RecWithoutCenter(team, index, cls, units, x, y, playerTeam);
+            r.HasActiveCenter = true;
+            r.ActiveCenterX = x;
+            r.ActiveCenterY = y;
+            r.ActiveMemberCount = units;
+            r.MemberDigest = "m" + team + index;
+            return r;
+        }
+
+        private static FormationRecord RecWithoutCenter(int team, int index, string cls, int units,
+                                                        double x, double y, bool playerTeam)
+        {
+            return new FormationRecord
+            {
+                TeamIndex = team,
+                FormationIndex = index,
+                FormationClass = cls,
+                UnitCount = units,
+                PosX = x,
+                PosY = y,
+                IsPlayerTeam = playerTeam,
+                IsPlayerControlled = false,
+                IsAiControlled = true,
+                MovementOrder = "Move",
+                ObjectIdentity = "obj" + team + index,
+            };
+        }
+
+        // 全部编队都没有实际中心：P2 无从判定人数，不得回退引擎人数。
+        private static FormationSnapshot SnapshotWithoutCenters(int inf, int rng, int cav,
+                                                                double enemyUnits, double enemyX, double enemyY)
+        {
+            var s = new FormationSnapshot { SampledAt = TestParameters.P2Now };
+            if (inf > 0) s.Records.Add(RecWithoutCenter(0, 0, "Infantry", inf, 0.0, 0.0, false));
+            if (rng > 0) s.Records.Add(RecWithoutCenter(0, 1, "Ranged", rng, 0.0, 0.0, false));
+            if (cav > 0) s.Records.Add(RecWithoutCenter(0, 2, "Cavalry", cav, 0.0, 0.0, false));
+            int enemyRanged = 10;
+            int enemyInf = (int)enemyUnits - enemyRanged;
+            if (enemyInf > 0) s.Records.Add(RecWithoutCenter(1, 0, "Infantry", enemyInf, enemyX, enemyY, true));
+            if (enemyRanged > 0) s.Records.Add(RecWithoutCenter(1, 1, "Ranged", enemyRanged, enemyX, enemyY + 30.0, true));
+            return s;
+        }
+
+        private static FormationSnapshot Snapshot(int inf, int rng, int cav,
+                                                  double enemyUnits, double enemyX, double enemyY)
+        {
+            var s = new FormationSnapshot { SampledAt = TestParameters.P2Now };
+            if (inf > 0) s.Records.Add(Rec(0, 0, "Infantry", inf, 0.0, 0.0, false));
+            if (rng > 0) s.Records.Add(Rec(0, 1, "Ranged", rng, 0.0, 0.0, false));
+            if (cav > 0) s.Records.Add(Rec(0, 2, "Cavalry", cav, 0.0, 0.0, false));
+            int enemyRanged = 10;
+            int enemyInf = (int)enemyUnits - enemyRanged;
+            if (enemyInf > 0) s.Records.Add(Rec(1, 0, "Infantry", enemyInf, enemyX, enemyY, true));
+            if (enemyRanged > 0) s.Records.Add(Rec(1, 1, "Ranged", enemyRanged, enemyX, enemyY + 30.0, true));
+            return s;
+        }
+
+        // 场景 A：我方 30/55/15，敌方 100（含 10 远程）。
+        private static BattleState SceneA()
+        {
+            var state = BattleAssessment.Read(Snapshot(30, 55, 15, 100.0, 0.0, 300.0), "input-1");
+            Assert.NotNull(state);
+            return state;
+        }
+
+        // 走生产路径建立计划，确保夹具与实际创建入口一致。
+        private static CoordinationDriver BoundDriver(out BattlePlan plan, out BattleState state)
+        {
+            state = SceneA();
+            var ledger = new PlanLedger();
+            plan = ledger.CreateCoordination(state, TestParameters.P2Now);
+            Assert.NotNull(plan);
+            var driver = new CoordinationDriver();
+            driver.Bind(plan);
+            Assert.True(driver.BindTasks(plan));
+            return driver;
+        }
+
+        // 用目标任务自己的基线人数构造读数，避免夹具喂进低于该职责继续线的人数。
+        private static DependencyObservation At(CoordinationGeometry g, FormationTask task,
+                                                double x, double y, bool isGuard)
+        {
+            return At(g, task, x, y, task.RoleBaselineUnits, isGuard);
+        }
+
+        private static DependencyObservation At(CoordinationGeometry g, FormationTask task,
+                                                double x, double y, int units, bool isGuard)
+        {
+            return new DependencyObservation
+            {
+                ObjectPresent = true,
+                PositionKnown = true,
+                X = x,
+                Y = y,
+                CurrentUnits = units,
+                Eligible = true,
+                FormationClass = task.FormationClass,
+            };
+        }
+        // ---- 绑定与准入 ----
+
+        [Fact]
+        public void CoordinationPlanBindsThreeDistinctRoles()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            Assert.True(CoordinationDriver.IsCoordinationPlan(plan));
+            Assert.Equal(CoordinationPhase.AwaitingDependencies, driver.Phase);
+            Assert.Equal(3, plan.NormalTaskCount());
+            Assert.NotEqual(driver.GuardTask.FormationKey, driver.SupportTask.FormationKey);
+            Assert.NotEqual(driver.MainWaitTask.FormationKey, driver.GuardTask.FormationKey);
+            Assert.Equal(FormationRole.Main, driver.MainWaitTask.Role);
+            Assert.Equal(FormationRole.Guard, driver.GuardTask.Role);
+            Assert.Equal(FormationRole.Support, driver.SupportTask.Role);
+        }
+
+        [Fact]
+        public void PlainP1PlanIsNotCoordinationPlan()
+        {
+            var state = SceneA();
+            var p1 = PlanBuilder.Build(state, "plan-p1", TestParameters.P2Now);
+            Assert.NotNull(p1);
+            Assert.False(CoordinationDriver.IsCoordinationPlan(p1));
+        }
+
+        // 职责基线必须取自实际有效活跃成员；缺实际质心时不得回退引擎人数。
+        [Fact]
+        public void CoordinationRoleBaselineFallsBackToEngineCountWhenNoActiveCenter()
+        {
+            var state = BattleAssessment.Read(SnapshotWithoutCenters(30, 55, 15, 100.0, 0.0, 300.0), "input-1");
+            Assert.NotNull(state);
+            var plan = new PlanLedger().CreateCoordination(state, TestParameters.P2Now);
+            Assert.NotNull(plan);
+            foreach (var t in plan.Tasks)
+                Assert.Equal(0, t.RoleBaselineUnits);
+        }
+
+        // 有实际质心时，基线等于实际活跃人数，而不是引擎人数。
+        [Fact]
+        public void CoordinationRoleBaselineUsesActiveMemberCountNotEngineCount()
+        {
+            var snapshot = Snapshot(30, 55, 15, 100.0, 0.0, 300.0);
+            foreach (var r in snapshot.Records)
+            {
+                if (r.TeamIndex != 0) continue;
+                r.ActiveMemberCount = r.FormationClass == "Ranged" ? 40 : r.UnitCount;
+                r.HasActiveCenter = true;
+                r.ActiveCenterX = r.PosX;
+                r.ActiveCenterY = r.PosY;
+            }
+            var state = BattleAssessment.Read(snapshot, "input-1");
+            Assert.NotNull(state);
+            var plan = new PlanLedger().CreateCoordination(state, TestParameters.P2Now);
+            Assert.NotNull(plan);
+            foreach (var t in plan.Tasks)
+            {
+                if (t.FormationClass != "Ranged") continue;
+                Assert.Equal(40, t.RoleBaselineUnits);
+            }
+        }
+
+        // ---- 依赖释放：单次读数不够 ----
+
+        [Fact]
+        public void SingleReadDoesNotReleaseMainAdvance()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            var outcome = driver.Observe(TestParameters.P2Now, guard, support);
+
+            Assert.False(outcome.MainAdvanceAllowed);
+            Assert.Equal(1, driver.GuardReadiness.ReadCount);
+            Assert.Equal(1, driver.SupportReadiness.ReadCount);
+        }
+
+        [Fact]
+        public void TwoReadsSpanningOneSecondReleaseMainAdvance()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var outcome = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+
+            Assert.True(outcome.MainAdvanceAllowed);
+            Assert.True(outcome.GuardReady);
+            Assert.True(outcome.SupportReady);
+        }
+
+        // ---- §9.1 敏感性证明：去掉保护反馈后主力不得释放 ----
+
+        [Fact]
+        public void RemovingGuardFeedbackBlocksMainAdvance()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var released = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.True(released.MainAdvanceAllowed);
+
+            // 保护编队离开到位区：连续窗口清零，主力立即不得推进。
+            var strayed = At(g, driver.GuardTask, g.GuardX + 40.0, g.GuardY + 40.0, true);
+            var blocked = driver.Observe(TestParameters.P2Now + 2.0, strayed, support);
+            Assert.False(blocked.MainAdvanceAllowed);
+
+            // 恢复读数后仍需重新累计 1 s，不能瞬间放行。
+            driver.Observe(TestParameters.P2Now + 3.0, guard, support);
+            var again = driver.Observe(TestParameters.P2Now + 4.0, guard, support);
+            Assert.True(again.MainAdvanceAllowed);
+        }
+
+        [Fact]
+        public void SupportOutsideLateralBandIsNotReady()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            // 辅助贴到主力正后方（侧向 0），不在 [7,17] 区间。
+            var support = At(g, driver.SupportTask, g.MainX, g.MainY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var outcome = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.False(outcome.SupportReady);
+            Assert.False(outcome.MainAdvanceAllowed);
+        }
+
+        // ---- §6 人数继续线 ----
+
+        [Fact]
+        public void RoleBelowUnitFloorIsPremiseFailure()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, 5, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var outcome = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.Equal(RolePremiseFailure.StrengthBelowLine, outcome.GuardFailure);
+            Assert.False(outcome.MainAdvanceAllowed);
+        }
+
+        // 人数继续线：基线 12、当前 6 同时落在 ≥6 与 ≥50% 两条边界上，允许继续。
+        [Fact]
+        public void RoleAtBothFloorsContinues()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            Assert.True(PlanBuilder.RoleStrengthHolds(6, 12));
+            Assert.True(PlanBuilder.RoleStrengthHolds(12, 12));
+            // 奇数基线的半数不得向下取整后算通过：基線 11 要求 >= 5.5，即 6 人通过、5 人失败。
+            Assert.True(PlanBuilder.RoleStrengthHolds(6, 11));
+            Assert.False(PlanBuilder.RoleStrengthHolds(5, 11));
+            // 基线 55、当前 6：虽然达到绝对下限 6，但低于 50% 基线，必须失败。
+            Assert.False(PlanBuilder.RoleStrengthHolds(6, 55));
+        }
+
+        // 保护任务的实际基线取自计划分配，夹具必须按真实基线给人数。
+        [Fact]
+        public void GuardBelowItsOwnBaselineFailsStrengthPremise()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            Assert.Equal(55, driver.GuardTask.RoleBaselineUnits);
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, 6, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var outcome = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.Equal(RolePremiseFailure.StrengthBelowLine, outcome.GuardFailure);
+        }
+
+        [Fact]
+        public void LostEligibilityIsPremiseFailure()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            guard.Eligible = false;
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var outcome = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.Equal(RolePremiseFailure.EligibilityLost, outcome.GuardFailure);
+            Assert.False(outcome.MainAdvanceAllowed);
+        }
+
+        [Fact]
+        public void MissingObjectIsPremiseFailure()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            guard.ObjectPresent = false;
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var outcome = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.Equal(RolePremiseFailure.ObjectGone, outcome.GuardFailure);
+        }
+
+        // ---- 阶段转换：依赖成立才关等待任务并指定推进任务 ----
+
+        [Fact]
+        public void AdvanceTaskReplacesMainWaitOnlyAfterRelease()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            Assert.Null(driver.CreateAdvanceTask(plan, TestParameters.P2Now));
+
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            var advance = driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0);
+
+            Assert.NotNull(advance);
+            Assert.Equal(TaskKind.Reposition, advance.Kind);
+            Assert.Equal(FormationRole.Main, advance.Role);
+            Assert.Equal(driver.MainWaitTask.FormationKey, advance.FormationKey);
+            Assert.True(driver.MainWaitTask.IsClosed);
+            Assert.Equal(CoordinationPhase.MainAdvancing, driver.Phase);
+        }
+
+        // 门控反例一：只有单次读数时，任何时刻都不得指定推进任务。
+        [Fact]
+        public void SingleReadNeverReleasesAdvanceTask()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            Assert.Null(driver.CreateAdvanceTask(plan, TestParameters.P2Now + 5.0));
+            Assert.Null(driver.CreateAdvanceTask(plan, TestParameters.P2Now + 40.0));
+            Assert.Equal(CoordinationPhase.AwaitingDependencies, driver.Phase);
+        }
+
+        // 门控反例二：连续有效读数才释放；释放后依赖失效，不得继续使用缓存就绪状态。
+        [Fact]
+        public void DependencyLossAfterReleaseBlocksCachedReadiness()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.True(DependencyReadiness.MainAdvanceAllowed(
+                plan, driver.GuardTask, driver.SupportTask,
+                driver.GuardReadiness, driver.SupportReadiness));
+
+            // 保护编队离开到位区：就绪窗口清零，缓存不得再放行。
+            var strayed = At(g, driver.GuardTask, g.GuardX + 60.0, g.GuardY + 60.0, true);
+            var after = driver.Observe(TestParameters.P2Now + 2.0, strayed, support);
+            Assert.False(after.MainAdvanceAllowed);
+            Assert.False(DependencyReadiness.MainAdvanceAllowed(
+                plan, driver.GuardTask, driver.SupportTask,
+                driver.GuardReadiness, driver.SupportReadiness));
+        }
+
+        [Fact]
+        public void AdvanceTaskKeepsRevisionWhenAssignmentUnchanged()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            var advance = driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0);
+
+            // 同一角色/对象/分配不变 → 不增 revision（派单 §3）。
+            Assert.Equal(plan.Revision, advance.Revision);
+        }
+
+        [Fact]
+        public void AdvanceTaskOnlyCreatedOnce()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.NotNull(driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0));
+            Assert.Null(driver.CreateAdvanceTask(plan, TestParameters.P2Now + 2.0));
+        }
+
+        // ---- 关系建立超时 ----
+
+        // 未写令的职责不构成超时：窗口尚未开始。
+        [Fact]
+        public void UnwrittenRolesNeverExpire()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            Assert.False(driver.RelationshipExpired(plan, TestParameters.P2Now + 19.0));
+            Assert.False(driver.RelationshipExpired(plan, TestParameters.P2Now + 20.0));
+            Assert.False(driver.RelationshipExpired(plan, TestParameters.P2Now + 9999.0));
+        }
+
+        // 每个职责分别从自己的实际写令时刻起算二十秒到位窗口。
+        [Fact]
+        public void EachRoleHasItsOwnDeadlineWindow()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+
+            // 两者都未写令：两个窗口都尚未开始。
+            Assert.Equal(-1.0, driver.GuardDeadline());
+            Assert.Equal(-1.0, driver.SupportDeadline());
+            Assert.False(driver.RelationshipExpired(plan, TestParameters.P2Now + 100.0));
+
+            // 保护在 218 写令 → 保护截止 238；辅助未写令 → 窗口未开始。
+            driver.GuardTask.WrittenAt = TestParameters.P2Now + 18.0;
+            Assert.Equal(TestParameters.P2Now + 38.0, driver.GuardDeadline());
+            Assert.Equal(-1.0, driver.SupportDeadline());
+            Assert.False(driver.GuardExpired(plan, TestParameters.P2Now + 37.0));
+            Assert.True(driver.GuardExpired(plan, TestParameters.P2Now + 38.0));
+            // 保护到期不牵连辅助：辅助窗口尚未开始，其自身仍未超时。
+            Assert.False(driver.SupportExpired(plan, TestParameters.P2Now + 38.0));
+
+            // 辅助在 222 写令 → 辅助截止 242，独立于保护的 238。
+            driver.SupportTask.WrittenAt = TestParameters.P2Now + 22.0;
+            Assert.Equal(TestParameters.P2Now + 42.0, driver.SupportDeadline());
+            Assert.False(driver.SupportExpired(plan, TestParameters.P2Now + 41.0));
+            Assert.True(driver.SupportExpired(plan, TestParameters.P2Now + 42.0));
+        }
+
+        // 保护已到位后不得提前截断辅助仍在进行的窗口。
+        [Fact]
+        public void ReadyGuardDoesNotTruncateSupportWindow()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            driver.GuardTask.WrittenAt = TestParameters.P2Now;
+            driver.SupportTask.WrittenAt = TestParameters.P2Now + 10.0;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            // 保护到位且已建立连续窗口。
+            driver.Observe(TestParameters.P2Now, guard, null);
+            var after = driver.Observe(TestParameters.P2Now + 1.0, guard, null);
+            Assert.True(driver.GuardReadiness.Ready);
+            Assert.True(after.GuardReady);
+
+            // 保护窗口在其自身二十秒后已过，但因已就绪不得算超时；
+            // 辅助窗口自 210 起算，到 230 才到期。
+            Assert.False(driver.GuardExpired(plan, TestParameters.P2Now + 25.0));
+            Assert.False(driver.SupportExpired(plan, TestParameters.P2Now + 25.0));
+            Assert.False(driver.RelationshipExpired(plan, TestParameters.P2Now + 25.0));
+            Assert.True(driver.SupportExpired(plan, TestParameters.P2Now + 30.0));
+        }
+
+        [Fact]
+        public void RelationshipDeadlineDoesNotExpireAfterRelease()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0);
+
+            Assert.False(driver.RelationshipExpired(plan, TestParameters.P2Now + 60.0));
+        }
+
+        // ---- 职责重分配：换对象必须增 revision 并重绑 ----
+
+        [Fact]
+        public void RebindingRoleBumpsRevisionAndClosesOldTask()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var old = driver.GuardTask;
+            int revisionBefore = plan.Revision;
+
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            // 版本由计划级重分配入口统一递增，调用方不再自行 BumpRevision。
+            var next = driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 5.0);
+
+            Assert.NotNull(next);
+            Assert.True(old.IsClosed);
+            Assert.Equal(old.TaskId, next.ReplacesTaskId);
+            Assert.Equal(revisionBefore + 1, plan.Revision);
+            Assert.Equal(plan.Revision, next.Revision);
+            Assert.Equal(12, next.RoleBaselineUnits);
+            Assert.Equal(replacement.Key(), next.FormationKey);
+            Assert.Same(next, driver.GuardTask);
+        }
+
+        // 重分配后三任务版本必须一致，且各自 ID 不同。
+        [Fact]
+        public void ReassignmentKeepsThreeTaskRevisionsConsistent()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var old = driver.GuardTask;
+
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 5.0);
+
+            Assert.Equal(plan.Revision, driver.MainWaitTask.Revision);
+            Assert.Equal(plan.Revision, driver.GuardTask.Revision);
+            Assert.Equal(plan.Revision, driver.SupportTask.Revision);
+            Assert.NotEqual(driver.MainWaitTask.TaskId, driver.GuardTask.TaskId);
+            Assert.NotEqual(driver.GuardTask.TaskId, driver.SupportTask.TaskId);
+        }
+
+        // 换保护或辅助必须重置就绪窗口，不得沿用旧窗口直接释放主力。
+        [Fact]
+        public void ReplacingGuardResetsReadinessWindow()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.True(driver.GuardReadiness.Ready);
+
+            var old = driver.GuardTask;
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 2.0);
+
+            Assert.False(driver.GuardReadiness.Ready);
+            Assert.Equal(0, driver.GuardReadiness.ReadCount);
+        }
+
+        // ---- 重分配后的结构完整性（实机第三轮暴露的三处缺陷） ----
+
+        // 替补任务必须进入 plan.Tasks，否则发布与裁决都看不到它。
+        [Fact]
+        public void ReplacementTaskIsAddedToPlan()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var old = driver.GuardTask;
+
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            var next = driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 5.0);
+
+            Assert.NotNull(next);
+            Assert.Contains(next, plan.Tasks);
+            Assert.Equal(plan.Revision, next.Revision);
+        }
+
+        // 推进阶段依赖失效后重分配，三职责必须仍然齐全，
+        // 否则依赖再次成立时没有等待任务可转为推进。
+        [Fact]
+        public void ReassignmentDuringAdvanceRestoresAllThreeRoles()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            var advance = driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0);
+            Assert.NotNull(advance);
+            Assert.True(driver.MainWaitTask.IsClosed);
+
+            var old = driver.GuardTask;
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 2.0);
+
+            Assert.NotNull(driver.MainWaitTask);
+            Assert.False(driver.MainWaitTask.IsClosed);
+            Assert.Equal(plan.Revision, driver.MainWaitTask.Revision);
+            Assert.NotNull(driver.GuardTask);
+            Assert.NotNull(driver.SupportTask);
+            Assert.Null(driver.AdvanceTask);
+            Assert.True(advance.IsClosed);
+        }
+
+        // 旧推进任务必须被关闭：否则它作为旧 revision 的开放普通任务
+        // 会一直充当前序依赖，把新职责的写令永久拖住。
+        [Fact]
+        public void StaleAdvanceTaskIsClosedOnReassignment()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            var advance = driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0);
+
+            var old = driver.GuardTask;
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 2.0);
+
+            Assert.True(advance.IsClosed);
+            Assert.Empty(driver.AdvanceTaskId);
+        }
+
+        // 未换职责的编队也要清裁决槽：否则新 ID 任务会被槽内旧任务永久判为"被取代"。
+        [Fact]
+        public void ReassignmentClearsSlotsOfUnchangedRolesToo()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var supportKey = driver.SupportTask.FormationKey;
+
+            driver.Arbiter.Submit(
+                Proposal.Create(plan.MissionKey, plan, driver.SupportTask, TaskKind.Reposition,
+                    ProposalSource.TaskSubmission, 1.0, 2.0, "seed", TestParameters.P2Now),
+                plan, driver.SupportTask);
+            driver.Arbiter.PublishBatch(supportKey);
+            Assert.NotNull(driver.Arbiter.CurrentFor(supportKey));
+
+            var old = driver.GuardTask;
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 5.0);
+
+            Assert.Null(driver.Arbiter.CurrentFor(supportKey));
+        }
+
+        // ---- Mission 清理 ----
+
+        [Fact]
+        public void ClearMissionResetsPhaseAndReadiness()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+
+            driver.ClearMission();
+
+            Assert.Equal(CoordinationPhase.None, driver.Phase);
+            Assert.Equal(0, driver.GuardReadiness.ReadCount);
+            Assert.Equal(0, driver.SupportReadiness.ReadCount);
+            Assert.Null(driver.MainWaitTask);
+            Assert.Null(driver.GuardTask);
+            Assert.Null(driver.SupportTask);
+            Assert.Null(driver.AdvanceTask);
+        }
+    }
+}

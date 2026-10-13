@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using CombatBrain2.Core;
 using TaleWorlds.MountAndBlade;
 
@@ -48,12 +50,69 @@ namespace CombatBrain2.Host
                             // 这里再叠加对象自身的引用标识，用于确认"还是同一个对象"。
                             ObjectIdentity = ObjectIdentityOf(f),
                         };
+                        ReadActiveMembers(f, rec);
                         snapshot.Records.Add(rec);
                     }
                 }
             }
             catch (Exception) { }
             return snapshot;
+        }
+
+        // 实际活跃成员质心：逐 Agent 等权平均，只统计自身活跃、隶属本编队、
+        // 位置有限的成员。总人数与有效人数分列，两者不等时以有效人数为准做几何判定。
+        // 读取失败或零有效成员时 HasActiveCenter 保持 false，调用方必须放弃依赖该值的计划。
+        private static void ReadActiveMembers(Formation f, FormationRecord rec)
+        {
+            try
+            {
+                int active = 0;
+                double sumX = 0.0;
+                double sumY = 0.0;
+                var indices = new List<int>();
+                f.ApplyActionOnEachUnit(agent =>
+                {
+                    if (agent == null) return;
+                    if (!agent.IsActive()) return;
+                    if (!ReferenceEquals(agent.Formation, f)) return;
+                    double x, y;
+                    try
+                    {
+                        var p = agent.Position;
+                        x = (double)p.x;
+                        y = (double)p.y;
+                    }
+                    catch (Exception) { return; }
+                    if (!BattleState.IsFinite(x) || !BattleState.IsFinite(y)) return;
+                    active++;
+                    sumX += x;
+                    sumY += y;
+                    indices.Add(agent.Index);
+                }, null);
+
+                rec.ActiveMemberCount = active;
+                rec.MemberDigest = DigestOf(indices);
+                if (active <= 0) return;
+                rec.ActiveCenterX = sumX / active;
+                rec.ActiveCenterY = sumY / active;
+                rec.HasActiveCenter = true;
+            }
+            catch (Exception) { }
+        }
+
+        // 成员集合摘要：按 Agent.Index 升序拼接后取稳定哈希。
+        // 只用于判断"有效成员集合是否变化"，不用于几何计算。
+        private static string DigestOf(List<int> indices)
+        {
+            if (indices == null || indices.Count == 0) return "";
+            indices.Sort();
+            var sb = new StringBuilder();
+            for (int i = 0; i < indices.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append(indices[i].ToString(CultureInfo.InvariantCulture));
+            }
+            return sb.ToString();
         }
 
         internal static string FormationClassOf(Formation f)

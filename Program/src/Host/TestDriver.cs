@@ -24,6 +24,9 @@ namespace CombatBrain2.Host
         private readonly OriginalMethodReceipt _receipt = new OriginalMethodReceipt();
         private readonly TaskLedger _tasks = new TaskLedger();
         private readonly PlanLedger _plans = new PlanLedger();
+        private readonly ExitStopLedger _exits = new ExitStopLedger();
+        // P2 协同状态机：只在 P2 开关下绑定，负责三职责依赖与阶段转换。
+        private readonly CoordinationDriver _coordinationDriver = new CoordinationDriver();
 
         private Formation _receiptTarget;
         private readonly Dictionary<string, CbHoldBehavior> _armedBehaviors =
@@ -39,6 +42,7 @@ namespace CombatBrain2.Host
         private int _otherSelectionCount;
         private double _lastSnapshotLogAt = -1.0;
         private double _lastSnapshotDetailAt = -1.0;
+        private double _lastCoordinationLogAt = -1.0;
         private double _maxSnapshotAgeSeen;
         private int _staleSnapshotCount;
         private int _freshSnapshotCount;
@@ -46,6 +50,11 @@ namespace CombatBrain2.Host
         private int _exitStopAttempts;
         // 上一条实际写令的 mission 时刻；用于编队间 1.5 s 间隔（脚本 §6.1）。
         private double _lastWriteAt = -1.0;
+
+        // A5 竞争注入：首次注入时刻、已覆盖的评价点轮数、窗口满足标记（派单 §9.2 要求 ≥8 s）。
+        private double _competitionFirstAt = -1.0;
+        private int _competitionRounds;
+        private bool _competitionWindowLogged;
 
         internal ExecutionGate Gate { get { return _gate; } }
         internal WriteLedger Ledger { get { return _ledger; } }
@@ -55,6 +64,8 @@ namespace CombatBrain2.Host
         internal BattlePlan Plan { get { return _plans.Current; } }
         internal BattleState State { get { return _state; } }
         internal FormationSnapshot Snapshot { get { return _snapshot; } }
+        // P2 协作状态：供测试适配读取实际保护职责与依赖就绪状态（只读）。
+        internal CoordinationDriver Coordination { get { return _coordinationDriver; } }
 
         // 计划仍开放即视为还有工作；普通任务全部结束且无退出任务时为 false。
         internal bool HasOpenWork
@@ -71,6 +82,19 @@ namespace CombatBrain2.Host
         // ================= 阶段一：决策节奏与计划形成 =================
 
         // 由宿主按决策节奏调用（不是每 tick）。形成或沿用计划，并生成任务。
+        // 计划种类由 P1/P2 开关决定，两者互斥（宿主侧保证不会同时为真）。
+        private bool _coordination;
+
+        internal void SetCommandLoop(bool coordination)
+        {
+            _coordination = coordination;
+        }
+
+        internal bool CoordinationMode
+        {
+            get { return _coordination; }
+        }
+
         internal void DecisionTick(Mission mission)
         {
             if (mission == null) return;
@@ -190,7 +214,7 @@ namespace CombatBrain2.Host
                     " new=" + conditions.Describe(), now);
             }
 
-            var plan = _plans.Create(state, now);
+            var plan = _coordination ? _plans.CreateCoordination(state, now) : _plans.Create(state, now);
             if (plan == null)
             {
                 Cb2Log.Line("PLAN_UNAVAILABLE",
@@ -223,6 +247,12 @@ namespace CombatBrain2.Host
             foreach (var t in plan.Tasks)
             {
                 _tasks.Add(t);
+
+                // 分配公布点：任务已带对象身份（MakeTask 从快照复制），此处起它接管该对象，
+                // 该对象上的旧退出任务不得再处理其状态。不能等真实获选——
+                // 公布到获选之间旧退出仍会作用于该对象。
+                PublishAssignment(t, now);
+
                 Cb2Log.Line("TASK_CREATED",
                     t.Describe() +
                     " reason=" + t.Reason +
@@ -243,6 +273,585 @@ namespace CombatBrain2.Host
             }
 
             LogTaskCandidates(plan, now);
+
+            // P2：协同计划建立后立即绑定三职责，后续逐 tick 观察依赖是否成立。
+            if (_coordination && CoordinationDriver.IsCoordinationPlan(plan))
+            {
+                _coordinationDriver.Bind(plan);
+                if (_coordinationDriver.BindTasks(plan))
+                {
+                    Cb2Log.Line("COORDINATION_BOUND",
+                        "plan=" + plan.PlanId +
+                        " revision=" + plan.Revision +
+                        " main=" + _coordinationDriver.MainWaitTask.TaskId +
+                        " guard=" + _coordinationDriver.GuardTask.TaskId +
+                        " support=" + _coordinationDriver.SupportTask.TaskId +
+                        " " + (plan.Geometry == null ? "geometry=<none>" : plan.Geometry.Describe()) +
+                        " at=" + Cb2Log.F(now));
+                }
+            }
+        }
+
+        // P2 协同观察：逐 tick 核对保护与辅助的实际到位关系。
+        // 关系未成立前主力保持等待；两个职责都满足连续有效读数后释放主力推进。
+        internal void CoordinationTick(Mission mission)
+        {
+            if (!_coordination) return;
+            var plan = _plans.Current;
+            if (plan == null || !CoordinationDriver.IsCoordinationPlan(plan)) return;
+            if (mission == null) return;
+
+            double now = SafeTime(mission);
+
+            // 关系观察必须用最新读数：依赖是否成立不能靠历史有效反馈放行。
+            _snapshot = FormationSampler.Sample(mission, now);
+            if (_snapshot == null) return;
+
+            var guardObs = ObservationFor(_snapshot, _coordinationDriver.GuardTask);
+            var supportObs = ObservationFor(_snapshot, _coordinationDriver.SupportTask);
+            var outcome = _coordinationDriver.Observe(now, guardObs, supportObs);
+
+            LogCoordination(plan, outcome, now);
+
+            // 到期仍未建立关系：如实报告具体值并终止该 Plan。
+            if ((outcome.GuardExpired || outcome.SupportExpired) && _coordinationDriver.Phase == CoordinationPhase.AwaitingDependencies)
+            {
+                string detail = "relationship_not_established guard_deadline=" +
+                                Cb2Log.F(_coordinationDriver.GuardDeadline()) +
+                                " support_deadline=" + Cb2Log.F(_coordinationDriver.SupportDeadline()) +
+                                " guard_ready=" + (outcome.GuardReady ? 1 : 0) +
+                                " support_ready=" + (outcome.SupportReady ? 1 : 0);
+                Cb2Log.Line("COORDINATION_DEADLINE",
+                    "plan=" + plan.PlanId + " " + detail + " at=" + Cb2Log.F(now));
+                InvalidatePlan(PlanInvalidReason.NotEffective, detail, now, plan.PlanId);
+                return;
+            }
+
+            // 依赖成立：建立主力推进任务（原子替换等待任务）。
+            if (outcome.MainAdvanceAllowed && _coordinationDriver.Phase == CoordinationPhase.AwaitingDependencies)
+            {
+                var advance = _coordinationDriver.CreateAdvanceTask(plan, now);
+                if (advance != null)
+                {
+                    // 阶段转换是计划内的分配变更：必须同步进 Plan、任务台账与当前归属三处。
+                    // 只进台账会让裁决器按 TaskNotInPlan 拒绝推进提案。
+                    plan.Tasks.Add(advance);
+                    _tasks.Add(advance);
+                    PublishAssignment(advance, now);
+                    Cb2Log.Line("COORDINATION_ADVANCE",
+                        advance.Describe() +
+                        " replaced=" + _coordinationDriver.MainWaitTask.ReplacesTaskId +
+                        " at=" + Cb2Log.F(now));
+                }
+            }
+
+            // 推进期间依赖失效：保护或辅助不再满足前提，主力推进就失去依据。
+            // 优先在合格编队里找替补重分配；无替补才关 Plan 记为不可执行。
+            if (_coordinationDriver.Phase == CoordinationPhase.MainAdvancing &&
+                !outcome.MainAdvanceAllowed)
+            {
+                HandleAdvanceDependencyLost(plan, outcome, now);
+            }
+        }
+
+        // 推进期间保护或辅助前提失效的处置分支。
+        // 有同类别合格且未被占用的替补就换人重分配，否则明确关闭 Plan。
+        private void HandleAdvanceDependencyLost(BattlePlan plan, DependencyOutcome outcome, double now)
+        {
+            var lostRole = outcome.GuardFailure != RolePremiseFailure.None
+                ? FormationRole.Guard : FormationRole.Support;
+            var lostTask = lostRole == FormationRole.Guard
+                ? _coordinationDriver.GuardTask : _coordinationDriver.SupportTask;
+            var lostFailure = lostRole == FormationRole.Guard
+                ? outcome.GuardFailure : outcome.SupportFailure;
+
+            var replacement = FindReplacementCandidate(lostRole);
+            Cb2Log.Line("COORDINATION_DEPENDENCY_LOST",
+                "plan=" + plan.PlanId +
+                " revision=" + plan.Revision +
+                " role=" + lostRole +
+                " failure=" + lostFailure +
+                " task=" + (lostTask == null ? "<none>" : lostTask.TaskId) +
+                " replacement=" + (replacement == null ? "<none>" : replacement.Key()) +
+                " at=" + Cb2Log.F(now));
+
+            if (replacement == null)
+            {
+                string detail = "advance_dependency_lost_without_replacement role=" + lostRole +
+                                " failure=" + lostFailure +
+                                " advance=" + (_coordinationDriver.AdvanceTaskId.Length == 0
+                                    ? "<none>" : _coordinationDriver.AdvanceTaskId);
+                InvalidatePlan(PlanInvalidReason.NotEffective, detail, now, plan.PlanId);
+                return;
+            }
+
+            // 重分配：一次完整重分配只递增一次版本，旧任务全部关闭，三任务换新 ID。
+            var next = _coordinationDriver.ReassignRole(plan, lostTask, lostRole, replacement, now);
+            if (next == null)
+            {
+                Cb2Log.Line("COORDINATION_REASSIGN_FAILED",
+                    "plan=" + plan.PlanId + " role=" + lostRole + " at=" + Cb2Log.F(now));
+                return;
+            }
+
+            // 新分配必须同步进 Plan、任务台账与当前归属三处，否则裁决器按 TaskNotInPlan 拒绝。
+            // 裁决槽作废由重分配入口统一处理：必须覆盖本计划全部参与编队，
+            // 只清替补键会让未换职责的编队继续引用旧 ID，新任务永久被判"被取代"。
+            PublishReboundTasks(plan, next, now);
+            Cb2Log.Line("COORDINATION_REASSIGNED",
+                "plan=" + plan.PlanId +
+                " revision=" + plan.Revision +
+                " role=" + lostRole +
+                " old=" + (lostTask == null ? "<none>" : lostTask.TaskId) +
+                " new=" + next.TaskId +
+                " obj=" + next.ObjectIdentity +
+                " baseline=" + next.RoleBaselineUnits +
+                " at=" + Cb2Log.F(now));
+        }
+
+        // 重分配后把本版本新建的协同任务补进 Plan 与任务台账，并接管归属。
+        // 只对尚未登记的做，避免重复入账。
+        private void PublishReboundTasks(BattlePlan plan, FormationTask primary, double now)
+        {
+            foreach (var t in plan.Tasks)
+            {
+                if (t.IsClosed) continue;
+                if (!string.Equals(t.PlanId, plan.PlanId, StringComparison.Ordinal)) continue;
+                if (t.Revision != plan.Revision) continue;
+                if (t.Role == FormationRole.None) continue;
+                if (_tasks.Get(t.TaskId) != null) continue;
+                _tasks.Add(t);
+                PublishAssignment(t, now);
+                Cb2Log.Line("COORDINATION_REBOUND_TASK",
+                    t.Describe() + " at=" + Cb2Log.F(now));
+            }
+        }
+
+        // 替补候选：同快照内类别允许 Reposition、资格有效、有实际人数，
+        // 且不是当前三个职责正在使用的编队。不额外设人数门槛，人数是否够
+        // 由下一轮 PremiseFailure 按该职责基线判定。
+        private FormationRecord FindReplacementCandidate(FormationRole role)
+        {
+            var snapshot = _snapshot;
+            if (snapshot == null) return null;
+            var inUse = new List<string>();
+            AddInUse(inUse, _coordinationDriver.MainWaitTask);
+            AddInUse(inUse, _coordinationDriver.GuardTask);
+            AddInUse(inUse, _coordinationDriver.SupportTask);
+            AddInUse(inUse, _coordinationDriver.AdvanceTask);
+
+            FormationRecord best = null;
+            foreach (var r in snapshot.Records)
+            {
+                if (r.IsPlayerTeam || r.IsPlayerControlled) continue;
+                if (!r.IsAiControlled) continue;
+                if (!r.HasActiveCenter || r.ActiveMemberCount <= 0) continue;
+                if (!PlanBuilder.ClassAllows(r.FormationClass, TaskKind.Reposition)) continue;
+                if (inUse.Contains(r.Key())) continue;
+                if (best == null || CompareStableRecord(r, best) < 0) best = r;
+            }
+            return best;
+        }
+
+        private static void AddInUse(List<string> keys, FormationTask task)
+        {
+            if (task == null) return;
+            if (task.IsClosed) return;
+            if (!keys.Contains(task.FormationKey)) keys.Add(task.FormationKey);
+        }
+
+        // 候选排序与计划建立时一致：先 TeamIndex，再 FormationIndex。
+        private static int CompareStableRecord(FormationRecord a, FormationRecord b)
+        {
+            if (a.TeamIndex != b.TeamIndex) return a.TeamIndex < b.TeamIndex ? -1 : 1;
+            if (a.FormationIndex != b.FormationIndex) return a.FormationIndex < b.FormationIndex ? -1 : 1;
+            return string.CompareOrdinal(a.ObjectIdentity, b.ObjectIdentity);
+        }
+
+        // P2 评价点：为所有待写协同任务收提案，收齐后按编队一次公布。
+        // 收集与公布只在这里发生；写前门只消费已公布结果并即时复核，
+        // 否则首个到达写前门的提案会被当成唯一竞争者提前公布。
+        internal void PublishCoordinationProposals(Mission mission, double now)
+        {
+            if (!_coordination) return;
+            var plan = _plans.Current;
+            if (plan == null || !CoordinationDriver.IsCoordinationPlan(plan)) return;
+
+            string injectTargetId = "";
+            if (EligibilityProbe.Instance.P2CompetitionEnabled)
+            {
+                var injectTarget = CompetitionInjectTarget(plan);
+                if (injectTarget != null) injectTargetId = injectTarget.TaskId;
+            }
+
+            var formations = new List<string>();
+            var blockedKeys = new List<string>();
+            foreach (var task in _tasks.OpenTasks())
+            {
+                if (task.WrittenAt >= 0.0) continue;
+                if (task.Role == FormationRole.None) continue;
+                if (!string.Equals(task.PlanId, plan.PlanId, StringComparison.Ordinal)) continue;
+                if (task.Revision != plan.Revision) continue;
+                if (!formations.Contains(task.FormationKey)) formations.Add(task.FormationKey);
+                // 目标未生成的任务不参与本轮竞争：缺目标不是「目标在原点」。
+                // 不能只 submit 合法者就公布批次——本轮缺目标的任务下一轮可能补上，
+                // 提前公布会让它永远来不及成为竞争者。
+                var proposal = ProposalFor(task, mission, now);
+                if (proposal == null) { blockedKeys.Add(task.FormationKey); continue; }
+                _coordinationDriver.Arbiter.Submit(proposal, plan, task);
+                // 注入只跟随已成功提交的生产候选：目标缺失的编队不注入，
+                // 否则只含注入候选的批次会公布出写不出去的结果。
+                if (injectTargetId.Length != 0 && string.Equals(task.TaskId, injectTargetId, StringComparison.Ordinal))
+                {
+                    InjectCompetition(plan, task, now);
+                }
+            }
+
+            foreach (string key in formations)
+            {
+                if (blockedKeys.Contains(key)) continue;
+                var batch = _coordinationDriver.Arbiter.OpenBatchFor(key);
+                if (batch == null || batch.Revision != plan.Revision) continue;
+                var decision = _coordinationDriver.Arbiter.PublishBatch(key);
+                if (decision == null || !decision.Published) continue;
+                int winnerIndex = -1;
+                for (int i = 0; i < batch.Candidates.Count; i++)
+                {
+                    if (string.Equals(batch.Candidates[i].ProposalId, decision.WinnerProposalId, StringComparison.Ordinal))
+                    {
+                        winnerIndex = i;
+                        break;
+                    }
+                }
+                for (int i = 0; i < batch.Candidates.Count; i++)
+                {
+                    var c = batch.Candidates[i];
+                    var ct = i < batch.Tasks.Count ? batch.Tasks[i] : null;
+                    bool isWinner = i == winnerIndex;
+                    var w = winnerIndex >= 0 ? batch.Candidates[winnerIndex] : null;
+                    var wt = winnerIndex >= 0 && winnerIndex < batch.Tasks.Count ? batch.Tasks[winnerIndex] : null;
+                    Cb2Log.Line("ARBITRATION_CANDIDATE",
+                        "key=" + key +
+                        " plan=" + plan.PlanId +
+                        " revision=" + plan.Revision +
+                        " task=" + c.TaskId +
+                        " source=" + c.Source +
+                        " kind=" + c.Kind +
+                        " target=" + PointText(c.TargetX, c.TargetY, c.HasTarget) +
+                        " target_error=" + Cb2Log.F(ProposalArbiter.TargetError(c, ct)) +
+                        " outcome=" + (isWinner ? "winner" : "loser") +
+                        " reason=" + (isWinner ? "selected_by_competition_order" : LoserReason(c, ct, w, wt)) +
+                        " at=" + Cb2Log.F(now));
+                }
+                Cb2Log.Line("PROPOSAL_PUBLISHED",
+                    "key=" + key +
+                    " plan=" + plan.PlanId +
+                    " revision=" + plan.Revision +
+                    " candidates=" + batch.Candidates.Count +
+                    " winner=" + decision.WinnerProposalId +
+                    " at=" + Cb2Log.F(now));
+            }
+        }
+
+        private static string PointText(double x, double y, bool hasTarget)
+        {
+            return hasTarget ? Cb2Log.F(x) + "," + Cb2Log.F(y) : "<none>";
+        }
+
+        // 落败原因直接复算裁决顺序的三条规则（派单 §5 第 3 条）：
+        // 先「符合当前阶段任务 Kind」，再「距规范目标点误差升序」，最后 proposal_id 稳定序。
+        // 日志与裁决器不共用同一段分支，避免两者一起写错却看不出差异。
+        private static string LoserReason(Proposal c, FormationTask ct, Proposal w, FormationTask wt)
+        {
+            if (w == null) return "no_winner";
+            bool cKindOk = ct != null && c.Kind == ct.Kind;
+            bool wKindOk = wt != null && w.Kind == wt.Kind;
+            if (cKindOk != wKindOk) return "kind_mismatch";
+            double cErr = ProposalArbiter.TargetError(c, ct);
+            double wErr = ProposalArbiter.TargetError(w, wt);
+            if (cErr > wErr) return "higher_target_error";
+            if (cErr < wErr) return "lower_target_error";
+            return "proposal_id_order";
+        }
+
+        // A5 注入目标：计划内首个仍未写令的保护位置任务，其次辅助位置任务。
+        // 按计划任务顺序取，不依赖字典遍历，同一评价点重复可复现。
+        private static FormationTask CompetitionInjectTarget(BattlePlan plan)
+        {
+            FormationTask fallback = null;
+            foreach (var t in plan.Tasks)
+            {
+                if (t.Kind != TaskKind.Reposition) continue;
+                if (t.IsClosed || t.WrittenAt >= 0.0) continue;
+                if (t.Revision != plan.Revision) continue;
+                if (t.Role == FormationRole.Guard) return t;
+                if (t.Role == FormationRole.Support && fallback == null) fallback = t;
+            }
+            return fallback;
+        }
+
+        // 派单 §9.2 场景 A 第 2 条：首次裁决前注入两个同级合法但目标不同的建议，
+        // 之后在有活动任务时注入同对象冲突。注入只提交提案，不写引擎、不标记获选（§5）。
+        private void InjectCompetition(BattlePlan plan, FormationTask task, double now)
+        {
+            var g = plan.Geometry;
+            if (g == null || !task.HasCanonicalTarget) return;
+
+            if (_competitionFirstAt < 0.0)
+            {
+                _competitionFirstAt = now;
+                Cb2Log.Line("COMPETITION_INJECT_BEGIN",
+                    "task=" + task.TaskId +
+                    " key=" + task.FormationKey +
+                    " role=" + task.Role +
+                    " plan=" + plan.PlanId +
+                    " revision=" + plan.Revision +
+                    " at=" + Cb2Log.F(now));
+            }
+            _competitionRounds++;
+            if (!_competitionWindowLogged && now - _competitionFirstAt >= TestParameters.P2CompetitionWindowSeconds)
+            {
+                _competitionWindowLogged = true;
+                Cb2Log.Line("COMPETITION_INJECT_WINDOW_SATISFIED",
+                    "task=" + task.TaskId +
+                    " key=" + task.FormationKey +
+                    " plan=" + plan.PlanId +
+                    " elapsed=" + Cb2Log.F(now - _competitionFirstAt) +
+                    " rounds=" + _competitionRounds +
+                    " at=" + Cb2Log.F(now));
+            }
+
+            double lx = task.CanonicalX + g.LateralX * TestParameters.P2CompetitionLateralMeters;
+            double ly = task.CanonicalY + g.LateralY * TestParameters.P2CompetitionLateralMeters;
+            bool lateralLegal = task.Role == FormationRole.Guard
+                ? PlanBuilder.GuardInPosition(g, lx, ly)
+                : PlanBuilder.SupportInPosition(g, lx, ly);
+            if (!lateralLegal)
+            {
+                // 侧向候选必须仍是本任务的合法位置候选；不合法就整次不注入，
+                // 不能用非法候选冒充「同级合法」竞争（派单 §9.2）。
+                Cb2Log.Line("COMPETITION_INJECT_SKIPPED",
+                    "task=" + task.TaskId +
+                    " key=" + task.FormationKey +
+                    " reason=lateral_candidate_outside_position_constraint" +
+                    " lateral=" + PointText(lx, ly, true) +
+                    " at=" + Cb2Log.F(now));
+                return;
+            }
+
+            var current = _coordinationDriver.Arbiter.CurrentFor(task.FormationKey);
+            if (current == null)
+            {
+                SubmitInjected(plan, task, task.Kind, ProposalSource.TestInjection,
+                    task.CanonicalX, task.CanonicalY, "first_competition_canonical", -1, now);
+                SubmitInjected(plan, task, task.Kind, ProposalSource.TestInjection,
+                    lx, ly, "first_competition_lateral", -1, now);
+                return;
+            }
+
+            // 「越权来源请求与当前任务不同的命令/目标」（派单 §9.2）：来源非法 + 目标不同。
+            SubmitInjected(plan, task, task.Kind, ProposalSource.None,
+                lx, ly, "conflict_unauthorized_source", -1, now);
+            SubmitInjected(plan, task, task.Kind, ProposalSource.TestInjection,
+                task.CanonicalX, task.CanonicalY, "conflict_stale_revision", plan.Revision - 1, now);
+            SubmitInjected(plan, task, task.Kind, ProposalSource.TaskSubmission,
+                task.CanonicalX, task.CanonicalY, "conflict_duplicate_of_task_submission", -1, now);
+            SubmitInjected(plan, task, task.Kind, ProposalSource.TestInjection,
+                lx, ly, "conflict_different_target", -1, now);
+        }
+
+        private ArbitrationDecision SubmitInjected(BattlePlan plan, FormationTask task, TaskKind kind,
+            ProposalSource source, double x, double y, string purpose, int revisionOverride, double now)
+        {
+            var p = Proposal.Create(_missionKey, plan, task, kind, source, x, y, true, purpose, now);
+            if (revisionOverride >= 0 && revisionOverride != p.Revision)
+            {
+                // 版本是提案身份的一段：改版本必须同时重算 ID，
+                // 否则提案会自报「旧版本」却带着新版本的身份。
+                p.Revision = revisionOverride;
+                p.ProposalId = Proposal.MakeId(p.MissionKey, p.PlanId, p.Revision, p.TaskId,
+                                               p.FormationKey, p.ObjectIdentity, p.Kind, p.Source,
+                                               p.TargetX, p.TargetY);
+            }
+            var decision = _coordinationDriver.Arbiter.Submit(p, plan, task);
+            Cb2Log.Line("ARBITRATION_INJECT",
+                "key=" + task.FormationKey +
+                " plan=" + plan.PlanId +
+                " revision=" + plan.Revision +
+                " proposal_revision=" + p.Revision +
+                " task=" + task.TaskId +
+                " purpose=" + purpose +
+                " source=" + source +
+                " kind=" + kind +
+                " target=" + PointText(x, y, true) +
+                " outcome=" + DecisionOutcome(decision) +
+                " detail=" + (decision == null ? "" : decision.Detail) +
+                " at=" + Cb2Log.F(now));
+            return decision;
+        }
+
+        private static string DecisionOutcome(ArbitrationDecision d)
+        {
+            if (d == null) return "no_decision";
+            if (!d.Accepted) return "rejected:" + d.RejectReason;
+            if (d.Duplicate) return "duplicate";
+            if (d.LoserRejectReason != ProposalRejectReason.None) return "held_by_current:" + d.LoserRejectReason;
+            return "batched";
+        }
+
+        // 提案内容完全由当前任务与几何派生，不按接收先后编号。
+        // 目标尚未生成时返回 null：不能以 (0,0) 冒充有效目标，
+        // 否则「无目标」会被当成「目标恰在原点」参与竞争与放行。
+        private Proposal ProposalFor(FormationTask task, Mission mission, double now)
+        {
+            double x, y;
+            bool hasTarget = TryReadTargetPoint(task, out x, out y);
+            if (!hasTarget)
+            {
+                // 只有需要位置目标的命令（Reposition）才因无目标而放弃提案。
+                // Hold/Engage 不带位置目标，无目标是它们的正常形态，
+                // 不能因为拿不到坐标就不提交——否则等待阶段永远产生不了裁决结果。
+                if (ProposalArbiter.NeedsTarget(task.Kind))
+                {
+                    Cb2Log.Line("PROPOSAL_TARGET_MISSING",
+                        "task=" + task.TaskId + " key=" + task.FormationKey +
+                        " role=" + task.Role + " kind=" + task.Kind + " at=" + Cb2Log.F(now));
+                    return null;
+                }
+            }
+            return Proposal.Create(_missionKey, _plans.Current, task, task.Kind,
+                                   ProposalSource.TaskSubmission, x, y, hasTarget, task.Reason, now);
+        }
+
+        // P2 写令前裁决门：返回 null 表示已获本编队的唯一裁决结果，可继续写令；
+        // 否则返回拒绝原因。本方法不收集、不公布，只消费评价点已公布的结果。
+        private string CoordinationWriteBlock(FormationTask task, Mission mission, Formation f, double now)
+        {
+            var plan = _plans.Current;
+            if (plan == null) return "no_open_plan";
+
+            // 前置：任务必须属于当前开放计划且 revision 一致，旧版本不得写令。
+            if (!string.Equals(task.PlanId, plan.PlanId, StringComparison.Ordinal))
+                return "task_from_other_plan";
+            if (task.Revision != plan.Revision)
+                return "stale_revision task_revision=" + task.Revision + " plan_revision=" + plan.Revision;
+
+            double targetX, targetY;
+            string note;
+            var order = OrderForTask(mission, f, task, now, out note);
+            if (order.OrderEnum == MovementOrder.MovementOrderEnum.Invalid) return "task_position_invalid";
+
+            bool hasTarget = TryReadTargetPoint(task, out targetX, out targetY);
+
+            var current = _coordinationDriver.Arbiter.CurrentFor(task.FormationKey);
+            if (current == null)
+                return "no_published_decision";
+
+            if (!string.Equals(current.TaskId, task.TaskId, StringComparison.Ordinal))
+                return "superseded_by=" + current.TaskId;
+
+            if (current.Revision != plan.Revision)
+                return "published_revision_stale published=" + current.Revision + " plan=" + plan.Revision;
+
+            // 即时复核：写令前重算的提案身份必须与已公布赢家一致，
+            // 否则说明公布之后任务目标或版本又被改动，不能沿用旧裁决放行。
+            var fresh = ProposalFor(task, mission, now);
+            if (fresh == null)
+                return "target_missing_at_write";
+            if (!string.Equals(fresh.ProposalId, current.ProposalId, StringComparison.Ordinal))
+                return "decision_content_changed fresh=" + fresh.ProposalId + " published=" + current.ProposalId;
+
+            if (current.HasTarget && hasTarget)
+            {
+                double error = CoordinationGeometry.Distance(current.TargetX, current.TargetY, targetX, targetY);
+                if (error > TestParameters.TargetPointToleranceMeters)
+                    return "decision_target_mismatch error=" + Cb2Log.F(error);
+            }
+
+            return null;
+        }
+
+        // 协同任务的目标点由计划几何直接给出，与"是否已写过令"无关。
+        // 提案阶段必须先拿到它：目标若只能从已写令的回读里取，就会形成
+        // 「提案要目标 → 目标要写令 → 写令要提案已公布」的死锁，
+        // 使计划永远无法产生第一条命令。
+        private bool RoleTargetPoint(FormationTask task, out double x, out double y)
+        {
+            x = 0.0;
+            y = 0.0;
+            var plan = _plans.Current;
+            if (plan == null || plan.Geometry == null) return false;
+            if (!string.Equals(task.PlanId, plan.PlanId, StringComparison.Ordinal)) return false;
+            if (task.Revision != plan.Revision) return false;
+
+            var g = plan.Geometry;
+            switch (task.Role)
+            {
+                case FormationRole.Guard: x = g.GuardX; y = g.GuardY; break;
+                case FormationRole.Support: x = g.SupportX; y = g.SupportY; break;
+                case FormationRole.Main: x = g.MainX; y = g.MainY; break;
+                default: return false;
+            }
+            return CoordinationGeometry.IsFinite(x) && CoordinationGeometry.IsFinite(y);
+        }
+
+        private bool TryReadTargetPoint(FormationTask task, out double x, out double y)
+        {
+            x = 0.0;
+            y = 0.0;
+            if (task.HasOrderTarget)
+            {
+                x = task.OrderTargetX;
+                y = task.OrderTargetY;
+                return true;
+            }
+            if (task.HasPosition)
+            {
+                x = task.RequestedX;
+                y = task.RequestedY;
+                return true;
+            }
+            return RoleTargetPoint(task, out x, out y);
+        }
+
+        // 取某任务所属编队的最新采样，转成依赖观察输入。
+        private DependencyObservation ObservationFor(FormationSnapshot snapshot, FormationTask task)
+        {
+            if (task == null) return null;
+            var rec = snapshot.FindByKey(task.FormationKey);
+            if (rec == null) return null;
+            return new DependencyObservation
+            {
+                ObjectPresent = string.Equals(rec.ObjectIdentity, task.ObjectIdentity, StringComparison.Ordinal),
+                PositionKnown = rec.HasActiveCenter &&
+                                CoordinationGeometry.IsFinite(rec.ActiveCenterX) &&
+                                CoordinationGeometry.IsFinite(rec.ActiveCenterY),
+                X = rec.ActiveCenterX,
+                Y = rec.ActiveCenterY,
+                // 人数口径统一为有效活跃成员：职责基线与后续读数必须同源，
+                // 引擎编队人数会把 detached/不可用成员算进来，与质心不是同一批人。
+                CurrentUnits = rec.HasActiveCenter ? rec.ActiveMemberCount : 0,
+                Eligible = rec.IsAiControlled && !rec.IsPlayerControlled && !rec.IsPlayerTeam,
+                FormationClass = rec.FormationClass,
+                MemberDigest = rec.MemberDigest ?? "",
+            };
+        }
+
+        private void LogCoordination(BattlePlan plan, DependencyOutcome outcome, double now)
+        {
+            if (_lastCoordinationLogAt > 0.0 && now - _lastCoordinationLogAt < 1.0) return;
+            _lastCoordinationLogAt = now;
+            Cb2Log.Line("COORDINATION_STATE",
+                "plan=" + plan.PlanId +
+                " revision=" + plan.Revision +
+                " phase=" + _coordinationDriver.Phase +
+                " guard_ready=" + (outcome.GuardReady ? 1 : 0) +
+                " support_ready=" + (outcome.SupportReady ? 1 : 0) +
+                " advance_allowed=" + (outcome.MainAdvanceAllowed ? 1 : 0) +
+                " guard_failure=" + outcome.GuardFailure +
+                " support_failure=" + outcome.SupportFailure +
+                " detail=" + outcome.Detail +
+                " at=" + Cb2Log.F(now));
         }
 
         private void LogTaskCandidates(BattlePlan plan, double now)
@@ -386,6 +995,21 @@ namespace CombatBrain2.Host
 
             if (!ours) return;
 
+            // 尚未投递过候选的任务不得被原生回调认领：此时编队上的我们行为可能来自上一计划的
+            // 退出任务，SelectedAt 会落在一条没有等待截止的意图上，随后写令必被拒（实机 plan-2）。
+            // 真实获选以本任务自己的投递为起点（脚本 §5.2、§6.3）。
+            if (task.SubmittedAt < 0.0)
+            {
+                Cb2Log.Line("ACTIVE_BEHAVIOR_NOT_SUBMITTED",
+                    "task=" + task.TaskId +
+                    " plan=" + task.PlanId +
+                    " key=" + keyNow +
+                    " active_behavior=" + FormationSampler.ActiveBehaviorNameOf(f) +
+                    " reason=candidate_not_submitted" +
+                    " at=" + Cb2Log.F(SafeTime(mission)));
+                return;
+            }
+
             // 截止后才首次获选：等待期限已过，不得转入执行（脚本 §6.3）。
             // 截止前已经获选的任务走原规则，由 SelectedAt 判定，不受此门影响。
             if (task.SelectedAt < 0.0 && SelectionWindowClosed(task, SafeTime(mission)))
@@ -401,7 +1025,7 @@ namespace CombatBrain2.Host
                 return;
             }
 
-            if (task.SelectedAt < 0.0) MarkRealSelection(mission, f, task);
+            if (task.SelectedAt < 0.0) MarkRealSelection(mission, f, task, "native_callback");
         }
 
         // 原生把命令应用到编队：只做观测与归属记录，不在这里写令。
@@ -424,8 +1048,60 @@ namespace CombatBrain2.Host
                 " source=" + (ours ? "native_apply_of_our_behavior" : "not_ours"));
         }
 
+        // 分配公布：计划建立、阶段转换、职责重分配三条路径共用这一个入口。
+        // 发布即接管归属，覆盖初始分配与后续版本；退出任务不参与（它处理的是已关闭对象）。
+        internal void PublishAssignment(FormationTask task, double now)
+        {
+            if (task == null) return;
+            if (BattlePlan.IsExitTask(task)) return;
+            if (string.IsNullOrEmpty(task.ObjectIdentity)) return;
+
+            _exits.TakeOwnership(task.ObjectIdentity, task.TaskId);
+            Cb2Log.Line("ASSIGNMENT_PUBLISHED",
+                "task=" + task.TaskId +
+                " plan=" + task.PlanId +
+                " revision=" + task.Revision +
+                " role=" + task.Role +
+                " obj=" + task.ObjectIdentity +
+                " at=" + Cb2Log.F(now));
+        }
+
+        // 行为 tick 路径的获选判定：与获选回调同一组判据，只换证据来源。
+        // 原生 ActiveBehavior 的 setter 只在引用变化时发事件（同实例连续当选不再发），
+        // 所以换任务后新任务收不到回调。行为 tick 由原生 ActiveBehavior 分支驱动，
+        // 进入它即证明原生此刻选中了本行为，用它补齐"真实本方行为获选"这一步。
+        private void AcceptRealSelection(Mission mission, Formation f, FormationTask task, string key)
+        {
+            double now = SafeTime(mission);
+            if (task.SubmittedAt < 0.0)
+            {
+                Cb2Log.Line("REAL_SELECTION_NOT_SUBMITTED",
+                    "task=" + task.TaskId +
+                    " key=" + key +
+                    " reason=candidate_not_submitted" +
+                    " source=behavior_tick" +
+                    " at=" + Cb2Log.F(now));
+                return;
+            }
+
+            if (SelectionWindowClosed(task, now))
+            {
+                Cb2Log.Line("REAL_SELECTION_REJECTED",
+                    "task=" + task.TaskId +
+                    " key=" + key +
+                    " reason=selection_window_closed" +
+                    " source=behavior_tick" +
+                    " first_submitted_at=" + Cb2Log.F(task.SubmittedAt) +
+                    " selection_deadline=" + Cb2Log.F(task.SelectionDeadline()) +
+                    " at=" + Cb2Log.F(now));
+                return;
+            }
+
+            MarkRealSelection(mission, f, task, "behavior_tick");
+        }
+
         // 真实获选：唯一允许转入执行的状态转移。
-        private void MarkRealSelection(Mission mission, Formation f, FormationTask task)
+        private void MarkRealSelection(Mission mission, Formation f, FormationTask task, string source)
         {
             double now = SafeTime(mission);
             int teamIndex = -1;
@@ -437,8 +1113,25 @@ namespace CombatBrain2.Host
             }
             catch (Exception) { }
 
+            // 获选回调可能晚到：此时该任务可能已被新 revision 取代、或对象已被换走。
+            // 只复核，不接管归属——归属在分配公布时转移（见 PublishAssignment），
+            // 否则迟到回调会把归属从当前分配手里夺回来。
+            string objNow = ObjectIdentityOf(f);
+            if (!ReferenceEquals(PendingTaskForFormation(KeyOf(teamIndex, f)), task) ||
+                !string.Equals(objNow, task.ObjectIdentity, StringComparison.Ordinal))
+            {
+                Cb2Log.Line("REAL_SELECTION_STALE",
+                    "task=" + task.TaskId +
+                    " revision=" + task.Revision +
+                    " key=" + KeyOf(teamIndex, f) +
+                    " obj_task=" + task.ObjectIdentity +
+                    " obj_now=" + objNow +
+                    " owner=" + _exits.OwnerOf(objNow));
+                return;
+            }
+
             task.FormationKey = KeyOf(teamIndex, f);
-            task.ObjectIdentity = ObjectIdentityOf(f);
+            task.ObjectIdentity = objNow;
             task.SelectedAt = now;
 
             _gate.MarkSelected(task.TaskId, task.FormationKey, now);
@@ -450,6 +1143,7 @@ namespace CombatBrain2.Host
                 " key=" + task.FormationKey +
                 " side=" + side +
                 " obj=" + task.ObjectIdentity +
+                " source=" + source +
                 " at=" + Cb2Log.F(now));
 
             ObservationAdapter.Resolve(now);
@@ -460,6 +1154,7 @@ namespace CombatBrain2.Host
                     .Add("formation_key", task.FormationKey)
                     .Add("side", side)
                     .Add("object_identity", task.ObjectIdentity)
+                    .Add("source", source)
                     .ToString());
         }
 
@@ -477,7 +1172,14 @@ namespace CombatBrain2.Host
             try { if (f.Team != null) teamIndex = f.Team.TeamIndex; } catch (Exception) { }
             var keyNow = KeyOf(teamIndex, f);
             var task = PendingTaskForFormation(keyNow);
-            if (task == null || task.SelectedAt < 0.0) return;
+            if (task == null) return;
+
+            // 原生只在 ActiveBehavior 引用变化时发事件：同一个行为实例连续当选不会再发，
+            // 同一编队换任务后新任务会一直等不到 SelectedAt（实机 plan-2-task-4 十秒超时）。
+            // 行为 tick 只由原生 FormationAI 的 ActiveBehavior 分支调用，
+            // 进入这里本身就说明原生此刻选中的是本行为，故用它补做同一组获选判定。
+            if (task.SelectedAt < 0.0) AcceptRealSelection(mission, f, task, keyNow);
+            if (task.SelectedAt < 0.0) return;
 
             if (_handoff.IsMainThread(threadId))
             {
@@ -629,6 +1331,39 @@ namespace CombatBrain2.Host
                     " selected_at=" + Cb2Log.F(task.SelectedAt) +
                     " at=" + Cb2Log.F(now));
                 return;
+            }
+
+            // 该对象已被后续分配接管时，旧退出任务不得再对它写令。
+            // 放在 final setter 前，与超时检查同级：即使旧任务已获选、已转交，
+            // 也不能在新分配生效之后覆盖其动作。
+            if (BattlePlan.IsExitTask(task) &&
+                !_exits.MayActOn(task.ObjectIdentity, task.OriginTaskId, task.TaskId))
+            {
+                _tasks.CloseTask(task.TaskId, now);
+                Cb2Log.Line("EXIT_STOP_SUPERSEDED",
+                    task.Describe() +
+                    " reason=object_taken_over_by_new_assignment" +
+                    " owner=" + _exits.OwnerOf(task.ObjectIdentity) +
+                    " at=" + Cb2Log.F(now));
+                return;
+            }
+
+            // P2 协同计划：写令前必须持有本编队本任务的当前裁决结果。
+            // 提案在提交阶段入批，收齐后由裁决器统一公布；未公布的提案不得执行。
+            // 原生其他写令者不受此门限制（这只是 CB2 内部提案的唯一裁决）。
+            if (_coordination && task.Role != FormationRole.None)
+            {
+                string arbBlock = CoordinationWriteBlock(task, mission, f, now);
+                if (arbBlock != null)
+                {
+                    Cb2Log.Line("WRITE_BLOCKED",
+                        "task=" + task.TaskId +
+                        " plan=" + task.PlanId +
+                        " key=" + key +
+                        " reason=" + arbBlock +
+                        " at=" + Cb2Log.F(now));
+                    return;
+                }
             }
 
             var decision = _gate.RequestWrite(
@@ -829,7 +1564,6 @@ namespace CombatBrain2.Host
             {
                 return "predecessor_not_written";
             }
-
             if (_lastWriteAt >= 0.0)
             {
                 double sinceWrite = now - _lastWriteAt;
@@ -900,6 +1634,11 @@ namespace CombatBrain2.Host
 
                 case TaskKind.Reposition:
                 {
+                    // P2 协同任务使用计划内的协同几何（主力 M*、保护 G*、辅助 S*），
+                    // 不能落回 P1 的「前进/后撤」公式，否则几何测试与实机命令不是同一件事。
+                    if (_coordination && task.Role != FormationRole.None)
+                        return CoordinationOrderFor(mission, task, now, out note);
+
                     var state = _state;
                     if (state == null)
                     {
@@ -950,6 +1689,74 @@ namespace CombatBrain2.Host
                     note = "task_kind_none";
                     return MovementOrder.MovementOrderNull;
             }
+        }
+
+        // P2 协同命令：目标点由计划内的协同几何直接给出（派单 §4）。
+        // 主力去 M*，保护去 G*，辅助去 S*；几何缺失或目标非有限就不写令，
+        // 不用别的位置凑数——不达标就如实记为不可执行。
+        private MovementOrder CoordinationOrderFor(Mission mission, FormationTask task, double now, out string note)
+        {
+            note = "";
+            var plan = _plans.Current;
+            if (plan == null)
+            {
+                note = "no_open_plan";
+                return MovementOrder.MovementOrderNull;
+            }
+            if (plan.Geometry == null)
+            {
+                note = "no_coordination_geometry";
+                return MovementOrder.MovementOrderNull;
+            }
+            if (!string.Equals(task.PlanId, plan.PlanId, StringComparison.Ordinal))
+            {
+                note = "task_from_other_plan";
+                return MovementOrder.MovementOrderNull;
+            }
+            if (task.Revision != plan.Revision)
+            {
+                note = "stale_revision task_revision=" + task.Revision + " plan_revision=" + plan.Revision;
+                return MovementOrder.MovementOrderNull;
+            }
+
+            var g = plan.Geometry;
+            double targetX, targetY;
+            switch (task.Role)
+            {
+                case FormationRole.Guard:
+                    targetX = g.GuardX; targetY = g.GuardY;
+                    break;
+                case FormationRole.Support:
+                    targetX = g.SupportX; targetY = g.SupportY;
+                    break;
+                case FormationRole.Main:
+                    targetX = g.MainX; targetY = g.MainY;
+                    break;
+                default:
+                    note = "role_not_in_coordination";
+                    return MovementOrder.MovementOrderNull;
+            }
+            if (!CoordinationGeometry.IsFinite(targetX) || !CoordinationGeometry.IsFinite(targetY))
+            {
+                note = "non_finite_target";
+                return MovementOrder.MovementOrderNull;
+            }
+
+            var record = _snapshot != null ? _snapshot.FindByKey(task.FormationKey) : null;
+            if (record == null)
+            {
+                note = "no_current_record";
+                return MovementOrder.MovementOrderNull;
+            }
+            double originX = record.HasActiveCenter ? record.ActiveCenterX : record.PosX;
+            double originY = record.HasActiveCenter ? record.ActiveCenterY : record.PosY;
+            task.SetTarget(originX, originY, targetX, targetY);
+            note = "move_to_role_point role=" + task.Role +
+                   " requested=(" + Cb2Log.F(targetX) + "," + Cb2Log.F(targetY) + ")" +
+                   " origin=(" + Cb2Log.F(originX) + "," + Cb2Log.F(originY) + ")" +
+                   " revision=" + plan.Revision;
+            return MovementOrder.MovementOrderMove(
+                new WorldPosition(mission.Scene, new Vec3((float)targetX, (float)targetY, 0f)));
         }
 
         private Formation PickEnemyFormation(Mission mission)
@@ -1223,9 +2030,23 @@ namespace CombatBrain2.Host
 
         private void TryQueueExitStop(FormationTask closed, double now)
         {
-            // 每编队最多一次退出尝试；本阶段不建重试框架。
-            if (_exitStopAttempts >= 2) return;
+            // P2 §6：每个对象每次实际关闭最多一次退出尝试；
+            // 登记与去重状态由 Core 台账持有（ExitStopLedger），此处只消费其判定。
             if (closed.ObjectIdentity.Length == 0) return;
+            // 迟到的旧关闭回调：该对象若已被更新分配接管，不得再登记，
+            // 否则这条旧退出会在入队后重新成为拥有者并丢掉保护。
+            if (!_exits.TryRegisterIfNotTakenOver(closed.ObjectIdentity, closed.TaskId))
+            {
+                Cb2Log.Line("EXIT_STOP_SUPPRESSED",
+                    "task=" + closed.TaskId +
+                    " obj=" + closed.ObjectIdentity +
+                    " reason=" + (_exits.IsRegistered(closed.ObjectIdentity, closed.TaskId)
+                        ? "already_registered_for_this_close"
+                        : "object_taken_over_by_newer_assignment") +
+                    " owner=" + _exits.OwnerOf(closed.ObjectIdentity) +
+                    " at=" + Cb2Log.F(now));
+                return;
+            }
 
             _exitStopAttempts++;
             var exit = new FormationTask
@@ -1241,8 +2062,12 @@ namespace CombatBrain2.Host
                 Kind = TaskKind.Hold,
                 Reason = "exit_after_plan_invalidated origin_task=" + closed.TaskId,
                 CreatedAt = now,
+                OriginTaskId = closed.TaskId,
             };
             _tasks.Add(exit);
+            // 退出任务登记成立后立即接管该对象的归属：此后旧退出任务
+            // 不得再对这个对象写令、撤权或清槽。
+            _exits.TakeOwnership(closed.ObjectIdentity, exit.TaskId);
             Cb2Log.Line("EXIT_STOP_QUEUED",
                 exit.Describe() +
                 " origin_plan=" + closed.PlanId +
@@ -1260,6 +2085,9 @@ namespace CombatBrain2.Host
             {
                 if (!BattlePlan.IsExitTask(task)) continue;
                 if (task.WrittenAt >= 0.0) continue;
+                // 该对象已被新的分配接管时，这条旧退出任务只关闭自己，
+                // 不得再撤该编队的行为权重（那是新分配的活动）。
+                bool owned = _exits.MayActOn(task.ObjectIdentity, task.OriginTaskId, task.TaskId);
                 double since = now - task.CreatedAt;
                 if (since >= TestParameters.SafetyCancelLatencySeconds)
                 {
@@ -1270,8 +2098,12 @@ namespace CombatBrain2.Host
                         " submitted=" + (task.SubmittedAt >= 0.0 ? 1 : 0) +
                         " selected=" + (task.SelectedAt >= 0.0 ? 1 : 0) +
                         " waited=" + Cb2Log.F(since) +
+                        " ownership=" + (owned ? "own" : "taken_over") +
                         " at=" + Cb2Log.F(now));
-                    DisarmBehaviorsFor(task.FormationKey, "ExitNotApplied", now);
+                    if (owned)
+                    {
+                        DisarmBehaviorsFor(task.FormationKey, "ExitNotApplied", now);
+                    }
                 }
             }
         }
@@ -1481,6 +2313,30 @@ namespace CombatBrain2.Host
 
         private void RevokeTask(FormationTask task, double now)
         {
+            // 归属保护对普通任务与退出任务都适用，但判据不同：
+            //   普通任务 —— 只判「对象是否已被更新分配接管」，不套退出专用的登记条件
+            //              （登记是退出流程的事，套上来会让未登记的普通任务永远无法恢复）。
+            //   退出任务 —— 走 MayActOn：登记成立（本次关闭是它代表的那次）且未被新分配接管。
+            // 两类都必须先过归属，再谈原有恢复条件：旧、新任务可能写同一种命令，
+            // 实际值相等不足以证明旧任务仍有权恢复。
+            Func<bool> owned;
+            if (BattlePlan.IsExitTask(task))
+                owned = () => _exits.MayActOn(task.ObjectIdentity, task.OriginTaskId, task.TaskId);
+            else
+                owned = () => string.IsNullOrEmpty(task.ObjectIdentity) ||
+                              _exits.StillOwnedBy(task.ObjectIdentity, task.TaskId);
+
+            if (!owned())
+            {
+                Cb2Log.Line("REVOKE_SKIPPED",
+                    "task=" + task.TaskId +
+                    " reason=object_taken_over_by_new_assignment" +
+                    " is_exit=" + (BattlePlan.IsExitTask(task) ? 1 : 0) +
+                    " owner=" + _exits.OwnerOf(task.ObjectIdentity) +
+                    " at=" + Cb2Log.F(now));
+                return;
+            }
+
             var plan = _ledger.PlanRevocation(task.TaskId);
             if (!plan.Needed)
             {
@@ -1637,11 +2493,13 @@ namespace CombatBrain2.Host
             _loggedSelectionDetail = false;
             _lastSnapshotLogAt = -1.0;
             _lastSnapshotDetailAt = -1.0;
+            _lastCoordinationLogAt = -1.0;
             _maxSnapshotAgeSeen = 0.0;
             _staleSnapshotCount = 0;
             _freshSnapshotCount = 0;
             _firstCommandSeen = false;
             _exitStopAttempts = 0;
+            _exits.ClearMission();
             _lastWriteAt = -1.0;
             Cb2Log.Line("MISSION_START", "mission_key=" + _missionKey);
             ObservationAdapter.Resolve(0.0);
@@ -1748,6 +2606,12 @@ namespace CombatBrain2.Host
                     " class=" + r.FormationClass +
                     " units=" + r.UnitCount +
                     " pos=(" + Cb2Log.F(r.PosX) + "," + Cb2Log.F(r.PosY) + ")" +
+                    // 实际活跃成员质心与有效人数：与上面的参考位置分列，
+                    // 用于判读成员级读取是否真的产出数据（ok=0 表示退回参考位置）。
+                    " active_ok=" + (r.HasActiveCenter ? 1 : 0) +
+                    " active_n=" + r.ActiveMemberCount +
+                    " active_center=(" + Cb2Log.F(r.ActiveCenterX) + "," + Cb2Log.F(r.ActiveCenterY) + ")" +
+                    " member_digest=" + (r.MemberDigest.Length == 0 ? "<empty>" : r.MemberDigest) +
                     " order=" + r.MovementOrder +
                     " obj=" + r.ObjectIdentity +
                     " age=" + Cb2Log.F(age));

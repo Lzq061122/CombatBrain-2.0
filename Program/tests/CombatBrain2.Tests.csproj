@@ -19,6 +19,13 @@
     <Compile Include="RevocationTests.cs" />
     <Compile Include="ThreadHandoffTests.cs" />
     <Compile Include="OriginalMethodReceiptTests.cs" />
+    <Compile Include="CoordinationTests.cs" />
+    <Compile Include="ProposalArbiterTests.cs" />
+    <Compile Include="DependencyReadinessTests.cs" />
+    <Compile Include="CoordinationDriverTests.cs" />
+    <Compile Include="ExitStopLedgerTests.cs" />
+    <Compile Include="CoordinationIntegrationTests.cs" />
+    <Compile Include="EligibilityTriggerTests.cs" />
     <Compile Include="..\src\Core\TestParameters.cs" Link="Core\TestParameters.cs" />
     <Compile Include="..\src\Core\FormationSnapshot.cs" Link="Core\FormationSnapshot.cs" />
     <Compile Include="..\src\Core\TargetSelector.cs" Link="Core\TargetSelector.cs" />
@@ -32,6 +39,11 @@
     <Compile Include="..\src\Core\TaskLedger.cs" Link="Core\TaskLedger.cs" />
     <Compile Include="..\src\Core\PlanLedger.cs" Link="Core\PlanLedger.cs" />
     <Compile Include="..\src\Core\OriginalMethodReceipt.cs" Link="Core\OriginalMethodReceipt.cs" />
+    <Compile Include="..\src\Core\CoordinationPlan.cs" Link="Core\CoordinationPlan.cs" />
+    <Compile Include="..\src\Core\CoordinationDriver.cs" Link="Core\CoordinationDriver.cs" />
+    <Compile Include="..\src\Core\ProposalArbiter.cs" Link="Core\ProposalArbiter.cs" />
+    <Compile Include="..\src\Core\ExitStopLedger.cs" Link="Core\ExitStopLedger.cs" />
+    <Compile Include="..\src\Core\EligibilityTrigger.cs" Link="Core\EligibilityTrigger.cs" />
   </ItemGroup>
 
   <ItemGroup>

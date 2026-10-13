@@ -27,6 +27,20 @@ namespace CombatBrain2.Core
         // 宿主侧在采样时填入运行期对象标识，用于确认"还是同一个对象"。
         internal string ObjectIdentity = "";
 
+        // 实际活跃成员质心：由成员级逐 Agent 读取产生，单位米。
+        // 与 PosX/PosY（编队参考位置）分开保存：前者是"人实际在哪"，后者是引擎的编队锚点，
+        // 两者的取值口径与更新时机都不同，不允许互相冒充。
+        internal double ActiveCenterX;
+        internal double ActiveCenterY;
+        internal int ActiveMemberCount;
+
+        // 成员变化标识：有效成员集合的稳定摘要。集合不变则值不变，用于判断"还是这批人"。
+        internal string MemberDigest = "";
+
+        // 质心是否可用。任一前提不成立（无成员/位置不可读/读取异常）时为 false，
+        // 调用方必须放弃依赖该值的判定，不得用参考位置顶替。
+        internal bool HasActiveCenter;
+
         internal double AgeAt(double missionTime)
         {
             return missionTime - SampledAt;
