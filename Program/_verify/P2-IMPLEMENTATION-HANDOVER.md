@@ -1,6 +1,7 @@
 # P2 多 Formation 协同 · 实现交接报告
 
 状态：**开发自检完成，实机执行已完成（场景 A ×2、场景 B ×1、P1 P/N 回归各 ×1）；独立验收未发生 — 待独立验收**
+提交：CB2 主线本单提交 **`8fb1efa`**（28 files / +7112 / −24，**未 push**）；CBATH 配套提交 **`b9fcef7`**（工作树 `E:\MBmod\CBATH-P2`，分支 `codex/cb20-p2-evidence`，未 push）
 派单依据：`Program/_verify/P2-MULTI-FORMATION-DISPATCH.md` v1.1（登记 `CB2-PROMPT-0002`，ACTIVE；磁盘原始字节 SHA-256 = `3471FF7BA6A46A8387A5F1054732D1A3F83D1165E362485A21049F3E2CE5D77E`，与登记一致）
 日期：2026-10-12 初版（2026-10-13 实机结果更新；本文件状态段按 2026-10-13 17:4x 实测重写）
 接手者：CombatBrain 2.0 主线开发组（单 AI 执行，未启用 AgentTeams）
@@ -25,6 +26,11 @@
 | 观测组 worktree | 3feafda | `E:\MBmod\BattleObservation-V1\CB2` / `codex/battle-observation-v1` / **`c8c0a98`** | 本轮只读，未修改/构建/切换/提交 |
 | 派单文件身份 | registry `content_sha256=3471ff7b…` | 磁盘原始字节 SHA-256 = `3471FF7BA6A46A8387A5F1054732D1A3F83D1165E362485A21049F3E2CE5D77E` | **一致**（仅大小写表示差异） |
 
+**本轮收尾提交（2026-10-13 17:41:49）**：`8fb1efa` 「feat(p2): implement multi-formation coordination with unique arbitration」，
+28 files changed / 7112 insertions / 24 deletions，**未 push**。提交范围与 §1.3 待提交清单一致；已核验提交内**不含**
+`ObservationAdapter.cs`、`E:\MBmod\BattleObservation-V1\*`、`BuildIdentity.g.cs`、`_scratch/`、`_lastrun*.txt`、`gabs-config/`、`sessions/`。
+提交后工作树剩余脏项：`Program/src/Host/BuildIdentity.g.cs`（部署脚本自动重写）+ 非交付运行产物。
+
 `git worktree list`（实测）：
 ```
 E:/MBmod/CombatBrain 2.0           1853b48 [master]
@@ -46,6 +52,15 @@ E:/MBmod/BattleObservation-V1/CB2  c8c0a98 [codex/battle-observation-v1]
 | 每场执行前预检 | 锁独占打开测试、`Bannerlord.exe` 进程、steam 存活、`engine_config.txt safely_exited`、观测组 handoff 时间 |
 | 锁残留现象 | 多次观察到锁 JSON 残留但持有 PID 已死；**按纪律未把「锁可获取」当作资源空闲**，每次都另外核对进程与观测组活动 |
 | 四场结果 | `RESULT: OK` / `EXITCODE=0`，各场结束均 `no residual Bannerlord process`、`no new crash dir`、哨兵状态复位 |
+
+**四场归档已复核完整**（每场 `CombatBrain2.log` 的 `assembly_file_sha256` 与 `deployed-module.json` 的 `sha256` 逐一 `MATCH`）：
+`p2-A-20261013-163716`、`p2-B-20261013-164318`、`20261013-170546`、`20261013-170928`。
+P2 独立采样文件 `p2-evidence-*.json`：场景 A 175 个、场景 B 188 个（**P1 两场为 0，属正常**——P1 入口不写 P2 证据文件，改用 `p1-evidence-*.json`）。
+
+**收尾时共享资源状态（2026-10-13 17:41 实测）**：主线组四场已全部结束并清理；随后**观测组开始使用共享资源**
+（锁文件 mtime 17:38:28 且被独占持有 → 读取被拒；游戏目录 `CombatBrain2.dll` 已是观测组产物 `99840 B / 2AA9232B…`；
+`Bannerlord.exe` pid 49260 运行中；`engine_config.txt safely_exited = 0`；观测组 `Program/src/Host/BuildIdentity.g.cs` 被其部署脚本重写为 `b20261013-173828-4e5c05eb`）。
+**本组在此状态下只做离线收尾，未部署、未启停游戏、未改哨兵、未触碰观测组任何文件。**
 
 本轮另有一次**环境偶发失败**记录在案（非本单改动引入）：P1 首次尝试 `20261013-164742` 在 GABP 桥接层崩溃
 （`Unhandled Exception: System.InvalidOperationException: Connection is not active` at `Lib.GAB.Transport.TcpConnection.SendMessageAsync`
