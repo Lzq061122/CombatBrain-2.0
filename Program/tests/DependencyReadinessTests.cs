@@ -126,6 +126,7 @@ namespace CombatBrain2.Tests
                 Goal = PlanBuilder.GoalCoordination,
                 Revision = 1,
                 CreatedAt = 10.0,
+                Geometry = Geometry(),
             };
             var main = new FormationTask
             {
@@ -141,7 +142,11 @@ namespace CombatBrain2.Tests
                 FormationKey = "0/1", ObjectIdentity = "obj-b", FormationClass = "Infantry",
                 CreatedAt = 10.0, RoleBaselineUnits = 30,
                 DependsOnTaskId = main.TaskId, GuardsTaskId = main.TaskId,
+                // 命令已写入并生效、有效目标仍在到位区内：释放条件的前置部分。
+                WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
             };
+            guard.SetTarget(0.0, 0.0, plan.Geometry.GuardX, plan.Geometry.GuardY);
+            guard.SetOrderTarget(plan.Geometry.GuardX, plan.Geometry.GuardY);
             var support = new FormationTask
             {
                 TaskId = "plan-1-task-3", PlanId = plan.PlanId, Revision = 1, Ordinal = 3,
@@ -149,7 +154,10 @@ namespace CombatBrain2.Tests
                 FormationKey = "0/2", ObjectIdentity = "obj-c", FormationClass = "Cavalry",
                 CreatedAt = 10.0, RoleBaselineUnits = 15,
                 DependsOnTaskId = main.TaskId, SupportsTaskId = main.TaskId,
+                WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
             };
+            support.SetTarget(0.0, 0.0, plan.Geometry.SupportX, plan.Geometry.SupportY);
+            support.SetOrderTarget(plan.Geometry.SupportX, plan.Geometry.SupportY);
             plan.Tasks.Add(main);
             plan.Tasks.Add(guard);
             plan.Tasks.Add(support);
@@ -172,10 +180,29 @@ namespace CombatBrain2.Tests
         [Fact]
         public void RemovingGuardFeedbackBlocksMainAdvance()
         {
-            var plan = new BattlePlan { PlanId = "plan-1", Goal = PlanBuilder.GoalCoordination, Revision = 1 };
+            var g0 = Geometry();
+            var plan = new BattlePlan
+            {
+                PlanId = "plan-1",
+                Goal = PlanBuilder.GoalCoordination,
+                Revision = 1,
+                Geometry = g0,
+            };
             var main = new FormationTask { TaskId = "t1", PlanId = plan.PlanId, Role = FormationRole.Main, Kind = TaskKind.Hold };
-            var guard = new FormationTask { TaskId = "t2", PlanId = plan.PlanId, Role = FormationRole.Guard, Kind = TaskKind.Reposition };
-            var support = new FormationTask { TaskId = "t3", PlanId = plan.PlanId, Role = FormationRole.Support, Kind = TaskKind.Reposition };
+            var guard = new FormationTask
+            {
+                TaskId = "t2", PlanId = plan.PlanId, Role = FormationRole.Guard, Kind = TaskKind.Reposition,
+                Revision = plan.Revision, WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
+            };
+            guard.SetTarget(0.0, 0.0, g0.GuardX, g0.GuardY);
+            guard.SetOrderTarget(g0.GuardX, g0.GuardY);
+            var support = new FormationTask
+            {
+                TaskId = "t3", PlanId = plan.PlanId, Role = FormationRole.Support, Kind = TaskKind.Reposition,
+                Revision = plan.Revision, WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
+            };
+            support.SetTarget(0.0, 0.0, g0.SupportX, g0.SupportY);
+            support.SetOrderTarget(g0.SupportX, g0.SupportY);
             plan.Tasks.Add(main);
             plan.Tasks.Add(guard);
             plan.Tasks.Add(support);
@@ -194,6 +221,65 @@ namespace CombatBrain2.Tests
             gLost.Note(110.0, true);
             gLost.Note(111.2, true);
             Assert.True(DependencyReadiness.MainAdvanceAllowed(plan, guard, support, gLost, s));
+        }
+
+        // 独立反例（派单 §2 R2）：保护/辅助的当前实际命令目标点偏离到位区时不得释放主力推进，
+        // 即使历史反馈仍是 Effective、连续读数仍就绪、请求点仍写在到位区内。
+        // 只核 RequestedX/Y 的实现会在这三处反例上错误放行。
+        [Fact]
+        public void MainAdvanceBlocksWhenActualOrderTargetDeviates()
+        {
+            var g0 = Geometry();
+            var plan = new BattlePlan
+            {
+                PlanId = "plan-1",
+                Goal = PlanBuilder.GoalCoordination,
+                Revision = 1,
+                Geometry = g0,
+            };
+            var main = new FormationTask { TaskId = "t1", PlanId = plan.PlanId, Role = FormationRole.Main, Kind = TaskKind.Hold };
+            var guard = new FormationTask
+            {
+                TaskId = "t2", PlanId = plan.PlanId, Role = FormationRole.Guard, Kind = TaskKind.Reposition,
+                Revision = plan.Revision, WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
+            };
+            var support = new FormationTask
+            {
+                TaskId = "t3", PlanId = plan.PlanId, Role = FormationRole.Support, Kind = TaskKind.Reposition,
+                Revision = plan.Revision, WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
+            };
+            plan.Tasks.Add(main);
+            plan.Tasks.Add(guard);
+            plan.Tasks.Add(support);
+
+            var g = new DependencyReadiness();
+            var s = new DependencyReadiness();
+            g.Note(100.0, true);
+            g.Note(101.2, true);
+            s.Note(100.0, true);
+            s.Note(101.2, true);
+
+            // 前置：请求点与实际读回点一致时释放。
+            guard.SetTarget(0.0, 0.0, g0.GuardX, g0.GuardY);
+            guard.SetOrderTarget(g0.GuardX, g0.GuardY);
+            support.SetTarget(0.0, 0.0, g0.SupportX, g0.SupportY);
+            support.SetOrderTarget(g0.SupportX, g0.SupportY);
+            Assert.True(DependencyReadiness.MainAdvanceAllowed(plan, guard, support, g, s));
+
+            // 反例一：实际命令目标点偏离 20 m（枚举仍是 Move，请求点没变）。
+            guard.SetOrderTarget(g0.GuardX + 20.0, g0.GuardY);
+            Assert.False(DependencyReadiness.MainAdvanceAllowed(plan, guard, support, g, s));
+            guard.SetOrderTarget(g0.GuardX, g0.GuardY);
+            Assert.True(DependencyReadiness.MainAdvanceAllowed(plan, guard, support, g, s));
+
+            // 反例二：实际命令目标点不可读（未知不得当成已落地）。
+            guard.ClearOrderTarget();
+            Assert.False(DependencyReadiness.MainAdvanceAllowed(plan, guard, support, g, s));
+            guard.SetOrderTarget(g0.GuardX, g0.GuardY);
+
+            // 反例三：辅助侧同样受约束。
+            support.SetOrderTarget(g0.SupportX, g0.SupportY + 20.0);
+            Assert.False(DependencyReadiness.MainAdvanceAllowed(plan, guard, support, g, s));
         }
 
         // 职责人数继续线：>=6 且 >= 基线 50%，相等允许继续。

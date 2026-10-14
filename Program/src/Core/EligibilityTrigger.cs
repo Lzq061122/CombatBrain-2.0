@@ -35,6 +35,13 @@ namespace CombatBrain2.Core
         internal bool RelationshipEstablished;
         // 主力是否已经推进（推进任务已指定）。
         internal bool MainAdvancing;
+        // 推进任务是否已实际写令、写后已稳定多久。派单 §9.2 要求场景 A 在真实动作
+        // 及既定稳定窗口完成后才触发：只指定了任务、命令还没写出去不算。
+        internal bool AdvanceCommandWritten;
+        internal double AdvanceWrittenAgeSeconds = -1.0;
+        // A5 竞争窗口（派单 §9.2 要求 ≥8 s、跨至少两个评价点）是否已完成。
+        // 未开启注入时视为已完成。
+        internal bool CompetitionWindowSatisfied = true;
         // 两个职责任务的命令是否都已写入：写入之前 20 s 窗口尚未开始，不属于 B 描述的相位。
         internal bool GuardCommandWritten;
         internal bool SupportCommandWritten;
@@ -89,9 +96,16 @@ namespace CombatBrain2.Core
                 return Yes("guard_loss_before_established");
             }
 
-            // 场景 A：关系已建立、主力已推进，且计划已稳定足够久。
+            // 场景 A：关系已建立、主力已真正推进，且计划已稳定足够久。
             if (!input.RelationshipEstablished) return No("relationship_not_established");
             if (!input.MainAdvancing) return No("main_not_advancing");
+            // 「任务已指定」不等于「主力已实际推进」：必须看到推进命令确实写出去，
+            // 并在写后稳定一段时间才允许触发（派单 §9.2 L208、独立验收证据缺口）。
+            if (!input.AdvanceCommandWritten) return No("advance_not_written");
+            if (input.AdvanceWrittenAgeSeconds < input.StableSecondsRequired)
+                return No("advance_not_settled age=" + F(input.AdvanceWrittenAgeSeconds) +
+                          " required=" + F(input.StableSecondsRequired));
+            if (!input.CompetitionWindowSatisfied) return No("competition_window_open");
             if (input.PlanAgeSeconds < input.StableSecondsRequired)
                 return No("plan_not_stable age=" + F(input.PlanAgeSeconds) +
                           " required=" + F(input.StableSecondsRequired));

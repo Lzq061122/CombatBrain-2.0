@@ -31,6 +31,7 @@ namespace CombatBrain2.Core
         private int _deferredCount;
         private int _slotBusyCount;
         private int _duplicateCount;
+        private int _requeueCount;
 
         internal bool HasMainThread { get { lock (_sync) { return _mainThreadId >= 0; } } }
         internal int MainThreadId { get { lock (_sync) { return _mainThreadId; } } }
@@ -40,6 +41,7 @@ namespace CombatBrain2.Core
         internal int DeferredCount { get { lock (_sync) { return _deferredCount; } } }
         internal int SlotBusyCount { get { lock (_sync) { return _slotBusyCount; } } }
         internal int DuplicateCount { get { lock (_sync) { return _duplicateCount; } } }
+        internal int RequeueCount { get { lock (_sync) { return _requeueCount; } } }
 
         internal void MarkMainThread(int threadId)
         {
@@ -109,6 +111,20 @@ namespace CombatBrain2.Core
                 _pendingByKey.Clear();
                 list.Sort(CompareByKey);
                 return list;
+            }
+        }
+
+        // 主线程复核发现本条此刻不能写令（例如未到普通写令间隔）时把命令放回槽位：
+        // 本次获选是真的，只是还没到落地时刻；丢掉槽位就等于丢掉这次执行机会，
+        // 下次要等原生再发一次获选事件。放回不修改命令本身的身份与时刻。
+        internal void Requeue(PendingCommand command)
+        {
+            if (command == null) return;
+            lock (_sync)
+            {
+                if (_pendingByKey.ContainsKey(command.Key ?? "")) return;
+                _pendingByKey[command.Key ?? ""] = command;
+                _requeueCount++;
             }
         }
 

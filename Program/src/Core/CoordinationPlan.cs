@@ -92,8 +92,10 @@ namespace CombatBrain2.Core
             _digest = "";
         }
 
-        // 主力推进的唯一释放条件：本计划三职责齐备，保护与辅助都建立了连续有效读数。
+        // 主力推进的唯一释放条件：本计划三职责齐备，保护与辅助的命令都已实际写入、
+        // 已生效且当前有效目标未偏离，并建立了连续有效读数。
         // 任一未就绪即不释放；不得只用一条历史 Effective 反馈放行。
+        // 位置读数只说明编队此刻在某处，不能替代"这条命令写了且仍在生效"（派单 §3 L86/L103/L107）。
         internal static bool MainAdvanceAllowed(BattlePlan plan, FormationTask guard, FormationTask support,
                                                 DependencyReadiness guardReady, DependencyReadiness supportReady)
         {
@@ -102,9 +104,29 @@ namespace CombatBrain2.Core
             if (guard.IsClosed || support.IsClosed) return false;
             if (guard.Role != FormationRole.Guard) return false;
             if (support.Role != FormationRole.Support) return false;
+            if (guard.WrittenAt < 0.0 || support.WrittenAt < 0.0) return false;
+            if (guard.Revision != plan.Revision || support.Revision != plan.Revision) return false;
+            if (guard.Feedback != TaskFeedbackState.Effective) return false;
+            if (support.Feedback != TaskFeedbackState.Effective) return false;
+            if (!CommandTargetStillValid(plan.Geometry, guard, true)) return false;
+            if (!CommandTargetStillValid(plan.Geometry, support, false)) return false;
             if (guardReady == null || !guardReady.Ready) return false;
             if (supportReady == null || !supportReady.Ready) return false;
             return true;
+        }
+
+        // 该职责当前实际命令目标点是否仍落在本职责的到位区域内，且与有效请求点一致。
+        // 未写令、未读到实际命令目标（未知）、几何缺失或目标已偏离请求点都算无效：
+        // 既不接受"位置碰巧对"，也不接受用请求点或首次缓存冒充当前命令。
+        private static bool CommandTargetStillValid(CoordinationGeometry g, FormationTask task, bool isGuard)
+        {
+            if (g == null || task == null) return false;
+            if (!task.HasPosition) return false;
+            if (!task.HasOrderTarget) return false;
+            if (task.OrderTargetReadbackError() > TestParameters.TargetPointToleranceMeters) return false;
+            return isGuard
+                ? PlanBuilder.GuardInPosition(g, task.OrderTargetX, task.OrderTargetY)
+                : PlanBuilder.SupportInPosition(g, task.OrderTargetX, task.OrderTargetY);
         }
     }
 

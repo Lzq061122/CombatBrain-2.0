@@ -22,6 +22,11 @@ $engineConfig = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Mount a
 $cb2Log = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'CombatBrain2\CombatBrain2.log'
 $cb2Dir = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'CombatBrain2'
 $p1Sentinel = Join-Path $cb2Dir 'p1-command-loop.txt'
+# P1 and P2 are mutually exclusive: SamplingBehavior refuses to run either when both
+# switches read enabled=1. A previous P2 session restores its own sentinel to the
+# pre-run state, which may be enabled=1, so P1 must clear it explicitly instead of
+# silently running with no command source.
+$p2Sentinel = Join-Path $cb2Dir 'p2-command-loop.txt'
 $probeSentinel = Join-Path $cb2Dir 'eligibility-probe.txt'
 $cbathOut = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'CommandBrainATH'
 
@@ -86,7 +91,7 @@ function Restore-Sentinels {
 function Write-Sentinels {
     New-Item -ItemType Directory -Force -Path $cb2Dir | Out-Null
 
-    foreach ($path in @($p1Sentinel, $probeSentinel)) {
+    foreach ($path in @($p1Sentinel, $p2Sentinel, $probeSentinel)) {
         $existed = Test-Path -LiteralPath $path
         $savedBytes = if ($existed) { [System.IO.File]::ReadAllBytes($path) } else { $null }
         $script:SentinelBackups += @{ Path = $path; Existed = $existed; Bytes = $savedBytes }
@@ -94,9 +99,11 @@ function Write-Sentinels {
     $p1Value = if ($DisableP1) { '0' } else { '1' }
     $probeValue = if ($DisableProbe) { '' } else { "mode=a`r`nhold_seconds=$ProbeHoldSec" }
     Set-Content -LiteralPath $p1Sentinel -Value "enabled=$p1Value" -Encoding Ascii
+    Set-Content -LiteralPath $p2Sentinel -Value "enabled=0" -Encoding Ascii
     Set-Content -LiteralPath $probeSentinel -Value $probeValue -Encoding Ascii
 
     Write-Host "p1 sentinel:      $p1Sentinel  -> enabled=$p1Value"
+    Write-Host "p2 sentinel:      $p2Sentinel  -> enabled=0 (mutually exclusive with p1)"
     Write-Host "probe sentinel:   $probeSentinel  -> $(if ($DisableProbe) { '(empty)' } else { "mode=a hold_seconds=$ProbeHoldSec" })"
 }
 

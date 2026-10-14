@@ -88,10 +88,20 @@ namespace CombatBrain2.Tests
         }
 
         // 把保护与辅助都推进到位并形成连续 1 s 读数。
+        // 释放主力推进还要求两条命令确实写入并生效（派单 §3 L86/L103），
+        // 因此这里连同写令状态与有效目标一起置好，模拟真实写令之后的读数。
         private static void BringBothInPosition(CoordinationDriver driver, BattlePlan plan,
                                                 double firstAt, double secondAt)
         {
             var g = plan.Geometry;
+            driver.GuardTask.WrittenAt = firstAt - 1.0;
+            driver.GuardTask.Feedback = TaskFeedbackState.Effective;
+            driver.GuardTask.SetTarget(0.0, 0.0, g.GuardX, g.GuardY);
+            driver.GuardTask.SetOrderTarget(g.GuardX, g.GuardY);
+            driver.SupportTask.WrittenAt = firstAt - 1.0;
+            driver.SupportTask.Feedback = TaskFeedbackState.Effective;
+            driver.SupportTask.SetTarget(0.0, 0.0, g.SupportX, g.SupportY);
+            driver.SupportTask.SetOrderTarget(g.SupportX, g.SupportY);
             driver.Observe(firstAt,
                 At(g, driver.GuardTask, g.GuardX, g.GuardY, true),
                 At(g, driver.SupportTask, g.SupportX, g.SupportY, false));

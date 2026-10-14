@@ -170,11 +170,19 @@ namespace CombatBrain2.Core
             BaselineY = y;
         }
 
+        // 每次读回都刷新成"当前实际命令目标点"：写令时读一次，之后每个反馈 tick
+        // 与依赖复核前再读一次。只保留最后一次成功读回的值，不用首次缓存充当当前值。
         internal void SetOrderTarget(double x, double y)
         {
             OrderTargetX = x;
             OrderTargetY = y;
             HasOrderTarget = true;
+        }
+
+        // 本次读不到实际命令目标点时清掉可读事实：未知不等于"目标已正确落地"。
+        internal void ClearOrderTarget()
+        {
+            HasOrderTarget = false;
         }
 
         internal double BaselineDistanceTo(double x, double y)

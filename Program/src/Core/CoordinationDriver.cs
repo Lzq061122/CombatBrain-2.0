@@ -67,6 +67,15 @@ namespace CombatBrain2.Core
         internal string Detail = "";
     }
 
+    // 一次完整重分配中的单个职责替换。同一批里的多条替换共用同一个版本递增，
+    // 用来表达「原辅助改保护、另一对象补辅助」这种同版本内的职责转换（派单 §6）。
+    internal sealed class RoleReplacement
+    {
+        internal FormationRole Role;
+        internal FormationTask Old;
+        internal FormationRecord Replacement;
+    }
+
     internal sealed class CoordinationDriver
     {
         private readonly ProposalArbiter _arbiter = new ProposalArbiter();
@@ -76,6 +85,9 @@ namespace CombatBrain2.Core
         private string _planId = "";
         private CoordinationPhase _phase = CoordinationPhase.None;
         private BattlePlan _plan;
+        // 推进任务代次：阶段转换不增 plan_revision，同一计划可多次释放主力推进，
+        // 每次都必须换新身份，否则第二次真实获选会被 already_written 拒绝（独立验收缺陷 2）。
+        private int _advanceGeneration;
 
         internal ProposalArbiter Arbiter { get { return _arbiter; } }
         internal CoordinationPhase Phase { get { return _phase; } }
@@ -102,6 +114,7 @@ namespace CombatBrain2.Core
             SupportTask = null;
             AdvanceTask = null;
             AdvanceTaskId = "";
+            _advanceGeneration = 0;
         }
 
         internal static bool IsCoordinationPlan(BattlePlan plan)
@@ -213,9 +226,12 @@ namespace CombatBrain2.Core
                     _guardReadiness, _supportReadiness)) return null;
 
             var main = MainWaitTask;
+            _advanceGeneration++;
             var advance = new FormationTask
             {
-                TaskId = plan.PlanId + "-task-4",
+                // 推进任务每次释放都换新身份：阶段转换不增 plan_revision，
+                // 沿用固定 ID 会让第二次推进撞上第一次的写令额度（独立验收缺陷 2）。
+                TaskId = plan.PlanId + "-task-4-g" + _advanceGeneration,
                 PlanId = plan.PlanId,
                 Ordinal = 4,
                 FormationKey = main.FormationKey,
@@ -224,7 +240,7 @@ namespace CombatBrain2.Core
                 TeamIndex = main.TeamIndex,
                 FormationIndex = main.FormationIndex,
                 Kind = TaskKind.Reposition,
-                Reason = "coordination_main_advance",
+                Reason = ReasonMainAdvance,
                 CreatedAt = now,
                 Revision = plan.Revision,
                 Role = FormationRole.Main,
@@ -322,6 +338,7 @@ namespace CombatBrain2.Core
             SupportTask = null;
             AdvanceTask = null;
             AdvanceTaskId = "";
+            _advanceGeneration = 0;
         }
 
         // 计划级重分配入口：一次完整重分配只递增一次版本，由本入口统一递增。
@@ -330,6 +347,19 @@ namespace CombatBrain2.Core
                                            FormationRecord replacement, double now)
         {
             if (plan == null || old == null || replacement == null) return null;
+            var only = new List<RoleReplacement>
+            {
+                new RoleReplacement { Role = role, Old = old, Replacement = replacement },
+            };
+            return ReassignRoles(plan, only, now);
+        }
+
+        // 一次完整重分配：同一版本下可以同时改多个职责（派单 §6 L139
+        // 「允许原辅助改保护、原未承担任务的合格编队补辅助」）。
+        // 旧任务全部关闭并换新 ID，返回本批换到新对象的那个职责任务。
+        internal FormationTask ReassignRoles(BattlePlan plan, IList<RoleReplacement> replacements, double now)
+        {
+            if (plan == null || replacements == null || replacements.Count == 0) return null;
             PlanLedger.BumpRevision(plan);
 
             // 版本推进后旧版本的推进任务失去依据：先关闭，避免它作为旧 revision 的开放
@@ -348,28 +378,62 @@ namespace CombatBrain2.Core
             // 否则三职责不完整，后续即使依赖再次成立也无法释放主力。
             EnsureMainWaitTask(plan, now);
 
-            var next = RebindRole(plan, old, role, replacement, now);
-            if (next != null)
+            FormationTask primary = null;
+            foreach (var r in replacements)
             {
-                // 同一完整分配下三任务版本必须一致：未换的职责把普通任务用新 ID 重新绑定。
-                RebindUnchanged(plan, next, now);
-                _phase = CoordinationPhase.AwaitingDependencies;
-                // 新 ID 绑定后，本计划参与编队的裁决结果全部作废重开；
-                // 只清替补键会让未换职责的编队继续引用旧任务，使新任务永远被判被取代。
-                ClearRoleSlots();
+                if (r == null || r.Old == null || r.Replacement == null) continue;
+                var next = RebindRole(plan, r.Old, r.Role, r.Replacement, now);
+                if (next != null && primary == null) primary = next;
             }
-            return next;
+            if (primary == null) return null;
+
+            // 同一完整分配下三任务版本必须一致：未换的职责把普通任务用新 ID 重新绑定。
+            RebindUnchanged(plan, replacements, now);
+            // 三任务都变成新版本 ID 之后，把依赖集整体指向本版本，
+            // 否则新分配仍指向已关闭的旧任务（独立验收缺陷 4）。
+            RebindDependencies(plan);
+            _phase = CoordinationPhase.AwaitingDependencies;
+            // 新 ID 绑定后，本计划参与编队的裁决结果全部作废重开；
+            // 只清替补键会让未换职责的编队继续引用旧任务，使新任务永远被判被取代。
+            ClearRoleSlots();
+
+            // 未换职责的 RebindUnchanged 会把职责任务整体换掉，返回本批第一个
+            // 实际换到新对象的职责任务；调用方只用它做日志与发布定位。
+            foreach (var r in replacements)
+            {
+                if (r == null || r.Old == null) continue;
+                if (r.Role == FormationRole.Guard && GuardTask != null && !GuardTask.IsClosed) return GuardTask;
+                if (r.Role == FormationRole.Support && SupportTask != null && !SupportTask.IsClosed) return SupportTask;
+                if (r.Role == FormationRole.Main && MainWaitTask != null && !MainWaitTask.IsClosed) return MainWaitTask;
+            }
+            return primary;
         }
 
         // 未换职责的普通任务随新版本重新绑定新 ID，旧 ID 关闭。
-        private void RebindUnchanged(BattlePlan plan, FormationTask keep, double now)
+        // 本批已换对象的职责不再重绑：否则会把刚建好的新任务再换一次，
+        // 同一版本内出现两条同职责任务（第二批替换只能有一条生效）。
+        private void RebindUnchanged(BattlePlan plan, IList<RoleReplacement> replacements, double now)
         {
-            if (MainWaitTask != null && !ReferenceEquals(MainWaitTask, keep) && !MainWaitTask.IsClosed)
+            bool mainDone = RoleReplaced(replacements, FormationRole.Main);
+            bool guardDone = RoleReplaced(replacements, FormationRole.Guard);
+            bool supportDone = RoleReplaced(replacements, FormationRole.Support);
+
+            if (!mainDone && MainWaitTask != null && !MainWaitTask.IsClosed)
                 MainWaitTask = RebindSameObject(plan, MainWaitTask, now);
-            if (GuardTask != null && !ReferenceEquals(GuardTask, keep) && !GuardTask.IsClosed)
+            if (!guardDone && GuardTask != null && !GuardTask.IsClosed)
                 GuardTask = RebindSameObject(plan, GuardTask, now);
-            if (SupportTask != null && !ReferenceEquals(SupportTask, keep) && !SupportTask.IsClosed)
+            if (!supportDone && SupportTask != null && !SupportTask.IsClosed)
                 SupportTask = RebindSameObject(plan, SupportTask, now);
+        }
+
+        private static bool RoleReplaced(IList<RoleReplacement> replacements, FormationRole role)
+        {
+            if (replacements == null) return false;
+            foreach (var r in replacements)
+            {
+                if (r != null && r.Role == role) return true;
+            }
+            return false;
         }
 
         // 依赖释放时主力等待任务被关闭；回到等待阶段必须补一条本版本的等待任务，
@@ -408,6 +472,34 @@ namespace CombatBrain2.Core
             else if (task.Role == FormationRole.Support) task.SetCanonicalTarget(g.SupportX, g.SupportY);
         }
 
+        // 某职责的规范目标点。候选排序与任务目标点必须同源，
+        // 否则「距对应位置的距离」在不同口径下排序（派单 §3.1 L81）。
+        internal static bool RolePoint(BattlePlan plan, FormationRole role, out double x, out double y)
+        {
+            x = 0.0;
+            y = 0.0;
+            if (plan == null || plan.Geometry == null) return false;
+            var g = plan.Geometry;
+            if (role == FormationRole.Main) { x = g.MainX; y = g.MainY; return true; }
+            if (role == FormationRole.Guard) { x = g.GuardX; y = g.GuardY; return true; }
+            if (role == FormationRole.Support) { x = g.SupportX; y = g.SupportY; return true; }
+            return false;
+        }
+
+        // 主力推进任务的专有原因，全工程只在 CreateAdvanceTask 一处赋值。
+        internal const string ReasonMainAdvance = "coordination_main_advance";
+
+        // 写令前是否需要复核保护/辅助依赖仍然就绪。只有推进任务需要：
+        // 重分配产生的新主力等待任务同样来自 PhaseTransition，但那一刻新的
+        // 保护/辅助尚未写令，按推进任务复核必然不过，新分配会整场写不出命令
+        // （实测 p2-A-20261014-022054 的 plan-1-task-92-1）。
+        internal static bool RequiresAdvanceDependencyRecheck(FormationTask task)
+        {
+            if (task == null) return false;
+            if (task.Role != FormationRole.Main) return false;
+            return string.Equals(task.Reason, ReasonMainAdvance, StringComparison.Ordinal);
+        }
+
         // 同一角色/对象/分配不变，但版本推进：换新任务 ID，职责与依赖集保持。
         private FormationTask RebindSameObject(BattlePlan plan, FormationTask old, double now)
         {
@@ -429,9 +521,7 @@ namespace CombatBrain2.Core
                 Role = old.Role,
                 RoleBaselineUnits = old.RoleBaselineUnits,
                 RoleAssignedAt = now,
-                GuardsTaskId = old.GuardsTaskId,
-                SupportsTaskId = old.SupportsTaskId,
-                DependsOnTaskId = old.DependsOnTaskId,
+                // 依赖集不在这里复制：由 RebindDependencies 在三个任务都换成本版本 ID 后统一重绑。
                 ReplacesTaskId = old.TaskId,
                 Source = ProposalSource.PhaseTransition,
             };
@@ -451,8 +541,10 @@ namespace CombatBrain2.Core
             if (plan == null || old == null || replacement == null) return null;
             var next = new FormationTask
             {
+                // 同版本内两个职责可能同时换对象（原辅助改保护、替补补辅助），
+                // ID 必须带角色标签，否则两条新任务会撞成同一个 ID。
                 TaskId = plan.PlanId + "-task-" + (90 + plan.Revision).ToString(CultureInfo.InvariantCulture) +
-                         "-r" + plan.Revision.ToString(CultureInfo.InvariantCulture),
+                         "-r" + plan.Revision.ToString(CultureInfo.InvariantCulture) + "-" + RoleTag(role),
                 PlanId = plan.PlanId,
                 Ordinal = 90 + plan.Revision,
                 FormationKey = replacement.Key(),
@@ -496,6 +588,44 @@ namespace CombatBrain2.Core
             plan.Tasks.Add(next);
             SetCanonicalTarget(plan, next);
             return next;
+        }
+
+        private static string RoleTag(FormationRole role)
+        {
+            if (role == FormationRole.Guard) return "guard";
+            if (role == FormationRole.Support) return "support";
+            if (role == FormationRole.Main) return "main";
+            return "none";
+        }
+
+        // 版本推进后三个职责任务都换了身份，依赖集必须整体指向新版本的任务。
+        // 沿用旧依赖会让新分配指向已关闭的旧任务（独立验收缺陷 4）：
+        // 独立复核时新 Support 的 SupportsTaskId 仍是被关闭的旧主力任务。
+        private static void RebindDependencies(BattlePlan plan)
+        {
+            if (plan == null) return;
+            FormationTask main = null;
+            FormationTask guard = null;
+            FormationTask support = null;
+            foreach (var t in plan.Tasks)
+            {
+                if (t == null || BattlePlan.IsExitTask(t)) continue;
+                // plan.Tasks 累积历史版本任务，只认本版本尚未关闭的那三个。
+                if (t.IsClosed) continue;
+                if (t.Role == FormationRole.Main && main == null) main = t;
+                else if (t.Role == FormationRole.Guard && guard == null) guard = t;
+                else if (t.Role == FormationRole.Support && support == null) support = t;
+            }
+            if (main == null || guard == null || support == null) return;
+
+            // 与建计划时同一形状：保护、辅助都依赖本版本的主力等待任务，
+            // 主力的替换集列出本版本的另外两个职责。
+            guard.DependsOnTaskId = main.TaskId;
+            guard.GuardsTaskId = main.TaskId;
+            support.DependsOnTaskId = main.TaskId;
+            support.SupportsTaskId = main.TaskId;
+            main.DependsOnTaskId = "";
+            main.ReplacesTaskId = "|" + guard.TaskId + "|" + support.TaskId + "|";
         }
     }
 }

@@ -67,6 +67,19 @@ namespace CombatBrain2.Host
         // P2 协作状态：供测试适配读取实际保护职责与依赖就绪状态（只读）。
         internal CoordinationDriver Coordination { get { return _coordinationDriver; } }
 
+        // A5 竞争窗口是否已完成过一轮（派单 §9.2 要求 ≥8 s）。
+        // 未开启注入、或本轮评价还没有可注入的目标时都不阻塞：只有注入确实
+        // 开始过，才要求先走完窗口再触发保护失格。
+        internal bool CompetitionWindowSatisfied
+        {
+            get
+            {
+                if (!EligibilityProbe.Instance.P2CompetitionEnabled) return true;
+                if (_competitionFirstAt < 0.0) return true;
+                return _competitionWindowLogged;
+            }
+        }
+
         // 计划仍开放即视为还有工作；普通任务全部结束且无退出任务时为 false。
         internal bool HasOpenWork
         {
@@ -299,6 +312,10 @@ namespace CombatBrain2.Host
             if (!_coordination) return;
             var plan = _plans.Current;
             if (plan == null || !CoordinationDriver.IsCoordinationPlan(plan)) return;
+            // 计划已被判不可执行时不再观察：任务已全部关闭、行为已撤武装，
+            // 继续逐 tick 走依赖分支只会在同一次失效上反复处置
+            // （实机 p2-A-20261013-193426 出现 100 条重复 COORDINATION_DEPENDENCY_LOST）。
+            if (plan.IsClosed) return;
             if (mission == null) return;
 
             double now = SafeTime(mission);
@@ -306,6 +323,11 @@ namespace CombatBrain2.Host
             // 关系观察必须用最新读数：依赖是否成立不能靠历史有效反馈放行。
             _snapshot = FormationSampler.Sample(mission, now);
             if (_snapshot == null) return;
+
+            // 依赖复核必须用此刻的实际命令目标点：保护或辅助被原生用新的 Move
+            // 改写目标点后，枚举仍属同一族，只看请求点或首次缓存会把已失效的命令当成有效。
+            RefreshOrderTargetReadback(mission, _coordinationDriver.GuardTask);
+            RefreshOrderTargetReadback(mission, _coordinationDriver.SupportTask);
 
             var guardObs = ObservationFor(_snapshot, _coordinationDriver.GuardTask);
             var supportObs = ObservationFor(_snapshot, _coordinationDriver.SupportTask);
@@ -355,7 +377,8 @@ namespace CombatBrain2.Host
         }
 
         // 推进期间保护或辅助前提失效的处置分支。
-        // 有同类别合格且未被占用的替补就换人重分配，否则明确关闭 Plan。
+        // 按新分配的实际对象统一排序候选：换到其他职责持有的编队时同时补齐该职责，
+        // 补不齐就换下一个候选；一个都补不齐才明确关闭 Plan 记为不可执行。
         private void HandleAdvanceDependencyLost(BattlePlan plan, DependencyOutcome outcome, double now)
         {
             var lostRole = outcome.GuardFailure != RolePremiseFailure.None
@@ -365,17 +388,27 @@ namespace CombatBrain2.Host
             var lostFailure = lostRole == FormationRole.Guard
                 ? outcome.GuardFailure : outcome.SupportFailure;
 
-            var replacement = FindReplacementCandidate(lostRole);
+            var reassignments = BuildReassignments(plan, lostRole, lostTask);
+            string candidateText = "<none>";
+            if (reassignments != null && reassignments.Count > 0)
+            {
+                var first = reassignments[0].Replacement;
+                candidateText = first.Key() + "(" + lostRole + ")" +
+                                (reassignments.Count > 1
+                                    ? "+" + reassignments[1].Replacement.Key() + "(" + reassignments[1].Role + ")"
+                                    : "");
+            }
+
             Cb2Log.Line("COORDINATION_DEPENDENCY_LOST",
                 "plan=" + plan.PlanId +
                 " revision=" + plan.Revision +
                 " role=" + lostRole +
                 " failure=" + lostFailure +
                 " task=" + (lostTask == null ? "<none>" : lostTask.TaskId) +
-                " replacement=" + (replacement == null ? "<none>" : replacement.Key()) +
+                " replacement=" + candidateText +
                 " at=" + Cb2Log.F(now));
 
-            if (replacement == null)
+            if (reassignments == null || reassignments.Count == 0)
             {
                 string detail = "advance_dependency_lost_without_replacement role=" + lostRole +
                                 " failure=" + lostFailure +
@@ -386,7 +419,7 @@ namespace CombatBrain2.Host
             }
 
             // 重分配：一次完整重分配只递增一次版本，旧任务全部关闭，三任务换新 ID。
-            var next = _coordinationDriver.ReassignRole(plan, lostTask, lostRole, replacement, now);
+            var next = _coordinationDriver.ReassignRoles(plan, reassignments, now);
             if (next == null)
             {
                 Cb2Log.Line("COORDINATION_REASSIGN_FAILED",
@@ -406,6 +439,7 @@ namespace CombatBrain2.Host
                 " new=" + next.TaskId +
                 " obj=" + next.ObjectIdentity +
                 " baseline=" + next.RoleBaselineUnits +
+                " replaced=" + reassignments.Count +
                 " at=" + Cb2Log.F(now));
         }
 
@@ -427,37 +461,88 @@ namespace CombatBrain2.Host
             }
         }
 
-        // 替补候选：同快照内类别允许 Reposition、资格有效、有实际人数，
-        // 且不是当前三个职责正在使用的编队。不额外设人数门槛，人数是否够
-        // 由下一轮 PremiseFailure 按该职责基线判定。
-        private FormationRecord FindReplacementCandidate(FormationRole role)
+        // 职责候选的统一分配（派单 §3.1 L81）：候选池是全部合格编队，
+        // 不只是当前闲置对象 —— 按距该职责规范点的距离升序、可用人数降序、
+        // 最后才用 team/slot 稳定序，因此原辅助可能成为新的保护（派单 §6 L139）。
+        // 人数门槛用「初次承担」线（≥6，派单 §7 参数表）：50% 基线是已承担
+        // 职责的继续线，拿它筛替补会让小编队永远接不了大编队的职责。
+        private List<FormationRecord> OrderedRoleCandidates(BattlePlan plan, FormationRole role,
+                                                           List<string> excluded)
         {
+            var list = new List<FormationRecord>();
             var snapshot = _snapshot;
-            if (snapshot == null) return null;
-            var inUse = new List<string>();
-            AddInUse(inUse, _coordinationDriver.MainWaitTask);
-            AddInUse(inUse, _coordinationDriver.GuardTask);
-            AddInUse(inUse, _coordinationDriver.SupportTask);
-            AddInUse(inUse, _coordinationDriver.AdvanceTask);
+            if (snapshot == null) return list;
+            double rx, ry;
+            if (!CoordinationDriver.RolePoint(plan, role, out rx, out ry)) return list;
 
-            FormationRecord best = null;
             foreach (var r in snapshot.Records)
             {
                 if (r.IsPlayerTeam || r.IsPlayerControlled) continue;
                 if (!r.IsAiControlled) continue;
                 if (!r.HasActiveCenter || r.ActiveMemberCount <= 0) continue;
                 if (!PlanBuilder.ClassAllows(r.FormationClass, TaskKind.Reposition)) continue;
-                if (inUse.Contains(r.Key())) continue;
-                if (best == null || CompareStableRecord(r, best) < 0) best = r;
+                if (r.ActiveMemberCount < TestParameters.RoleUnitFloor) continue;
+                if (excluded.Contains(r.Key())) continue;
+                // 主力不改任保护/辅助：改走主力会让推进失去对象。
+                if (IsMainHolder(r.Key())) continue;
+                list.Add(r);
             }
-            return best;
+            list.Sort((a, b) => CompareRoleCandidate(a, b, rx, ry));
+            return list;
         }
 
-        private static void AddInUse(List<string> keys, FormationTask task)
+        private static int CompareRoleCandidate(FormationRecord a, FormationRecord b, double rx, double ry)
         {
-            if (task == null) return;
-            if (task.IsClosed) return;
-            if (!keys.Contains(task.FormationKey)) keys.Add(task.FormationKey);
+            double da = CoordinationGeometry.Distance(a.ActiveCenterX, a.ActiveCenterY, rx, ry);
+            double db = CoordinationGeometry.Distance(b.ActiveCenterX, b.ActiveCenterY, rx, ry);
+            if (Math.Abs(da - db) > 0.0001) return da < db ? -1 : 1;
+            if (a.ActiveMemberCount != b.ActiveMemberCount)
+                return a.ActiveMemberCount > b.ActiveMemberCount ? -1 : 1;
+            return CompareStableRecord(a, b);
+        }
+
+        private bool IsMainHolder(string formationKey)
+        {
+            var main = _coordinationDriver.MainWaitTask;
+            if (main != null && !main.IsClosed && string.Equals(main.FormationKey, formationKey, StringComparison.Ordinal))
+                return true;
+            var advance = _coordinationDriver.AdvanceTask;
+            if (advance != null && !advance.IsClosed && string.Equals(advance.FormationKey, formationKey, StringComparison.Ordinal))
+                return true;
+            return false;
+        }
+
+        // 一次重分配的完整替换集。首选若正承担另一个职责（原辅助改保护），
+        // 必须同时为该职责补人；补不到人就不能采用该候选，
+        // 否则会静默降成两支编队仍计作三编队（派单 §6 L140）。
+        private List<RoleReplacement> BuildReassignments(BattlePlan plan, FormationRole lostRole, FormationTask lostTask)
+        {
+            if (lostTask == null) return null;
+            var otherRole = lostRole == FormationRole.Guard ? FormationRole.Support : FormationRole.Guard;
+            var otherTask = otherRole == FormationRole.Guard
+                ? _coordinationDriver.GuardTask : _coordinationDriver.SupportTask;
+
+            var excluded = new List<string> { lostTask.FormationKey };
+            var ordered = OrderedRoleCandidates(plan, lostRole, excluded);
+            foreach (var candidate in ordered)
+            {
+                var list = new List<RoleReplacement>
+                {
+                    new RoleReplacement { Role = lostRole, Old = lostTask, Replacement = candidate },
+                };
+
+                bool takesOtherRole = otherTask != null && !otherTask.IsClosed &&
+                                      string.Equals(candidate.Key(), otherTask.FormationKey, StringComparison.Ordinal);
+                if (!takesOtherRole) return list;
+
+                var fillExcluded = new List<string>(excluded) { candidate.Key() };
+                var fillers = OrderedRoleCandidates(plan, otherRole, fillExcluded);
+                if (fillers.Count == 0) continue;
+
+                list.Add(new RoleReplacement { Role = otherRole, Old = otherTask, Replacement = fillers[0] });
+                return list;
+            }
+            return null;
         }
 
         // 候选排序与计划建立时一致：先 TeamIndex，再 FormationIndex。
@@ -768,6 +853,24 @@ namespace CombatBrain2.Host
                     return "decision_target_mismatch error=" + Cb2Log.F(error);
             }
 
+            // 主力推进任务实际写入前，再用此刻的读数复核一次保护与辅助：
+            // 释放推进时成立的依赖，到落地时可能已被原生改写目标或离开到位区。
+            // 只沿用释放时刻的 Effective/Ready 等于拿历史结论给现在的命令背书。
+            // 判据必须只认推进任务本身：重分配产生的新主力等待任务来源相同，
+            // 但那一刻新的保护/辅助尚未写令，复核必然不过。
+            if (CoordinationDriver.RequiresAdvanceDependencyRecheck(task))
+            {
+                var guard = _coordinationDriver.GuardTask;
+                var support = _coordinationDriver.SupportTask;
+                RefreshOrderTargetReadback(mission, guard);
+                RefreshOrderTargetReadback(mission, support);
+                if (!DependencyReadiness.MainAdvanceAllowed(plan, guard, support,
+                        _coordinationDriver.GuardReadiness, _coordinationDriver.SupportReadiness))
+                {
+                    return "advance_dependency_not_current";
+                }
+            }
+
             return null;
         }
 
@@ -835,6 +938,31 @@ namespace CombatBrain2.Host
                 FormationClass = rec.FormationClass,
                 MemberDigest = rec.MemberDigest ?? "",
             };
+        }
+
+        // 把编队当前实际命令目标点读回并刷新到任务上。
+        // 反馈与依赖复核都必须用"此刻"的实际目标：写令瞬间缓存一次不足以发现
+        // 原生用新的 Move 覆盖旧命令（枚举族相同、目标点已改）。
+        // 读不到时清掉可读事实，让"未知"在判据里与"已落地"区分开。
+        private void RefreshOrderTargetReadback(Mission mission, FormationTask task)
+        {
+            if (task == null || mission == null) return;
+            if (task.WrittenAt < 0.0 || !task.HasPosition) return;
+            var f = FindByKey(mission, task.FormationKey);
+            if (f == null)
+            {
+                task.ClearOrderTarget();
+                return;
+            }
+            if (!string.Equals(ObjectIdentityOf(f), task.ObjectIdentity, StringComparison.Ordinal))
+            {
+                task.ClearOrderTarget();
+                return;
+            }
+            double x;
+            double y;
+            if (TryReadOrderTarget(f, out x, out y)) task.SetOrderTarget(x, y);
+            else task.ClearOrderTarget();
         }
 
         private void LogCoordination(BattlePlan plan, DependencyOutcome outcome, double now)
@@ -1183,6 +1311,32 @@ namespace CombatBrain2.Host
 
             if (_handoff.IsMainThread(threadId))
             {
+                // 就地写令同样要过落地门：两条任务在同一评价点获选时，
+                // 直通路径会让它们在同一次原生回调里连续落地，间隔不足 1.5 s。
+                // 未到时刻仍放回槽位，由后续 tick 的 DrainPendingCommand 复取。
+                if (!BattlePlan.IsExitTask(task))
+                {
+                    string stagger = WriteDelayBlock(task, SafeTime(mission));
+                    if (stagger != null)
+                    {
+                        bool held = _handoff.TryDefer(
+                            _missionKey, task.PlanId, task.TaskId, keyNow, task.ObjectIdentity,
+                            threadId, SafeTime(mission));
+                        Cb2Log.Line("HANDOFF_REQUEUED",
+                            "task=" + task.TaskId +
+                            " key=" + keyNow +
+                            " reason=" + stagger +
+                            " held=" + (held ? 1 : 0) +
+                            " callback_tid=" + threadId +
+                            " exec_tid=" + threadId +
+                            " at=" + Cb2Log.F(SafeTime(mission)));
+                        // 同一编队已有另一条待执行命令占着槽位时放回会失败。
+                        // 这里不丢获选：本条不在槽位里，但原生行为 tick 会再次进来复核，
+                        // 槽位里那条则由后续 tick 的 DrainPendingCommand 执行。
+                        return;
+                    }
+                }
+
                 _handoff.NoteDirect();
                 Cb2Log.Line("HANDOFF_DIRECT",
                     "task=" + task.TaskId +
@@ -1252,6 +1406,30 @@ namespace CombatBrain2.Host
                     Cb2Log.Line("HANDOFF_DROPPED",
                         "task=" + task.TaskId + " key=" + p.Key + " reason=plan_closed");
                     continue;
+                }
+
+                // 普通任务落地前必须复核写令间隔与顺序门：预检查发生在 arm 之前，
+                // 同一评价点内两条任务可以先后获选、在同一次主线程 tick 被批量取出，
+                // 只在预检查处判定会让它们以远小于 1.5 s 的间隔连续落地
+                // （实机 p2-A-20261013-210823 的 40.643/40.705，间隔 0.062 s）。
+                // 未到时刻就把命令放回槽位：本次获选是真的，只是还没到落地时刻，
+                // 简单拒绝会丢掉这次执行机会。放回不刷新首次提交与获选截止。
+                // 安全退出仍走自己的 1 s 预算，不受此门约束。
+                if (!BattlePlan.IsExitTask(task))
+                {
+                    string stagger = WriteDelayBlock(task, SafeTime(mission));
+                    if (stagger != null)
+                    {
+                        _handoff.Requeue(p);
+                        Cb2Log.Line("HANDOFF_REQUEUED",
+                            "task=" + task.TaskId +
+                            " key=" + p.Key +
+                            " reason=" + stagger +
+                            " callback_tid=" + p.CallbackThreadId +
+                            " exec_tid=" + tid +
+                            " at=" + Cb2Log.F(SafeTime(mission)));
+                        continue;
+                    }
                 }
 
                 var f = FindByKey(mission, p.Key);
@@ -1552,8 +1730,10 @@ namespace CombatBrain2.Host
                 return null;
             }
 
-            double sinceCreate = now - plan.CreatedAt;
-            if (sinceCreate < TestParameters.FirstCommandDelaySeconds)
+            // 重分配的普通任务从新分配时刻重新计时（派单 §7 L155）：
+            // 沿用计划创建时刻会让替补刚上任就立刻可发令，跳过应有的 1.5 s。
+            double sinceAssign = task.RoleAssignedAt >= 0.0 ? now - task.RoleAssignedAt : now - plan.CreatedAt;
+            if (sinceAssign < TestParameters.FirstCommandDelaySeconds)
             {
                 return "first_command_delay";
             }
@@ -1594,18 +1774,19 @@ namespace CombatBrain2.Host
         {
             var plan = _plans.Current;
             if (plan == null || !string.Equals(plan.PlanId, task.PlanId, StringComparison.Ordinal)) return -1.0;
-            if (now - plan.CreatedAt < TestParameters.FirstCommandDelaySeconds) return -1.0;
+            double sinceAssign = task.RoleAssignedAt >= 0.0 ? now - task.RoleAssignedAt : now - plan.CreatedAt;
+            if (sinceAssign < TestParameters.FirstCommandDelaySeconds) return -1.0;
             if (!_firstCommandSeen)
             {
                 _firstCommandSeen = true;
                 Cb2Log.Line("FIRST_COMMAND_DELAY",
                     "plan=" + plan.PlanId +
                     " task=" + task.TaskId +
-                    " delay=" + Cb2Log.F(now - plan.CreatedAt) +
+                    " delay=" + Cb2Log.F(sinceAssign) +
                     " required=" + Cb2Log.F(TestParameters.FirstCommandDelaySeconds) +
                     " at=" + Cb2Log.F(now));
             }
-            return now - plan.CreatedAt;
+            return sinceAssign;
         }
 
         // 按任务类型构造真实命令。位置由发令前的当前快照几何算出，
@@ -1802,6 +1983,9 @@ namespace CombatBrain2.Host
             foreach (var task in _tasks.OpenTasks())
             {
                 if (task.WrittenAt < 0.0) continue;
+                // 反馈前先读回此刻的实际命令目标点：命令族相同不代表还是同一条命令，
+                // 原生可以用新的 Move 改写目标点而枚举不变。
+                RefreshOrderTargetReadback(mission, task);
                 var rec = _snapshot.FindByKey(task.FormationKey);
                 double enemyX = double.NaN;
                 double enemyY = double.NaN;
@@ -2074,6 +2258,34 @@ namespace CombatBrain2.Host
                 " at=" + Cb2Log.F(now));
         }
 
+        // 安全退出在自己的预算内自行做一次真实受门控投递（派单 §7 L143）。
+        // 评价点每 3 s 才提交候选，而退出预算只有 1 s：只在评价点投递会让多数
+        // 退出任务到点仍是 submitted=0，那不是"原生没选中"，而是根本没投过（独立验收缺陷 5）。
+        // 不放宽一秒期限，保证的只是一次真实尝试，不保证获选。
+        private void SubmitExitStop(Mission mission, FormationTask task, double now)
+        {
+            if (task == null || mission == null) return;
+            if (task.SubmittedAt >= 0.0) return;
+            var f = FindByKey(mission, task.FormationKey);
+            if (f == null) return;
+            // 资格失效的编队不做退出尝试：与普通任务同一判据，不合格者绝不补 Stop。
+            if (!EligibleForControl(f)) return;
+            if (!_exits.MayActOn(task.ObjectIdentity, task.OriginTaskId, task.TaskId)) return;
+
+            var behavior = ArmBehavior(mission, f, task);
+            if (behavior == null) return;
+
+            task.NoteSubmission(now);
+            _gate.SubmitCandidate(task.TaskId, task.FormationKey, now);
+            Cb2Log.Line("EXIT_STOP_SUBMITTED",
+                task.Describe() +
+                " at=" + Cb2Log.F(now) +
+                " submission_count=" + task.SubmissionCount +
+                " first_submitted_at=" + Cb2Log.F(task.SubmittedAt) +
+                " waited_since_queue=" + Cb2Log.F(now - task.CreatedAt) +
+                " budget=" + Cb2Log.F(TestParameters.SafetyCancelLatencySeconds));
+        }
+
         // 退出动作不因未获选就反复尝试：到点未完成即如实记录并撤权。
         // 安全时限从入队时刻起算，不因提交或获选而重置；
         // 已提交、已获选、已转交但未写出的退出任务都必须受此期限覆盖（脚本 §7.2）。
@@ -2089,6 +2301,12 @@ namespace CombatBrain2.Host
                 // 不得再撤该编队的行为权重（那是新分配的活动）。
                 bool owned = _exits.MayActOn(task.ObjectIdentity, task.OriginTaskId, task.TaskId);
                 double since = now - task.CreatedAt;
+                // 尚未到期就先做本预算内的真实一次投递，到点仍未写出的按原口径收尾。
+                if (since < TestParameters.SafetyCancelLatencySeconds)
+                {
+                    SubmitExitStop(mission, task, now);
+                    continue;
+                }
                 if (since >= TestParameters.SafetyCancelLatencySeconds)
                 {
                     _tasks.CloseTask(task.TaskId, now);
@@ -2156,6 +2374,9 @@ namespace CombatBrain2.Host
                 if (task.SubmittedAt < 0.0) continue;
                 // 截止前已经真实获选的正常任务保留原执行规则，不按等待期限掐断。
                 if (task.SelectedAt >= 0.0) continue;
+                // 安全退出在自己的预算内自行投递候选，不参与普通获选窗口的等待与超时；
+                // 把它计入普通等待会让一次关计划后的撤销动作把新计划判成获选超时。
+                if (BattlePlan.IsExitTask(task)) continue;
                 if (now < task.SelectionDeadline()) continue;
                 Cb2Log.Line("TASK_SELECTION_TIMEOUT",
                     task.Describe() +
@@ -2238,7 +2459,6 @@ namespace CombatBrain2.Host
             CbHoldBehavior b;
             return _armedBehaviors.TryGetValue(key, out b) && b != null && b.Armed;
         }
-
 
         // 退出时只把本方行为的权重清零并解除武装。
         // 不用 ResetBehaviorWeights：那会抹掉原生在本方写入期间作出的新权重决策。

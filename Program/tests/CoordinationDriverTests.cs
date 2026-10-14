@@ -113,6 +113,22 @@ namespace CombatBrain2.Tests
                 FormationClass = task.FormationClass,
             };
         }
+
+        // 释放主力推进要求保护与辅助的命令确实写入并生效：只喂位置读数不足以放行
+        // （派单 §3 L86/L103；独立验收缺陷 1 正是只靠读数就放行了推进）。
+        private static void CommandsInEffect(BattlePlan plan, CoordinationDriver driver, double writtenAt)
+        {
+            var g = plan.Geometry;
+            driver.GuardTask.WrittenAt = writtenAt;
+            driver.GuardTask.Feedback = TaskFeedbackState.Effective;
+            driver.GuardTask.SetTarget(0.0, 0.0, g.GuardX, g.GuardY);
+            driver.GuardTask.SetOrderTarget(g.GuardX, g.GuardY);
+            driver.SupportTask.WrittenAt = writtenAt;
+            driver.SupportTask.Feedback = TaskFeedbackState.Effective;
+            driver.SupportTask.SetTarget(0.0, 0.0, g.SupportX, g.SupportY);
+            driver.SupportTask.SetOrderTarget(g.SupportX, g.SupportY);
+        }
+
         // ---- 绑定与准入 ----
 
         [Fact]
@@ -202,6 +218,7 @@ namespace CombatBrain2.Tests
             BattleState state;
             var driver = BoundDriver(out plan, out state);
             var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
 
             var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
             var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
@@ -223,6 +240,7 @@ namespace CombatBrain2.Tests
             BattleState state;
             var driver = BoundDriver(out plan, out state);
             var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
 
             var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
             var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
@@ -359,6 +377,7 @@ namespace CombatBrain2.Tests
             BattleState state;
             var driver = BoundDriver(out plan, out state);
             var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
 
             var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
             var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
@@ -403,6 +422,7 @@ namespace CombatBrain2.Tests
             BattleState state;
             var driver = BoundDriver(out plan, out state);
             var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
 
             var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
             var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
@@ -428,6 +448,7 @@ namespace CombatBrain2.Tests
             BattleState state;
             var driver = BoundDriver(out plan, out state);
             var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
 
             var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
             var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
@@ -447,6 +468,7 @@ namespace CombatBrain2.Tests
             BattleState state;
             var driver = BoundDriver(out plan, out state);
             var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
 
             var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
             var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
@@ -544,6 +566,143 @@ namespace CombatBrain2.Tests
             Assert.False(driver.RelationshipExpired(plan, TestParameters.P2Now + 60.0));
         }
 
+        // 只喂位置读数不够：保护命令尚未写入时不得释放主力推进。
+        // 这正是独立验收缺陷 1 的反例（旧实现只要两次位置读数就放行）。
+        [Fact]
+        public void UnwrittenCommandDoesNotReleaseMainAdvance()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+
+            // 保护/辅助的位置读数连续到位，但命令从未写入。
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var unwritten = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.True(unwritten.GuardReady);
+            Assert.True(unwritten.SupportReady);
+            Assert.False(unwritten.MainAdvanceAllowed);
+            Assert.Null(driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0));
+
+            // 命令写入并生效后才允许释放。
+            CommandsInEffect(plan, driver, TestParameters.P2Now + 1.5);
+            var released = driver.Observe(TestParameters.P2Now + 2.0, guard, support);
+            Assert.True(released.MainAdvanceAllowed);
+            Assert.NotNull(driver.CreateAdvanceTask(plan, TestParameters.P2Now + 2.0));
+        }
+
+        // 命令写入后目标点若已偏离到位区，同样不得释放（有效目标仍须复核）。
+        [Fact]
+        public void CommandTargetOutsideBandDoesNotReleaseMainAdvance()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
+            // 当前实际命令目标点偏出保护到位区（前向偏移远超上限），请求点不变。
+            driver.GuardTask.SetOrderTarget(g.MainX, g.MainY + 200.0);
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var outcome = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+
+            Assert.False(outcome.MainAdvanceAllowed);
+            Assert.Null(driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0));
+        }
+
+        // 同一计划再次释放推进必须换新身份：阶段转换不增 revision，
+        // 复用旧 ID 会让第二次真实获选被自己的首次写令记录拒绝（独立验收缺陷 2）。
+        [Fact]
+        public void SecondAdvanceReleaseUsesNewIdentity()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            var first = driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0);
+            Assert.NotNull(first);
+
+            // 依赖失效触发一次重分配：回到等待阶段并推进版本。
+            var old = driver.GuardTask;
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 2.0);
+            CommandsInEffect(plan, driver, TestParameters.P2Now + 3.0);
+
+            var guard2 = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support2 = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now + 3.0, guard2, support2);
+            driver.Observe(TestParameters.P2Now + 4.0, guard2, support2);
+            var second = driver.CreateAdvanceTask(plan, TestParameters.P2Now + 4.0);
+
+            Assert.NotNull(second);
+            Assert.NotEqual(first.TaskId, second.TaskId);
+        }
+
+        // 写令前的依赖复核只适用于主力推进任务。重分配产生的新主力等待任务
+        // 来源同为 PhaseTransition，但那一刻新的保护/辅助尚未写令，按推进任务
+        // 复核必然不过 —— 实测 p2-A-20261014-022054 因此让重分配后的三条新任务
+        // 整场没有写出任何命令。
+        [Fact]
+        public void AdvanceDependencyRecheckOnlyAppliesToAdvanceTask()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            var advance = driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0);
+            Assert.NotNull(advance);
+            Assert.True(CoordinationDriver.RequiresAdvanceDependencyRecheck(advance));
+
+            var old = driver.GuardTask;
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 2.0);
+
+            var mainWait = driver.MainWaitTask;
+            Assert.NotNull(mainWait);
+            Assert.NotSame(advance, mainWait);
+            Assert.Equal(FormationRole.Main, mainWait.Role);
+            Assert.Equal(TaskKind.Hold, mainWait.Kind);
+            Assert.False(CoordinationDriver.RequiresAdvanceDependencyRecheck(mainWait));
+        }
+
+        // 重分配后依赖集必须指向本版本的任务：沿用旧 ID 会让新分配
+        // 仍然挂着已关闭的旧主力任务（独立验收缺陷 4）。
+        [Fact]
+        public void ReassignmentRebindsDependenciesToCurrentTasks()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            string oldMainId = driver.MainWaitTask.TaskId;
+
+            var old = driver.GuardTask;
+            var replacement = Rec(0, 3, "Cavalry", 12, 10.0, 10.0, false);
+            driver.ReassignRole(plan, old, FormationRole.Guard, replacement, TestParameters.P2Now + 5.0);
+
+            Assert.NotEqual(oldMainId, driver.MainWaitTask.TaskId);
+            Assert.Equal(driver.MainWaitTask.TaskId, driver.GuardTask.GuardsTaskId);
+            Assert.Equal(driver.MainWaitTask.TaskId, driver.GuardTask.DependsOnTaskId);
+            Assert.Equal(driver.MainWaitTask.TaskId, driver.SupportTask.SupportsTaskId);
+            Assert.Equal(driver.MainWaitTask.TaskId, driver.SupportTask.DependsOnTaskId);
+            Assert.Equal("", driver.MainWaitTask.DependsOnTaskId);
+        }
+
         // ---- 职责重分配：换对象必须增 revision 并重绑 ----
 
         [Fact]
@@ -639,6 +798,7 @@ namespace CombatBrain2.Tests
             BattleState state;
             var driver = BoundDriver(out plan, out state);
             var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
 
             var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
             var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
@@ -670,6 +830,7 @@ namespace CombatBrain2.Tests
             BattleState state;
             var driver = BoundDriver(out plan, out state);
             var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
 
             var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
             var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);

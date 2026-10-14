@@ -31,6 +31,12 @@ namespace CombatBrain2.Host
         // 场景 B 的替补保持窗口：须覆盖保护失资格后的处置证据采集，明显长于 4 s。
         private const double P2SubstituteKeepSeconds = 30.0;
 
+        // 场景 A 的保护失资格窗口。R3 之后生产不再逐 tick 补回行为权重，
+        // 原生 SetControlledByAI 的副作用会清零权重；恢复若落在重分配后新主力刚写令的时刻，
+        // 会把这个尚未推进的计划直接打断（实机 32.040 恢复，5 ms 前刚写令）。
+        // 窗口须晚于整条新身份链的写令与合法推进，合同下限仍是「至少 4 s」。
+        private const double P2GuardLossHoldSeconds = 60.0;
+
         private sealed class Applied
         {
             internal string Mode = "";
@@ -120,7 +126,7 @@ namespace CombatBrain2.Host
             Cb2Log.Line("P2_PROBE_CONFIG",
                 "p2_mode=" + (raw.Length == 0 ? "<off>" : raw) +
                 " source=" + P2ConfigFileName +
-                " hold_seconds=" + Cb2Log.F(HoldSeconds) +
+                " hold_seconds=" + Cb2Log.F(_p2Mode == P2AdaptationMode.GuardLossAfterEstablished ? P2GuardLossHoldSeconds : HoldSeconds) +
                 " competition=" + (P2CompetitionEnabled ? "1" : "0") +
                 " note=test_adapter_only_never_changes_production_gating");
         }
@@ -265,6 +271,10 @@ namespace CombatBrain2.Host
                 RelationshipEstablished = d.GuardReadiness != null && d.GuardReadiness.Ready &&
                                           d.SupportReadiness != null && d.SupportReadiness.Ready,
                 MainAdvancing = d.Phase == CoordinationPhase.MainAdvancing,
+                AdvanceCommandWritten = d.AdvanceTask != null && d.AdvanceTask.WrittenAt >= 0.0,
+                AdvanceWrittenAgeSeconds = d.AdvanceTask != null && d.AdvanceTask.WrittenAt >= 0.0
+                    ? now - d.AdvanceTask.WrittenAt : -1.0,
+                CompetitionWindowSatisfied = TestDriver.Instance.CompetitionWindowSatisfied,
                 GuardCommandWritten = d.GuardTask != null && d.GuardTask.WrittenAt >= 0.0,
                 SupportCommandWritten = d.SupportTask != null && d.SupportTask.WrittenAt >= 0.0,
                 MainStillWaiting = d.MainWaitTask != null && !d.MainWaitTask.IsClosed,
@@ -349,10 +359,13 @@ namespace CombatBrain2.Host
         }
 
         // 场景 B 的替补应在本次失效处置证据采集完成前保持不可用，
-        // 因此保持窗口明显长于保护编队的 4 s；场景 A 的保护编队按合同保持至少 4 s。
-        private static double P2SubstituteHoldSeconds(Applied plan)
+        // 因此保持窗口明显长于保护编队；场景 B 的保护编队仍按合同下限 4 s，
+        // 只有场景 A 需要把恢复推迟到重分配后的新身份链完成之后。
+        private double P2SubstituteHoldSeconds(Applied plan)
         {
-            return plan.Mode == "p2_substitute" ? P2SubstituteKeepSeconds : HoldSeconds;
+            if (plan.Mode == "p2_substitute") return P2SubstituteKeepSeconds;
+            if (_p2Mode == P2AdaptationMode.GuardLossAfterEstablished) return P2GuardLossHoldSeconds;
+            return HoldSeconds;
         }
 
         private void P2SweepRestores(Mission mission, double now)
