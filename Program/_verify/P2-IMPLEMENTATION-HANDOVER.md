@@ -1,6 +1,6 @@
 # P2 多 Formation 协同 · 实现交接报告
 
-状态：**开发自检完成，实机执行已完成（P2 整改四场 R4 场次 + P1 P/N 回归各 ×1；历史 A5 四场见 §0–§6）；独立验收未发生 — 待独立验收**
+状态：**开发自检完成；独立验收已完成并通过（2026-10-14，结论见 `Program/_verify/P2-STAGE-EXIT-ACCEPTANCE.md`，受审实现 `24548d2`）**
 提交：CB2 主线本单**实现提交为 `8fb1efa`**（28 files / +7112 / −24），其后是对本报告的历次更正；**2026-10-14 P2-RESTART 整改提交为 `24548d2`**（13 files / +785 / −60）。全部在 `master`、**均未 push**。CBATH 配套提交 **`b9fcef7`**，**2026-10-14 增量为 `ebed701`**（工作树 `E:\MBmod\CBATH-P2`，分支 `codex/cb20-p2-evidence`，未 push）。**整改的 R1–R4 结果、最新场次索引与最终 A1–A13 状态见 §7。**
 **现场核对命令**：`git log --oneline 8fb1efa^..HEAD`（列出实现提交及其后的全部更正）。
 **本文件不枚举自身提交清单**：每更正一次本报告就会追加一条提交，任何写死的提交列表都会立刻过时；提交范围见 §1.3。
@@ -663,7 +663,7 @@ foreach ($s in '20261013-170546','20261013-170928') {
 | A4 协同发生 | **PASS** | 继承 | A 场三次 `COORDINATION_ADVANCE`（17.566 / 45.858 / 115.225）→ 主力 `StandYourGround→Move`（20.036 / 50.036 / 119.035）；**反例**：B 场 plan-1 未建立关系即失资格，全程 0 条 `COORDINATION_ADVANCE` |
 | A5 权限唯一裁决 | **PASS** | 继承 | 23 条 `ARBITRATION_CANDIDATE` 中 winner 15 全为 `TaskSubmission`、loser 8 全为 `TestInjection`（零赢家）；`COMPETITION_INJECT_WINDOW_SATISFIED elapsed=9.003 rounds=4`；`WRITE_BLOCKED=0`、`TASK_SELECTION_TIMEOUT=0` |
 | A6 分配稳定及延迟 | **PASS** | **加强** | 普通写令全程 ≥1.5 s（§7.3），新分配首令 3.994 / 3.900 s；`P2_FIRST_DECISION_SCHEDULED first_command_delay=1.500 decision_cadence=3.000`；`PLAN_CONTINUED=58` |
-| A7 实际职责改变与联动 | **PASS** | **由「部分覆盖」升级** | rev2：28.039 保护失资格 → 同刻 `COORDINATION_REASSIGNED revision=2 new=plan-1-task-92-r2-guard`（原 Support `0077636e@Cavalry` 改任 Guard，`00291a74@HorseArcher` 补 Support），三条新任务**均获选并写令**（32.033 / 34.633 / 36.133），随后 45.858 以**新身份**合法推进 g2；rev3：88.132 恢复后 Support 再次失资格 → `revision=3 new=plan-1-task-93-r3-support`，三条新任务再次均获选并写令 |
+| A7 实际职责改变与联动 | **PASS** | **由「部分覆盖」升级** | rev2：28.039 保护失资格 → 同刻 `COORDINATION_REASSIGNED revision=2 new=plan-1-task-92-r2-guard`（原 Support `0077636e@Cavalry` 改任 Guard，`00291a74@HorseArcher` 补 Support），三条新任务**均获选并写令**（32.033 / 34.633 / 36.133），随后 45.858 以**新身份**合法推进 g2；rev3：88.132 资格恢复触发 rev2 Support 的**关系失效**（`COORDINATION_DEPENDENCY_LOST revision=2 role=Support failure=None`，不是再次失资格）→ `revision=3 new=plan-1-task-93-r3-support`，三条新任务获选并写令（92.032 / 94.632 / 97.582），97.632 因 rev3 新 Guard 位移不足（`closed_distance=0.48 (<3.0)`）整批取消 |
 | A8 不可执行分支 | **部分覆盖** | 继承（形态未变） | B 场 10.641 同 tick 失资格→`PLAN_INVALIDATED reason=FormationEligibilityLost`→三任务关闭→`HANDOFF_CLEARED`→撤武装；plan-1 此后零写令，全程不释放主力推进。**仍无独立 `PLAN_NOT_EXECUTABLE` 事件**，`detail` 只写 `task=` 不含 role |
 | A9 跨计划/版本不复活 | **PASS** | **加强** | A 场 88.132 之后 rev2 旧任务只出现在 `POST_OBSERVE`（观测），零新获选 / 写令 / arm；97.632 只作为 `REVOKE_SKIPPED reason=object_taken_over_by_new_assignment`；rev3 新 ID 正常获选 |
 | A10 反馈及异常如实 | **PASS** | **加强** | A 场 `TASK_FEEDBACK effective=13 / failed=1`；B 场 `order_target_readback_error=9.64 (>0.5)` 如实失败并触发计划失效（R2 的直接实机反例）；位移类任务的 `closed_distance` 为实测值 3.10–3.37（非填充） |
@@ -671,12 +671,14 @@ foreach ($s in '20261013-170546','20261013-170928') {
 | A12 受影响 P1 回归 | **PASS** | 重取 | P 场 `WRITE_EXECUTED=18`、`PLAN_CREATED=5`；N 场 `5` / `2`；两场 `P1_MODE enabled=1` + `P2_MODE enabled=0`、`WRITE_BLOCKED=0`、`TASK_SELECTION_TIMEOUT=0`、`COORDINATION_STATE=0`、`ARBITRATION_INJECT=0`（P2 路径未激活），探针链 `PROBE_ELIGIBILITY_LOST → RESTORED` 完整 |
 | A13 交付可复查 | **PASS** | 重取 | §7.0 提交、§7.2 场次与 SHA、§7.3 命令表；CBATH 身份来自实际引擎对象 |
 
-**未覆盖 / 需独立验收者裁定的项（不得当作已通过）**
+**开发侧未覆盖项**（独立验收已于 2026-10-14 裁定，最终以 `Program/_verify/P2-STAGE-EXIT-ACCEPTANCE.md` 为准：A2/A8/A11 按原合同裁为通过）
 1. **A2**：普通（非退出）Cavalry Hold 任务在两场都未出现；`order_after=Charge` 两场均 0。
 2. **A8**：判据措辞「明确报告不可执行」在生产事件流中没有独立事件名，形态为四件套；`detail` 不含 role。
-3. **A11 弱化边界**：3+ 对象同时退出去重在本轮两场未触发。
+3. **A11 重复触发边界**：三对象同刻退出排在 A 场日志第 1315–1357 行（三条同刻 `EXIT_STOP_QUEUED`，97.582–98.137 s 分别完成），已在独立验收中核过；**重复关闭回调、迟到旧事件、人数恰好边界、身份转移、互斥双开、首次获选截止**仍未在实机自然触发，按离线/源码或历史依据分类，不升级为实机覆盖。
 4. **R1 槽位占用**：A 场 `HANDOFF_SLOT_BUSY=2` 属"同一键被占时不丢获选、靠原生下一 tick 重进"，该分支只有 2 次样本。
 5. **CBATH 未随 P1 场重建**：P/N 两场复用 B 场 CBATH 产物（`abde21e5`），属 P1 入口设计，不构成 P2 证据缺口。
+
+**独立验收已于 2026-10-14 完成**（`Program/_verify/P2-STAGE-EXIT-ACCEPTANCE.md`，受审实现 `24548d2` / CBATH `ebed701`）：A2/A8/A11 按原合同裁为通过；上表保留开发侧依据，最终裁定以验收记录为准，本报告不再自行升级。开发侧最终自检：`dotnet test` **224 通过 / 0 失败**，两份宿主重建 0 警告 / 0 错误。未 push、无 PR。
 
 ### 7.5 共享资源收尾（2026-10-14 实测）
 
@@ -685,5 +687,3 @@ foreach ($s in '20261013-170546','20261013-170928') {
 - Documents 哨兵 `C:\Users\Administrator\Documents\CombatBrain2`：`p1-command-loop.txt = enabled=0`、`p2-command-loop.txt = enabled=0`、`eligibility-probe.txt` 与 `p2-eligibility-probe.txt` 均为空 → 上一场中断遗留已按派单 §3 第 54 行在独占入口内清理完毕。
 - `Configs\engine_config.txt`：`safely_exited = 1`（已复位）。
 - 部署目录 `Modules\CombatBrain2\bin\Win64_Shipping_Client\CombatBrain2.dll` = 157696 B（N 场产物，`0AC20B77…`）。
-
-**独立验收前只写：开发自检完成、待独立验收。**
