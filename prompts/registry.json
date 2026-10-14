@@ -46,6 +46,21 @@
       "content_sha256": "648065c3a2905277c78dfb54580dc185c0d150151c9fbf1dd6c7ba4b284396dc",
       "auto_archive": false,
       "notes": "用户要求更换开发会话前先复核并派单；接续未提交的P2修复，限定整改和集中实机交回。CB2-PROMPT-0002继续作为验收合同；本登记不代表阶段通过。"
+    },
+    {
+      "prompt_id": "CB2-PROMPT-0004",
+      "series_id": "p3-feedback-replanning",
+      "title": "CombatBrain 2.0 P3 Feedback and Replanning Dispatch",
+      "kind": "development-dispatch",
+      "root": "repo",
+      "path": "Program/_verify/P3-FEEDBACK-REPLANNING-DISPATCH.md",
+      "status": "ACTIVE",
+      "created_at": "2026-10-14",
+      "updated_at": "2026-10-14",
+      "owner": "project-maintainer",
+      "content_sha256": "064f524a77f356df3b9352c473416367b7b9e7e0bd669cd7e461667d4bcec879",
+      "auto_archive": false,
+      "notes": "P2限定独立验收通过后编制的P3正式派单v1.0；限定真实战果与代价评价、一次有限追加、止损及旧新Plan收尾，含三门实机对照和完整独占验证脚本合同。登记表示派单可用，不自动授权实施，不代表P3实现或通过；实施待用户下发。"
     }
   ]
 }
