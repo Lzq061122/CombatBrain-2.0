@@ -1,7 +1,7 @@
 # P2 多 Formation 协同 · 实现交接报告
 
-状态：**开发自检完成，实机执行已完成（场景 A ×2、场景 B ×1、P1 P/N 回归各 ×1）；独立验收未发生 — 待独立验收**
-提交：CB2 主线本单**实现提交为 `8fb1efa`**（28 files / +7112 / −24），其后是对本报告的历次更正；两者均在 `master`、**均未 push**。CBATH 配套提交 **`b9fcef7`**（工作树 `E:\MBmod\CBATH-P2`，分支 `codex/cb20-p2-evidence`，未 push）。
+状态：**开发自检完成，实机执行已完成（P2 整改四场 R4 场次 + P1 P/N 回归各 ×1；历史 A5 四场见 §0–§6）；独立验收未发生 — 待独立验收**
+提交：CB2 主线本单**实现提交为 `8fb1efa`**（28 files / +7112 / −24），其后是对本报告的历次更正；**2026-10-14 P2-RESTART 整改提交为 `24548d2`**（13 files / +785 / −60）。全部在 `master`、**均未 push**。CBATH 配套提交 **`b9fcef7`**，**2026-10-14 增量为 `ebed701`**（工作树 `E:\MBmod\CBATH-P2`，分支 `codex/cb20-p2-evidence`，未 push）。**整改的 R1–R4 结果、最新场次索引与最终 A1–A13 状态见 §7。**
 **现场核对命令**：`git log --oneline 8fb1efa^..HEAD`（列出实现提交及其后的全部更正）。
 **本文件不枚举自身提交清单**：每更正一次本报告就会追加一条提交，任何写死的提交列表都会立刻过时；提交范围见 §1.3。
 派单依据：`Program/_verify/P2-MULTI-FORMATION-DISPATCH.md` v1.1（登记 `CB2-PROMPT-0002`，ACTIVE；磁盘原始字节 SHA-256 = `3471FF7BA6A46A8387A5F1054732D1A3F83D1165E362485A21049F3E2CE5D77E`，与登记一致）
@@ -567,3 +567,123 @@ foreach ($s in '20261013-170546','20261013-170928') {
 | ③ 仅依赖 `OnActiveBehaviorChanged`（不引入 tick 证据源） | **结构上不可能对连续第二个任务成立**。同一类型行为连续获选时两条短路路径都会命中（见①②），该事件对「本方行为始终在位」的场景不是可用信号源 —— 这正是缺陷的表象，不是偶发。 |
 
 **共同点**：三者都试图让原生「再发一次信号」，而反编译证明该信号在同一类型连续获选时被结构性抑制。因此正确做法是把「本方行为被 tick」本身当作获选硬证据（§1.5 结论 2），而不是去构造信号。三个候选**均未进入最终代码**；`Program/src/Host/CbHoldBehavior.cs` 已回退为 54 行无代次版本。
+
+---
+
+## 7. P2-RESTART 整改（R1–R4）结果 · 2026-10-14
+
+派单：`Program/_verify/P2-RESTART-REMEDIATION-DISPATCH.md` v1.0（登记 `CB2-PROMPT-0003`）。`CB2-PROMPT-0002` 与 §3 的 A1–A13 判据不变，本整改不降低三门、不重开 P1 历史验收、不扩大战术范围。
+本节是**最终结论**：§0–§6 保留原样（A5 历史四场），**A1–A13 的最终状态以 §7.4 为准**。
+
+### 7.0 提交与文件摘要
+
+| 仓库 / 工作树 | 分支 | 本整改提交 | 内容 |
+|---|---|---|---|
+| `E:\MBmod\CombatBrain 2.0` | `master` | **`24548d2`** | 13 files / +785 / −60；父提交 `7cb00c3` |
+| `E:\MBmod\CBATH-P2` | `codex/cb20-p2-evidence` | **`ebed701`** | 1 file / +21；父提交 `b9fcef7` |
+
+`24548d2` 文件（按派单 §4 白名单逐路径暂存，未用 `git add -A` / `commit -a`）：
+`Program/_verify/run-p1.ps1`(+8/−1)、`Program/src/Core/BattlePlan.cs`(+8)、`CoordinationDriver.cs`(+149/−19)、`CoordinationPlan.cs`(+23/−1)、`EligibilityTrigger.cs`(+15/−1)、`ThreadHandoff.cs`(+16)、`Program/src/Host/BuildIdentity.g.cs`(±1)、`EligibilityProbe.cs`(+17/−4)、`TestDriver.cs`(+249/−29)、`Program/tests/CoordinationDriverTests.cs`(+161)、`CoordinationIntegrationTests.cs`(+10)、`DependencyReadinessTests.cs`(+89/−3)、`EligibilityTriggerTests.cs`(+39/−1)。
+
+`ebed701` 内容：`P2FormationEvidence.cs` 为 mission / formation 各加 `mission_identity` / `formation_identity`（`RuntimeHelpers.GetHashCode(o).ToString("x8") + "@" + o.GetType().Name`），身份来自实际引擎对象，不从 CB2 日志回填。
+
+**交付时 dirty 摘要**：已跟踪文件仅本报告 `Program/_verify/P2-IMPLEMENTATION-HANDOVER.md`（本节追加）；其余未跟踪项全是运行产物（`Program/_verify/_lastrun*.txt`、`gabs-config/`、`_scratch/`、`Program/_verify/sessions/*`）。观测组三个工作树本轮只读，未修改 / 构建 / 切分支 / 提交。
+两者均**未 push，无 PR**。
+
+### 7.1 R1–R4 结果
+
+| 项 | 结果 | 关键实现 | 关键证据 |
+|---|---|---|---|
+| **R1 实际普通写令间隔** | **已闭合** | `ThreadHandoff.Requeue`（保留原槽位，不刷新首次提交/获选截止）+ 主线程直通分支与 `DrainPendingCommand` 各加普通任务落地复核（`BattlePlan.IsExitTask` 豁免） | A 场 15 条普通写令相邻间隔最小 **1.500 s**，全部 ≥1.5 s；新分配首令从分配时刻计 3.994 / 3.900 s；退出任务仍按自己 1 s 预算（98.037/98.087/98.137）；`HANDOFF_REQUEUED=290` 全为 `formation_stagger`，`HANDOFF_DROPPED=0` |
+| **R2 最新依赖与同 Move 改目标** | **已闭合** | Core `CommandTargetStillValid` 改按 `task.OrderTargetX/Y` + `HasOrderTarget` + `OrderTargetReadbackError() <= 0.5`；新 `BattlePlan.ClearOrderTarget()`；Host 新 `RefreshOrderTargetReadback` 三处调用（`CoordinationTick`、`FeedbackTick`、主力推进写前 `CoordinationWriteBlock`） | A 场 `order_target_readback_error=0`、`advance_dependency_not_current=0`、`WRITE_BLOCKED=0`；B 场真实反例 `order_target_readback_error=9.64 (>0.5) order_target=(957.044,1133.435) requested=(963.531,1140.568)` → `TASK_FEEDBACK state=failed reason=NotEffective` → `PLAN_INVALIDATED plan-3 reason=NotEffective` |
+| **R3 原生覆盖与行为权重** | **已闭合** | 删除 `TestDriver.GuardArmedWeights(double now)` 整块与 `SamplingBehavior.cs:169` 的调用；保留合同允许的 `ArmBehavior` 一次性 Route C arm | 四场 `BEHAVIOR_REWEIGHTED=0`；A 场 97.632 计划关闭时 4 条 `BEHAVIOR_DISARMED`（key 1/0、1/1、1/2 权重 8.000→0.000；key 1/3 原本 0.000）+ `REVOKE_SKIPPED ×11`；`ArmBehavior` 正常 arm 仍产生 `behavior_weight=8.000` 的 `TASK_CANDIDATE_SUBMITTED` |
+| **R4 实机闭合与交回** | **已闭合** | 本批两仓库提交 + 本节 | 四场均为合法通路下的正例/反例/回归，身份三处闭合，见 §7.2–§7.5 |
+
+**R2 的 red-green 反例（首轮判定口径过宽，已收窄）**：`CoordinationWriteBlock` 原以 `task.Role == Main && task.Source == PhaseTransition` 判定「推进任务」，会把重分配后新建的主力等待任务（`plan-1-task-92-1`，Kind=Hold，Reason=`coordination_main_hold_wait`）也拉去复核尚未写令的新 guard/support，并在其 Ordinal=1 上触发 `PredecessorNotWritten`，使 rev2 三条新任务整场零写令。
+收窄为 Core 判据 `CoordinationDriver.RequiresAdvanceDependencyRecheck(task)`（只认 `Reason == ReasonMainAdvance`，全仓仅 `CoordinationDriver.cs:243` 一处赋值），Host 改调该判据。
+红证据：新增测试 `AdvanceDependencyRecheckOnlyAppliesToAdvanceTask` 在过宽逻辑下失败（失败 1 / 通过 0）。绿证据：收窄后同 filter 通过（失败 0 / 通过 1），全量 `224 通过 / 0 失败`。
+新增/加强的测试：`UnwrittenCommandDoesNotReleaseMainAdvance`、`CommandTargetOutsideBandDoesNotReleaseMainAdvance`、`SecondAdvanceReleaseUsesNewIdentity`、`AdvanceDependencyRecheckOnlyAppliesToAdvanceTask`、`ReassignmentRebindsDependenciesToCurrentTasks`、`MainAdvanceBlocksWhenActualOrderTargetDeviates`、`ScenarioADoesNotFireBeforeAdvanceCommandWritten`、`ScenarioADoesNotFireBeforeAdvanceSettled`、`ScenarioADoesNotFireWhileCompetitionWindowOpen`。
+
+**R1 的次要表象（如实记录，未改判）**：A 场 `HANDOFF_SLOT_BUSY=2`——同一编队键已被别的任务占用时，`Requeue` 进不去，该次获选不作为写令证据，靠原生下一次 tick 重新进入；`HANDOFF_DROPPED=0`，没有因等待而丢失执行机会。
+
+### 7.2 最终场次索引与产物身份（逐场部署自动重建，`build_id`/SHA 逐场不同属预期）
+
+| 用途 | 场次目录 | CB2 `build_id` | 部署 DLL SHA256 / size | MVID / pid | CBATH `build_id` |
+|---|---|---|---|---|---|
+| **A 正例** | `Program/_verify/sessions/p2-A-20261014-114127` | `b20261014-114125-9a6560ef` | `55D8478D508A8C74E661E4AE5451E613CF1AA0716E6B88E52DBA5C27A8032DBF` / 157696 | `7c1e98fb-df1d-4c49-bb2e-2d7d5a2a6afd` / 40416 | `b20261014-114126-16c31de7` |
+| **B 反例** | `Program/_verify/sessions/p2-B-20261014-114553` | `b20261014-114550-b8311161` | `280B6E84CD211CA93F3335EC421AB2ECB04F5F2F9F7CF160C7D5CB7E3C0D46C5` / 157696 | `ef5cd1db-02bc-4d07-8e29-c99114bdc99b` / 17540 | `b20261014-114552-abde21e5` |
+| **P1 P 回归** | `Program/_verify/sessions/20261014-115634` | `b20261014-115631-a3a3e971` | `58F5E2E28F18D81C8BF950F988962DAB69FDF1D5F26AB5C432B30FAFD71D8FD1` / 157696 | `2f3c98d9-bd56-4ab4-ae55-e80402dc14e1` / 18312 | `b20261014-114552-abde21e5`（P1 入口不重建 CBATH，复用 B 场产物） |
+| **P1 N 回归** | `Program/_verify/sessions/20261014-120020` | `b20261014-120018-9828293f` | `0AC20B77D2286AE521C2BF46DFE872D8CF8A7CC25504ECF8DAF69BD78EE74CFF` / 157696 | `2440df0d-b1bd-4c65-a3b0-e8c180dcde16` / 13156 | 同上（`8009f425113c0659622ad8af7b97354cbbda2954fdab59dcfbc1d612075b8445`） |
+
+每场内三条记录闭合：`deployed-module.json` 的磁盘 SHA == 游戏内 `[CB2][RUNTIME_IDENTITY] assembly_file_sha256`（小写）== 部署源 SHA。CBATH 侧另有 `[CBATH_RUNTIME_IDENTITY]` 的 `assembly_sha256` / `mvid` / `pid` 与 `build-identity.json` 一致。
+`Program/_verify/sessions/20261014-115102` 是**废场**：`P1_MODE enabled=0` + `P2_MODE enabled=0 rejected=both_enabled`、`WRITE_EXECUTED=0`。原因是 P1 入口未清零 P2 哨兵；跑前已修 `run-p1.ps1`（显式写 `p2-command-loop.txt = enabled=0`，随 `24548d2` 提交），重跑得 115634 / 120020。该场不计入证据。
+运行方式：A/B 用 `Program/_verify/run-p2-exclusive.ps1 -Scenario <A|B> -CombatHoldSec 180`，P1 用 `Program/_verify/run-p1-exclusive.ps1 -Config <P|N> -CombatHoldSec 180`；全程经 `E:\MBmod\BattleObservation-V1\coordination\Invoke-ExclusiveGame.ps1 -Owner '主线组'` 持锁。
+
+### 7.3 普通 / 退出命令时间表与独立样本
+
+**A 场（18 条 `WRITE_EXECUTED`，其中普通 15 条、退出 3 条）**
+
+| at | 任务 | kind | 对象 | 备注 |
+|---|---|---|---|---|
+| 5.036 | plan-1-task-1 | Hold | `02e2fa68@Infantry` | 首令，`first_command_delay=3.499` |
+| 7.585 | plan-1-task-2 | Reposition | `00602e6a@Ranged` | +2.549 |
+| 10.635 | plan-1-task-3 | Reposition | `0077636e@Cavalry` | +3.050 |
+| 20.036 | plan-1-task-4-g1 | Reposition | `02e2fa68@Infantry` | +9.401，`StandYourGround→Move` |
+| 32.033 | plan-1-task-92-1 | Hold | `02e2fa68@Infantry` | +11.997（rev2 首次分配，距 28.039 分配 3.994 s） |
+| 34.633 | plan-1-task-92-r2-guard | Reposition | `0077636e@Cavalry` | +2.600 |
+| 36.133 | plan-1-task-92-r2-support | Reposition | `00291a74@HorseArcher` | +1.500（**最小间隔**） |
+| 50.036 | plan-1-task-4-g2 | Reposition | `02e2fa68@Infantry` | +13.903，rev2 推进，`replaced=\|plan-1-task-92-r2-guard\|plan-1-task-92-r2-support\|` |
+| 92.032 | plan-1-task-93-1 | Hold | `02e2fa68@Infantry` | +41.996（rev3 首次分配，距 88.132 分配 3.900 s） |
+| 94.632 | plan-1-task-93-92 | Reposition | `0077636e@Cavalry` | +2.600 |
+| 97.582 | plan-1-task-93-r3-support | Reposition | `00602e6a@Ranged` | +2.950 |
+| 98.037 | plan-1-task-93-1-exit | Hold | `02e2fa68@Infantry` | 退出（不受 1.5 s 门约束） |
+| 98.087 | plan-1-task-93-r3-support-exit | Hold | `00602e6a@Ranged` | 退出 +0.050 |
+| 98.137 | plan-1-task-93-92-exit | Hold | `0077636e@Cavalry` | 退出 +0.050 |
+| 104.037 | plan-2-task-1 | Hold | `02e2fa68@Infantry` | +6.455 |
+| 106.587 | plan-2-task-2 | Reposition | `00602e6a@Ranged` | +2.550 |
+| 109.637 | plan-2-task-3 | Reposition | `0077636e@Cavalry` | +3.050 |
+| 119.035 | plan-2-task-4-g1 | Reposition | `02e2fa68@Infantry` | +9.398 |
+
+普通写令全部带 `order_target=… readback_error=0.000`、`is_main_thread=1`、`route=native_behavior_apply`、`error=<none>`。
+
+**B 场（14 条，其中普通 10 条、退出 4 条）**：普通间隔 2.550 / 3.050 / 9.396 / 2.550 / 3.050 / 12.402 / 2.551 / 3.050 / 6.400（最小 2.550 s）；退出 11.037 / 32.134 / 32.534 / 32.584。
+
+**独立采样**：CB2 侧 `[INDEPENDENT_SAMPLE]` 事件数 A=182、B=181、P=153、N=153；CBATH 侧 `p2-evidence-*.json` 文件数 A=193、B=192（A 场 `p2-evidence-0001..0193` 全部可解析，唯一缺 `mission_identity` 的是 `p2-evidence-end.json`，其 `status=no_mission` 属正常）。A 场 `missions_identity=01e2d58b@Mission`，B 场 `02494c9b@Mission`。
+
+### 7.4 A1–A13 最终状态、继承依据与未覆盖项
+
+> §3 表是 A5 历史四场（`p2-A-20261013-163716` 等）的判定。本整改改动了共享执行/反馈路径，故受影响项以本节为准；未受改动影响项按差异分析继承 §3 结论，未重复刷场。
+> 状态口径不变：`PASS` = 有实机原始证据且与判据一致；`部分覆盖` = 只满足一部分或形态与判据措辞不同，交独立验收者裁定。
+
+| 项 | 最终状态 | 相对 §3 | 依据 |
+|---|---|---|---|
+| A1 身份与场景 | **PASS** | 继承 | 四场 §7.2 三条记录闭合；`P1_MODE`/`P2_MODE` 实测互斥（P/N 场 `P2_MODE enabled=0`，A/B 场 `enabled=1`） |
+| A2 最小新增控制组合 | **部分覆盖** | 继承（证据增强） | Cavalry Reposition 真实获选+写令、主线程、独立目标全部成立（A 场 `0077636e@Cavalry` 1/2 与 `00291a74@HorseArcher` 1/3，`SNAPSHOT_FORMATION key=1/3 class=Cavalry`）；**普通 Cavalry Hold 任务仍不存在**（Hold 只以退出停止任务形态出现）；`order_after=Charge` A/B 两场均 0 |
+| A3 同 Plan 三职责 | **PASS** | 继承 | 每 plan 3 条 `ASSIGNMENT_PUBLISHED`，Main/Guard/Support 对象互不相同；rev2/rev3 重分配后同样三条新对象 |
+| A4 协同发生 | **PASS** | 继承 | A 场三次 `COORDINATION_ADVANCE`（17.566 / 45.858 / 115.225）→ 主力 `StandYourGround→Move`（20.036 / 50.036 / 119.035）；**反例**：B 场 plan-1 未建立关系即失资格，全程 0 条 `COORDINATION_ADVANCE` |
+| A5 权限唯一裁决 | **PASS** | 继承 | 23 条 `ARBITRATION_CANDIDATE` 中 winner 15 全为 `TaskSubmission`、loser 8 全为 `TestInjection`（零赢家）；`COMPETITION_INJECT_WINDOW_SATISFIED elapsed=9.003 rounds=4`；`WRITE_BLOCKED=0`、`TASK_SELECTION_TIMEOUT=0` |
+| A6 分配稳定及延迟 | **PASS** | **加强** | 普通写令全程 ≥1.5 s（§7.3），新分配首令 3.994 / 3.900 s；`P2_FIRST_DECISION_SCHEDULED first_command_delay=1.500 decision_cadence=3.000`；`PLAN_CONTINUED=58` |
+| A7 实际职责改变与联动 | **PASS** | **由「部分覆盖」升级** | rev2：28.039 保护失资格 → 同刻 `COORDINATION_REASSIGNED revision=2 new=plan-1-task-92-r2-guard`（原 Support `0077636e@Cavalry` 改任 Guard，`00291a74@HorseArcher` 补 Support），三条新任务**均获选并写令**（32.033 / 34.633 / 36.133），随后 45.858 以**新身份**合法推进 g2；rev3：88.132 恢复后 Support 再次失资格 → `revision=3 new=plan-1-task-93-r3-support`，三条新任务再次均获选并写令 |
+| A8 不可执行分支 | **部分覆盖** | 继承（形态未变） | B 场 10.641 同 tick 失资格→`PLAN_INVALIDATED reason=FormationEligibilityLost`→三任务关闭→`HANDOFF_CLEARED`→撤武装；plan-1 此后零写令，全程不释放主力推进。**仍无独立 `PLAN_NOT_EXECUTABLE` 事件**，`detail` 只写 `task=` 不含 role |
+| A9 跨计划/版本不复活 | **PASS** | **加强** | A 场 88.132 之后 rev2 旧任务只出现在 `POST_OBSERVE`（观测），零新获选 / 写令 / arm；97.632 只作为 `REVOKE_SKIPPED reason=object_taken_over_by_new_assignment`；rev3 新 ID 正常获选 |
+| A10 反馈及异常如实 | **PASS** | **加强** | A 场 `TASK_FEEDBACK effective=13 / failed=1`；B 场 `order_target_readback_error=9.64 (>0.5)` 如实失败并触发计划失效（R2 的直接实机反例）；位移类任务的 `closed_distance` 为实测值 3.10–3.37（非填充） |
+| A11 安全与边沿 | **PASS** | 继承 | A 场 `EXIT_STOP_QUEUED/SUBMITTED/DONE = 3/3/3`、`NOT_APPLIED=0`；B 场 `5/5/4/1`，未应用项 `waited=1.000 budget=1.000 ownership=own`（未写成小于 1.000）；`TASK_SELECTION_TIMEOUT=0`、`WRITE_REJECTED=0`、`MISSION_CLEANUP=1` |
+| A12 受影响 P1 回归 | **PASS** | 重取 | P 场 `WRITE_EXECUTED=18`、`PLAN_CREATED=5`；N 场 `5` / `2`；两场 `P1_MODE enabled=1` + `P2_MODE enabled=0`、`WRITE_BLOCKED=0`、`TASK_SELECTION_TIMEOUT=0`、`COORDINATION_STATE=0`、`ARBITRATION_INJECT=0`（P2 路径未激活），探针链 `PROBE_ELIGIBILITY_LOST → RESTORED` 完整 |
+| A13 交付可复查 | **PASS** | 重取 | §7.0 提交、§7.2 场次与 SHA、§7.3 命令表；CBATH 身份来自实际引擎对象 |
+
+**未覆盖 / 需独立验收者裁定的项（不得当作已通过）**
+1. **A2**：普通（非退出）Cavalry Hold 任务在两场都未出现；`order_after=Charge` 两场均 0。
+2. **A8**：判据措辞「明确报告不可执行」在生产事件流中没有独立事件名，形态为四件套；`detail` 不含 role。
+3. **A11 弱化边界**：3+ 对象同时退出去重在本轮两场未触发。
+4. **R1 槽位占用**：A 场 `HANDOFF_SLOT_BUSY=2` 属"同一键被占时不丢获选、靠原生下一 tick 重进"，该分支只有 2 次样本。
+5. **CBATH 未随 P1 场重建**：P/N 两场复用 B 场 CBATH 产物（`abde21e5`），属 P1 入口设计，不构成 P2 证据缺口。
+
+### 7.5 共享资源收尾（2026-10-14 实测）
+
+- 进程：仅 `steam`；**无 `Bannerlord.exe` / `Bannerlord.Native`**；每场结束脚本均报 `no residual Bannerlord process`、`no new crash dir`、`sentinel state restored`。
+- 锁 `E:\MBmod\BattleObservation-V1\coordination\shared-game-session.lock`：内容为死 PID 5656 的临时清理脚本残留（`started_utc 2026-10-14T04:15:36Z`），以 `FileShare::None` **实测可独占打开** → 无持有者；未删锁。
+- Documents 哨兵 `C:\Users\Administrator\Documents\CombatBrain2`：`p1-command-loop.txt = enabled=0`、`p2-command-loop.txt = enabled=0`、`eligibility-probe.txt` 与 `p2-eligibility-probe.txt` 均为空 → 上一场中断遗留已按派单 §3 第 54 行在独占入口内清理完毕。
+- `Configs\engine_config.txt`：`safely_exited = 1`（已复位）。
+- 部署目录 `Modules\CombatBrain2\bin\Win64_Shipping_Client\CombatBrain2.dll` = 157696 B（N 场产物，`0AC20B77…`）。
+
+**独立验收前只写：开发自检完成、待独立验收。**
