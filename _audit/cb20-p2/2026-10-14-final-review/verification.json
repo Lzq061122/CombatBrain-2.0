@@ -1,0 +1,48 @@
+{
+  "review_date": "2026-10-14",
+  "reviewer": "codex-cb2-p2-final-review-20261014",
+  "source_commit": "24548d2",
+  "handover_commit": "d1054621a22c2397d9dd8176fdf349f581362183",
+  "cbath_commit": "ebed701288af13748d6e742b4f57aec3f61764b1",
+  "independent_tests": {
+    "command": "dotnet test Program/tests/CombatBrain2.Tests.csproj --no-restore --nologo",
+    "passed": 224,
+    "failed": 0,
+    "skipped": 0
+  },
+  "independent_builds": {
+    "cb2_command": "dotnet build Program/CombatBrain2.csproj --no-restore --nologo -t:Rebuild",
+    "cb2_warnings": 0,
+    "cb2_errors": 0,
+    "cbath_command": "dotnet build RD/CombatBrain-Autonomous-Test-Harness/experiments/test-mod/CBATH/CombatBrainAutonomousTestHarness.csproj --no-restore --nologo -t:Rebuild -p:OutputPath=E:/MBmod/CombatBrain 2.0/_audit/cb20-p2/2026-10-14-final-review/cbath-build/",
+    "cbath_workdir": "E:\\MBmod\\CBATH-P2",
+    "cbath_warnings": 0,
+    "cbath_errors": 0,
+    "limitation": "IL comparisons to final deployed N/B modules are recorded in evidence-summary.json; rebuilt SHA values differ and are not historical game artifact hashes."
+  },
+  "independent_requeue_probe": {
+    "iterations": 290,
+    "same_object_and_callback_time": true,
+    "callback_time": 35.178,
+    "limitation": "Core only; no occupied-slot or Host concurrency simulation."
+  },
+  "restored_old_identity_scan": {
+    "events": ["TASK_SUBMITTED", "TASK_ARMED", "BEHAVIOR_ARMED", "REAL_SELECTION", "WRITE_EXECUTED", "HANDOFF_DEFERRED"],
+    "a_after": 88.042,
+    "a_old_task_ids": ["plan-1-task-1", "plan-1-task-2", "plan-1-task-3", "plan-1-task-4-g1", "plan-1-task-92-1", "plan-1-task-92-r2-guard", "plan-1-task-92-r2-support", "plan-1-task-4-g2"],
+    "a_matching_actions": 0,
+    "b_after": 14.642,
+    "b_old_task_ids": ["plan-1-task-1", "plan-1-task-2", "plan-1-task-3"],
+    "b_matching_actions": 0
+  },
+  "shared_resource_read_only_check": {
+    "bannerlord_processes": [],
+    "lock_open": "FileMode.Open / FileAccess.Read / FileShare.None succeeded; closed without mutation",
+    "p1_loop": "enabled=0",
+    "p2_loop": "enabled=0",
+    "p1_probe": "empty",
+    "p2_probe": "empty",
+    "safely_exited": 1,
+    "game_started_or_deployed_by_reviewer": false
+  }
+}
