@@ -61,6 +61,21 @@
       "content_sha256": "064f524a77f356df3b9352c473416367b7b9e7e0bd669cd7e461667d4bcec879",
       "auto_archive": false,
       "notes": "P2限定独立验收通过后编制的P3正式派单v1.0；限定真实战果与代价评价、一次有限追加、止损及旧新Plan收尾，含三门实机对照和完整独占验证脚本合同。登记表示派单可用，不自动授权实施，不代表P3实现或通过；实施待用户下发。"
+    },
+    {
+      "prompt_id": "CB2-PROMPT-0005",
+      "series_id": "p3-feedback-replanning",
+      "title": "CombatBrain 2.0 P3 Restart Remediation Dispatch",
+      "kind": "development-dispatch",
+      "root": "repo",
+      "path": "Program/_verify/P3-RESTART-REMEDIATION-DISPATCH.md",
+      "status": "ACTIVE",
+      "created_at": "2026-10-15",
+      "updated_at": "2026-10-15",
+      "owner": "project-maintainer",
+      "content_sha256": "dc2da0e46bd80b4bb1c75929a82d58cb8f0a4bfa12243f0167c2907eafcbc60c",
+      "auto_archive": false,
+      "notes": "根据2026-10-15进展独立复核接续未提交P3，限定五项整改及实机补证；0004继续作为原验收合同，三门、公式阈值和命令域不降级。登记表示本单可用；开发收到用户下发后执行，不自动授权编写会话实施，不代表P3阶段通过。"
     }
   ]
 }

@@ -1,0 +1,440 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-10-15T10:29:11+08:00",
+  "purpose": "P3 restart source baseline; not a completed implementation or stage acceptance",
+  "cb2": {
+    "root": "E:\\MBmod\\CombatBrain 2.0",
+    "branch": "master",
+    "head": "6e33c67ef1ff075e923b39832d45cbbe7a0e1406",
+    "status_at_capture": [
+      " M Program/CombatBrain2.csproj",
+      " M Program/src/Core/BattleAssessment.cs",
+      " M Program/src/Core/BattlePlan.cs",
+      " M Program/src/Core/FormationSnapshot.cs",
+      " M Program/src/Core/PlanLedger.cs",
+      " M Program/src/Core/TestParameters.cs",
+      " M Program/src/Host/BuildIdentity.g.cs",
+      " M Program/src/Host/FormationSampler.cs",
+      " M Program/src/Host/SamplingBehavior.cs",
+      " M Program/src/Host/TestDriver.cs",
+      " M Program/tests/CombatBrain2.Tests.csproj",
+      "?? Program/_scratch/",
+      "?? Program/_verify/P3-RESTART-REMEDIATION-DISPATCH.md",
+      "?? Program/_verify/_lastrun-A-reweight.txt",
+      "?? Program/_verify/_lastrun-B-reweight.txt",
+      "?? Program/_verify/_lastrun-a5.txt",
+      "?? Program/_verify/_lastrun-a5b.txt",
+      "?? Program/_verify/_lastrun-p1N-a5.txt",
+      "?? Program/_verify/_lastrun-p1P-a5.txt",
+      "?? Program/_verify/_lastrun-p1n.txt",
+      "?? Program/_verify/_lastrun-p1p.txt",
+      "?? Program/_verify/_lastrun-p2-A-2.txt",
+      "?? Program/_verify/_lastrun-p2B-a5.txt",
+      "?? Program/_verify/_lastrun-p2restart-final.txt",
+      "?? Program/_verify/_lastrun-p2restart-state.txt",
+      "?? Program/_verify/_lastrun-p3-C.txt",
+      "?? Program/_verify/_lastrun-p3-N.txt",
+      "?? Program/_verify/_lastrun-p3-P.txt",
+      "?? Program/_verify/_lastrun-step1-A.txt",
+      "?? Program/_verify/_lastrun-step1-A2.txt",
+      "?? Program/_verify/_lastrun-step2-B.txt",
+      "?? Program/_verify/_lastrun-tests-bc19105.txt",
+      "?? Program/_verify/_lastrun.txt",
+      "?? Program/_verify/_lastrun10.txt",
+      "?? Program/_verify/_lastrun11.txt",
+      "?? Program/_verify/_lastrun12.txt",
+      "?? Program/_verify/_lastrun2.txt",
+      "?? Program/_verify/_lastrun3.txt",
+      "?? Program/_verify/_lastrun4.txt",
+      "?? Program/_verify/_lastrun5.txt",
+      "?? Program/_verify/_lastrun6.txt",
+      "?? Program/_verify/_lastrun8.txt",
+      "?? Program/_verify/_lastrun9.txt",
+      "?? Program/_verify/_p3-exclusive-stage.ps1",
+      "?? Program/_verify/check-p3-feedback.ps1",
+      "?? Program/_verify/gabs-config/bannerlord148-cb2/",
+      "?? Program/_verify/run-p3-exclusive.ps1",
+      "?? Program/_verify/run-p3.ps1",
+      "?? Program/src/Core/ActionFeedback.cs",
+      "?? Program/src/Host/TestDriver.ActionFeedback.cs",
+      "?? Program/tests/ActionFeedbackTests.cs",
+      "?? _scratch/"
+    ],
+    "manifest_root": "Program",
+    "reviewed_source_files": [
+      {
+        "path": "CombatBrain2.csproj",
+        "sha256": "CDBB6C11924217BF81BE8B3C827C4825562C412F35340E8F57F26F3598CBDB7C"
+      },
+      {
+        "path": "src\\Core\\ActionFeedback.cs",
+        "sha256": "3A0A276452B2A1BA7C0547EC5493FBABA25CE9236E4CB00C75F158D5D4F33060"
+      },
+      {
+        "path": "src\\Core\\BattleAssessment.cs",
+        "sha256": "47C714C0567F415721AE6D56D531AE7BAB119F36B94ADFE0D4707B2BA9FA793C"
+      },
+      {
+        "path": "src\\Core\\BattlePlan.cs",
+        "sha256": "1FD3EE60703F4FC37812CF4CC6798E146669667B93B2688C3AB3822E5D5ED963"
+      },
+      {
+        "path": "src\\Core\\BattleState.cs",
+        "sha256": "64E61806518E3F0331D9EE755E18C7E8572AA449726B4C5C89512FCB515323F0"
+      },
+      {
+        "path": "src\\Core\\Cb2Log.cs",
+        "sha256": "3B8FDC6F874E2478DAFD774CE08A238EE841EA1EEEB02B3E655D74B8265E64AF"
+      },
+      {
+        "path": "src\\Core\\CoordinationDriver.cs",
+        "sha256": "68C22444552BD87B706D168929FFF2B3A8570241B26828C38695AE6BA4B915C0"
+      },
+      {
+        "path": "src\\Core\\CoordinationPlan.cs",
+        "sha256": "6059854CAF2BBCEEE788A1EB64B692D3B573CD83A28FB1459B6FC8ED96176370"
+      },
+      {
+        "path": "src\\Core\\EligibilityTrigger.cs",
+        "sha256": "9D975ECCC215DDF0BB83DD7D077C8F3542C04908677FB85E8FF5ECBBC2E82934"
+      },
+      {
+        "path": "src\\Core\\ExecutionGate.cs",
+        "sha256": "9731BBAAADDFE2787A40F0807263A9C65ACFAC57C9650E2801CD309C0C1C9730"
+      },
+      {
+        "path": "src\\Core\\ExitStopLedger.cs",
+        "sha256": "21D3B2351B69528A675D26151FCA9F16F71591CC53C09A746F40E91F2A7B40E0"
+      },
+      {
+        "path": "src\\Core\\FormationSnapshot.cs",
+        "sha256": "009D925DBD4558A88CA2A37D9FBB054659D76E83A8E93630D43A0B8AA5FC808A"
+      },
+      {
+        "path": "src\\Core\\OriginalMethodReceipt.cs",
+        "sha256": "2DC3B498809E56D6A69FF8700379FF40F864CB0A9B0180A956CAF77FC68BB8B6"
+      },
+      {
+        "path": "src\\Core\\PlanLedger.cs",
+        "sha256": "92633F7220C9FE9F68B0DCC89683366C9ECC155FF1A0AF09DAE24F280C024C24"
+      },
+      {
+        "path": "src\\Core\\ProposalArbiter.cs",
+        "sha256": "C7094C4D0E23465F258AADE1D90CBCAA331BFE136287B6582BD64674B1D73AF8"
+      },
+      {
+        "path": "src\\Core\\TargetSelector.cs",
+        "sha256": "B81AF9FECA0630F8E6EF5FCC7874D182B0782C333874626FA36AA16E8833E435"
+      },
+      {
+        "path": "src\\Core\\TaskFeedback.cs",
+        "sha256": "D63CB2E53FE2C97A055D888489FF0865503BC4B888DB9E1D1CDF3746A166945D"
+      },
+      {
+        "path": "src\\Core\\TaskLedger.cs",
+        "sha256": "1F2D5B6023B9B1E89087D0EE3474D1C1BFCD4B95866809B452F4228642386D4A"
+      },
+      {
+        "path": "src\\Core\\TestParameters.cs",
+        "sha256": "C0203CF434B538932D3BEB81EEB9C926A2802D770F27C794D43D15B5C4E7B8C4"
+      },
+      {
+        "path": "src\\Core\\ThreadHandoff.cs",
+        "sha256": "2855C57060B7C4B95FA8FF1C50090D6DB8673F43FD59EC07FA5B99308FDEA8D9"
+      },
+      {
+        "path": "src\\Core\\WriteLedger.cs",
+        "sha256": "F8D8B2811D7A255836AC2EAF6A912F877A7949FCA9A17CE8DB937BCA249AD805"
+      },
+      {
+        "path": "src\\Host\\BuildIdentity.g.cs",
+        "sha256": "29B676C033A167453CD211C55325E11696EA8D80561AECC348793F9F9FF4F644"
+      },
+      {
+        "path": "src\\Host\\CbHoldBehavior.cs",
+        "sha256": "D879B9B05206D8F75F511EA24A83157C0B4620407BCBEB14C3214FA023AA2071"
+      },
+      {
+        "path": "src\\Host\\EligibilityProbe.cs",
+        "sha256": "F4F2F3B9557847DC4C6E8605E93151DBAB51CF0CB04C6EF47DA653488D15D33B"
+      },
+      {
+        "path": "src\\Host\\FormationSampler.cs",
+        "sha256": "3E4A844C0C8673FC44796D92C328BF6BA4FC9F66602B1A983934B4B32FD4C68A"
+      },
+      {
+        "path": "src\\Host\\IndependentObservation.cs",
+        "sha256": "C8D924EBB3BF776273CEC6CBAE38DB566F27824D9767314DEA334B8458B8A57E"
+      },
+      {
+        "path": "src\\Host\\ObservationAdapter.cs",
+        "sha256": "522495EE7032F4D5F5D3E90ABD6638A5AE0B8BF0BF3F4261AC60743EE104A531"
+      },
+      {
+        "path": "src\\Host\\RuntimeIdentity.cs",
+        "sha256": "B5F89EF47C34001AE851CB8D203AFB2CA0BCDE017BE7FF6893F2368944A05F7F"
+      },
+      {
+        "path": "src\\Host\\SamplingBehavior.cs",
+        "sha256": "4C3611B039DDB32D3B206D1DD7AE10C3D6CEFF4EB93C0CBAE9FD9ADB08C12E9B"
+      },
+      {
+        "path": "src\\Host\\SubModule.cs",
+        "sha256": "B5FE75A5BB780F82AD667E57AACF2FBA37D94ACE48532D0382518AFE981CFA7A"
+      },
+      {
+        "path": "src\\Host\\TestDriver.ActionFeedback.cs",
+        "sha256": "F24B2E5AE80C8E5205583A81D0707678152E3910F3A599288BDFB1093453D1BB"
+      },
+      {
+        "path": "src\\Host\\TestDriver.cs",
+        "sha256": "32D0E7FD498DF0E8965BF6371E8023FE46A3E5775D9B2ED0BCA8FAE91F00D577"
+      },
+      {
+        "path": "tests\\ActionFeedbackTests.cs",
+        "sha256": "E6177CE2114F06111D6EB57134E192A701C501F3E2C9836C392E32DE9682FD1F"
+      },
+      {
+        "path": "tests\\CombatBrain2.Tests.csproj",
+        "sha256": "A62BD709868A81F3E78E357D9015F2708408D9A43FAAB79DF09749810940634A"
+      },
+      {
+        "path": "tests\\CoordinationDriverTests.cs",
+        "sha256": "DFE63D3063F926E389BE73BDD28536651D6648DEB5E9DCE88416F6646901760A"
+      },
+      {
+        "path": "tests\\CoordinationIntegrationTests.cs",
+        "sha256": "10AB07CD6A751C9262FD233DAA9D8168A73B504B9D7E6234A206D19C4E21CC4A"
+      },
+      {
+        "path": "tests\\CoordinationTests.cs",
+        "sha256": "7DDBE274E6D3B5CA2BFBFEAE28B66B123C4CCC725A310F0C0C0B6957A66B9388"
+      },
+      {
+        "path": "tests\\DependencyReadinessTests.cs",
+        "sha256": "10715640B950341E3CDD036AB25D4526B4A0A3836725308B91D532144735512A"
+      },
+      {
+        "path": "tests\\EligibilityLossTests.cs",
+        "sha256": "63E2FA9D57EBD1CEB65BC1A6F1E88FC3B4DFE8B9B5F92BAC87D81D656DC59F21"
+      },
+      {
+        "path": "tests\\EligibilityTriggerTests.cs",
+        "sha256": "84A40D3BE4FE38513B102F06A782595B19117B96F975FF3D65390DE6FC26EA9F"
+      },
+      {
+        "path": "tests\\ExecutionGateTests.cs",
+        "sha256": "3234B14A83AB73CE96B4E6631FE981A59EF7A2C170B50ED33B25B457D7003BCE"
+      },
+      {
+        "path": "tests\\ExitStopLedgerTests.cs",
+        "sha256": "9129E4C42666238CDB32A3D7C79E37540426DF5070BBE71377EFA59EC7925457"
+      },
+      {
+        "path": "tests\\OriginalMethodReceiptTests.cs",
+        "sha256": "FD65CBBA185D2A5E41E02DECA195F87F4ED52DC5AC41EC12BB16D5A8FA7EB16C"
+      },
+      {
+        "path": "tests\\ProposalArbiterTests.cs",
+        "sha256": "9456E665A85E3E0378CACEE55BCF1F586E368AB78BF67E5B9CDF3357354B05E7"
+      },
+      {
+        "path": "tests\\RevocationTests.cs",
+        "sha256": "3DFC8002DD2E30D10054D6A4D6C15419A4D767269003C77063912D33FA7FF5E0"
+      },
+      {
+        "path": "tests\\SnapshotTests.cs",
+        "sha256": "1544DC4B71C8464BB403A2FD6315B1DEAAE1C9A5E0921B3C6F048D0B33627B22"
+      },
+      {
+        "path": "tests\\TargetSelectorTests.cs",
+        "sha256": "267ACE09B5C23723D27D13030BAF9ADFD0AAB039EB2F3A44DA071ABC1D8E4D0C"
+      },
+      {
+        "path": "tests\\TaskSelectionDeadlineTests.cs",
+        "sha256": "4ABF6D01A7A9A75A924E3FD3EF2556BB0A729520A45EAA8A6410AB11531BEBA2"
+      },
+      {
+        "path": "tests\\ThreadHandoffTests.cs",
+        "sha256": "2E22785D21E2E7464A2A7CD360EA5FC1022DA151158662E5C1E87F7A63456C1F"
+      },
+      {
+        "path": "_verify\\_p1-exclusive-stage.ps1",
+        "sha256": "264964129FE4ECD7CF7F9039E0DFFED083BDF34843EFDE7AD097CBF84BE799D1"
+      },
+      {
+        "path": "_verify\\_p2-exclusive-stage.ps1",
+        "sha256": "BB4A6BF682CCAC73D1D134519A768101E1C14AD8C156A2C56520CCCD5249BF33"
+      },
+      {
+        "path": "_verify\\_p3-exclusive-stage.ps1",
+        "sha256": "73F2F40179C0C7C44124FAFA900BAC44787550AB81E298A87AFF28275C0383A7"
+      },
+      {
+        "path": "_verify\\check-p3-feedback.ps1",
+        "sha256": "074F8685782E88C6FE44E7F6B54E28C1959E866DC3815BB70CB00170CAC88FAC"
+      },
+      {
+        "path": "_verify\\P3-FEEDBACK-REPLANNING-DISPATCH.md",
+        "sha256": "064F524A77F356DF3B9352C473416367B7B9E7E0BD669CD7E461667D4BCEC879"
+      },
+      {
+        "path": "_verify\\run-p0.ps1",
+        "sha256": "03C32C63A19E10D4C0F6FAE8B8B054137465E6962BFA3749DE104C263A1B7161"
+      },
+      {
+        "path": "_verify\\run-p1-exclusive.ps1",
+        "sha256": "3288B841BA5266BA79447CE7C1FBA41AC770E25C0BA6BE110CE391D31C5E7787"
+      },
+      {
+        "path": "_verify\\run-p1.ps1",
+        "sha256": "A8ECAEA54A193E23ADDF1424FBFDC01AD89A4B77AAA9A416310995398059A655"
+      },
+      {
+        "path": "_verify\\run-p2-exclusive.ps1",
+        "sha256": "A7D279FBD3E41A217A2F3248C440BF4C6ED982A905138D0258073019C3122DEA"
+      },
+      {
+        "path": "_verify\\run-p2.ps1",
+        "sha256": "C956D3C17B51D874F4C4BEFFDCD9E98348CA956F17533A6F60E5B317EFDD8ABE"
+      },
+      {
+        "path": "_verify\\run-p3-exclusive.ps1",
+        "sha256": "45FCAEE6F29E0BB22886C4425425CC637FDF7B95C1F85F14C78109BD69BC0D50"
+      },
+      {
+        "path": "_verify\\run-p3.ps1",
+        "sha256": "ED28ECA77F556C0B5C6EF2DE7FBE8A24F917D76FEE67A0989ADFA0C171F10E18"
+      }
+    ]
+  },
+  "cbath": {
+    "root": "E:\\MBmod\\CBATH-P2",
+    "branch": "codex/cb20-p2-evidence",
+    "head": "ebed701288af13748d6e742b4f57aec3f61764b1",
+    "status_at_capture": [
+      " M RD/CombatBrain-Autonomous-Test-Harness/experiments/test-mod/CBATH/CbathTools.cs",
+      " M RD/CombatBrain-Autonomous-Test-Harness/experiments/test-mod/CBATH/CombatBrainAutonomousTestHarness.csproj",
+      " M RD/CombatBrain-Autonomous-Test-Harness/experiments/test-mod/CBATH/P2FormationEvidence.cs",
+      " M RD/CombatBrain-Autonomous-Test-Harness/experiments/test-mod/CBATH/RunRecord.cs",
+      " M RD/CombatBrain-Autonomous-Test-Harness/experiments/test-mod/CBATH/SamplingMissionBehavior.cs",
+      "?? RD/CombatBrain-Autonomous-Test-Harness/experiments/test-mod/CBATH/P3OpponentControl.cs"
+    ],
+    "manifest_root": "RD\\CombatBrain-Autonomous-Test-Harness\\experiments\\test-mod\\CBATH",
+    "reviewed_source_files": [
+      {
+        "path": "AutoDeployControl.cs",
+        "sha256": "3F210FD0FFAA501FA020138B0D181CA86F8A0481195FB087E907FE1CC3B3A6A9"
+      },
+      {
+        "path": "BattleSetup.cs",
+        "sha256": "3C8A2B22F1AD3E6F974DEFC58EE44A7D85E22183EF71D2FFAE05756348C4A668"
+      },
+      {
+        "path": "build-deploy.ps1",
+        "sha256": "8502EA3489E825C9F898AD8B74A47158EBD4CAF76BB380B718F918523417FAA9"
+      },
+      {
+        "path": "BuildIdentity.g.cs",
+        "sha256": "BD8186A99EF09812C54DF03BBBACECBAEC293BFB613F00189A7F22312EB80BC2"
+      },
+      {
+        "path": "CbathTools.cs",
+        "sha256": "A894FA6979BF5E13CDB1AE1F1AD2E08FFA05CD0AD7A06CF96101F4E0F0497065"
+      },
+      {
+        "path": "CombatBrainAutonomousTestHarness.csproj",
+        "sha256": "1521AD981EBA2E1E3D502E344BA8B328B2899C86A818FB0651FD633D2F803DEF"
+      },
+      {
+        "path": "FormationProbe.cs",
+        "sha256": "8BA7EA98BFB08F55381D642633D9DF9DDEB1E7676940C495E44F887710D5046F"
+      },
+      {
+        "path": "MainThreadDispatcher.cs",
+        "sha256": "AB24820DE69F67AE43A0AF6912FDE981FB73C16BCF2D23C5B6CF3EAD4239ACD1"
+      },
+      {
+        "path": "MissionControl.cs",
+        "sha256": "CE8F4FC8D8B05EE0B8107760CB292D2E2D444A9382838CE45A72718523B60815"
+      },
+      {
+        "path": "P2FormationEvidence.cs",
+        "sha256": "63F66BD9EAD0A17493843AB1C1A60E09AA062EFB70ACF3F6B7816263F2430B47"
+      },
+      {
+        "path": "P3OpponentControl.cs",
+        "sha256": "B0EFA5DE88CA510AACA0CD01BCCA6F5349630247E3775BEA0B230B377F047069"
+      },
+      {
+        "path": "ProbeSubModule.cs",
+        "sha256": "BCE34698756F9C9873B7F0F47496F880CCA28F285F14BF631C8703347A9DF8AF"
+      },
+      {
+        "path": "RunRecord.cs",
+        "sha256": "A26EA645402EF0C5F86E3C0D3426CFFD657DDA7B02CE63FF632D228FA6917984"
+      },
+      {
+        "path": "RuntimeIdentity.cs",
+        "sha256": "B63B25CE1437FA6A7FD73B10A1E54215F29E19C7BC598F667BFFAF7BBCEBF0B6"
+      },
+      {
+        "path": "SamplingMissionBehavior.cs",
+        "sha256": "8239AA21DCF3C6A23C61F92C5086ECC1DBE1F7053E9CEC4C4C4FA42A7F743220"
+      },
+      {
+        "path": "ScreenProbe.cs",
+        "sha256": "DA7B57C141E80153B6D283021AE2884CFAD3A15DA00C71A946F9EAD9FC06C3C9"
+      }
+    ]
+  },
+  "review": {
+    "path": "_audit/cb20-p3/2026-10-15-progress-review/REVIEW.md",
+    "sha256": "dafc9e9f39d840ed43853ffbcf29f2f83a86edc14e4cf015decf9ecff6b70984",
+    "snapshot_path": "E:\\Agent\\codex\\2026-10-14\\p3\\work\\review-20261015",
+    "evidence_archive": "E:\\Agent\\codex\\2026-10-14\\p3\\outputs\\P3-PROGRESS-REVIEW-EVIDENCE-20261015.zip",
+    "evidence_archive_sha256": "8bbb04db293b0215c14994f2cd43ef935d22a10837403d7713f515ce69a95df5",
+    "independent_tests": {
+      "passed": 255,
+      "failed": 0,
+      "skipped": 0
+    },
+    "core_counterexamples": {
+      "risk_duplicate": {
+        "actual_unique_friendly": 30,
+        "enemy": 35,
+        "duplicate_reported_friendly": 40,
+        "duplicate_allowed": true,
+        "unique_allowed": false
+      },
+      "missing_member": {
+        "baseline_friendly": 100,
+        "current_friendly": 99,
+        "missing_has_terminal": false,
+        "complete": true,
+        "unknown": 0,
+        "decision": "Reinforce",
+        "reason": "reinforce LE=0.150 LF=0.000 H*rf=0.000 U=0.875",
+        "DE": 3,
+        "LE": 0.15,
+        "now": 15.0
+      }
+    },
+    "sessions": [
+      "p3-P-20261015-004350",
+      "p3-N-20261015-005621",
+      "p3-C-20261015-010928",
+      "p3-P-20261015-032611"
+    ]
+  },
+  "shared_state_at_review": {
+    "observed_at": "2026-10-15T10:18:48+08:00",
+    "bannerlord_process_present": false,
+    "p1_enabled": 0,
+    "p2_enabled": 1,
+    "p3_enabled": 1,
+    "probes": "empty",
+    "safely_exited": 0,
+    "note": "Historical read-only observation; reread and obtain formal handoff before touching shared resources"
+  }
+}
