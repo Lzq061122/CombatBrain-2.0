@@ -32,6 +32,7 @@
     <Compile Include="src\Core\ProposalArbiter.cs" />
     <Compile Include="src\Core\ExitStopLedger.cs" />
     <Compile Include="src\Core\EligibilityTrigger.cs" />
+    <Compile Include="src\Core\ActionFeedback.cs" />
     <Compile Include="src\Host\RuntimeIdentity.cs" />
     <Compile Include="src\Host\ObservationAdapter.cs" />
     <Compile Include="src\Host\BuildIdentity.g.cs" />
@@ -41,6 +42,7 @@
     <Compile Include="src\Host\FormationSampler.cs" />
     <Compile Include="src\Host\IndependentObservation.cs" />
     <Compile Include="src\Host\TestDriver.cs" />
+    <Compile Include="src\Host\TestDriver.ActionFeedback.cs" />
     <Compile Include="src\Host\EligibilityProbe.cs" />
     <Compile Include="src\Host\SamplingBehavior.cs" />
     <Compile Include="src\Host\SubModule.cs" />

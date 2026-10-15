@@ -171,19 +171,20 @@ namespace CombatBrain2.Host
 
         // 每个已确认主线程的 Mission tick 调用。
         // 触发与恢复分开：恢复即使计划已经失效也必须执行，这是"恢复后旧计划不复活"观测的前提。
-        internal void OnMissionTick(Mission mission)
+        // p2Running 由调用方（采样循环）给出"本场是否真的跑过 P2 骨架"，
+        // 不能用 TestDriver 的当前命令模式代替：P3 反馈会把循环降级到 P1，
+        // 降级后 P2 探针若停摆，被改过资格的编队就永远恢复不回来。
+        internal void OnMissionTick(Mission mission, double now, bool p2Running)
         {
             LoadOnce();
             if (mission == null) return;
 
-            double now = TestDriver.Instance.SafeNow(mission);
-
             if (_modes.Count > 0 && !_fired) TryTrigger(mission, now);
             SweepRestores(mission, now);
 
-            // P2 适配独立推进：默认关闭，且只在 P2 路径运行时才起作用。
+            // P2 适配独立推进：默认关闭。
             LoadP2Once();
-            if (_p2Mode != P2AdaptationMode.None && TestDriver.Instance.CoordinationMode)
+            if (_p2Mode != P2AdaptationMode.None && p2Running)
             {
                 P2PrepareSubstitutes(mission, now);
                 if (!_p2Fired) P2TryTrigger(mission, now);

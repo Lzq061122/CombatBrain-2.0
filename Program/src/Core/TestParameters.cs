@@ -85,6 +85,49 @@ namespace CombatBrain2.Core
         // A5 注入窗口：自首次注入起持续这么久。评价点间隔 3 s，跨越至少三个评价点，
         // 满足「注入期间 ≥8 s、跨至少两个评价点」（派单 §9.2 场景 A 第 2 条）。
         internal const double P2CompetitionSeconds = 9.0;
+
+        // ---- P3 反馈、止损与重规划参数（派单 §3.2/§3.3，实测前冻结，不因失败放宽）----
+
+        // 观察对象要求的敌方步兵有效成员下限。低于此值不冻结基线。
+        internal const int P3MinimumEnemyMembers = 20;
+
+        // 结果量纲：局部损失与整队损失的分母尺度。
+        internal const double P3LocalLossScale = 0.20;
+        internal const double P3SideLossScale = 0.10;
+
+        // 速率窗口：与当前评价点至少相隔这么久的最近有效评价样本。
+        internal const double P3RateWindowSeconds = 12.0;
+
+        // ① 正反馈追加：局部战果阈值、己方累计损失上限、损失速率上限、效用下限。
+        internal const double P3ReinforceLe = 0.15;
+        internal const double P3ReinforceLf = 0.05;
+        internal const double P3ReinforceRate = 0.05;
+        internal const double P3ReinforceU = 0.60;
+
+        // ② 高损失止损：整队累计损失线（无需速率窗口）与损失速率线。
+        internal const double P3StopLossLf = 0.10;
+        internal const double P3StopLossRate = 0.10;
+
+        // ③ 无收益且有代价：收益上限、代价下限、效用上限与最小观察时间。
+        internal const double P3DisengageLe = 0.05;
+        internal const double P3DisengageLf = 0.05;
+        internal const double P3DisengageU = 0.40;
+        internal const double P3DisengageMinSeconds = 24.0;
+
+        // 局部价值存续：观察对象当前仍需存在的活跃 E0 成员数。
+        internal const int P3LocalValueMinMembers = 6;
+
+        // 风险门半径：以拟新增主力目标点为中心统计敌方有效人数。
+        internal const double P3RiskRadiusMeters = 30.0;
+
+        // 继任计划新增主力的有限接近量。
+        internal const double P3SuccessorApproachMaxMeters = 25.0;
+        internal const double P3SuccessorApproachDivisor = 4.0;
+
+        // 负反馈撤回：每个对象沿背离敌队质心方向移动的距离、到位半径与截止时间。
+        internal const double P3WithdrawMeters = 20.0;
+        internal const double P3WithdrawArrivalMeters = 5.0;
+        internal const double P3WithdrawDeadlineSeconds = 20.0;
     }
 
     internal enum CancelReason
@@ -119,6 +162,9 @@ namespace CombatBrain2.Core
         CommandOverridden,
         FormationEligibilityLost,
         MissionEnded,
+
+        // P3：本轮行动的实际结果反馈要求终止旧攻势并进入继任计划。
+        ActionFeedback,
     }
 
     internal enum TaskFeedbackState

@@ -61,6 +61,20 @@ namespace CombatBrain2.Core
             plan.Revision++;
         }
 
+        // P3：继任计划由结果反馈决定生成，不在条件输入路径上。
+        // 生成即占号，构建失败不回退计数——计划身份不能重复。
+        internal string NextPlanId()
+        {
+            _planCount++;
+            return "plan-" + _planCount.ToString(CultureInfo.InvariantCulture);
+        }
+
+        internal void Adopt(BattlePlan plan)
+        {
+            if (plan == null) return;
+            _current = plan;
+        }
+
         internal void Invalidate(PlanInvalidReason reason, string detail, double now)
         {
             if (_current == null || _current.IsClosed) return;

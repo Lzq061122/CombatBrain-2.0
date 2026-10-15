@@ -5,6 +5,20 @@ using System.Text;
 
 namespace CombatBrain2.Core
 {
+    // 一名有效成员的身份。Agent.Index 会被引擎复用，单靠它不能证明"还是这个人"；
+    // 必须叠加对象引用哈希。两者都存，日志与去重都用 Key()。
+    internal struct MemberIdentity
+    {
+        internal int Index;
+        internal int RefHash;
+
+        internal string Key()
+        {
+            return Index.ToString(CultureInfo.InvariantCulture) + "@" +
+                   RefHash.ToString("x8", CultureInfo.InvariantCulture);
+        }
+    }
+
     // 一个编队的采样记录。SampledAt 是实际采样时刻（Mission 时间），
     // 任何年龄判定都用它，不允许用刷新时刻冒充。
     internal sealed class FormationRecord
@@ -36,6 +50,10 @@ namespace CombatBrain2.Core
 
         // 成员变化标识：有效成员集合的稳定摘要。集合不变则值不变，用于判断"还是这批人"。
         internal string MemberDigest = "";
+
+        // 有效成员身份集合（非坐骑、自身活跃、隶属本编队、位置可读）。
+        // P3 冻结基线用它建立 E0/F0 成员身份；MemberDigest 保留供既有依赖判据使用。
+        internal readonly List<MemberIdentity> ActiveMembers = new List<MemberIdentity>();
 
         // 质心是否可用。任一前提不成立（无成员/位置不可读/读取异常）时为 false，
         // 调用方必须放弃依赖该值的判定，不得用参考位置顶替。

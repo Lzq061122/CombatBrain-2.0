@@ -222,6 +222,91 @@ namespace CombatBrain2.Core
             return plan;
         }
 
+        // P3 正反馈继任：三职责几何按当前实际质心与敌目标方向重算，主力先回 Hold。
+        // 推进仍由既有依赖放行路径产生，不在这里预放行。
+        internal static BattlePlan BuildSuccessorCoordination(BattleState state, string planId, double now,
+                                                              string parentPlanId, double feedbackAt,
+                                                              string reason, double utility)
+        {
+            var plan = BuildCoordination(state, planId, now);
+            if (plan == null) return null;
+            plan.ParentPlanId = parentPlanId ?? "";
+            plan.FeedbackAt = feedbackAt;
+            plan.FeedbackReason = reason ?? "";
+            plan.FeedbackUtility = utility;
+            return plan;
+        }
+
+        // P3 负反馈有限撤回：每个原受控且仍合法的对象，以自己当前实际质心
+        // 沿背离敌队有效质心方向移动固定距离。不建协同关系、不发 Charge。
+        // 单个对象方向或质心不可用即跳过；一个都建不出来返回 null，
+        // 调用方只能如实终止，不编造退路。
+        internal static BattlePlan BuildWithdraw(BattleState state, string planId, double now,
+                                                 List<FormationTask> sources, string reason)
+        {
+            if (state == null) return null;
+            if (sources == null) return null;
+            if (!BattleState.IsFinite(state.EnemyCenterX) || !BattleState.IsFinite(state.EnemyCenterY))
+                return null;
+
+            var plan = new BattlePlan
+            {
+                PlanId = planId,
+                MissionKey = state.MissionKey,
+                PlanInputId = state.PlanInputId,
+                CreatedAt = now,
+                InputSampledAt = state.SampledAt,
+                Conditions = PlanConditions.From(state),
+                Goal = ActionFeedback.GoalWithdraw,
+                Revision = 1,
+                Reason = reason ?? "withdraw",
+            };
+
+            int ordinal = 10;
+            foreach (var src in sources)
+            {
+                if (src == null) continue;
+                if (BattlePlan.IsExitTask(src)) continue;
+                if (src.IsClosed) continue;
+                if (string.IsNullOrEmpty(src.ObjectIdentity)) continue;
+
+                FormationRecord rec = null;
+                for (int i = 0; i < state.MyFormations.Count; i++)
+                {
+                    if (string.Equals(state.MyFormations[i].Key(), src.FormationKey, StringComparison.Ordinal))
+                    {
+                        rec = state.MyFormations[i];
+                        break;
+                    }
+                }
+                if (rec == null) continue;
+                if (!EligibleAsTaskCandidate(rec)) continue;
+                if (!rec.HasActiveCenter) continue;
+
+                double tx, ty;
+                if (!ActionFeedback.WithdrawTarget(rec.ActiveCenterX, rec.ActiveCenterY,
+                                                   state.EnemyCenterX, state.EnemyCenterY,
+                                                   out tx, out ty)) continue;
+
+                var task = MakeTask(plan, ordinal, rec, TaskKind.Reposition, ActionFeedback.ReasonWithdraw);
+                task.OriginX = rec.ActiveCenterX;
+                task.OriginY = rec.ActiveCenterY;
+                task.Role = FormationRole.None;
+                task.RoleBaselineUnits = rec.ActiveMemberCount;
+                task.RoleAssignedAt = now;
+                task.Revision = 1;
+                task.Source = ProposalSource.PhaseTransition;
+                task.SetTarget(rec.ActiveCenterX, rec.ActiveCenterY, tx, ty);
+                task.SetCanonicalTarget(tx, ty);
+                plan.Tasks.Add(task);
+                plan.RequiredFormations.Add(rec.Key());
+                ordinal++;
+            }
+
+            if (plan.Tasks.Count == 0) return null;
+            return plan;
+        }
+
         // 保护职责：实际中心至有效 G* <=5 m，且相对有效 M* 朝敌投影在 [5,15] m、侧向绝对偏差 <=5 m。
         internal static bool GuardInPosition(CoordinationGeometry g, double x, double y)
         {

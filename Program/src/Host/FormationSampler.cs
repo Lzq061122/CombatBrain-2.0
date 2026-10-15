@@ -70,10 +70,13 @@ namespace CombatBrain2.Host
                 double sumX = 0.0;
                 double sumY = 0.0;
                 var indices = new List<int>();
+                var members = new List<MemberIdentity>();
                 f.ApplyActionOnEachUnit(agent =>
                 {
                     if (agent == null) return;
                     if (!agent.IsActive()) return;
+                    // "非坐骑"排除的是马匹本身，不是骑兵。骑手仍须计入人数。
+                    if (agent.IsMount) return;
                     if (!ReferenceEquals(agent.Formation, f)) return;
                     double x, y;
                     try
@@ -87,11 +90,21 @@ namespace CombatBrain2.Host
                     active++;
                     sumX += x;
                     sumY += y;
-                    indices.Add(agent.Index);
+                    int index;
+                    try { index = agent.Index; } catch (Exception) { return; }
+                    indices.Add(index);
+                    // Agent.Index 会被引擎复用，身份必须叠加对象引用哈希。
+                    members.Add(new MemberIdentity
+                    {
+                        Index = index,
+                        RefHash = RuntimeHelpers.GetHashCode(agent),
+                    });
                 }, null);
 
                 rec.ActiveMemberCount = active;
                 rec.MemberDigest = DigestOf(indices);
+                rec.ActiveMembers.Clear();
+                rec.ActiveMembers.AddRange(members);
                 if (active <= 0) return;
                 rec.ActiveCenterX = sumX / active;
                 rec.ActiveCenterY = sumY / active;

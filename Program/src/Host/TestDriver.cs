@@ -6,6 +6,7 @@ using CombatBrain2.Core;
 using TaleWorlds.Engine;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
+using AgentState = TaleWorlds.Core.AgentState;
 
 namespace CombatBrain2.Host
 {
@@ -14,7 +15,7 @@ namespace CombatBrain2.Host
     //  2) 在真实获选与主线程执行点上按任务身份写令；
     //  3) 读回实际效果，条件失效或任务失败时让计划失效并撤权。
     // Route C：不申请 Full、不关闭原生 AI、不并行抢写。
-    internal sealed class TestDriver
+    internal sealed partial class TestDriver
     {
         internal static TestDriver Instance = new TestDriver();
 
@@ -98,14 +99,75 @@ namespace CombatBrain2.Host
         // 计划种类由 P1/P2 开关决定，两者互斥（宿主侧保证不会同时为真）。
         private bool _coordination;
 
-        internal void SetCommandLoop(bool coordination)
+        // P3：结果反馈选项。它是 P2 写令循环上的一个反馈开关，默认关闭，
+        // 不产生第三个独立写令循环，也不新增哨兵文件。
+        private bool _feedbackEnabled;
+        private ActionFeedbackTracker _feedback = new ActionFeedbackTracker();
+        private string _withdrawPlanId = "";
+        private bool _withdrawHoldLogged;
+        private double _withdrawStartedAt = -1.0;
+        private long _feedbackEvalCount;
+        private bool _feedbackIntegrityOk = true;
+        private string _feedbackIntegrityNote = "";
+        private double _lastFeedbackBlockLogAt = -1.0;
+        private readonly HashSet<string> _withdrawHoldDone = new HashSet<string>(StringComparer.Ordinal);
+        private bool _withdrawStableLogged;
+
+        // P3 继任等待期持有物：计划在旧攻势关闭前就已取号构好，
+        // 但要等旧退出确认应用之后才 Adopt，因此需要一个临时持有位。
+        private BattlePlan _standbyPlan;
+        private string _standbyOldPlanId = "";
+        private ActionFeedbackDecision _standbyDecision = ActionFeedbackDecision.Continue;
+        private string _standbyReason = "";
+
+        internal void SetCommandLoop(bool coordination, bool feedback)
         {
             _coordination = coordination;
+            _feedbackEnabled = feedback;
         }
 
         internal bool CoordinationMode
         {
             get { return _coordination; }
+        }
+
+        internal bool FeedbackMode
+        {
+            get { return _feedbackEnabled; }
+        }
+
+        // P3 终态捕获：由 SamplingBehavior 在 Mission 的公开移除回调里逐次调用。
+        // 终态在回调前已写入 Agent.State，这里只读取，不修改任何 Agent 状态。
+        internal void OnAgentTerminal(Agent agent, AgentState state, double at)
+        {
+            if (!_feedbackEnabled) return;
+            if (agent == null) return;
+            if (!_feedback.Frozen) return;
+
+            int index;
+            try { index = agent.Index; } catch (Exception) { return; }
+
+            MemberEndState mapped;
+            switch (state)
+            {
+                case AgentState.Killed: mapped = MemberEndState.Killed; break;
+                case AgentState.Unconscious: mapped = MemberEndState.Unconscious; break;
+                case AgentState.Routed: mapped = MemberEndState.Routed; break;
+                case AgentState.Deleted: mapped = MemberEndState.Deleted; break;
+                default: mapped = MemberEndState.Unknown; break;
+            }
+            var member = new MemberIdentity
+            {
+                Index = index,
+                RefHash = RuntimeHelpers.GetHashCode(agent),
+            };
+            if (!_feedback.NoteTerminal(_missionKey, member, mapped, at)) return;
+
+            Cb2Log.Line("ACTION_TERMINAL",
+                "member=" + member.Key() +
+                " state=" + mapped +
+                " t0=" + Cb2Log.F(_feedback.T0) +
+                " at=" + Cb2Log.F(at));
         }
 
         internal void DecisionTick(Mission mission)
@@ -185,6 +247,14 @@ namespace CombatBrain2.Host
                     .Add("enemy_center_x", state.EnemyCenterX)
                     .Add("enemy_center_y", state.EnemyCenterY)
                     .ToString());
+
+            // 结果评价先于「条件未变直接继续」的分支：本轮行动的实际战果与己方代价
+            // 必须能改变决定，不能因为条件输入没变就跳过。
+            if (_feedbackEnabled)
+            {
+                var fbDecision = ActionFeedbackStep(mission, state, conditions, now);
+                if (fbDecision) return;
+            }
 
             // 条件未变且计划仍开放：继续沿用，不重建、不重发令。
             if (_plans.CanContinue(conditions, now))
@@ -1598,6 +1668,13 @@ namespace CombatBrain2.Host
 
             task.OrderBefore = before;
 
+            // P3：主力推进普通命令真正写入前，同一主线程采样并冻结 E0/F0 基线。
+            // t0 取这次真实写入的 Mission 时刻（派单 §3.1）。
+            if (_feedbackEnabled)
+            {
+                PrepareFeedbackBaseline(mission, task, now);
+            }
+
             // 位移基线在真实写令这一刻固定：计划创建到发令之间的原生移动
             // 不能计入本命令的效果（P1-CODEX-REVERIFY §3.2）。
             try
@@ -1820,6 +1897,23 @@ namespace CombatBrain2.Host
                     if (_coordination && task.Role != FormationRole.None)
                         return CoordinationOrderFor(mission, task, now, out note);
 
+                    // P3 有限撤回：目标点在建计划时已按「背离敌队质心 20 m」算定，
+                    // 不能落回 P1 的前进/后撤公式，否则实际写出的目标与撤回方向无关。
+                    if (task.Reason == ActionFeedback.ReasonWithdraw && task.HasCanonicalTarget)
+                    {
+                        double wx = task.CanonicalX;
+                        double wy = task.CanonicalY;
+                        if (!BattleState.IsFinite(wx) || !BattleState.IsFinite(wy))
+                        {
+                            note = "withdraw_target_non_finite";
+                            return MovementOrder.MovementOrderNull;
+                        }
+                        task.SetTarget(task.OriginX, task.OriginY, wx, wy);
+                        note = "withdraw_to_requested=(" + Cb2Log.F(wx) + "," + Cb2Log.F(wy) + ")";
+                        return MovementOrder.MovementOrderMove(
+                            new WorldPosition(mission.Scene, new Vec3((float)wx, (float)wy, 0f)));
+                    }
+
                     var state = _state;
                     if (state == null)
                     {
@@ -1964,6 +2058,15 @@ namespace CombatBrain2.Host
 
             _snapshot = FormationSampler.Sample(mission, now);
 
+            // 继任等待期逐 tick 评估：退出确认截止只有 1 s（SafetyCancelLatencySeconds），
+            // 而决策点间隔 3 s。若只在决策点评估，及时写出的退出会等不到确认就被任务结束
+            // 打断，既非确认也非超时（派单 §2 整改1：不得无限等待）。
+            if (_feedback.WaitingForExitConfirmation)
+            {
+                DecayStandby(now);
+                return;
+            }
+
             // 安全与条件检查逐 tick 做，不受决策节奏约束。
             CheckConditionsEachTick(now);
 
@@ -2051,6 +2154,10 @@ namespace CombatBrain2.Host
         {
             var plan = _plans.Current;
             if (plan == null || plan.IsClosed) return;
+
+            // 有限撤回计划不再按原攻势的战略条件判继续：它的终止条件只有
+            // 到达各自目标、20 s 未到或命令 3 s 效果失败（派单 §4）。
+            if (string.Equals(plan.Goal, ActionFeedback.GoalWithdraw, StringComparison.Ordinal)) return;
 
             // 资格检查先于快照检查：统计按全队保留失去 AI 资格的士兵，
             // 资格变化不会改变远程/兵力比例，必须独立检查已写任务。
@@ -2720,6 +2827,15 @@ namespace CombatBrain2.Host
             _firstCommandSeen = false;
             _exitStopAttempts = 0;
             _exits.ClearMission();
+            _feedback = new ActionFeedbackTracker();
+            _feedbackIntegrityOk = true;
+            _feedbackIntegrityNote = "";
+            _withdrawHoldDone.Clear();
+            _withdrawPlanId = "";
+            _withdrawHoldLogged = false;
+            _withdrawStableLogged = false;
+            _withdrawStartedAt = -1.0;
+            _lastFeedbackBlockLogAt = -1.0;
             _lastWriteAt = -1.0;
             Cb2Log.Line("MISSION_START", "mission_key=" + _missionKey);
             ObservationAdapter.Resolve(0.0);

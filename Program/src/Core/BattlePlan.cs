@@ -258,6 +258,13 @@ namespace CombatBrain2.Core
         internal double CreatedAt;
         internal double InputSampledAt;
 
+        // P3：继任计划的实际来源与触发反馈。普通计划为空/未触发。
+        // t0 与冻结集合由 ActionFeedbackTracker 继承，不在计划上复制.
+        internal string ParentPlanId = "";
+        internal double FeedbackAt = -1.0;
+        internal string FeedbackReason = "";
+        internal double FeedbackUtility = double.NaN;
+
         // P2：同一开放 Plan 下一次完整任务分配的版本号。分配改变即增，
         // 旧版本任务不得写令，也不得取消或清掉新版本的槽位。
         internal int Revision = 1;

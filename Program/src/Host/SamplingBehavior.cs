@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using CombatBrain2.Core;
 using TaleWorlds.MountAndBlade;
+using AgentState = TaleWorlds.Core.AgentState;
 
 namespace CombatBrain2.Host
 {
@@ -33,6 +34,12 @@ namespace CombatBrain2.Host
         private bool _p2Enabled;
         private double _nextP2DecisionAt = -1.0;
         private int _p2EvalCount;
+        // 本场实际进入过 P2 骨架。P3 反馈可以把循环降级到 P1，所以不能用
+        // "当前是否处于 P2 模式"判断本场是否跑过 P2 路径。
+        private bool _p2Ran;
+
+        // P3 结果反馈状态。它是 P2 循环上的一个选项，不产生独立写令循环。
+        private bool _p3Enabled;
 
         private static string ConfigPathOf(string fileName)
         {
@@ -49,6 +56,11 @@ namespace CombatBrain2.Host
         private static string P2ConfigPath()
         {
             return ConfigPathOf("p2-command-loop.txt");
+        }
+
+        private static string P3ConfigPath()
+        {
+            return ConfigPathOf("p3-feedback.txt");
         }
 
         // 读哨兵文件里的 enabled。文件缺失或未设 = 关闭。
@@ -101,6 +113,12 @@ namespace CombatBrain2.Host
             _p1Enabled = p1Wanted && !both;
             _p2Enabled = p2Wanted && !both;
 
+            // P3 是 P2 写令循环上的结果反馈选项：它不产生独立写令循环，
+            // 只在 P2 已运行时才有效。缺失/未设 = 关闭。
+            string p3Value = ReadFlagValue(P3ConfigPath(), "enabled");
+            bool p3Wanted = IsOn(p3Value);
+            _p3Enabled = p3Wanted && _p2Enabled;
+
             Cb2Log.Line("P1_MODE",
                 "enabled=" + (_p1Enabled ? 1 : 0) +
                 " value=" + (p1Value.Length == 0 ? "<unset>" : p1Value) +
@@ -114,6 +132,15 @@ namespace CombatBrain2.Host
                 (both ? " rejected=both_enabled" : "") +
                 " p1_enabled=" + (_p1Enabled ? 1 : 0) +
                 " disabled_meaning=no_command_source");
+
+            Cb2Log.Line("P3_MODE",
+                "enabled=" + (_p3Enabled ? 1 : 0) +
+                " value=" + (p3Value.Length == 0 ? "<unset>" : p3Value) +
+                " source=p3-feedback.txt" +
+                " requires=p2" +
+                " p2_enabled=" + (_p2Enabled ? 1 : 0) +
+                (p3Wanted && !_p2Enabled ? " rejected=p2_not_enabled" : "") +
+                " disabled_meaning=no_action_feedback");
         }
 
         private static bool IsOn(string value)
@@ -156,7 +183,9 @@ namespace CombatBrain2.Host
             }
 
             // 测试适配：只在哨兵文件开启时改变一个真实编队的 AI 控制资格。
-            EligibilityProbe.Instance.OnMissionTick(mission);
+            // 是否推进 P2 适配由本层自己记住，不依赖 TestDriver 的命令模式：
+            // P3 反馈可以把循环降级到 P1，那之后 P2 适配仍需按计划恢复资格。
+            EligibilityProbe.Instance.OnMissionTick(mission, now, _p2Ran);
 
             if (!_hooked)
             {
@@ -178,7 +207,8 @@ namespace CombatBrain2.Host
         // P2 节奏：与 P1 同一套决策骨架，但建立协同计划并在逐 tick 复核依赖。
         private void TickP2(Mission mission, double now)
         {
-            TestDriver.Instance.SetCommandLoop(true);
+            _p2Ran = true;
+            TestDriver.Instance.SetCommandLoop(true, _p3Enabled);
 
             if (_nextP2DecisionAt < 0.0)
             {
@@ -217,7 +247,7 @@ namespace CombatBrain2.Host
         // P1 节奏：决策按 3 s，条件/安全/反馈按逐 tick，槽位消费在主线程执行点。
         private void TickP1(Mission mission, double now)
         {
-            TestDriver.Instance.SetCommandLoop(false);
+            TestDriver.Instance.SetCommandLoop(false, false);
 
             if (_nextDecisionAt < 0.0)
             {
@@ -308,6 +338,38 @@ namespace CombatBrain2.Host
         {
             try { return System.Threading.Thread.CurrentThread.ManagedThreadId; }
             catch (Exception) { return -1; }
+        }
+
+        // P3 终态捕获：Mission 的公开移除回调在写 State 之后逐行为调用，
+        // 这里只读实际终态并交给 TestDriver 记账，不用 1 Hz 轮询（会漏终态）。
+        // OnAgentDeleted 晚于 OnAgentRemoved，同一成员由台账按身份去重。
+        public override void OnAgentRemoved(Agent affectedAgent, Agent affectorAgent,
+                                            AgentState agentState, KillingBlow blow)
+        {
+            if (!_p3Enabled) return;
+            if (affectedAgent == null) return;
+            double now = 0.0;
+            try
+            {
+                var mission = Mission.Current;
+                if (mission != null) now = (double)mission.CurrentTime;
+            }
+            catch (Exception) { }
+            TestDriver.Instance.OnAgentTerminal(affectedAgent, agentState, now);
+        }
+
+        public override void OnAgentDeleted(Agent affectedAgent)
+        {
+            if (!_p3Enabled) return;
+            if (affectedAgent == null) return;
+            double now = 0.0;
+            try
+            {
+                var mission = Mission.Current;
+                if (mission != null) now = (double)mission.CurrentTime;
+            }
+            catch (Exception) { }
+            TestDriver.Instance.OnAgentTerminal(affectedAgent, AgentState.Deleted, now);
         }
 
         protected override void OnEndMission()
