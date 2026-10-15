@@ -158,3 +158,32 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 - 两场 `MISSION_CLEANUP=1`、`PLAN_INVALIDATE_REJECTED=0`、无新崩溃目录、无残留进程。
 
 外置归档：`E:\MBmod\CombatBrain2-evidence\20261012-p1-reverify2-sessions.zip`，309541 B / 46 条目，SHA256 `AD10F24223A864C481D1A8A7BCCECBF72534996B48DAF12C47866A60CADEF9C7`；逐文件对盘 **46/46 MATCH**。含两场次目录与 `_p1_exclusive_P.log` / `_p1_exclusive_N.log`。
+
+
+## P3 接续整改 — 实机场次索引（2026-10-16 追加）
+
+依据 `CB2-PROMPT-0005`（`../P3-RESTART-REMEDIATION-DISPATCH.md`）；原验收合同 `CB2-PROMPT-0004`。**状态：限定自检完成，待独立验收。** 完整说明见 `../P3-IMPLEMENTATION-HANDOVER.md`。
+
+CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（master，2026-10-16 00:10:00），CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，2026-10-16 00:10:12）。提交后：Release 构建 0 警告 0 错误；测试 276/276 通过（255 基线 + 21 新增）。
+
+门状态以 `../check-p3-feedback.ps1`（SHA256 `16BD2060627D111606ABCEB77BB38560933DF21E632F65CEDF06FE54CF3FC95E`）逐门单列为准；退出码 0 只表示工具跑完。
+
+| 场次 | build_id | 部署 SHA 前 16 | 门1 | 门2 | 门3 | 说明 |
+|---|---|---|---|---|---|---|
+| `p3-P-20261015-004350` | b20261015-004347-1bf63a79 | BB75414A4C4D01F2 | fail | unverified | unverified | 基线旧场；继任仅 Main Hold，遭原生覆盖 |
+| `p3-N-20261015-004851` | b20261015-004848-e5b2f53f | A43F2C1BEAE69C32 | unverified | unverified | unverified | 基线旧场 |
+| `p3-N-20261015-005621` | b20261015-005619-50633b36 | B9B0A38423895AD8 | unverified | **fail** | unverified | 修复前缺陷证据（`taken_over_before_confirmation=2`），按裁定保留 fail |
+| `p3-C-20261015-010928` | b20261015-010857-79e62453 | 8FECD9B8A5844BA7 | unverified | unverified | unverified | 基线中性场 |
+| `p3-P-20261015-203136` | b20261015-203133-f7690240 | B3B3AAB3645F43C0 | unverified | unverified | unverified | 经 `run-p3-exclusive.ps1` 独占执行（stage record 完整） |
+| `p3-N-20261015-211938` | b20261015-211934-fd6da03a | 91421CEF819CD39F | — | — | — | 经 `run-p3-exclusive.ps1` 独占执行（stage record 完整），未单独出报告 |
+| `p3-N-20261015-213231` | b20261015-213227-5da13be9 | 35A1FA95E0EA5DEE | unverified | unverified | unverified | 旧 Plan 已被 `ConditionChanged` 关闭（termination only） |
+| `p3-C-20261015-214157` | b20261015-214152-84d1958d | FE9D9ACE2C688BD9 | — | — | 对照 | 用作门3 对照 |
+| `p3-P-20261015-214532` | b20261015-214529-e411067d | 68D7E0B4DD1AC385 | — | — | — | 启动通道证据缺失 |
+| `p3-P-20261015-215314` | b20261015-215311-0e545b62 | 342C73DC6287EC35 | — | — | — | 启动通道证据缺失 |
+| `p3-P-20261015-220249` | b20261015-220246-a9c223d9 | 7A1F981094793B67 | **fail** | unverified | unverified | 修复后 Reinforce 场；继任 Guard/Support 被 `predecessor_not_written` 卡死 |
+| `p3-C-20261015-220738` | b20261015-220735-18fd6c08 | 7D5E848C0C4AAD8E | unverified | unverified | 对照 | 用作门3 对照 |
+| `p3-P-20261015-221833` | b20261015-221826-977cb576 | DB58CBE71973F790 | unverified | **pass** | unverified | 整改1 正例：三对象退出 134.036–134.182 全部在 `deadline=134.844` 前写出，`waited=0.344` |
+| `p3-P-20261015-222821` | b20261015-222818-c9f62071 | 1E980EB3ACD51410 | unverified | unverified | unverified | `ACTION_FEEDBACK_FROZEN=0`，P3 未武装，不可用于任何门 |
+
+未取得 pass 的两门与根因：门1 — 继任协同计划可执行性缺陷（`BuildSuccessorCoordination` → `BuildCoordination` 的 `DependsOnTaskId` 与 `MainAdvanceAllowed` 互锁）；门3 — P/C 实际开局部署质心相差数百米，场景等价未证明。详见 `../P3-IMPLEMENTATION-HANDOVER.md` §3、§5。
+
