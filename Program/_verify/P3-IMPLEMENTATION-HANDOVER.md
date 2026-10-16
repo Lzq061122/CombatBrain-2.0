@@ -33,6 +33,7 @@
 | 第三轮整改提交 | `85e2171` "fix(p3): attribute round-2 process ownership and gate-2 successor orders"（master，本地，未 push / 未建 PR，4 files, +120 / −30；父提交为另一组的 `d64055d`，其内容与本次无关） |
 | 第三轮交回文档提交 | `badd8d3` "docs(p3): record the round-3 commit hash in the handover and session index"（2 files, +3 / −2） |
 | 第四轮整改提交 | `1e7b088` "fix(p3): bind gate-2 successor readings to live orders and PID ownership to runtime identity"（master，本地，未 push / 未建 PR，4 files, +401 / −83；父提交 `badd8d3`） |
+| 第五轮整改提交 | `573f098` "fix(p3): bind process ownership to this run's own launch context"（master，本地，未 push / 未建 PR，3 files, +127 / −82；父提交 `76713ef`） |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
@@ -108,13 +109,15 @@ Program/_verify/sessions/INDEX.md               +21/-4（随本批同交）
 
 守则一处提示：`Program/README.md` 由 `d64055d`（另一组）加入的「死战不退」要求已在本轮接入 `run-p3.ps1`（§3.4），并新增 `fighttodeathoff` 隔离模式给出失败阻断证据。
 
-**第五轮整改逐路径清单**（相对 `badd8d3`；`git diff --numstat HEAD` 实测值在提交前最后一次编辑后填入，不在中途猜写）：
+**第五轮整改逐路径清单**（相对 `76713ef`，`git diff --numstat` 实测）：
 
 ```
-Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    （本文件）
-Program/_verify/run-p3.ps1                       （进程归属改绑本场启动上下文）
-Program/_verify/sessions/INDEX.md               （随本批同交）
+Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    （本文件，本批同改，不给自指行数）
+Program/_verify/run-p3.ps1                       +69/-54（进程归属改绑本场启动上下文）
+Program/_verify/sessions/INDEX.md               +10/-7（随本批同交）
 ```
+
+本轮提交主题 `fix(p3): bind process ownership to this run's own launch context`，3 files、+127/-82；短哈希用 `git log --oneline` 取（按入口 §4a 不内嵌自指哈希）。
 
 本轮同样**未改任何 C# 源码**（`git diff --name-only` 对 `Program/src`、`Program/tests` 为空），改动只在 `run-p3.ps1`、两份文档，以及未提交的隔离脚手架（`Program/_verify/_r5sim/`，新增 `foreignidentity` 模式）。按入口 §4a「仅改脚本或文档不机械重跑未变的 C# 全量测试」，本轮**未重跑 `dotnet test`**，沿用 309/309 读数；如独立复核要求新鲜读数，请复跑 §1.2 命令。
 
