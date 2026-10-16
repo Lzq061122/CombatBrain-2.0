@@ -108,25 +108,32 @@ namespace CombatBrain2.Core
             if (guard.Revision != plan.Revision || support.Revision != plan.Revision) return false;
             if (guard.Feedback != TaskFeedbackState.Effective) return false;
             if (support.Feedback != TaskFeedbackState.Effective) return false;
-            if (!CommandTargetStillValid(plan.Geometry, guard, true)) return false;
-            if (!CommandTargetStillValid(plan.Geometry, support, false)) return false;
+            if (!CommandTargetStillValid(plan, guard, true)) return false;
+            if (!CommandTargetStillValid(plan, support, false)) return false;
             if (guardReady == null || !guardReady.Ready) return false;
             if (supportReady == null || !supportReady.Ready) return false;
             return true;
         }
 
-        // 该职责当前实际命令目标点是否仍落在本职责的到位区域内，且与有效请求点一致。
-        // 未写令、未读到实际命令目标（未知）、几何缺失或目标已偏离请求点都算无效：
-        // 既不接受"位置碰巧对"，也不接受用请求点或首次缓存冒充当前命令。
-        private static bool CommandTargetStillValid(CoordinationGeometry g, FormationTask task, bool isGuard)
+        // 该职责的命令是否仍然有效：命令未被改写（读回 = 本次锚点请求），
+        // 且战术目标 T 仍属于当前 Plan/Revision 的职责点。
+        // 派单 §2.2 第 5 条：命令锚点是写给引擎的请求，不是质心证据，
+        // 不得把它直接送进 GuardInPosition/SupportInPosition；职责到位由
+        // CoordinationDriver.ObserveOne 用实际质心判定。
+        private static bool CommandTargetStillValid(BattlePlan plan, FormationTask task, bool isGuard)
         {
+            var g = plan.Geometry;
             if (g == null || task == null) return false;
             if (!task.HasPosition) return false;
             if (!task.HasOrderTarget) return false;
             if (task.OrderTargetReadbackError() > TestParameters.TargetPointToleranceMeters) return false;
-            return isGuard
-                ? PlanBuilder.GuardInPosition(g, task.OrderTargetX, task.OrderTargetY)
-                : PlanBuilder.SupportInPosition(g, task.OrderTargetX, task.OrderTargetY);
+            if (!task.HasCanonicalTarget) return false;
+            if (!string.Equals(task.PlanId, plan.PlanId, StringComparison.Ordinal)) return false;
+            if (task.Revision != plan.Revision) return false;
+            double roleX = isGuard ? g.GuardX : g.SupportX;
+            double roleY = isGuard ? g.GuardY : g.SupportY;
+            return CoordinationGeometry.Distance(task.CanonicalX, task.CanonicalY, roleX, roleY)
+                   <= TestParameters.TargetPointToleranceMeters;
         }
     }
 

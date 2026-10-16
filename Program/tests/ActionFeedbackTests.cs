@@ -1079,6 +1079,145 @@ namespace CombatBrain2.Tests
                          ActionFeedback.DecideSuccessorStandby(noExits).Detail);
         }
 
+        // ---------------- 整改1：退出确认后的正负状态分离（独立验收 R1） ----------------
+
+        // 正反馈继任只是旧分配退出、新分配接上，不是"旧攻势已停止"。
+        // 退出确认若把正反馈也置成禁止进攻，后续累计损失评价会被直接跳过。
+        [Fact]
+        public void PositiveSuccessionKeepsOffensiveEvaluationAliveAfterExitConfirmation()
+        {
+            var t = Frozen(out _);
+            t.Reinforced = true;
+            t.WaitingForExitConfirmation = true;
+            t.ExitStandbyCompleted = true;
+
+            bool stopped, blocked;
+            t.AfterStandbyCompleted(out stopped, out blocked);
+
+            Assert.False(stopped);
+            Assert.False(blocked);
+            Assert.False(t.Stopped);
+            Assert.False(t.OffensiveBlocked);
+        }
+
+        // 负反馈继任在退出确认后才把"旧攻势已停止"落实为禁入。
+        [Fact]
+        public void NegativeSuccessionAppliesStopOnlyOnExitConfirmation()
+        {
+            var t = Frozen(out _);
+            t.Reinforced = false;
+            t.WaitingForExitConfirmation = true;
+            t.ExitStandbyCompleted = true;
+
+            bool stopped, blocked;
+            t.AfterStandbyCompleted(out stopped, out blocked);
+
+            Assert.True(stopped);
+            Assert.True(blocked);
+            Assert.True(t.Stopped);
+            Assert.True(t.OffensiveBlocked);
+        }
+
+        // 退出到截止仍未应用只终止本次接续；已知的负反馈禁入是评价结论，不是等待期状态，
+        // 不能因为退出失败被一起清掉（否则会重新放行已被判定无效的攻势）。
+        [Fact]
+        public void FailedExitConfirmationKeepsKnownNegativeBlock()
+        {
+            var t = Frozen(out _);
+            t.Reinforced = false;
+            t.Stopped = true;
+            t.OffensiveBlocked = true;
+            t.WaitingForExitConfirmation = true;
+            t.ExitStandbyCompleted = false;
+            t.PendingStandbyPlanId = "plan-2";
+            t.StandbyDeadlineAt = 61.0;
+
+            t.MarkStandbyFailed();
+
+            Assert.False(t.WaitingForExitConfirmation);
+            Assert.False(t.ExitStandbyCompleted);
+            Assert.Equal("", t.PendingStandbyPlanId);
+            Assert.Equal(-1.0, t.StandbyDeadlineAt);
+            Assert.True(t.Stopped);
+            Assert.True(t.OffensiveBlocked);
+        }
+
+        // 公布继任前重新核对：键匹配但对象身份已换，按过期处理不放行。
+        [Fact]
+        public void SuccessorRolesRejectStaleObjectIdentity()
+        {
+            var f = Fact("0/0", "oA@Infantry", "Infantry", TaskKind.Reposition, 30, FormationRole.Main);
+            f.CurrentObjectIdentity = "oB@Infantry";
+
+            string why = ActionFeedback.SuccessorRolesStillValid(
+                Facts(f), 0, true);
+
+            Assert.Equal("role_identity_stale key=0/0", why);
+        }
+
+        // 对象当前是本方坐标但已不受 AI 控制：写前门会拒绝，公布前就应拦下。
+        [Fact]
+        public void SuccessorRolesRejectObjectLostAiControl()
+        {
+            var f = Fact("0/0", "oA@Infantry", "Infantry", TaskKind.Reposition, 30, FormationRole.Main);
+            f.IsAiControlled = false;
+
+            string why = ActionFeedback.SuccessorRolesStillValid(Facts(f), 0, true);
+
+            Assert.Equal("role_not_ours key=0/0", why);
+        }
+
+        // 人数已跌破该职责继续线：不再具备承担该职责的资格。
+        [Fact]
+        public void SuccessorRolesRejectRoleBelowContinueLine()
+        {
+            var f = Fact("0/0", "oA@Infantry", "Infantry", TaskKind.Reposition, 30, FormationRole.Main);
+            f.ActiveMemberCount = 5;
+
+            string why = ActionFeedback.SuccessorRolesStillValid(Facts(f), 0, true);
+
+            Assert.Equal("role_below_continue_line key=0/0", why);
+        }
+
+        // 全部通过时才放行。
+        [Fact]
+        public void SuccessorRolesAcceptCurrentObjects()
+        {
+            var main = Fact("0/0", "oA@Infantry", "Infantry", TaskKind.Reposition, 30, FormationRole.Main);
+            var guard = Fact("0/1", "oB@Infantry", "Infantry", TaskKind.Reposition, 30, FormationRole.Guard);
+            var support = Fact("0/2", "oC@Ranged", "Ranged", TaskKind.Reposition, 30, FormationRole.Support);
+
+            Assert.Equal("", ActionFeedback.SuccessorRolesStillValid(
+                Facts(main, guard, support), 0, true));
+        }
+
+        private static SuccessorRoleFact Fact(string key, string obj, string cls,
+                                                             TaskKind kind, int baseline,
+                                                             FormationRole role)
+        {
+            return new SuccessorRoleFact
+            {
+                Role = role,
+                FormationKey = key,
+                ObjectIdentity = obj,
+                FormationClass = cls,
+                Kind = kind,
+                BaselineUnits = baseline,
+                Found = true,
+                CurrentObjectIdentity = obj,
+                ActiveMemberCount = 30,
+                TeamIndex = 0,
+                HasActiveCenter = true,
+                IsAiControlled = true,
+            };
+        }
+
+        private static List<SuccessorRoleFact> Facts(
+            params SuccessorRoleFact[] facts)
+        {
+            return new List<SuccessorRoleFact>(facts);
+        }
+
         private static ActionFeedback.SuccessorStandby Standby(string nowText)
         {
             double now;

@@ -96,10 +96,12 @@ namespace CombatBrain2.Tests
             var g = plan.Geometry;
             driver.GuardTask.WrittenAt = firstAt - 1.0;
             driver.GuardTask.Feedback = TaskFeedbackState.Effective;
+            driver.GuardTask.SetCanonicalTarget(g.GuardX, g.GuardY);
             driver.GuardTask.SetTarget(0.0, 0.0, g.GuardX, g.GuardY);
             driver.GuardTask.SetOrderTarget(g.GuardX, g.GuardY);
             driver.SupportTask.WrittenAt = firstAt - 1.0;
             driver.SupportTask.Feedback = TaskFeedbackState.Effective;
+            driver.SupportTask.SetCanonicalTarget(g.SupportX, g.SupportY);
             driver.SupportTask.SetTarget(0.0, 0.0, g.SupportX, g.SupportY);
             driver.SupportTask.SetOrderTarget(g.SupportX, g.SupportY);
             driver.Observe(firstAt,

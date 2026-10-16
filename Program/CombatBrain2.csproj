@@ -33,6 +33,7 @@
     <Compile Include="src\Core\ExitStopLedger.cs" />
     <Compile Include="src\Core\EligibilityTrigger.cs" />
     <Compile Include="src\Core\ActionFeedback.cs" />
+    <Compile Include="src\Core\TaskDelivery.cs" />
     <Compile Include="src\Host\RuntimeIdentity.cs" />
     <Compile Include="src\Host\ObservationAdapter.cs" />
     <Compile Include="src\Host\BuildIdentity.g.cs" />

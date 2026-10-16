@@ -27,6 +27,7 @@
     <Compile Include="CoordinationIntegrationTests.cs" />
     <Compile Include="EligibilityTriggerTests.cs" />
     <Compile Include="ActionFeedbackTests.cs" />
+    <Compile Include="CoordinateSemanticsTests.cs" />
     <Compile Include="..\src\Core\TestParameters.cs" Link="Core\TestParameters.cs" />
     <Compile Include="..\src\Core\FormationSnapshot.cs" Link="Core\FormationSnapshot.cs" />
     <Compile Include="..\src\Core\TargetSelector.cs" Link="Core\TargetSelector.cs" />
@@ -46,6 +47,7 @@
     <Compile Include="..\src\Core\ExitStopLedger.cs" Link="Core\ExitStopLedger.cs" />
     <Compile Include="..\src\Core\EligibilityTrigger.cs" Link="Core\EligibilityTrigger.cs" />
     <Compile Include="..\src\Core\ActionFeedback.cs" Link="Core\ActionFeedback.cs" />
+    <Compile Include="..\src\Core\TaskDelivery.cs" Link="Core\TaskDelivery.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -265,11 +265,13 @@ namespace CombatBrain2.Core
 
         // 退出动作的确认口径与 Host 的 ExitStopLedger 一致：每个对象每次实际关闭
         // 恰好登记一次，登记成立即授权。这里只做同口径状态转移，不引入新判据。
+        // 正反馈继任只是换了分配，旧攻势并未被判定停止；把它也置成禁止进攻会让
+        // 后续累计损失评价被直接跳过（独立验收 R1）。只有负反馈继任才落实禁入。
         internal void AfterStandbyCompleted(out bool stopped, out bool blocked)
         {
             stopped = false;
             blocked = false;
-            if (WaitingForExitConfirmation && ExitStandbyCompleted)
+            if (WaitingForExitConfirmation && ExitStandbyCompleted && !Reinforced)
             {
                 Stopped = true;
                 OffensiveBlocked = true;
@@ -280,11 +282,11 @@ namespace CombatBrain2.Core
 
         // 等退出确认期间旧攻势已被关闭；若到截止仍未被应用，本次接续就此终止，
         // 如实保留停止失败，不无限等待、不重投、不提前接管（派单 §2 整改1）。
+        // 已判定的负反馈禁入是评价结论，不随本次等待的成败被清掉（独立验收 R1）：
+        // 退出失败说明停不下来，不等于可以重新放行已被判定无效的攻势。
         internal void MarkStandbyFailed()
         {
             if (!WaitingForExitConfirmation) return;
-            Stopped = false;
-            OffensiveBlocked = false;
             WaitingForExitConfirmation = false;
             ExitStandbyCompleted = false;
             PendingStandbyPlanId = "";
@@ -842,6 +844,52 @@ namespace CombatBrain2.Core
             return d;
         }
 
+        // 公布继任之前的逐任务复核：把任务上记录的对象身份与当前快照读到的身份比较，
+        // 并按对象的实际状态核对归属、AI 资格、兵种类别与人数继续线。
+        // 只核对键对应记录存在是不够的——对象可能已被重分配、失去 AI 控制或降员
+        // （独立验收 R1）。任一条不成立即返回原因，不放行。
+        internal static string SuccessorRolesStillValid(List<SuccessorRoleFact> roles,
+                                                        int myTeamIndex,
+                                                        bool coordination)
+        {
+            if (roles == null) return "roles_incomplete";
+
+            var keys = new HashSet<string>(StringComparer.Ordinal);
+            int main = 0, guard = 0, support = 0, counted = 0;
+            for (int i = 0; i < roles.Count; i++)
+            {
+                var f = roles[i];
+                if (f == null) continue;
+                if (!f.Found) return coordination ? "role_object_missing" : "withdraw_object_missing";
+                if (!f.HasActiveCenter || f.ActiveMemberCount <= 0)
+                    return coordination ? "role_object_missing" : "withdraw_object_missing";
+                // 计划准备时记下的对象身份必须仍是当前快照里的同一对象（独立验收 R1）。
+                if (!string.Equals(f.CurrentObjectIdentity, f.ObjectIdentity, StringComparison.Ordinal))
+                    return "role_identity_stale key=" + f.FormationKey;
+                if (f.TeamIndex != myTeamIndex) return "role_not_ours key=" + f.FormationKey;
+                if (!f.IsAiControlled) return "role_not_ours key=" + f.FormationKey;
+                if (!PlanBuilder.ClassAllows(f.FormationClass, f.Kind))
+                    return "role_class_not_allowed key=" + f.FormationKey;
+                if (f.Kind != TaskKind.Hold &&
+                    !PlanBuilder.RoleStrengthHolds(f.ActiveMemberCount, f.BaselineUnits))
+                    return "role_below_continue_line key=" + f.FormationKey;
+                if (!keys.Add(f.FormationKey))
+                    return coordination ? "roles_not_distinct" : "withdraw_objects_not_distinct";
+                counted++;
+                switch (f.Role)
+                {
+                    case FormationRole.Main: main++; break;
+                    case FormationRole.Guard: guard++; break;
+                    case FormationRole.Support: support++; break;
+                }
+            }
+
+            if (counted == 0) return "plan_not_prepared";
+            if (!coordination) return "";
+            if (main != 1 || guard != 1 || support != 1) return "roles_incomplete";
+            return "";
+        }
+
         // 继任计划新增主力的有限接近量：min(25m, 当前距离/4)。
         internal static bool ProjectedMainTarget(double mainX, double mainY, double enemyX,
                                                 double enemyY, out double targetX,
@@ -906,5 +954,24 @@ namespace CombatBrain2.Core
         internal string FormationKey = "";
         internal string ObjectIdentity = "";
         internal int BaselineUnits;
+    }
+
+    // 继任计划逐任务的资格复核读数：任务上记录的身份与当前快照读到的身份分开列出，
+    // 归属、AI 资格、类别与人数也各取一项事实，才能逐条说明是哪一项过期（独立验收 R1）。
+    internal sealed class SuccessorRoleFact
+    {
+        internal FormationRole Role = FormationRole.None;
+        internal string FormationKey = "";
+        internal string ObjectIdentity = "";
+        internal string FormationClass = "";
+        internal TaskKind Kind = TaskKind.None;
+        internal int BaselineUnits;
+
+        internal bool Found;
+        internal string CurrentObjectIdentity = "";
+        internal int ActiveMemberCount;
+        internal int TeamIndex;
+        internal bool HasActiveCenter;
+        internal bool IsAiControlled;
     }
 }

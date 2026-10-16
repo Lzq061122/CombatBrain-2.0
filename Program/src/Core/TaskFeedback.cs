@@ -130,12 +130,26 @@ namespace CombatBrain2.Core
                              Fmt(task.RequestedX) + "," +
                              Fmt(task.RequestedY) + ")";
                 }
+                else if (task.HasCanonicalTarget && !now.HasActiveCenter)
+                {
+                    // 质心语义任务的判据依赖有效成员质心：读不到就如实记为不可读，
+                    // 不用编队锚点冒充质心继续判定（派单 §2.2 第 2 条）。
+                    detail = "center_unreadable";
+                }
                 else
                 {
-                    double dx = now.PosX - task.RequestedX;
-                    double dy = now.PosY - task.RequestedY;
+                    // 质心语义任务：进度与到点都以有效成员质心对战术目标 T 计算，
+                    // 命令锚点只是写给引擎的请求，不参与距离判定（派单 §2.2 第 3/5 条）。
+                    // 锚点语义任务（P1 普通位置任务）保持原有口径。
+                    bool byCentroid = task.HasCanonicalTarget;
+                    double refX = byCentroid ? now.ActiveCenterX : now.PosX;
+                    double refY = byCentroid ? now.ActiveCenterY : now.PosY;
+                    double goalX = byCentroid ? task.CanonicalX : task.RequestedX;
+                    double goalY = byCentroid ? task.CanonicalY : task.RequestedY;
+                    double dx = refX - goalX;
+                    double dy = refY - goalY;
                     double distance = Math.Sqrt(dx * dx + dy * dy);
-                    double from = task.BaselineDistanceTo(task.RequestedX, task.RequestedY);
+                    double from = task.BaselineDistanceTo(goalX, goalY);
                     if (distance <= TestParameters.TargetPointToleranceMeters)
                     {
                         effective = true;

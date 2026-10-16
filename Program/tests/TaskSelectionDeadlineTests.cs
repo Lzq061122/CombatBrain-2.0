@@ -599,5 +599,166 @@ namespace CombatBrain2.Tests
             Assert.True(now - t.SubmittedAt < TestParameters.SafetyCancelLatencySeconds);
             Assert.True(now - t.SelectedAt < TestParameters.SafetyCancelLatencySeconds);
         }
+
+        // ---------- 投递调度（整改4 门1：逐 tick 投递的离线验收） ----------
+
+        private static DeliveryFacts Facts(double now)
+        {
+            return new DeliveryFacts
+            {
+                HasPlan = true,
+                Now = now,
+                AssignedAt = 10.0,
+                PlanCreatedAt = 10.0,
+                LastWriteAt = -1.0,
+            };
+        }
+
+        // 三项时序门都满足后必须在首个 tick 投递：投递不再等下一个 3 s 评价点。
+        [Fact]
+        public void DeliveryQueuesOnTheFirstTickAfterAllTimingGatesAreMet()
+        {
+            var f = Facts(11.5);
+            f.AssignedAt = 10.0;
+            f.LastWriteAt = 9.0;
+            string why;
+            // FirstCommandDelaySeconds = 1.5、FormationStaggerSeconds = 1.5：11.5 两项都刚够。
+            Assert.Equal(TaskDelivery.Verdict.Queue, TaskDelivery.Decide(f, out why));
+            Assert.Equal("", why);
+        }
+
+        // 首令延迟未到时不得投递，且原因为 first_command_delay。
+        [Fact]
+        public void DeliveryDefersUntilFirstCommandDelayElapses()
+        {
+            var f = Facts(11.4);
+            f.AssignedAt = 10.0;
+            string why;
+            Assert.Equal(TaskDelivery.Verdict.Deferred, TaskDelivery.Decide(f, out why));
+            Assert.Equal("first_command_delay", why);
+        }
+
+        // 前序普通任务尚未写令时不得投递，且原因为 predecessor_not_written。
+        [Fact]
+        public void DeliveryDefersWhilePredecessorIsUnwritten()
+        {
+            var f = Facts(20.0);
+            f.AssignedAt = 10.0;
+            f.PredecessorPending = true;
+            string why;
+            Assert.Equal(TaskDelivery.Verdict.Deferred, TaskDelivery.Decide(f, out why));
+            Assert.Equal("predecessor_not_written", why);
+        }
+
+        // 相邻普通写令间隔未到时不得投递，且原因为 formation_stagger。
+        [Fact]
+        public void DeliveryDefersWhileFormationStaggerIsOpen()
+        {
+            var f = Facts(20.0);
+            f.AssignedAt = 10.0;
+            f.LastWriteAt = 19.0;
+            string why;
+            Assert.Equal(TaskDelivery.Verdict.Deferred, TaskDelivery.Decide(f, out why));
+            Assert.Equal("formation_stagger", why);
+        }
+
+        // 连续 tick 不得重复投递：已投递的任务直接判 AlreadySubmitted，不再次 arm。
+        [Fact]
+        public void RepeatedTicksDoNotResubmitAnAlreadySubmittedTask()
+        {
+            var f = Facts(20.0);
+            f.Submitted = true;
+            string why;
+            Assert.Equal(TaskDelivery.Verdict.AlreadySubmitted, TaskDelivery.Decide(f, out why));
+            // 重复判定不改变原因，也不产生第二套取值。
+            Assert.Equal(TaskDelivery.Verdict.AlreadySubmitted, TaskDelivery.Decide(f, out why));
+            Assert.Equal("", why);
+        }
+
+        // 退出动作不受首令延迟与发令间隔约束：它只受自己的安全时限约束。
+        [Fact]
+        public void ExitTaskIsQueuedWithoutTimingGates()
+        {
+            var f = Facts(10.1);
+            f.AssignedAt = 10.0;
+            f.LastWriteAt = 10.0;
+            f.ExitTask = true;
+            string why;
+            Assert.Equal(TaskDelivery.Verdict.Queue, TaskDelivery.Decide(f, out why));
+        }
+
+        // 已写出或已获选的任务不再进入投递：重复投递只会在写令路径被拒。
+        [Fact]
+        public void WrittenOrSelectedTasksAreNotDeliveredAgain()
+        {
+            string why;
+            var written = Facts(20.0);
+            written.Written = true;
+            Assert.Equal(TaskDelivery.Verdict.AlreadyWritten, TaskDelivery.Decide(written, out why));
+
+            var selected = Facts(20.0);
+            selected.Selected = true;
+            Assert.Equal(TaskDelivery.Verdict.AlreadySelected, TaskDelivery.Decide(selected, out why));
+        }
+
+        // 获选后的执行路径复用同一组时序门：此时任务必然已投递，
+        // 但 TimingDeferral 不因「已投递」放行，间隔与顺序仍然必须满足。
+        [Fact]
+        public void TimingDeferralStillAppliesAfterSelection()
+        {
+            var f = Facts(20.0);
+            f.AssignedAt = 10.0;
+            f.Submitted = true;
+            f.Selected = true;
+            f.LastWriteAt = 19.0;
+            Assert.Equal("formation_stagger", TaskDelivery.TimingDeferral(f));
+
+            f.LastWriteAt = 17.0;
+            Assert.Equal("", TaskDelivery.TimingDeferral(f));
+        }
+
+        // 普通任务不属于当前开放计划时不得进入投递：取数结果 HasPlan=false 是身份门，
+        // 不能让已关闭、被替换或无当前计划的普通任务反而绕过时序门直接排队（派单 §3.1）。
+        [Fact]
+        public void TaskWithoutCurrentPlanIsNotQueued()
+        {
+            var f = Facts(20.0);
+            f.AssignedAt = 10.0;
+            f.LastWriteAt = 17.0;
+            f.HasPlan = false;
+            string why;
+            Assert.Equal(TaskDelivery.Verdict.Deferred, TaskDelivery.Decide(f, out why));
+            Assert.Equal("not_in_current_plan", why);
+        }
+
+        // 身份门与三条时序门是不同取值：去重日志必须能区分它们，不能都当同一个等待原因。
+        [Fact]
+        public void PlanIdentityGateIsDistinctFromTimingGates()
+        {
+            var f = Facts(20.0);
+            f.AssignedAt = 10.0;
+            f.LastWriteAt = 17.0;
+            Assert.Equal("", TaskDelivery.TimingDeferral(f));
+
+            f.HasPlan = false;
+            Assert.Equal("not_in_current_plan", TaskDelivery.TimingDeferral(f));
+
+            f.HasPlan = true;
+            f.AssignedAt = 19.0;
+            Assert.Equal("first_command_delay", TaskDelivery.TimingDeferral(f));
+        }
+
+        // 退出动作属于已关闭的旧计划，必然处于 HasPlan=false：
+        // 身份门不得拦下它，安全退出的时限约束仍然独立成立。
+        [Fact]
+        public void ExitTaskIsQueuedEvenWithoutCurrentPlan()
+        {
+            var f = Facts(20.0);
+            f.HasPlan = false;
+            f.ExitTask = true;
+            string why;
+            Assert.Equal(TaskDelivery.Verdict.Queue, TaskDelivery.Decide(f, out why));
+            Assert.Equal("", TaskDelivery.TimingDeferral(f));
+        }
     }
 }

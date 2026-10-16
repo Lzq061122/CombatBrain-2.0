@@ -145,6 +145,7 @@ namespace CombatBrain2.Tests
                 // 命令已写入并生效、有效目标仍在到位区内：释放条件的前置部分。
                 WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
             };
+            guard.SetCanonicalTarget(plan.Geometry.GuardX, plan.Geometry.GuardY);
             guard.SetTarget(0.0, 0.0, plan.Geometry.GuardX, plan.Geometry.GuardY);
             guard.SetOrderTarget(plan.Geometry.GuardX, plan.Geometry.GuardY);
             var support = new FormationTask
@@ -156,6 +157,7 @@ namespace CombatBrain2.Tests
                 DependsOnTaskId = main.TaskId, SupportsTaskId = main.TaskId,
                 WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
             };
+            support.SetCanonicalTarget(plan.Geometry.SupportX, plan.Geometry.SupportY);
             support.SetTarget(0.0, 0.0, plan.Geometry.SupportX, plan.Geometry.SupportY);
             support.SetOrderTarget(plan.Geometry.SupportX, plan.Geometry.SupportY);
             plan.Tasks.Add(main);
@@ -194,6 +196,7 @@ namespace CombatBrain2.Tests
                 TaskId = "t2", PlanId = plan.PlanId, Role = FormationRole.Guard, Kind = TaskKind.Reposition,
                 Revision = plan.Revision, WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
             };
+            guard.SetCanonicalTarget(g0.GuardX, g0.GuardY);
             guard.SetTarget(0.0, 0.0, g0.GuardX, g0.GuardY);
             guard.SetOrderTarget(g0.GuardX, g0.GuardY);
             var support = new FormationTask
@@ -201,6 +204,7 @@ namespace CombatBrain2.Tests
                 TaskId = "t3", PlanId = plan.PlanId, Role = FormationRole.Support, Kind = TaskKind.Reposition,
                 Revision = plan.Revision, WrittenAt = 11.0, Feedback = TaskFeedbackState.Effective,
             };
+            support.SetCanonicalTarget(g0.SupportX, g0.SupportY);
             support.SetTarget(0.0, 0.0, g0.SupportX, g0.SupportY);
             support.SetOrderTarget(g0.SupportX, g0.SupportY);
             plan.Tasks.Add(main);
@@ -259,9 +263,11 @@ namespace CombatBrain2.Tests
             s.Note(100.0, true);
             s.Note(101.2, true);
 
-            // 前置：请求点与实际读回点一致时释放。
+            // 前置：战术目标仍属当前职责点、请求点与实际读回点一致时释放。
+            guard.SetCanonicalTarget(g0.GuardX, g0.GuardY);
             guard.SetTarget(0.0, 0.0, g0.GuardX, g0.GuardY);
             guard.SetOrderTarget(g0.GuardX, g0.GuardY);
+            support.SetCanonicalTarget(g0.SupportX, g0.SupportY);
             support.SetTarget(0.0, 0.0, g0.SupportX, g0.SupportY);
             support.SetOrderTarget(g0.SupportX, g0.SupportY);
             Assert.True(DependencyReadiness.MainAdvanceAllowed(plan, guard, support, g, s));

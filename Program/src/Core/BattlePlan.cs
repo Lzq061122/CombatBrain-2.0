@@ -123,23 +123,38 @@ namespace CombatBrain2.Core
 
         internal double OriginX;
         internal double OriginY;
+
+        // 两个距离基准分开表达（派单 §2.2 第 1 条）：
+        //   CanonicalX/Y —— 战术目标 T，语义是「希望到达的质心位置」；
+        //   RequestedX/Y —— 本次实际写给引擎的锚点目标，由 T 按写前读数换算得到。
+        // 二者是同一世界坐标里的不同参考点，任何判据、日志与复算都不得把两者混作距离。
         internal double RequestedX;
         internal double RequestedY;
         internal bool HasPosition;
         internal bool ReachedTargetPoint;
 
-        // 位移基线：实际写令那一刻的位置。计划创建到发令之间的原生移动
-        // 不计入本命令效果（P1-CODEX-REVERIFY §3.2）。
+        // 位移基线：实际写令那一刻的进度起点。锚点语义任务用当时的编队锚点；
+        // 质心语义任务（HasCanonicalTarget）用当时同批读数的有效成员质心。
+        // 计划创建到发令之间的原生移动不计入本命令效果（P1-CODEX-REVERIFY §3.2）。
         internal double BaselineX;
         internal double BaselineY;
         internal double DistanceToTargetAtWrite = -1.0;
+
+        // 写令边界换算（派单 §2.1 已裁定）：把战术目标 T 换算成本次写给引擎的锚点目标。
+        // A=写前有效锚点，C=同对象同批读数质心，则 anchor = T + (A - C)。
+        // 反了会系统性把预期质心推到 2(C-A) 之外：A=100、C=110、T=150 必须得 140。
+        internal static double AnchoredRequest(double tactic, double anchor, double center)
+        {
+            return tactic + (anchor - center);
+        }
 
         // 实际命令目标点的读回值，取自原生 MovementOrder，不是请求值。
         internal bool HasOrderTarget;
         internal double OrderTargetX;
         internal double OrderTargetY;
 
-        // 计划几何给出的规范目标点（主力 M*、保护 G*、辅助 S*）。
+        // 战术目标点 T（主力 M*、保护 G*、辅助 S*；P3 撤回为质心向后 20 m 点）。
+        // 语义是「期望质心位置」，与 RequestedX/Y（写给引擎的锚点目标）分开。
         // 提案阶段任务还没写令，RequestedX/Y 仍是空值；首次竞争的
         //「距规范目标点的误差」必须取这个点，否则该规则在首次裁决时失效（派单 §5 第 3 条）。
         internal bool HasCanonicalTarget;

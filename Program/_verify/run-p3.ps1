@@ -115,6 +115,64 @@ function Report-NewCrashes {
     }
 }
 
+function Note-Others([string]$msg) { Write-Host "NOTE: $msg" }
+
+# End-state read-back demanded by the dispatch: no residual process, lock released, P1/P2/P3
+# all closed, both probes empty, safely_exited=1. Read, not assumed - a cleanup step that
+# reported success must still be corroborated by the actual files and process table.
+function Assert-CleanEndState {
+    $ownLeft = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
+        Where-Object { -not $_.HasExited -and ($script:OwnGamePids -contains $_.Id) })
+    if ($ownLeft.Count -gt 0) { $script:CleanupFailures += "end-state: own Bannerlord still running: $(($ownLeft | ForEach-Object { $_.Id }) -join ',')" }
+
+    $helperLeft = 0
+    if ($script:OwnGabsPid -gt 0) {
+        $helperLeft = @(Get-Process -Id $script:OwnGabsPid -ErrorAction SilentlyContinue).Count
+    }
+    if ($helperLeft -gt 0) { $script:CleanupFailures += "end-state: mcp helper still running pid=$($script:OwnGabsPid)" }
+
+    $opts = [ordered]@{}
+    foreach ($pair in @(@('p1', $p1Sentinel), @('p2', $p2Sentinel), @('p3', $p3Sentinel))) {
+        $v = if (Test-Path -LiteralPath $pair[1]) { (Get-Content -LiteralPath $pair[1] -Raw -ErrorAction SilentlyContinue) } else { $null }
+        $opts[$pair[0]] = if ($null -eq $v) { '<absent>' } else { $v.Trim() }
+        if ($opts[$pair[0]] -ne 'enabled=0') { $script:CleanupFailures += "end-state: $($pair[0]) sentinel is '$($opts[$pair[0]])', expected enabled=0" }
+    }
+    $probes = [ordered]@{}
+    foreach ($pair in @(@('eligibility', $probeSentinel), @('p2_eligibility', $p2ProbeSentinel))) {
+        $v = if (Test-Path -LiteralPath $pair[1]) { (Get-Content -LiteralPath $pair[1] -Raw -ErrorAction SilentlyContinue) } else { $null }
+        $probes[$pair[0]] = if ($null -eq $v) { '<absent>' } else { $v.Trim() }
+        if ($probes[$pair[0]] -ne '') { $script:CleanupFailures += "end-state: $($pair[0]) probe is not empty: '$($probes[$pair[0]])'" }
+    }
+
+    $safelyExited = '<unreadable>'
+    if (Test-Path -LiteralPath $engineConfig) {
+        $cfg = [System.IO.File]::ReadAllText($engineConfig)
+        $m = [regex]::Match($cfg, 'safely_exited\s*=\s*(\d+)')
+        if ($m.Success) { $safelyExited = $m.Groups[1].Value }
+    }
+    if ($safelyExited -ne '1') { $script:CleanupFailures += "end-state: safely_exited=$safelyExited, expected 1" }
+
+    # The coordination lock is held by the exclusive wrapper, not by this script; report the
+    # file's current content instead of claiming anything about acquisition.
+    $lockPath = 'E:\MBmod\BattleObservation-V1\coordination\shared-game-session.lock'
+    $lockText = if (Test-Path -LiteralPath $lockPath) { ([System.IO.File]::ReadAllBytes($lockPath) | ForEach-Object { $_.ToString('x2') }) -join '' } else { '<absent>' }
+
+    $rec = [ordered]@{
+        own_game_pids        = $script:OwnGamePids
+        own_gabs_pid         = $script:OwnGabsPid
+        residual_own_pids    = @($ownLeft | ForEach-Object { $_.Id })
+        helper_residual      = $helperLeft
+        options              = $opts
+        probes               = $probes
+        safely_exited        = $safelyExited
+        lock_file_sha_hex    = if ($lockText.Length -gt 64) { '<file present>' } else { $lockText }
+        lock_file_present    = (Test-Path -LiteralPath $lockPath)
+        cleanup_failures     = $script:CleanupFailures
+    }
+    [System.IO.File]::WriteAllText((Join-Path $OutDir 'end-state.json'), ($rec | ConvertTo-Json -Depth 6 -Compress))
+    Write-Host "end-state: p1=$($opts['p1']) p2=$($opts['p2']) p3=$($opts['p3']) probes_empty=$(($probes.Values | Where-Object { $_ -eq '' }).Count -eq 2) safely_exited=$safelyExited residual_own=$($rec.residual_own_pids.Count) helper_residual=$helperLeft"
+}
+
 # Dispatch 7 item 8: the run must end with the P1/P2/P3 options CLOSED and both probes EMPTY.
 # Restoring whatever happened to be there before would leave an option enabled after a crashed
 # earlier run, so the pre-run state is recorded as evidence and the closed state is written
@@ -371,14 +429,40 @@ if (Test-Path $deployDll) {
 # ---------- launch ----------
 Write-Host "=== launch ==="
 $cfgDir = Join-Path $here 'gabs-config'
-$gabsPid = Open-McpHttp -ConfigDir $cfgDir -ListenPort $McpPort
-Write-Host "gabs_pid: $gabsPid"
+
+# Resource bookkeeping, so teardown can end exactly what this run acquired and nothing else.
+# The helper must be opened INSIDE the try: it starts gabs before probing the endpoint and
+# throws when the endpoint never becomes ready, and with the call outside the try that throw
+# left the acquired helper process running with no cleanup.
+$script:OwnGabsPid = 0
+$script:OwnGamePids = @()
+$script:McpOpened = $false
+$script:GameStarted = $false
+$script:SessionConnected = $false
 
 try {
+    $script:OwnGabsPid = Open-McpHttp -ConfigDir $cfgDir -ListenPort $McpPort
+    $script:McpOpened = $true
+    Write-Host "gabs_pid: $script:OwnGabsPid"
+
     Write-Sentinels
-    $r = Invoke-McpHttp -Tool 'games_start' -Arguments @{ gameId = $GameId; timeout = 150 } -TimeoutSec $LaunchWaitSec
-    Write-Host "games_start: $r"
-    if ($r -match 'already_running') { Fail 'games_start reported already_running'; throw 'already_running' }
+    # The launch call can produce the game process and still fail afterwards (endpoint timeout,
+    # refused connect), so the owned-PID set is computed by diffing around the call in a finally:
+    # a snapshot taken only on the success path would leave that process unowned and never stopped.
+    $beforePids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
+        Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id })
+    try {
+        $r = Invoke-McpHttp -Tool 'games_start' -Arguments @{ gameId = $GameId; timeout = 150 } -TimeoutSec $LaunchWaitSec
+        Write-Host "games_start: $r"
+        if ($r -match 'already_running') { Fail 'games_start reported already_running'; throw 'already_running' }
+    }
+    finally {
+        $script:OwnGamePids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
+            Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id } |
+            Where-Object { $beforePids -notcontains $_ })
+        if ($script:OwnGamePids.Count -gt 0) { $script:GameStarted = $true }
+    }
+    Write-Host "own game pids: $(if ($script:OwnGamePids.Count -gt 0) { $script:OwnGamePids -join ',' } else { '<none>' })"
 
     $deadline = (Get-Date).AddSeconds($LaunchWaitSec)
     $connected = $false
@@ -388,17 +472,27 @@ try {
             Fail 'Bannerlord exited during launch'; throw 'died_during_launch'
         }
         $attempt++
+        $forceTook = ''
         try {
-            $r = Invoke-McpHttp -Tool 'games_connect' -Arguments @{ gameId = $GameId; timeout = 40; forceTakeover = $true } -TimeoutSec 90
+            # forceTakeover stays false: if another group already owns the game session, this run
+            # must be refused rather than seizing their connection without a hand-over.
+            $r = Invoke-McpHttp -Tool 'games_connect' -Arguments @{ gameId = $GameId; timeout = 40; forceTakeover = $false } -TimeoutSec 90
             $short = if ($r.Length -gt 300) { $r.Substring(0, 300) } else { $r }
             Write-Host "connect attempt $attempt : $short"
-            if ($r -match 'Discovered|Re-synced|Already connected|Force-took') {
+            if ($r -match 'Discovered|Re-synced|Already connected') {
                 $connected = $true
+                $script:SessionConnected = $true
                 Write-Host "games_connect ok"
                 break
             }
+            if ($r -match 'Force-took') { $forceTook = $short }
         } catch {
             Write-Host "connect attempt $attempt threw: $_"
+        }
+        # Checked outside the try so the refusal is not swallowed by the retry handler above.
+        if ($forceTook.Length -gt 0) {
+            Fail "games_connect force-took a session this run did not own: $forceTook"
+            throw 'force_takeover_refused'
         }
         Start-Sleep -Seconds 10
     }
@@ -633,9 +727,13 @@ catch {
     Report-NewCrashes
 }
 finally {
-    try {
     Write-Host "=== teardown ==="
-    try { Invoke-Tool 'cbath/end_mission' 40 | Out-Null; Write-Host "end_mission sent" } catch { Write-Host "end_mission failed: $_" }
+    $script:CleanupFailures = @()
+    # Every teardown step is guarded separately: a cleanup step that throws must be recorded as
+    # its own failure instead of masking the run's real result, and later steps must still run.
+    try { if ($script:McpOpened) { Invoke-Tool 'cbath/end_mission' 40 | Out-Null; Write-Host "end_mission sent" } else { Write-Host "end_mission skipped: helper was never opened" } }
+    catch { Write-Host "end_mission failed: $_"; $script:CleanupFailures += "end_mission: $_" }
+    if ($script:McpOpened) {
     Start-Sleep -Seconds 5
 
     # CBATH's RunRecord is only complete in OnEndMission, so the full 1 Hz independent
@@ -650,15 +748,25 @@ finally {
         [System.IO.File]::WriteAllText((Join-Path $OutDir 'p2-evidence-end.json'), $r)
         Write-Host "p2-evidence-end captured"
     } catch { Write-Host "p2-evidence-end capture failed: $_" }
+    }
 
     if (Test-Path $cb2Log) {
         Copy-Item $cb2Log (Join-Path $OutDir 'CombatBrain2.log') -Force
         Write-Host "saved CombatBrain2.log ($((Get-Item $cb2Log).Length) bytes)"
-    } else {
+    } elseif ($script:GameStarted) {
         Fail 'CombatBrain2.log was never created - module did not load'
     }
 
-    try { Invoke-McpHttp -Tool 'games_stop' -Arguments @{ gameId = $GameId } -TimeoutSec 180 | Out-Null; Write-Host "games_stop sent" } catch { Write-Host "games_stop failed: $_" }
+    try {
+        if ($script:McpOpened -and $script:SessionConnected) {
+            Invoke-McpHttp -Tool 'games_stop' -Arguments @{ gameId = $GameId } -TimeoutSec 180 | Out-Null
+            Write-Host "games_stop sent"
+        } elseif ($script:GameStarted) {
+            Write-Host "games_stop skipped: session was never connected by this run"
+        } else {
+            Write-Host "games_stop skipped: this run never started a game"
+        }
+    } catch { Write-Host "games_stop failed: $_"; $script:CleanupFailures += "games_stop: $_" }
 
     $deadline = (Get-Date).AddSeconds(30)
     while ((Get-Date) -lt $deadline) {
@@ -666,21 +774,34 @@ finally {
         if ($a.Count -eq 0) { break }
         Start-Sleep -Seconds 2
     }
-    $remain = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue | Where-Object { -not $_.HasExited })
+    # Only the PIDs this run launched may be stopped. Stopping every process that happens to
+    # share the name would kill another group's session and destroy evidence this run does not own.
+    $remain = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
+        Where-Object { -not $_.HasExited -and ($script:OwnGamePids -contains $_.Id) })
     if ($remain.Count -gt 0) {
-        Write-Host "WARN: Bannerlord still alive, killing pid $(($remain | ForEach-Object { $_.Id }) -join ',')"
+        Write-Host "WARN: own Bannerlord still alive, killing pid $(($remain | ForEach-Object { $_.Id }) -join ',')"
         $remain | Stop-Process -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 3
     }
-    $remain = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue | Where-Object { -not $_.HasExited })
-    if ($remain.Count -gt 0) { Fail "residual Bannerlord process: $(($remain | ForEach-Object { $_.Id }) -join ',')" }
-    else { Write-Host "no residual Bannerlord process" }
+    $remain = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
+        Where-Object { -not $_.HasExited -and ($script:OwnGamePids -contains $_.Id) })
+    if ($remain.Count -gt 0) { $script:CleanupFailures += "residual own Bannerlord process: $(($remain | ForEach-Object { $_.Id }) -join ',')" }
 
-    Close-McpHttp
+    $others = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
+        Where-Object { -not $_.HasExited -and ($script:OwnGamePids -notcontains $_.Id) })
+    if ($others.Count -gt 0) {
+        Note-Others "Bannerlord processes not owned by this run were left alone: $(($others | ForEach-Object { $_.Id }) -join ',')"
+    }
+
+    # The helper starts gabs before it probes the endpoint, so a failed handshake still leaves an
+    # acquired process behind. $script:GabsProc is set by the dot-sourced helper, so it is the
+    # reliable "was a helper acquired" flag; $McpOpened only records a working endpoint.
+    try { if ($script:McpOpened -or $null -ne $script:GabsProc) { Close-McpHttp; Write-Host "mcp helper closed" } }
+    catch { Write-Host "Close-McpHttp failed: $_"; $script:CleanupFailures += "Close-McpHttp: $_" }
 
     if (Test-Path $cb2Log) { Copy-Item $cb2Log (Join-Path $OutDir 'CombatBrain2.log') -Force }
 
-    Report-NewCrashes
+    try { Report-NewCrashes } catch { Write-Host "crash report failed: $_"; $script:CleanupFailures += "crash report: $_" }
 
     if (Test-Path $cbathOut) {
         $dst = Join-Path $OutDir 'CBATH'
@@ -688,9 +809,15 @@ finally {
         Copy-Item (Join-Path $cbathOut '*') $dst -Recurse -Force -ErrorAction SilentlyContinue
         Write-Host "saved CBATH outputs"
     }
-    } finally {
-        Restore-Sentinels
-    }
+
+    # Close the shared switches first, then read the end state back: the read-back must see what
+    # the run actually leaves behind, so it cannot run before the restore.
+    try { Restore-Sentinels } catch { Write-Host "sentinel restore failed: $_"; $script:CleanupFailures += "sentinel restore: $_" }
+
+    # End-state read-back, recorded as evidence rather than assumed.
+    try { Assert-CleanEndState } catch { Write-Host "end-state read-back failed: $_"; $script:CleanupFailures += "end-state read-back: $_" }
+
+    foreach ($cf in $script:CleanupFailures) { Fail "cleanup: $cf" }
 }
 
 $reqRec = [ordered]@{

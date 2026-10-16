@@ -190,6 +190,7 @@ $behaviorDisarmed = @()
 $selectionReject = @()
 $evalTicks = @()
 $reassignments = @()
+$assignPublished = @()
 
 foreach ($l in $lines) {
     if ($l.IndexOf('[CB2]', [System.StringComparison]::Ordinal) -lt 0) { continue }
@@ -213,6 +214,7 @@ foreach ($l in $lines) {
     if ($l -match '\[REAL_SELECTION_NOT_SUBMITTED\]') { $selectionReject += (Parse-Event $l 'REAL_SELECTION_NOT_SUBMITTED'); continue }
     if ($l -match '\[EVAL_TICK\]') { $evalTicks += (Parse-Event $l 'EVAL_TICK'); continue }
     if ($l -match '\[COORDINATION_REASSIGNED\]') { $reassignments += (Parse-Event $l 'COORDINATION_REASSIGNED'); continue }
+    if ($l -match '\[ASSIGNMENT_PUBLISHED\]') { $assignPublished += (Parse-Event $l 'ASSIGNMENT_PUBLISHED'); continue }
 }
 
 $gates = @{}
@@ -224,41 +226,96 @@ function Gate-Verdict([string]$name) {
     return 'unverified'
 }
 
-# Scene fingerprint for gate 3. Read from the run-time evidence, not the requested config:
-# the requested config says what the harness asked for, while the scene says what the battle
-# actually looked like. Deployment is summarised as the initial per-side member centroid, so
-# two arms only count as equivalent when they fought on the same ground from the same start.
-function Get-SceneFingerprint([string]$dir) {
-    $files = @(Get-ChildItem -LiteralPath $dir -Filter 'p2-evidence-*.json' -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -match '^p2-evidence-\d+\.json$' } | Sort-Object Name)
-    if ($files.Count -eq 0) { return $null }
-    $inner = $null
-    foreach ($file in $files) {
-        $raw = Read-Text $file.FullName
-        if (-not $raw) { continue }
-        try { $o = $raw | ConvertFrom-Json } catch { continue }
-        if ($null -eq $o) { continue }
-        $text = $null
-        try { $text = $o.result.content[0].text } catch { $text = $null }
-        if (-not $text) { continue }
-        try { $cand = $text | ConvertFrom-Json } catch { continue }
-        if ($null -eq $cand -or $null -eq $cand.teams) { continue }
-        $inner = $cand
-        break
+# Scene fingerprint for gate 3, aligned to the arm's own freeze moment (t0).
+# Source is the CBATH timeline rather than the mod log: it is stamped with mission time and is the
+# only artefact that carries per-formation facing, which the contract names explicitly. The sample
+# is chosen by nearest mission time to t0 - never by file-name order, which is what made the old
+# implementation read an unrelated moment of the run.
+# The contract asks for actual deployment, relative distance, facing and terrain relations, and
+# says outright that equal coordinate strings are not the test. So the signature is
+# rigid-invariant: map, army sizes, per-class composition, unit-weighted deployment centroids,
+# the own-to-enemy relative distance, and the bearing of that vector in the own formation's frame.
+# Terrain depth (height/slope) is not carried by any artefact and is recorded as absent, so the
+# limit of this evidence stays visible instead of being read as a pass.
+function Get-SceneFingerprint([string]$dir, [double]$t0) {
+    $raw = Read-Text (Join-Path $dir 'cbath-timeline.json')
+    if (-not $raw) { return $null }
+    try { $o = $raw | ConvertFrom-Json } catch { return $null }
+    if ($null -eq $o) { return $null }
+    $text = $null
+    try { $text = $o.result.content[0].text } catch { $text = $null }
+    if (-not $text) { return $null }
+    try { $tl = $text | ConvertFrom-Json } catch { return $null }
+    if ($null -eq $tl -or $null -eq $tl.samples) { return $null }
+    $best = $null
+    $bestLabel = ''
+    $bestDelta = [double]::MaxValue
+    $i = 0
+    foreach ($s in $tl.samples) {
+        $i++
+        $mt = Num ([string]$s.t)
+        if ([double]::IsNaN($mt)) { continue }
+        $delta = [math]::Abs($mt - $t0)
+        if ($delta -lt $bestDelta) {
+            $bestDelta = $delta; $best = $s
+            $bestLabel = "sample[$i]@t=$($mt.ToString([System.Globalization.CultureInfo]::InvariantCulture))"
+        }
     }
-    if ($null -eq $inner) { return $null }
-    $fp = [ordered]@{ map = [string]$inner.scene; own_size = 0; enemy_size = 0; own_center = ''; enemy_center = '' }
-    foreach ($t in $inner.teams) {
+    if ($null -eq $best) { return $null }
+    $fp = [ordered]@{ map = [string]$tl.mission_name; own_size = 0; enemy_size = 0
+                      own_comp = ''; enemy_comp = ''
+                      own_center = ''; enemy_center = ''; relative_distance = ''
+                      own_facing = ''; bearing = ''; terrain = 'absent_depth_data'
+                      sample = $bestLabel; delta = $bestDelta }
+    $ocomp = @{}
+    $ecomp = @{}
+    $ownX = 0.0; $ownY = 0.0; $ownN = 0
+    $foeX = 0.0; $foeY = 0.0; $foeN = 0
+    $fxs = 0.0; $fys = 0.0; $fN = 0
+    foreach ($t in $best.teams) {
+        $isOwn = [bool]$t.is_player_team
         $units = 0
-        foreach ($fm in $t.formations) { $units += [int]$fm.active_member_count }
-        if ($t.is_player_team) { $fp['own_size'] = $units } else { $fp['enemy_size'] = $units }
+        foreach ($fm in $t.formations) {
+            $cnt = [int]$fm.unit_count
+            $units += $cnt
+            $cls = [string]$fm.formation_class
+            $px = [double]$fm.position.x
+            $py = [double]$fm.position.y
+            if ($isOwn) {
+                $ocomp[$cls] = ([int]$ocomp[$cls]) + $cnt
+                $ownX += $px * $cnt; $ownY += $py * $cnt; $ownN += $cnt
+                $fxs += [double]$fm.facing.x * $cnt; $fys += [double]$fm.facing.y * $cnt; $fN += $cnt
+            } else {
+                $ecomp[$cls] = ([int]$ecomp[$cls]) + $cnt
+                $foeX += $px * $cnt; $foeY += $py * $cnt; $foeN += $cnt
+            }
+        }
+        if ($isOwn) { $fp['own_size'] = $units } else { $fp['enemy_size'] = $units }
     }
-    # Centroid over every member position the sample carries: this is the actual deployment,
-    # and it stays comparable between arms even when formation counts differ.
-    $own = @(Get-SampleCentroid $inner $true)
-    $foe = @(Get-SampleCentroid $inner $false)
-    $fp['own_center'] = "$($own[0]),$($own[1])"
-    $fp['enemy_center'] = "$($foe[0]),$($foe[1])"
+    $fp['own_comp'] = (($ocomp.GetEnumerator() | Sort-Object Name |
+        ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ',')
+    $fp['enemy_comp'] = (($ecomp.GetEnumerator() | Sort-Object Name |
+        ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ',')
+    if ($ownN -gt 0 -and $foeN -gt 0) {
+        $ocx = $ownX / $ownN; $ocy = $ownY / $ownN
+        $ecx = $foeX / $foeN; $ecy = $foeY / $foeN
+        $inv = [System.Globalization.CultureInfo]::InvariantCulture
+        $fp['own_center'] = "$([math]::Round($ocx, 1)),$([math]::Round($ocy, 1))"
+        $fp['enemy_center'] = "$([math]::Round($ecx, 1)),$([math]::Round($ecy, 1))"
+        $dxv = $ecx - $ocx; $dyv = $ecy - $ocy
+        $fp['relative_distance'] = ([math]::Round([math]::Sqrt($dxv * $dxv + $dyv * $dyv), 1)).ToString($inv)
+        if ($fN -gt 0) {
+            $len = [math]::Sqrt($fxs * $fxs + $fys * $fys)
+            if ($len -gt 0.0001) {
+                $ux = $fxs / $len; $uy = $fys / $len
+                $fp['own_facing'] = "$([math]::Round($ux, 3)),$([math]::Round($uy, 3))"
+                $cross = $ux * $dyv - $uy * $dxv
+                $dot = $ux * $dxv + $uy * $dyv
+                $deg = [math]::Atan2($cross, $dot) * 180.0 / [math]::PI
+                $fp['bearing'] = ([math]::Round($deg, 1)).ToString($inv)
+            }
+        }
+    }
     return $fp
 }
 
@@ -298,6 +355,49 @@ function Get-IndependentSamplesAfter([string]$dir, [double]$from) {
         if ($null -eq $inner) { continue }
         $mt = [double]$inner.mission_time
         if ($mt -ge $from) { $out += @{ mission_time = $mt; name = $file.Name } }
+    }
+    return $out
+}
+
+# Independent per-formation order readback inside a mission-time window. The sampler reports
+# movement_order / move_target straight from the engine, so it can contradict a stop the mod
+# recorded. Sample formation ids carry a different class suffix than the mod log
+# ("<hash>@Formation" vs "<hash>@<Class>"), so matching is on the hash part only.
+function Get-IndependentOrderFacts([string]$dir, [double]$from, [double]$to) {
+    $out = @()
+    $files = @(Get-ChildItem -LiteralPath $dir -Filter 'p2-evidence-*.json' -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^p2-evidence-\d+\.json$' } | Sort-Object Name)
+    foreach ($file in $files) {
+        $raw = Read-Text $file.FullName
+        if (-not $raw) { continue }
+        try { $o = $raw | ConvertFrom-Json } catch { continue }
+        if ($null -eq $o) { continue }
+        $text = $null
+        try { $text = $o.result.content[0].text } catch { $text = $null }
+        if (-not $text) { continue }
+        try { $inner = $text | ConvertFrom-Json } catch { continue }
+        if ($null -eq $inner -or $null -eq $inner.teams) { continue }
+        $mt = [double]$inner.mission_time
+        if ($mt -lt $from -or $mt -gt $to) { continue }
+        foreach ($team in $inner.teams) {
+            if ($null -eq $team.formations) { continue }
+            foreach ($fm in $team.formations) {
+                $id = [string]$fm.formation_identity
+                if ($id.Length -eq 0) { continue }
+                $hash = $id
+                $at = $id.IndexOf('@')
+                if ($at -ge 0) { $hash = $id.Substring(0, $at) }
+                $readable = $false
+                $tx = [double]::NaN
+                $ty = [double]::NaN
+                if ($null -ne $fm.move_target) {
+                    $readable = [bool]$fm.move_target.readable
+                    if ($readable) { $tx = [double]$fm.move_target.x; $ty = [double]$fm.move_target.y }
+                }
+                $out += @{ mission_time = $mt; obj = $hash; order = [string]$fm.movement_order
+                           readable = $readable; x = $tx; y = $ty }
+            }
+        }
     }
     return $out
 }
@@ -810,6 +910,40 @@ if ($frozen.Count -eq 0) {
         if ($supersededAssigned.Count -gt 0) {
             Note ("old plan " + $oldPlan + " objects handed over by an earlier reassignment (not required to stop)=" + ($supersededAssigned -join ','))
         }
+        # The required set is what the abandoned plan still owed when the feedback fired: its
+        # authoritative assignment at the latest revision published on or before the decision.
+        # TASK_CREATED alone cannot build that set - a role re-binding publishes an assignment for
+        # an object that never got its own TASK_CREATED row under this plan, and leaving it out
+        # lets a hand-over that skipped that object's exit read as a complete, timely stop.
+        $assignedAt = @($assignPublished | Where-Object {
+            [string]$_['plan'] -eq $oldPlan -and
+            (-not [double]::IsNaN((Num $_['at']))) -and (Num $_['at']) -le $invAt })
+        $oldAssignedObjs = @()
+        if ($assignedAt.Count -gt 0) {
+            $maxRev = -1
+            foreach ($a in $assignedAt) {
+                $r = Num $a['revision']
+                if ((-not [double]::IsNaN($r)) -and ([int]$r -gt $maxRev)) { $maxRev = [int]$r }
+            }
+            foreach ($a in $assignedAt) {
+                $r = Num $a['revision']
+                if ([double]::IsNaN($r) -or ([int]$r -ne $maxRev)) { continue }
+                $o = [string]$a['obj']
+                if ($o.Length -gt 0 -and $oldAssignedObjs -notcontains $o) { $oldAssignedObjs += $o }
+            }
+            Note ("old plan " + $oldPlan + " required objects from ASSIGNMENT_PUBLISHED revision=" + $maxRev + " published_rows=" + $assignedAt.Count + " objs=" + ($oldAssignedObjs -join ','))
+        } else {
+            # Older sessions predate ASSIGNMENT_PUBLISHED rows? Keep the TASK_CREATED view then,
+            # but say so: that view cannot see re-bound objects.
+            foreach ($c in $taskCreated) {
+                if ([string]$c['plan'] -ne $oldPlan) { continue }
+                $tid = [string]$c['task']
+                if ($tid.Length -gt 0 -and $replacedTasks.ContainsKey($tid)) { continue }
+                $o = [string]$c['obj']
+                if ($o.Length -gt 0 -and $oldAssignedObjs -notcontains $o) { $oldAssignedObjs += $o }
+            }
+            Note ("old plan " + $oldPlan + " has no ASSIGNMENT_PUBLISHED rows before the decision: required objects fall back to TASK_CREATED=" + ($oldAssignedObjs -join ','))
+        }
         Note ("old plan " + $oldPlan + " assigned objects=" + $oldAssignedObjs.Count + " exit_stop queued=" + $exitQueued.Count + " done=" + $exitDone.Count + " not_applied=" + $exitNotApplied.Count + " superseded=" + $exitSuperseded.Count)
         $stoppedObjs = @(); $failedObjs = @(); $unaccountedObjs = @()
         foreach ($o in $oldAssignedObjs) {
@@ -872,6 +1006,46 @@ if ($frozen.Count -eq 0) {
         }
         Check 'gate2_no_further_old_role_advance_writes' ($advanceAfter.Count -eq 0) "old_objects=$($oldAssignedObjs.Count) offending_writes_after_stop=$($advanceAfter.Count)"
 
+        # The mod's own "stop written" row is not proof the object actually stopped - the engine's
+        # order readback is, and only the independent sampler carries it. An object that the mod
+        # recorded as stopped must not still be executing the abandoned plan's own role-point
+        # advance. Compared against the old plan's requested targets and restricted to the window
+        # before a successor could legitimately publish (the <=1s exit budget): past that point
+        # the successor's own orders are in force and a move to the same coordinates would no
+        # longer be attributable to the old action.
+        $oldRolePoints = @{}
+        foreach ($w in $writes) {
+            if ([string]$w['plan'] -ne $oldPlan) { continue }
+            if ([string]$w['geometry'] -notlike 'move_to_role_point*') { continue }
+            $o = [string]$w['obj']
+            if ($o.Length -eq 0) { continue }
+            $req = [regex]::Match([string]$w['requested'], '^\(([-0-9.]+),([-0-9.]+)\)$')
+            if (-not $req.Success) { continue }
+            $oldRolePoints[$o] = @([double]$req.Groups[1].Value, [double]$req.Groups[2].Value)
+        }
+        $stillAdvancing = @()
+        if ($oldRolePoints.Count -gt 0) {
+            $facts = @(Get-IndependentOrderFacts $full $invAt ($invAt + 1.0))
+            foreach ($o in $oldAssignedObjs) {
+                if (-not $oldRolePoints.ContainsKey($o)) { continue }
+                $pt = $oldRolePoints[$o]
+                $hash = $o.Split('@')[0]
+                foreach ($fct in $facts) {
+                    if ([string]$fct.obj -ne $hash) { continue }
+                    if (-not $fct.readable) { continue }
+                    if ([double]::IsNaN($fct.x) -or [double]::IsNaN($fct.y)) { continue }
+                    if ((Close $fct.x $pt[0] 0.5) -and (Close $fct.y $pt[1] 0.5)) {
+                        $stillAdvancing += ($o + "@" + $fct.mission_time)
+                        break
+                    }
+                }
+            }
+        } else {
+            Note "gate2 independent order readback: old plan has no move_to_role_point writes, nothing to contradict"
+        }
+        Check 'gate2_stopped_objects_not_still_executing_old_order' ($stillAdvancing.Count -eq 0) `
+            ("required=$($oldAssignedObjs.Count) old_role_points=$($oldRolePoints.Count) still_on_old_order=" + $(if ($stillAdvancing.Count -eq 0) { '<none>' } else { $stillAdvancing -join ',' }))
+
         # The 8s post-conversion window must be observed at real evaluation points, not merely
         # counted off cadence ticks. The independent ~1Hz sampler is the evidence source here:
         # after the arm converts, the production feedback rows stop by design (the successor is
@@ -920,9 +1094,16 @@ if ($frozen.Count -eq 0) {
             $cLog = Read-Text (Join-Path $control 'CombatBrain2.log')
             $cFreeze = $false; $cReplan = $false; $cStop = $false
             $cFrozenCount = 0
+            $cT0 = [double]::NaN
             if ($cLog) {
                 foreach ($l in $cLog.Split("`n")) {
-                    if ($l -match '\[ACTION_FEEDBACK_FROZEN\]') { $cFrozenCount++ }
+                    if ($l -match '\[ACTION_FEEDBACK_FROZEN\]') {
+                        $cFrozenCount++
+                        if ([double]::IsNaN($cT0)) {
+                            $m = [regex]::Match($l, 't0=([-0-9.]+)')
+                            if ($m.Success) { $cT0 = Num $m.Groups[1].Value }
+                        }
+                    }
                     if ($l -match '\[ACTION_REPLAN\]') { $cReplan = $true }
                     if ($l -match '\[ACTION_FEEDBACK\].*decision=(StopLoss|Disengage|Reinforce)') { $cStop = $true }
                 }
@@ -947,23 +1128,55 @@ if ($frozen.Count -eq 0) {
                 $oppCtrl = [int]$ccfg.opponent_control
                 Check 'gate3_arms_differ_only_in_counter_action' ($armOk -and ($oppThis -ne $oppCtrl)) "counter_action this=$oppThis control=$oppCtrl other_fields_match=$armOk"
 
-                # Scene equivalence: the two arms must actually have run the same map and the
-                # same initial deployment, proven from the run-time evidence rather than the
-                # requested config. Compare the first frozen snapshot's scene fingerprint.
-                $thisScene = Get-SceneFingerprint $full
-                $ctrlScene = Get-SceneFingerprint $control
+                # Scene equivalence: the two arms must actually have run the same map with the same
+                # initial deployment, proven from the run-time evidence rather than the requested
+                # config. Each arm is sampled at its own freeze moment (t0).
+                # Discrete facts (map, army sizes, per-class composition) must match exactly, and a
+                # mismatch there is a real fail. Geometry is handled as the contract demands: an
+                # exact match proves equivalence on that axis, while a difference does NOT disprove
+                # it - so a differing deployment or bearing leaves the comparison unproven rather
+                # than failing it, and no tolerance is invented to force either verdict.
+                $thisScene = Get-SceneFingerprint $full $t0
+                $ctrlScene = Get-SceneFingerprint $control $cT0
+                $sceneGeomOk = $false
                 if (-not $thisScene -or -not $ctrlScene) {
                     $sceneOk = $false
                     $sceneDetail += "scene_fingerprint_unavailable this=$([bool]$thisScene) control=$([bool]$ctrlScene)"
                 } else {
-                    foreach ($k in 'map', 'own_size', 'enemy_size', 'own_center', 'enemy_center') {
+                    foreach ($k in 'map', 'own_size', 'enemy_size', 'own_comp', 'enemy_comp') {
                         if ("$($thisScene[$k])" -ne "$($ctrlScene[$k])") {
                             $sceneOk = $false
                             $sceneDetail += ("$k this=$($thisScene[$k]) control=$($ctrlScene[$k])")
                         }
                     }
+                    $geomDiff = @()
+                    foreach ($k in 'own_center', 'enemy_center', 'relative_distance', 'own_facing', 'bearing') {
+                        if ("$($thisScene[$k])" -ne "$($ctrlScene[$k])") {
+                            $geomDiff += ("$k this=$($thisScene[$k]) control=$($ctrlScene[$k])")
+                        }
+                    }
+                    $sceneGeomOk = ($geomDiff.Count -eq 0)
+                    Note ("gate3 scene this: map=$($thisScene['map']) sizes=$($thisScene['own_size'])/$($thisScene['enemy_size']) " +
+                        "comp=$($thisScene['own_comp'])|$($thisScene['enemy_comp']) center=$($thisScene['own_center'])->$($thisScene['enemy_center']) " +
+                        "rel=$($thisScene['relative_distance']) facing=$($thisScene['own_facing']) bearing=$($thisScene['bearing']) " +
+                        "$($thisScene['sample'])@delta=$([math]::Round($thisScene['delta'], 3))s terrain=$($thisScene['terrain'])")
+                    Note ("gate3 control scene this: map=$($ctrlScene['map']) sizes=$($ctrlScene['own_size'])/$($ctrlScene['enemy_size']) " +
+                        "comp=$($ctrlScene['own_comp'])|$($ctrlScene['enemy_comp']) center=$($ctrlScene['own_center'])->$($ctrlScene['enemy_center']) " +
+                        "rel=$($ctrlScene['relative_distance']) facing=$($ctrlScene['own_facing']) bearing=$($ctrlScene['bearing']) " +
+                        "$($ctrlScene['sample'])@delta=$([math]::Round($ctrlScene['delta'], 3))s terrain=$($ctrlScene['terrain'])")
+                    if (-not $sceneGeomOk) {
+                        Note ("gate3 scene geometry not equal, equivalence unproven (a differing position does not by itself disprove it): " +
+                            ($geomDiff -join '; '))
+                    }
+                    if ($thisScene['terrain'] -eq 'absent_depth_data') {
+                        Note "gate3 terrain relations: no artefact carries height/slope, so terrain equivalence is unproven rather than assumed"
+                    }
                 }
-                Check 'gate3_scene_equivalent' $sceneOk ("map/army/deployment compared: " + $(if ($sceneDetail.Count -eq 0) { 'identical' } else { $sceneDetail -join '; ' }))
+                # A discrete mismatch is a real contradiction inside the compared fields, so it fails.
+                # Geometry is different: unequal deployment does not disprove equivalence, and equal
+                # deployment does not prove it either, so it only decides whether equivalence is
+                # proven. Unproven keeps the gate unverified instead of inventing a tolerance.
+                Check 'gate3_scene_discrete_match' $sceneOk ("map/army/composition compared: " + $(if ($sceneDetail.Count -eq 0) { 'identical' } else { $sceneDetail -join '; ' }))
             } else {
                 Fail 'gate3 could not read requested-config.json for both arms'
                 $sceneOk = $false
@@ -981,6 +1194,11 @@ if ($frozen.Count -eq 0) {
                 $v = 'fail'
             } elseif (-not $sceneOk) {
                 Check 'gate3_control_arm_has_no_matching_decision' $true "control replan=$cReplan decision=$cStop freezes=$cFrozenCount"
+                $v = 'fail'
+            } elseif (-not $sceneGeomOk) {
+                # Scene equivalence is not proven, so the arms cannot be confirmed comparable.
+                # That is missing evidence, not a contradiction: unverified.
+                Check 'gate3_control_arm_has_no_matching_decision' $true "control replan=$cReplan decision=$cStop freezes=$cFrozenCount"
                 $v = 'unverified'
             } elseif (-not $thisArmDecided) {
                 Check 'gate3_control_arm_has_no_matching_decision' $true "control replan=$cReplan decision=$cStop freezes=$cFrozenCount"
@@ -992,9 +1210,9 @@ if ($frozen.Count -eq 0) {
                 $v = 'unverified'
             } else {
                 Check 'gate3_control_arm_has_no_matching_decision' $true "control replan=$cReplan decision=$cStop freezes=$cFrozenCount"
-                $v = if ($script:ChecksOk -and $armOk -and $sceneOk) { 'pass' } else { 'fail' }
+                $v = if ($script:ChecksOk -and $armOk -and $sceneOk -and $sceneGeomOk) { 'pass' } else { 'fail' }
             }
-            Set-Gate 'gate3_control' $v ("with_counter_action=" + $thisArmDecided + " control=" + $controlArmDecided + " fields_match=" + $armOk + " scene_equivalent=" + $sceneOk)
+            Set-Gate 'gate3_control' $v ("with_counter_action=" + $thisArmDecided + " control=" + $controlArmDecided + " fields_match=" + $armOk + " scene_discrete=" + $sceneOk + " scene_geometry=" + $sceneGeomOk)
         }
     }
 }

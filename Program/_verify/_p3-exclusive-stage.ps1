@@ -41,12 +41,19 @@ $stages = @(
 
 $completed = @()
 $acquiredGame = $false
+$gameStage = ''
 $failure = $null
 $failureStage = ''
 
 foreach ($stage in $stages) {
     Write-Host ""
     Write-Host "=== stage: $($stage.name) ==="
+    # Ownership of the game passes to this stage the moment it starts, not when it returns:
+    # a collect stage that acquires the helper, starts the game and then fails has still
+    # acquired the game, and its own end-state record is the authoritative account of what
+    # it released. Recording acquisition only on success would report "game acquired: False"
+    # for exactly the case this field exists to describe.
+    if ($stage.holds_game) { $gameStage = $stage.name }
     try {
         if ($stage.args.Count -gt 0) {
             # Splatting only works on a variable: @($stage.args) would build a one-element
@@ -73,7 +80,13 @@ foreach ($stage in $stages) {
 Write-Host ""
 Write-Host "=== stage record ==="
 Write-Host "completed:      $(if ($completed.Count -eq 0) { '<none>' } else { $completed -join ', ' })"
-Write-Host "game acquired:  $acquiredGame"
+# Attempting and acquiring are different facts and are reported as such: entering the collect
+# stage means this run took over the game lifecycle from that moment, while $acquiredGame only
+# means the stage returned successfully. A collect stage that acquired the helper, started the
+# game and then failed is an attempt with an unconfirmed result, and the collect stage's own
+# end-state record is the authoritative account of what it actually released.
+Write-Host "game stage attempted:  $(if ($gameStage.Length -eq 0) { '<none>' } else { $gameStage })"
+Write-Host "game stage returned ok: $acquiredGame"
 if ($failure) {
     Write-Host "failed stage:   $failureStage"
     Write-Host "failure:        $failure"

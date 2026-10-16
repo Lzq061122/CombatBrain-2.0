@@ -41,6 +41,10 @@ namespace CombatBrain2.Host
         private int _inputCount;
         private bool _loggedSelectionDetail;
         private int _otherSelectionCount;
+        // 投递延迟日志按「任务+原因」去重：投递改为逐 tick 后，同一等待原因
+        // 会在每帧重复出现，去重只压日志，不改变投递判定（派单 §3.1）。
+        private readonly Dictionary<string, string> _lastDelayReason =
+            new Dictionary<string, string>(StringComparer.Ordinal);
         private double _lastSnapshotLogAt = -1.0;
         private double _lastSnapshotDetailAt = -1.0;
         private double _lastCoordinationLogAt = -1.0;
@@ -1096,9 +1100,30 @@ namespace CombatBrain2.Host
 
             foreach (var task in _tasks.OpenTasks())
             {
-                if (task.WrittenAt >= 0.0) continue;
-                if (task.SelectedAt >= 0.0) continue;
-                if (task.SelectionDeadline() <= now && task.SubmittedAt >= 0.0) continue;
+                string defer;
+                var verdict = TaskDelivery.Decide(DeliveryFactsFor(task, now), out defer);
+                if (verdict == TaskDelivery.Verdict.AlreadyWritten) continue;
+                if (verdict == TaskDelivery.Verdict.AlreadySelected) continue;
+                if (verdict == TaskDelivery.Verdict.AlreadySubmitted) continue;
+                if (verdict == TaskDelivery.Verdict.Deferred)
+                {
+                    // 逐 tick 投递会让同一等待原因每帧出现：只在原因变化时打印一次。
+                    string prev;
+                    bool changed = !_lastDelayReason.TryGetValue(task.TaskId, out prev) ||
+                                   !string.Equals(prev, defer, StringComparison.Ordinal);
+                    _lastDelayReason[task.TaskId] = defer;
+                    if (changed)
+                    {
+                        Cb2Log.Line("WRITE_DELAYED",
+                            "task=" + task.TaskId +
+                            " plan=" + task.PlanId +
+                            " key=" + task.FormationKey +
+                            " reason=" + defer +
+                            " source=submit_pending" +
+                            " at=" + Cb2Log.F(now));
+                    }
+                    continue;
+                }
 
                 var f = FindByKey(mission, task.FormationKey);
                 if (f == null) continue;
@@ -1112,24 +1137,6 @@ namespace CombatBrain2.Host
                     InvalidatePlan(PlanInvalidReason.FormationEligibilityLost,
                         "task=" + task.TaskId + " reason=" + reason, now);
                     return;
-                }
-
-                // 延迟与顺序门必须在 arm 之前问：原生获选是一次性事件，
-                // 若先 arm 再在写令路径拒绝，该次获选即被消耗，不会再重来（脚本 §6.1）。
-                if (!BattlePlan.IsExitTask(task))
-                {
-                    string defer = WriteDelayBlock(task, now);
-                    if (defer != null)
-                    {
-                        Cb2Log.Line("WRITE_DELAYED",
-                            "task=" + task.TaskId +
-                            " plan=" + task.PlanId +
-                            " key=" + task.FormationKey +
-                            " reason=" + defer +
-                            " source=submit_pending" +
-                            " at=" + Cb2Log.F(now));
-                        continue;
-                    }
                 }
 
                 var behavior = ArmBehavior(mission, f, task);
@@ -1153,6 +1160,31 @@ namespace CombatBrain2.Host
                     " write_attempts_total=" + _gate.WriteAttempts +
                     " write_attempts_task=" + _tasks.WritesOf(task.TaskId));
             }
+        }
+
+        // 把任务台账的当前状态读成投递判定所需的纯事实。判定本身在 Core，
+        // 这里只负责取数，避免判定条件散落在 Host 又被复制一遍。
+        private DeliveryFacts DeliveryFactsFor(FormationTask task, double now)
+        {
+            var f = new DeliveryFacts
+            {
+                ExitTask = BattlePlan.IsExitTask(task),
+                Written = task.WrittenAt >= 0.0,
+                Selected = task.SelectedAt >= 0.0,
+                Submitted = task.SubmittedAt >= 0.0,
+                Now = now,
+                AssignedAt = task.RoleAssignedAt,
+                LastWriteAt = _lastWriteAt,
+            };
+
+            var plan = _plans.Current;
+            f.HasPlan = plan != null && string.Equals(plan.PlanId, task.PlanId, StringComparison.Ordinal);
+            if (f.HasPlan)
+            {
+                f.PlanCreatedAt = plan.CreatedAt;
+                f.PredecessorPending = PredecessorNotWritten(plan, task);
+            }
+            return f;
         }
 
         // 原生活动行为切换：只在这里确认"真实获选"，不在这里写令。
@@ -1677,13 +1709,37 @@ namespace CombatBrain2.Host
 
             // 位移基线在真实写令这一刻固定：计划创建到发令之间的原生移动
             // 不能计入本命令的效果（P1-CODEX-REVERIFY §3.2）。
+            // 派单 §2.2 第 3 条：参考点必须与判据同源——质心语义任务用同批读数的
+            // 有效成员质心作基线并对战术目标 T 算距离；锚点语义任务仍用编队锚点。
             try
             {
-                var posNow = f.CurrentPosition;
-                task.SetBaseline(posNow.x, posNow.y);
+                double baseX, baseY, goalX, goalY;
+                if (task.HasCanonicalTarget)
+                {
+                    var baseRec = _snapshot != null ? _snapshot.FindByKey(task.FormationKey) : null;
+                    if (baseRec == null || !baseRec.HasActiveCenter)
+                    {
+                        Cb2Log.Line("BASELINE_REFUSED",
+                            task.Describe() + " reason=center_unreadable at=" + Cb2Log.F(now));
+                        return;
+                    }
+                    baseX = baseRec.ActiveCenterX;
+                    baseY = baseRec.ActiveCenterY;
+                    goalX = task.CanonicalX;
+                    goalY = task.CanonicalY;
+                }
+                else
+                {
+                    var posNow = f.CurrentPosition;
+                    baseX = posNow.x;
+                    baseY = posNow.y;
+                    goalX = task.RequestedX;
+                    goalY = task.RequestedY;
+                }
+                task.SetBaseline(baseX, baseY);
                 if (task.HasPosition)
                 {
-                    task.DistanceToTargetAtWrite = task.BaselineDistanceTo(task.RequestedX, task.RequestedY);
+                    task.DistanceToTargetAtWrite = task.BaselineDistanceTo(goalX, goalY);
                 }
             }
             catch (Exception) { }
@@ -1799,37 +1855,20 @@ namespace CombatBrain2.Host
         }
 
         // 返回非 null 表示本条写令尚未到可发时刻，值为延后原因。
+        // 这里只问三条落地时序门（首令延迟/既定顺序/相邻间隔），不问投递状态：
+        // 获选后的执行路径也要复核同一组门，而那条路径上的任务必然已经投递过。
         private string WriteDelayBlock(FormationTask task, double now)
         {
+            if (BattlePlan.IsExitTask(task)) return null;
+
             var plan = _plans.Current;
             if (plan == null || !string.Equals(plan.PlanId, task.PlanId, StringComparison.Ordinal))
             {
                 return null;
             }
 
-            // 重分配的普通任务从新分配时刻重新计时（派单 §7 L155）：
-            // 沿用计划创建时刻会让替补刚上任就立刻可发令，跳过应有的 1.5 s。
-            double sinceAssign = task.RoleAssignedAt >= 0.0 ? now - task.RoleAssignedAt : now - plan.CreatedAt;
-            if (sinceAssign < TestParameters.FirstCommandDelaySeconds)
-            {
-                return "first_command_delay";
-            }
-
-            // 发令顺序遵守既定 Ordinal：前序普通任务尚未实际写令时，
-            // 后序必须等待（脚本 §4.5，Ordinal 1 = 远程，2 = 步兵）。
-            if (PredecessorNotWritten(plan, task))
-            {
-                return "predecessor_not_written";
-            }
-            if (_lastWriteAt >= 0.0)
-            {
-                double sinceWrite = now - _lastWriteAt;
-                if (sinceWrite < TestParameters.FormationStaggerSeconds)
-                {
-                    return "formation_stagger";
-                }
-            }
-            return null;
+            string defer = TaskDelivery.TimingDeferral(DeliveryFactsFor(task, now));
+            return defer.Length == 0 ? null : defer;
         }
 
         // 本计划的普通任务里，是否存在 Ordinal 小于本任务、且尚未实际写令的前序任务。
@@ -1899,6 +1938,8 @@ namespace CombatBrain2.Host
 
                     // P3 有限撤回：目标点在建计划时已按「背离敌队质心 20 m」算定，
                     // 不能落回 P1 的前进/后撤公式，否则实际写出的目标与撤回方向无关。
+                    // 撤回与协同同属质心语义任务：下发前同样按 §2.1 换算，
+                    // 质心读不到就不写令（派单 §2.2 第 6 条）。
                     if (task.Reason == ActionFeedback.ReasonWithdraw && task.HasCanonicalTarget)
                     {
                         double wx = task.CanonicalX;
@@ -1908,10 +1949,26 @@ namespace CombatBrain2.Host
                             note = "withdraw_target_non_finite";
                             return MovementOrder.MovementOrderNull;
                         }
-                        task.SetTarget(task.OriginX, task.OriginY, wx, wy);
-                        note = "withdraw_to_requested=(" + Cb2Log.F(wx) + "," + Cb2Log.F(wy) + ")";
+                        var wrec = _snapshot != null ? _snapshot.FindByKey(task.FormationKey) : null;
+                        if (wrec == null || !wrec.HasActiveCenter)
+                        {
+                            note = "withdraw_center_unreadable";
+                            return MovementOrder.MovementOrderNull;
+                        }
+                        double wRequestX = FormationTask.AnchoredRequest(wx, wrec.PosX, wrec.ActiveCenterX);
+                        double wRequestY = FormationTask.AnchoredRequest(wy, wrec.PosY, wrec.ActiveCenterY);
+                        if (!BattleState.IsFinite(wRequestX) || !BattleState.IsFinite(wRequestY))
+                        {
+                            note = "withdraw_request_non_finite";
+                            return MovementOrder.MovementOrderNull;
+                        }
+                        task.SetTarget(wrec.ActiveCenterX, wrec.ActiveCenterY, wRequestX, wRequestY);
+                        note = "withdraw_to_requested=(" + Cb2Log.F(wRequestX) + "," + Cb2Log.F(wRequestY) + ")" +
+                               " tactic=(" + Cb2Log.F(wx) + "," + Cb2Log.F(wy) + ")" +
+                               " center=(" + Cb2Log.F(wrec.ActiveCenterX) + "," +
+                               Cb2Log.F(wrec.ActiveCenterY) + ")";
                         return MovementOrder.MovementOrderMove(
-                            new WorldPosition(mission.Scene, new Vec3((float)wx, (float)wy, 0f)));
+                            new WorldPosition(mission.Scene, new Vec3((float)wRequestX, (float)wRequestY, 0f)));
                     }
 
                     var state = _state;
@@ -2023,15 +2080,43 @@ namespace CombatBrain2.Host
                 note = "no_current_record";
                 return MovementOrder.MovementOrderNull;
             }
-            double originX = record.HasActiveCenter ? record.ActiveCenterX : record.PosX;
-            double originY = record.HasActiveCenter ? record.ActiveCenterY : record.PosY;
-            task.SetTarget(originX, originY, targetX, targetY);
+            // 派单 §2.2 第 2 条：写前必须在同 Mission、同对象身份上同时读到有效锚点与质心。
+            // 质心读不到就不写令，不允许退用编队锚点冒充质心。
+            if (!record.HasActiveCenter ||
+                !BattleState.IsFinite(record.ActiveCenterX) || !BattleState.IsFinite(record.ActiveCenterY))
+            {
+                note = "center_unreadable";
+                return MovementOrder.MovementOrderNull;
+            }
+            if (!BattleState.IsFinite(record.PosX) || !BattleState.IsFinite(record.PosY))
+            {
+                note = "anchor_unreadable";
+                return MovementOrder.MovementOrderNull;
+            }
+
+            // 派单 §2.1 已裁定：anchor = T + (A - C)。
+            double anchorX = record.PosX;
+            double anchorY = record.PosY;
+            double centerX = record.ActiveCenterX;
+            double centerY = record.ActiveCenterY;
+            double requestX = FormationTask.AnchoredRequest(targetX, anchorX, centerX);
+            double requestY = FormationTask.AnchoredRequest(targetY, anchorY, centerY);
+            if (!BattleState.IsFinite(requestX) || !BattleState.IsFinite(requestY))
+            {
+                note = "non_finite_request";
+                return MovementOrder.MovementOrderNull;
+            }
+
+            task.SetCanonicalTarget(targetX, targetY);
+            task.SetTarget(centerX, centerY, requestX, requestY);
             note = "move_to_role_point role=" + task.Role +
-                   " requested=(" + Cb2Log.F(targetX) + "," + Cb2Log.F(targetY) + ")" +
-                   " origin=(" + Cb2Log.F(originX) + "," + Cb2Log.F(originY) + ")" +
+                   " tactic=(" + Cb2Log.F(targetX) + "," + Cb2Log.F(targetY) + ")" +
+                   " anchor=(" + Cb2Log.F(anchorX) + "," + Cb2Log.F(anchorY) + ")" +
+                   " center=(" + Cb2Log.F(centerX) + "," + Cb2Log.F(centerY) + ")" +
+                   " requested=(" + Cb2Log.F(requestX) + "," + Cb2Log.F(requestY) + ")" +
                    " revision=" + plan.Revision;
             return MovementOrder.MovementOrderMove(
-                new WorldPosition(mission.Scene, new Vec3((float)targetX, (float)targetY, 0f)));
+                new WorldPosition(mission.Scene, new Vec3((float)requestX, (float)requestY, 0f)));
         }
 
         private Formation PickEnemyFormation(Mission mission)
@@ -2826,6 +2911,7 @@ namespace CombatBrain2.Host
             _freshSnapshotCount = 0;
             _firstCommandSeen = false;
             _exitStopAttempts = 0;
+            _lastDelayReason.Clear();
             _exits.ClearMission();
             _feedback = new ActionFeedbackTracker();
             _feedbackIntegrityOk = true;

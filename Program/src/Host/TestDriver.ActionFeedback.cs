@@ -394,42 +394,101 @@ namespace CombatBrain2.Host
                 " standby_waited=1 at=" + Cb2Log.F(now));
         }
 
-        // 确认门用当前快照重新核对：对象仍合格、互不相同；协同继任还必须三职责齐备，
-        // 任一不成立就不公布计划（不编造伪完整计划）。
+        // 确认门用当前快照重新核对：任务上记的对象身份必须仍是当前同一对象、仍属本方
+        // 且仍受 AI 控制、兵种类别仍允许该职责、人数仍在继续线以上，互不相同；协同继任
+        // 还必须三职责齐备且通过当前风险门，任一不成立就不公布计划（独立验收 R1）。
         private string StandbyInvalidReason(BattlePlan successor)
         {
             if (successor == null) return "plan_not_prepared";
             if (_snapshot == null) return "no_snapshot";
+            if (_state == null) return "no_state";
 
             // 撤退休整计划的任务不承担协同职责（Role=None），只核对对象仍合格且互不相同；
-            // 三职责齐备只适用于协同继任计划（派单 §2 整改1）。
+            // 三职责齐备与风险门只适用于协同继任计划（派单 §2 整改1）。
             bool coordination = string.Equals(successor.Goal, PlanBuilder.GoalCoordination,
                                              StringComparison.Ordinal);
 
-            int main = 0, guard = 0, support = 0, counted = 0;
-            var keys = new HashSet<string>(StringComparer.Ordinal);
+            var facts = new List<SuccessorRoleFact>();
+            var roles = new List<RoleAssignment>();
             for (int i = 0; i < successor.Tasks.Count; i++)
             {
                 var t = successor.Tasks[i];
                 if (t == null) continue;
-                var rec = _snapshot.FindByKey(t.FormationKey);
-                if (rec == null || !rec.HasActiveCenter || rec.UnitCount <= 0)
-                    return coordination ? "role_object_missing" : "withdraw_object_missing";
-                if (!keys.Add(t.FormationKey))
-                    return coordination ? "roles_not_distinct" : "withdraw_objects_not_distinct";
-                counted++;
-                switch (t.Role)
+                if (BattlePlan.IsExitTask(t)) continue;
+
+                var fact = new SuccessorRoleFact
                 {
-                    case FormationRole.Main: main++; break;
-                    case FormationRole.Guard: guard++; break;
-                    case FormationRole.Support: support++; break;
+                    Role = t.Role,
+                    FormationKey = t.FormationKey ?? "",
+                    ObjectIdentity = t.ObjectIdentity ?? "",
+                    FormationClass = t.FormationClass ?? "",
+                    Kind = t.Kind,
+                    BaselineUnits = t.RoleBaselineUnits,
+                };
+                var rec = _snapshot.FindByKey(t.FormationKey);
+                if (rec != null)
+                {
+                    fact.Found = true;
+                    fact.CurrentObjectIdentity = rec.ObjectIdentity ?? "";
+                    fact.ActiveMemberCount = rec.ActiveMemberCount;
+                    fact.TeamIndex = rec.TeamIndex;
+                    fact.HasActiveCenter = rec.HasActiveCenter;
+                    fact.IsAiControlled = rec.IsAiControlled;
+                }
+                facts.Add(fact);
+
+                if (t.Role != FormationRole.None)
+                {
+                    roles.Add(new RoleAssignment
+                    {
+                        Role = t.Role,
+                        FormationKey = t.FormationKey ?? "",
+                        ObjectIdentity = t.ObjectIdentity ?? "",
+                        BaselineUnits = t.RoleBaselineUnits,
+                    });
                 }
             }
 
-            if (counted == 0) return "plan_not_prepared";
-            if (!coordination) return "";
-            if (main != 1 || guard != 1 || support != 1) return "roles_incomplete";
+            string why = ActionFeedback.SuccessorRolesStillValid(facts, _state.MyTeamIndex, coordination);
+            if (why.Length != 0) return why;
+
+            if (coordination)
+            {
+                double cx, cy;
+                if (!ProjectedMainCenterOf(successor, out cx, out cy)) return "projected_center_unknown";
+                var gate = ActionFeedback.RiskGate(_snapshot, _state.MyTeamIndex, roles, cx, cy);
+                if (!gate.Allowed) return "risk_" + gate.Detail;
+            }
+
             return "";
+        }
+
+        // 继任计划自己的主力实际质心：必须在计划公布之前按该计划将要承担 Main 的任务取，
+        // 不能用还绑在旧计划上的协调驱动槽位（那时 successor 尚未 Adopt）。
+        private bool ProjectedMainCenterOf(BattlePlan plan, out double cx, out double cy)
+        {
+            cx = 0.0;
+            cy = 0.0;
+            if (plan == null) return false;
+            if (_snapshot == null || _state == null) return false;
+
+            FormationTask mainTask = null;
+            for (int i = 0; i < plan.Tasks.Count; i++)
+            {
+                var t = plan.Tasks[i];
+                if (t == null || BattlePlan.IsExitTask(t)) continue;
+                if (t.Role != FormationRole.Main) continue;
+                mainTask = t;
+                break;
+            }
+            if (mainTask == null) return false;
+
+            var rec = _snapshot.FindByKey(mainTask.FormationKey);
+            if (rec == null || !rec.HasActiveCenter) return false;
+
+            return ActionFeedback.ProjectedMainTarget(rec.ActiveCenterX, rec.ActiveCenterY,
+                                                      _state.EnemyCenterX, _state.EnemyCenterY,
+                                                      out cx, out cy);
         }
 
         // 在旧攻势关闭之前就把继任意图准备好：只取号与构建计划对象，
@@ -756,9 +815,12 @@ namespace CombatBrain2.Host
                 if (task.Feedback == TaskFeedbackState.Failed) failed++;
 
                 var rec = _snapshot != null ? _snapshot.FindByKey(task.FormationKey) : null;
+                // 到点判据比的是有效成员质心与战术目标 T（派单 §2.2 第 5/6 条）：
+                // RequestedX/Y 现在是写给引擎的锚点请求，不能拿来当质心到达的证据。
+                double goalX = task.HasCanonicalTarget ? task.CanonicalX : task.RequestedX;
+                double goalY = task.HasCanonicalTarget ? task.CanonicalY : task.RequestedY;
                 if (rec != null && rec.HasActiveCenter && task.HasPosition &&
-                    ActionFeedback.Distance(rec.ActiveCenterX, rec.ActiveCenterY,
-                                            task.RequestedX, task.RequestedY)
+                    ActionFeedback.Distance(rec.ActiveCenterX, rec.ActiveCenterY, goalX, goalY)
                         <= TestParameters.P3WithdrawArrivalMeters)
                 {
                     arrived++;

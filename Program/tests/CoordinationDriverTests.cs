@@ -116,15 +116,19 @@ namespace CombatBrain2.Tests
 
         // 释放主力推进要求保护与辅助的命令确实写入并生效：只喂位置读数不足以放行
         // （派单 §3 L86/L103；独立验收缺陷 1 正是只靠读数就放行了推进）。
+        // 命令锚点是写给引擎的请求，与战术目标 T 分开：职责到位仍由实际质心判定，
+        // 这里两个点相同只是让夹具聚焦"命令已写入且未被改写"。
         private static void CommandsInEffect(BattlePlan plan, CoordinationDriver driver, double writtenAt)
         {
             var g = plan.Geometry;
             driver.GuardTask.WrittenAt = writtenAt;
             driver.GuardTask.Feedback = TaskFeedbackState.Effective;
+            driver.GuardTask.SetCanonicalTarget(g.GuardX, g.GuardY);
             driver.GuardTask.SetTarget(0.0, 0.0, g.GuardX, g.GuardY);
             driver.GuardTask.SetOrderTarget(g.GuardX, g.GuardY);
             driver.SupportTask.WrittenAt = writtenAt;
             driver.SupportTask.Feedback = TaskFeedbackState.Effective;
+            driver.SupportTask.SetCanonicalTarget(g.SupportX, g.SupportY);
             driver.SupportTask.SetTarget(0.0, 0.0, g.SupportX, g.SupportY);
             driver.SupportTask.SetOrderTarget(g.SupportX, g.SupportY);
         }

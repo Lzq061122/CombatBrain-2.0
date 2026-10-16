@@ -229,11 +229,16 @@ namespace CombatBrain2.Host
                     " at=" + Cb2Log.F(now) +
                     " cadence=" + Cb2Log.F(TestParameters.DecisionCadenceSeconds));
                 TestDriver.Instance.DecisionTick(mission);
-                TestDriver.Instance.SubmitPending(mission);
-                // 提案收集与公布在评价点一次完成：写前门只消费已公布结果，
-                // 否则首个到达写前门的提案会被当作唯一竞争者提前公布。
-                TestDriver.Instance.PublishCoordinationProposals(mission, now);
             }
+
+            // 候选投递按逐 tick 进行：决策仍每 3 s 一次，但已经公布、满足执行门的任务
+            // 在首个可用主线程 tick 就要投递，不能再等下一个评价点——多出的整段决策周期
+            // 会让继任计划在原生命令覆盖前都还没 arm 上行为。
+            // 幂等与延迟/顺序/间隔门由 SubmitPending 与 TaskDelivery 保证。
+            TestDriver.Instance.SubmitPending(mission);
+            // 提案收集与公布同样逐 tick：写前门只消费已公布结果，且必须在投递之前完成本轮收题，
+            // 否则首个到达写前门的提案会被当作唯一竞争者提前公布。
+            TestDriver.Instance.PublishCoordinationProposals(mission, now);
 
             // 协同观察按逐 tick 进行：依赖是否成立不能等到下个 3 s 评价点，
             // 否则"保护已离开到位区"会被延迟发现。
@@ -267,9 +272,11 @@ namespace CombatBrain2.Host
                     " at=" + Cb2Log.F(now) +
                     " cadence=" + Cb2Log.F(TestParameters.DecisionCadenceSeconds));
                 TestDriver.Instance.DecisionTick(mission);
-                // 决策之后立即在同一个主线程 tick 内投递候选，缩短评价到获选的间隔。
-                TestDriver.Instance.SubmitPending(mission);
             }
+
+            // 与 P2 同一口径：决策仍每 3 s 一次，投递改为逐 tick。
+            // 已经满足执行门的任务不得再等下一个评价点；幂等由任务自身的提交状态保证。
+            TestDriver.Instance.SubmitPending(mission);
 
             // 安全资格与条件逐 tick 检查，不受决策节奏与稳定时间约束。
             TestDriver.Instance.FeedbackTick(mission);
