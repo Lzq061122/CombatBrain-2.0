@@ -30,7 +30,7 @@
 | 第二轮整补提交 | `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（master，本地，未 push / 未建 PR，11 files, +475 / −146） |
 | 第三轮整改提交 | `85e2171` "fix(p3): attribute round-2 process ownership and gate-2 successor orders"（master，本地，未 push / 未建 PR，4 files, +120 / −30；父提交为另一组的 `d64055d`，其内容与本次无关） |
 | 第三轮交回文档提交 | `badd8d3` "docs(p3): record the round-3 commit hash in the handover and session index"（2 files, +3 / −2） |
-| 第四轮整改提交 | 尚未提交；提交后在此补记实际短哈希（届时 `git show --stat` 实测） |
+| 第四轮整改提交 | `1e7b088` "fix(p3): bind gate-2 successor readings to live orders and PID ownership to runtime identity"（master，本地，未 push / 未建 PR，4 files, +401 / −83；父提交 `badd8d3`） |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
@@ -96,7 +96,7 @@ Program/_verify/sessions/INDEX.md               +10/-4
 **第四轮整改逐路径清单**（相对 `badd8d3`，`git diff --numstat` 实测）：
 
 ```
-Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    +111/-39（本文件）
+Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    +112/-40（本文件）
 Program/_verify/check-p3-feedback.ps1            +95/-18
 Program/_verify/run-p3.ps1                       +174/-21
 Program/_verify/sessions/INDEX.md               +21/-4（随本批同交）
