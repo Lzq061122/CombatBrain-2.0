@@ -164,7 +164,7 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 
 依据 `CB2-PROMPT-0005`（`../P3-RESTART-REMEDIATION-DISPATCH.md`）与 `CB2-PROMPT-0006`（`../P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md`）；原验收合同 `CB2-PROMPT-0004`。**状态：限定自检完成，待独立验收。** 完整说明见 `../P3-IMPLEMENTATION-HANDOVER.md`。
 
-CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:00）→ 接续提交 `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，19 files, +1467/−164）→ 独立复核退回后第二轮整补（11 files，含新建 `Program/src/Core/ProposalWiring.cs`）。CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，未变）。第二轮后：Release/Debug 重建 0 警告 0 错误；测试 **309/309** 通过（相对 `ced0a18` 的 276：+15 `CoordinateSemanticsTests`、+11 `TaskSelectionDeadlineTests`、+7 `ActionFeedbackTests`）。
+CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:00）→ 接续提交 `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，19 files, +1467/−164）→ 交回文档提交 `5bbdeeb`（2 files, +352/−142）→ 独立复核退回后第二轮整补 `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（11 files, +475/−146，含新建 `Program/src/Core/ProposalWiring.cs`）。CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，未变）。第二轮后：Release/Debug 重建 0 警告 0 错误；测试 **309/309** 通过（相对 `ced0a18` 的 276：+15 `CoordinateSemanticsTests`、+11 `TaskSelectionDeadlineTests`、+7 `ActionFeedbackTests`）。全部提交为本地提交，未 push、未建 PR。
 
 第二轮整补针对独立复核退回的三个 P1 缺陷与一个文档问题：①提案身份/竞争误差/写前复核统一使用战术目标语义（判定链提到 `ProposalWiring`）；②门2 改为三值判定，「没发现矛盾」不再等于「已看到停止」；③进程收尾按实际归属证据限定、归属不明不强杀、`end_mission` 只在确有本场连接时执行；④更正 handover/INDEX 中「依赖环互锁」与「超出授权」的说法。
 

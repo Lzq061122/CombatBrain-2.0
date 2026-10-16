@@ -22,7 +22,8 @@
 | 上批 CB2 交回提交（历史） | `46aca61` "docs(p3): hand back bounded restart remediation with self-check scope" |
 | CBATH 提交（未变） | `E:\MBmod\CBATH-P2`，`codex/cb20-p2-evidence` / `5a2275de434e953802d8de8498b3f09ca1a4fbb6` |
 | 本轮规模 | 19 files, +1467 / −164 |
-| 本轮交回文档提交 | `732f6df` 之后的独立 docs 提交（本文件 + `sessions/INDEX.md`，2 files, +351 / −142），哈希见 `git log --oneline -1`；不含实现，不进入身份链 |
+| 本轮交回文档提交 | `5bbdeeb` "docs(p3): hand back the coordinate/execution continuation with self-check scope"（本文件 + `sessions/INDEX.md`，2 files, +352 / −142）；不含实现，不进入身份链 |
+| 第二轮整补提交 | `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（master，本地，未 push / 未建 PR，11 files, +475 / −146） |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
