@@ -148,6 +148,21 @@ namespace CombatBrain2.Core
             return tactic + (anchor - center);
         }
 
+        // 提案身份、竞争误差与写前裁决复核共用的战术目标读取（派单 §2.2 第 1 条）：
+        // 质心语义任务返回战术目标 T（CanonicalX/Y），按锚点定义的任务返回其请求点
+        // （这类任务的 Requested 本身就是战术点）。
+        // 引擎命令读回（OrderTargetX/Y）属于执行边界，不是战术目标，不得参与身份派生：
+        // 写前换算会把 RequestedX/Y 换成锚点请求，身份若跟着变，同一份战术意图会算出
+        // 两个 ID，正常命令会在写前被判成内容变化而永远写不出去。
+        internal bool TryTacticTarget(out double x, out double y)
+        {
+            if (HasCanonicalTarget) { x = CanonicalX; y = CanonicalY; return true; }
+            if (HasPosition) { x = RequestedX; y = RequestedY; return true; }
+            x = 0.0;
+            y = 0.0;
+            return false;
+        }
+
         // 实际命令目标点的读回值，取自原生 MovementOrder，不是请求值。
         internal bool HasOrderTarget;
         internal double OrderTargetX;

@@ -411,26 +411,17 @@ namespace CombatBrain2.Core
         // 目标误差：无目标的提案没有「距规范目标点的误差」可言，
         // 不能用 0 当最优值参与竞争，否则它会排在真正给出目标的提案之前。
         // 返回 +∞ 让它在误差比较里始终最后；只有全部候选都无目标时才落到 proposal_id 序。
-        // 基准点取任务实际请求位置；任务还没写令（首次竞争）时回退到计划几何的规范目标点，
-        // 否则两个候选误差同为 0，规则②失效（派单 §5 第 3 条）。
+        // 基准点与提案内容同源：提案携带的是任务的战术目标（质心语义任务为 CanonicalX/Y，
+        // 按锚点定义的任务为其请求点），所以误差也必须对同一个点算。
+        // 不能优先取 RequestedX/Y：写前换算会把质心语义任务的 Requested 换成锚点请求，
+        // 拿它当基准等于把候选与两个不同参考点比较，规则②在写令后会给出错误排序。
+        // 任务还没有任何目标时回退到计划几何的规范目标点，否则两个候选误差同为 0，
+        // 规则②失效（派单 §5 第 3 条）。
         internal static double TargetError(Proposal p, FormationTask task)
         {
             if (task == null) return 0.0;
             double baseX, baseY;
-            if (task.HasPosition)
-            {
-                baseX = task.RequestedX;
-                baseY = task.RequestedY;
-            }
-            else if (task.HasCanonicalTarget)
-            {
-                baseX = task.CanonicalX;
-                baseY = task.CanonicalY;
-            }
-            else
-            {
-                return 0.0;
-            }
+            if (!task.TryTacticTarget(out baseX, out baseY)) return 0.0;
             if (!p.HasTarget) return double.PositiveInfinity;
             double dx = p.TargetX - baseX;
             double dy = p.TargetY - baseY;

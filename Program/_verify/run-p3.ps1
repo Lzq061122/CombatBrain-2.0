@@ -159,6 +159,10 @@ function Assert-CleanEndState {
 
     $rec = [ordered]@{
         own_game_pids        = $script:OwnGamePids
+        ownership_basis      = $script:OwnershipBasis
+        launch_process_started = $script:LaunchProcessStarted
+        unowned_new_pids     = $script:UnownedNewPids
+        session_connected    = $script:SessionConnected
         own_gabs_pid         = $script:OwnGabsPid
         residual_own_pids    = @($ownLeft | ForEach-Object { $_.Id })
         helper_residual      = $helperLeft
@@ -439,6 +443,12 @@ $script:OwnGamePids = @()
 $script:McpOpened = $false
 $script:GameStarted = $false
 $script:SessionConnected = $false
+# A before/after diff proves "newly appeared", not "started by this run". These record what the
+# launch call actually reported and how the new PIDs were attributed, so the end state can state
+# the basis instead of implying a proof it does not have.
+$script:LaunchProcessStarted = $false
+$script:OwnershipBasis = ''
+$script:UnownedNewPids = @()
 
 try {
     $script:OwnGabsPid = Open-McpHttp -ConfigDir $cfgDir -ListenPort $McpPort
@@ -447,22 +457,46 @@ try {
 
     Write-Sentinels
     # The launch call can produce the game process and still fail afterwards (endpoint timeout,
-    # refused connect), so the owned-PID set is computed by diffing around the call in a finally:
+    # refused connect), so the new-PID set is computed by diffing around the call in a finally:
     # a snapshot taken only on the success path would leave that process unowned and never stopped.
     $beforePids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
         Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id })
     try {
         $r = Invoke-McpHttp -Tool 'games_start' -Arguments @{ gameId = $GameId; timeout = 150 } -TimeoutSec $LaunchWaitSec
         Write-Host "games_start: $r"
+        # The launch result is the run's own statement that it started a process; parse it before
+        # the diff so the attribution below can use it.
+        if ($r -match '"processStarted"\s*:\s*true') { $script:LaunchProcessStarted = $true }
         if ($r -match 'already_running') { Fail 'games_start reported already_running'; throw 'already_running' }
     }
     finally {
-        $script:OwnGamePids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
+        $newPids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
             Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id } |
             Where-Object { $beforePids -notcontains $_ })
+        if ($newPids.Count -eq 0) {
+            $script:OwnershipBasis = 'no_new_process'
+        } elseif ($newPids.Count -eq 1) {
+            # Exactly one same-name process appeared across the launch call: the run's own start.
+            $script:OwnGamePids = $newPids
+            $script:OwnershipBasis = 'single_new_process_during_launch'
+        } else {
+            # Several same-name processes appeared while this run was starting a game. At most one
+            # of them is ours and the process table cannot say which, so none may be claimed or
+            # killed; the ambiguity is recorded as a cleanup failure instead of a silent guess.
+            $script:UnownedNewPids = $newPids
+            $script:OwnershipBasis = 'ambiguous_multiple_new_processes'
+        }
         if ($script:OwnGamePids.Count -gt 0) { $script:GameStarted = $true }
     }
-    Write-Host "own game pids: $(if ($script:OwnGamePids.Count -gt 0) { $script:OwnGamePids -join ',' } else { '<none>' })"
+    if (-not $script:LaunchProcessStarted -and $script:OwnershipBasis -eq 'single_new_process_during_launch') {
+        # The diff alone is weaker than the launch result; keep the process (it is the only new
+        # one) but record that the call did not confirm starting it.
+        $script:OwnershipBasis = 'single_new_process_launch_result_unconfirmed'
+    }
+    # The launch result is this run's own statement that it started a game, so it stays true even
+    # when the new process could not be attributed.
+    if ($script:LaunchProcessStarted) { $script:GameStarted = $true }
+    Write-Host "own game pids: $(if ($script:OwnGamePids.Count -gt 0) { $script:OwnGamePids -join ',' } else { '<none>' }) basis=$script:OwnershipBasis"
 
     $deadline = (Get-Date).AddSeconds($LaunchWaitSec)
     $connected = $false
@@ -731,7 +765,17 @@ finally {
     $script:CleanupFailures = @()
     # Every teardown step is guarded separately: a cleanup step that throws must be recorded as
     # its own failure instead of masking the run's real result, and later steps must still run.
-    try { if ($script:McpOpened) { Invoke-Tool 'cbath/end_mission' 40 | Out-Null; Write-Host "end_mission sent" } else { Write-Host "end_mission skipped: helper was never opened" } }
+    try {
+        # end_mission is a remote action on the game session, so it needs an actually owned
+        # session, not merely a reachable helper: an MCP endpoint that answers does not prove
+        # this run ever connected to the game it would be ending.
+        if ($script:SessionConnected) {
+            Invoke-Tool 'cbath/end_mission' 40 | Out-Null
+            Write-Host "end_mission sent"
+        } else {
+            Write-Host "end_mission skipped: this run never connected to a game session"
+        }
+    }
     catch { Write-Host "end_mission failed: $_"; $script:CleanupFailures += "end_mission: $_" }
     if ($script:McpOpened) {
     Start-Sleep -Seconds 5
@@ -791,6 +835,13 @@ finally {
         Where-Object { -not $_.HasExited -and ($script:OwnGamePids -notcontains $_.Id) })
     if ($others.Count -gt 0) {
         Note-Others "Bannerlord processes not owned by this run were left alone: $(($others | ForEach-Object { $_.Id }) -join ',')"
+    }
+
+    # Ownership that could not be established is a cleanup failure, not something to hide: this run
+    # started a game but cannot say which of the new same-name processes was its own, so it stopped
+    # none of them rather than risk ending another group's session.
+    if ($script:UnownedNewPids.Count -gt 0) {
+        $script:CleanupFailures += "process ownership unresolved: $($script:UnownedNewPids -join ',') appeared during the launch call and could not be attributed to this run (basis=$script:OwnershipBasis); left running"
     }
 
     # The helper starts gabs before it probes the endpoint, so a failed handshake still leaves an

@@ -164,11 +164,13 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 
 依据 `CB2-PROMPT-0005`（`../P3-RESTART-REMEDIATION-DISPATCH.md`）与 `CB2-PROMPT-0006`（`../P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md`）；原验收合同 `CB2-PROMPT-0004`。**状态：限定自检完成，待独立验收。** 完整说明见 `../P3-IMPLEMENTATION-HANDOVER.md`。
 
-CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:00）→ 接续提交 `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，19 files, +1467/−164）。CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，未变）。提交后：Release 重建 0 警告 0 错误；测试 **304/304** 通过（相对 `ced0a18` 的 276：+10 `CoordinateSemanticsTests`、+11 `TaskSelectionDeadlineTests`、+7 `ActionFeedbackTests`；其中 13 个为本会话新增）。
+CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:00）→ 接续提交 `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，19 files, +1467/−164）→ 独立复核退回后第二轮整补（11 files，含新建 `Program/src/Core/ProposalWiring.cs`）。CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，未变）。第二轮后：Release/Debug 重建 0 警告 0 错误；测试 **309/309** 通过（相对 `ced0a18` 的 276：+15 `CoordinateSemanticsTests`、+11 `TaskSelectionDeadlineTests`、+7 `ActionFeedbackTests`）。
 
-门状态以 `../check-p3-feedback.ps1`（74757 B，SHA256 `D7D140FDEF14B7B2541D3DF56315760891E0FF49DDBD90AE0024E2D859566FAB`）逐门单列为准；退出码 0 只表示工具跑完。`-SessionDir` 必须传**绝对路径**。
+第二轮整补针对独立复核退回的三个 P1 缺陷与一个文档问题：①提案身份/竞争误差/写前复核统一使用战术目标语义（判定链提到 `ProposalWiring`）；②门2 改为三值判定，「没发现矛盾」不再等于「已看到停止」；③进程收尾按实际归属证据限定、归属不明不强杀、`end_mission` 只在确有本场连接时执行；④更正 handover/INDEX 中「依赖环互锁」与「超出授权」的说法。
 
-**下表的全部场次都产生于 `732f6df` 之前**（源码 mtime 20:16–20:25）。该提交的改动只经过离线验证，未在任何实机运行过——接手时无正式资源交回，按派单 §4/§5 只做离线工作。
+门状态以 `../check-p3-feedback.ps1`（78262 B，SHA256 `998BE4883F18307153FD12F7325EE4C71326ECB410863FF8CC5EFFE2DB7365C2`，第二轮读数）逐门单列为准；退出码 0 只表示工具跑完。`-SessionDir` 必须传**绝对路径**。
+
+**下表的全部场次都产生于第二轮整补之前**（源码 mtime 20:16–20:25）。两轮提交的改动只经过离线验证，未在任何实机运行过——接手时无正式资源交回，按派单 §4/§5 只做离线工作。
 
 | 场次 | build_id | 部署 SHA 前 16 | 门1 | 门2 | 门3 | 说明 |
 |---|---|---|---|---|---|---|
@@ -182,12 +184,12 @@ CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:0
 | `p3-C-20261015-214157` | b20261015-214152-84d1958d | FE9D9ACE2C688BD9 | — | — | 对照 | 用作门3 对照 |
 | `p3-P-20261015-214532` | b20261015-214529-e411067d | 68D7E0B4DD1AC385 | — | — | — | 启动通道证据缺失 |
 | `p3-P-20261015-215314` | b20261015-215311-0e545b62 | 342C73DC6287EC35 | — | — | — | 启动通道证据缺失 |
-| `p3-P-20261015-220249` | b20261015-220246-a9c223d9 | 7A1F981094793B67 | **fail** | unverified | unverified | Reinforce 场；继任 Guard/Support 被 `predecessor_not_written` 与 `MainAdvanceAllowed` 互锁卡死 |
+| `p3-P-20261015-220249` | b20261015-220246-a9c223d9 | 7A1F981094793B67 | **fail** | unverified | unverified | Reinforce 场；继任 Guard/Support 在首个候选提交（127.708）前已因 3 s 决策网格耗尽窗口，Main Hold 写出后 0.5 s 被原生改目标 |
 | `p3-C-20261015-220738` | b20261015-220735-18fd6c08 | 7D5E848C0C4AAD8E | unverified | unverified | 对照 | 门3 对照；离散事实与 P-220249 相同，几何不同 → 维持 unverified |
 | `p3-P-20261015-221833` | b20261015-221826-977cb576 | DB58CBE71973F790 | unverified | **pass** | unverified | 门2 正例：必需对象**三个**（Main `030dd50e@Infantry` 134.036 / Support `038572bf@Ranged` 134.086 / Guard `008c0c1e@HorseArcher` 134.182，最后一者实际兵种 Cavalry），全在 `deadline=134.844` 前写出，`waited=0.344`，`taken_over_before_confirmation=0` |
 | `p3-P-20261015-222821` | b20261015-222818-c9f62071 | 1E980EB3ACD51410 | unverified | unverified | unverified | `ACTION_FEEDBACK_FROZEN=0`，P3 未武装，不可用于任何门 |
 
-未取得 pass 的两门与根因：门1 — 继任协同计划可执行性缺陷（`BattleAssessment.cs:212/214/227` 的 `DependsOnTaskId` 与 `CoordinationPlan.cs:99 MainAdvanceAllowed` 互锁）；门3 — P/C 实际开局部署质心相差数百米且无地形深度产物，场景等价既未证明也未否定。详见 `../P3-IMPLEMENTATION-HANDOVER.md` §4、§7。
+未取得 pass 的两门与根因：门1 — 旧构建下场观测到继任协同计划未完成保护/辅助落位与主力推进，直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不存在依赖环**：`BattleAssessment.cs:212/214` 的 `DependsOnTaskId` 指向 `:199` 的 Hold 等待任务，推进任务另行创建，依赖链 `main-hold → guard/support → advance` 无环；门3 — P/C 实际开局部署质心相差数百米且无地形深度产物，场景等价既未证明也未否定。**全部实机场次早于本轮提交，不能为当前产物给出任何门的结论。** 详见 `../P3-IMPLEMENTATION-HANDOVER.md` §4、§7。
 
 **整改反例（非实机场次，保留为工具敏感性证据）**
 
@@ -195,6 +197,8 @@ CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:0
 |---|---|---|
 | `E:\Agent\codex\2026-10-14\p3\work\review-20261016\tamper-missing-reassigned-exit` | **fail** | `assigned=3 stopped=2 unaccounted=1`（删重分配 Guard 的本次 `EXIT_STOP_DONE`） |
 | `...\tamper-independent-order-contradiction` | **fail** | `still_on_old_order=008c0c1e@HorseArcher@134.746`（独立订单与停止声明冲突） |
+| 第二轮新增 `tamper-missing-independent-orders` | **unverified** | `independent_stop_evidence=incomplete:3`（删光独立订单字段后不再算 pass，旧版会误判 pass） |
+| 第二轮新增 `counterexample-before-exit-within-budget` | **pass** | 133.900 的预算内中间读数不再被判违约（旧版会误判 fail） |
 
-两例必须 FAIL，本轮复跑未回归。原始场 `p3-P-20261015-221833` 未被清洗改写。
+四例都必须按上表取值，本轮复跑未回归。原始场 `p3-P-20261015-221833` 未被清洗改写。门2 现为三值判定：`ChecksOk` 失败 → fail；缺少独立可解释读数 → unverified；全满足 → pass。
 

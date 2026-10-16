@@ -30,6 +30,7 @@
     <Compile Include="src\Core\CoordinationPlan.cs" />
     <Compile Include="src\Core\CoordinationDriver.cs" />
     <Compile Include="src\Core\ProposalArbiter.cs" />
+    <Compile Include="src\Core\ProposalWiring.cs" />
     <Compile Include="src\Core\ExitStopLedger.cs" />
     <Compile Include="src\Core\EligibilityTrigger.cs" />
     <Compile Include="src\Core\ActionFeedback.cs" />

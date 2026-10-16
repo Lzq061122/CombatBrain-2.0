@@ -255,6 +255,129 @@ namespace CombatBrain2.Tests
             Assert.False(DependencyReadiness.MainAdvanceAllowed(plan, guard, support, gr, sr));
         }
 
+        // 提案身份、竞争误差与写前复核必须读同一个点。
+        // 下面这些用例走生产实际调用的函数：ProposalWiring.BuildProposal（Host 的
+        // ProposalFor 直接转调它）与 ProposalWiring.RecheckPublished（Host 的
+        // CoordinationWriteBlock 直接转调它），不再由夹具复刻读取逻辑。
+        private static Proposal ProposalOf(BattlePlan plan, FormationTask task, double now)
+        {
+            return ProposalWiring.BuildProposal("m", plan, task, now);
+        }
+
+        // 写前换算把 RequestedX/Y 换成锚点请求之后，提案身份必须保持不变。
+        // 变了一定会在写前被判成 decision_content_changed（Host 复核同一个 ID），
+        // 正常命令就永远写不出去；这正是非零二维偏移下的失败形态。
+        [Fact]
+        public void WriteBoundaryConversionKeepsProposalIdentity()
+        {
+            var g = CoordinationGeometry.Compute(0.0, 0.0, 0.0, 300.0, 0.0, -20.0);
+            FormationTask guard, support;
+            var plan = CoordinationPlan(g, out guard, out support);
+            guard.FormationClass = "Infantry";
+            guard.ObjectIdentity = "obj@0/0";
+            guard.SetCanonicalTarget(g.GuardX, g.GuardY);
+            // 提案阶段的任务还没写令：Submit 对已写令任务一律视为已关闭。
+            guard.WrittenAt = -1.0;
+            guard.Feedback = TaskFeedbackState.Pending;
+
+            var before = ProposalOf(plan, guard, 100.0);
+            var arbiter = new ProposalArbiter();
+            Assert.True(arbiter.Submit(before, plan, guard).Accepted);
+            Assert.True(arbiter.PublishBatch(guard.FormationKey).Published);
+
+            // 写前读数：锚点 A=(100,5)、质心 C=(110,7)，二维非零偏移。
+            const double ax = 100.0, ay = 5.0, cx = 110.0, cy = 7.0;
+            guard.SetTarget(cx, cy,
+                FormationTask.AnchoredRequest(g.GuardX, ax, cx),
+                FormationTask.AnchoredRequest(g.GuardY, ay, cy));
+
+            var after = ProposalOf(plan, guard, 100.0);
+            Assert.Equal(before.ProposalId, after.ProposalId);
+            Assert.Equal(arbiter.CurrentFor(guard.FormationKey).ProposalId, after.ProposalId);
+            // 生产写前复核必须放行：Host 的 CoordinationWriteBlock 转调的就是这个方法。
+            Assert.Null(ProposalWiring.RecheckPublished(arbiter, "m", plan, guard, 100.0));
+        }
+
+        // 写前复核必须真的挡住被改过目标的命令：公布之后任务目标被改到容差之外，
+        // 重算出的提案身份与已公布赢家不同，不能沿用旧裁决放行。
+        // 这是上一条的对照：放行与拦下走的是同一个生产方法。
+        [Fact]
+        public void WriteGateRejectsTargetChangedAfterPublish()
+        {
+            var g = CoordinationGeometry.Compute(0.0, 0.0, 0.0, 300.0, 0.0, -20.0);
+            FormationTask guard, support;
+            var plan = CoordinationPlan(g, out guard, out support);
+            guard.ObjectIdentity = "obj@0/0";
+            guard.FormationClass = "Infantry";
+            // 提案阶段的任务还没写令：Submit 对已写令任务一律视为已关闭。
+            guard.WrittenAt = -1.0;
+            guard.Feedback = TaskFeedbackState.Pending;
+            guard.SetCanonicalTarget(g.GuardX, g.GuardY);
+
+            var arbiter = new ProposalArbiter();
+            Assert.True(arbiter.Submit(ProposalOf(plan, guard, 100.0), plan, guard).Accepted);
+            Assert.True(arbiter.PublishBatch(guard.FormationKey).Published);
+
+            // 公布之后职责点被改写 10 m：写前重算的身份必然不等于已公布赢家。
+            guard.SetCanonicalTarget(g.GuardX + 10.0, g.GuardY);
+
+            string block = ProposalWiring.RecheckPublished(arbiter, "m", plan, guard, 100.0);
+            Assert.NotNull(block);
+            Assert.StartsWith("decision_content_changed", block);
+        }
+
+        // 没有已公布裁决时不得放行：写令门不能因为「查不到结果」而默认通过。
+        [Fact]
+        public void WriteGateBlocksWhenNoDecisionPublished()
+        {
+            var g = CoordinationGeometry.Compute(0.0, 0.0, 0.0, 300.0, 0.0, -20.0);
+            FormationTask guard, support;
+            var plan = CoordinationPlan(g, out guard, out support);
+            guard.SetCanonicalTarget(g.GuardX, g.GuardY);
+
+            var arbiter = new ProposalArbiter();
+            Assert.Equal("no_published_decision",
+                ProposalWiring.RecheckPublished(arbiter, "m", plan, guard, 100.0));
+        }
+
+        // 引擎读回（OrderTarget）是执行边界的事实，不得进入提案身份：
+        // 同一份战术意图在「已写下锚点请求」与「又读回一次锚点请求」之间必须算同一个 ID。
+        [Fact]
+        public void EngineReadbackDoesNotChangeProposalIdentity()
+        {
+            var g = CoordinationGeometry.Compute(0.0, 0.0, 0.0, 300.0, 0.0, -20.0);
+            FormationTask guard, support;
+            var plan = CoordinationPlan(g, out guard, out support);
+            guard.ObjectIdentity = "obj@0/0";
+            guard.SetCanonicalTarget(g.GuardX, g.GuardY);
+            guard.SetTarget(110.0, 7.0,
+                FormationTask.AnchoredRequest(g.GuardX, 100.0, 110.0),
+                FormationTask.AnchoredRequest(g.GuardY, 5.0, 7.0));
+
+            var before = ProposalOf(plan, guard, 100.0);
+            guard.SetOrderTarget(guard.RequestedX, guard.RequestedY);
+            var after = ProposalOf(plan, guard, 100.0);
+
+            Assert.Equal(before.ProposalId, after.ProposalId);
+        }
+
+        // 竞争误差的基准点也必须是战术目标：写前换算之后拿锚点请求当基准，
+        // 会让「距规范目标点的误差」在写令前后给出不同排序。
+        [Fact]
+        public void CompetitionErrorUsesTacticTargetAfterWriteBoundary()
+        {
+            var g = CoordinationGeometry.Compute(0.0, 0.0, 0.0, 300.0, 0.0, -20.0);
+            FormationTask guard, support;
+            var plan = CoordinationPlan(g, out guard, out support);
+            guard.SetCanonicalTarget(g.GuardX, g.GuardY);
+            // 锚点请求被推离战术目标 10 m（二维）。
+            guard.SetTarget(110.0, 7.0, g.GuardX + 10.0, g.GuardY + 0.0);
+
+            var canonical = Proposal.Create("m", plan, guard, guard.Kind,
+                ProposalSource.TaskSubmission, g.GuardX, g.GuardY, true, "c", 100.0);
+            Assert.Equal(0.0, ProposalArbiter.TargetError(canonical, guard), 6);
+        }
+
         // 职责点与当前几何一致、命令未被改写时仍应释放：修复不得把正常链路一起关掉。
         // 换算后的锚点与 G* 不同正是修复后的正常形态，命令锚点不参与职责到位判据。
         [Fact]

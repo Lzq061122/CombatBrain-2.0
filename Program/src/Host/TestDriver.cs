@@ -863,23 +863,17 @@ namespace CombatBrain2.Host
         // 否则「无目标」会被当成「目标恰在原点」参与竞争与放行。
         private Proposal ProposalFor(FormationTask task, Mission mission, double now)
         {
-            double x, y;
-            bool hasTarget = TryReadTargetPoint(task, out x, out y);
-            if (!hasTarget)
+            var proposal = ProposalWiring.BuildProposal(_missionKey, _plans.Current, task, now);
+            // 只有需要位置目标的命令（Reposition）才因无目标而放弃提案；
+            // Hold/Engage 无目标是正常形态，不因拿不到坐标放弃提交，
+            // 否则等待阶段永远产生不了裁决结果。判定在 Core 里，这里只记日志。
+            if (proposal == null)
             {
-                // 只有需要位置目标的命令（Reposition）才因无目标而放弃提案。
-                // Hold/Engage 不带位置目标，无目标是它们的正常形态，
-                // 不能因为拿不到坐标就不提交——否则等待阶段永远产生不了裁决结果。
-                if (ProposalArbiter.NeedsTarget(task.Kind))
-                {
-                    Cb2Log.Line("PROPOSAL_TARGET_MISSING",
-                        "task=" + task.TaskId + " key=" + task.FormationKey +
-                        " role=" + task.Role + " kind=" + task.Kind + " at=" + Cb2Log.F(now));
-                    return null;
-                }
+                Cb2Log.Line("PROPOSAL_TARGET_MISSING",
+                    "task=" + task.TaskId + " key=" + task.FormationKey +
+                    " role=" + task.Role + " kind=" + task.Kind + " at=" + Cb2Log.F(now));
             }
-            return Proposal.Create(_missionKey, _plans.Current, task, task.Kind,
-                                   ProposalSource.TaskSubmission, x, y, hasTarget, task.Reason, now);
+            return proposal;
         }
 
         // P2 写令前裁决门：返回 null 表示已获本编队的唯一裁决结果，可继续写令；
@@ -895,37 +889,17 @@ namespace CombatBrain2.Host
             if (task.Revision != plan.Revision)
                 return "stale_revision task_revision=" + task.Revision + " plan_revision=" + plan.Revision;
 
-            double targetX, targetY;
             string note;
             var order = OrderForTask(mission, f, task, now, out note);
             if (order.OrderEnum == MovementOrder.MovementOrderEnum.Invalid) return "task_position_invalid";
 
-            bool hasTarget = TryReadTargetPoint(task, out targetX, out targetY);
-
-            var current = _coordinationDriver.Arbiter.CurrentFor(task.FormationKey);
-            if (current == null)
-                return "no_published_decision";
-
-            if (!string.Equals(current.TaskId, task.TaskId, StringComparison.Ordinal))
-                return "superseded_by=" + current.TaskId;
-
-            if (current.Revision != plan.Revision)
-                return "published_revision_stale published=" + current.Revision + " plan=" + plan.Revision;
-
             // 即时复核：写令前重算的提案身份必须与已公布赢家一致，
             // 否则说明公布之后任务目标或版本又被改动，不能沿用旧裁决放行。
-            var fresh = ProposalFor(task, mission, now);
-            if (fresh == null)
-                return "target_missing_at_write";
-            if (!string.Equals(fresh.ProposalId, current.ProposalId, StringComparison.Ordinal))
-                return "decision_content_changed fresh=" + fresh.ProposalId + " published=" + current.ProposalId;
-
-            if (current.HasTarget && hasTarget)
-            {
-                double error = CoordinationGeometry.Distance(current.TargetX, current.TargetY, targetX, targetY);
-                if (error > TestParameters.TargetPointToleranceMeters)
-                    return "decision_target_mismatch error=" + Cb2Log.F(error);
-            }
+            // 判定链本身在 Core（ProposalWiring.RecheckPublished），离线夹具走同一份实现；
+            // 这里的 OrderForTask 已经在上面按写前读数把锚点请求写入 RequestedX/Y，
+            // 那是执行边界的换算结果，不参与身份派生。
+            string recheck = ProposalWiring.RecheckPublished(_coordinationDriver.Arbiter, _missionKey, plan, task, now);
+            if (recheck != null) return recheck;
 
             // 主力推进任务实际写入前，再用此刻的读数复核一次保护与辅助：
             // 释放推进时成立的依赖，到落地时可能已被原生改写目标或离开到位区。
@@ -946,49 +920,6 @@ namespace CombatBrain2.Host
             }
 
             return null;
-        }
-
-        // 协同任务的目标点由计划几何直接给出，与"是否已写过令"无关。
-        // 提案阶段必须先拿到它：目标若只能从已写令的回读里取，就会形成
-        // 「提案要目标 → 目标要写令 → 写令要提案已公布」的死锁，
-        // 使计划永远无法产生第一条命令。
-        private bool RoleTargetPoint(FormationTask task, out double x, out double y)
-        {
-            x = 0.0;
-            y = 0.0;
-            var plan = _plans.Current;
-            if (plan == null || plan.Geometry == null) return false;
-            if (!string.Equals(task.PlanId, plan.PlanId, StringComparison.Ordinal)) return false;
-            if (task.Revision != plan.Revision) return false;
-
-            var g = plan.Geometry;
-            switch (task.Role)
-            {
-                case FormationRole.Guard: x = g.GuardX; y = g.GuardY; break;
-                case FormationRole.Support: x = g.SupportX; y = g.SupportY; break;
-                case FormationRole.Main: x = g.MainX; y = g.MainY; break;
-                default: return false;
-            }
-            return CoordinationGeometry.IsFinite(x) && CoordinationGeometry.IsFinite(y);
-        }
-
-        private bool TryReadTargetPoint(FormationTask task, out double x, out double y)
-        {
-            x = 0.0;
-            y = 0.0;
-            if (task.HasOrderTarget)
-            {
-                x = task.OrderTargetX;
-                y = task.OrderTargetY;
-                return true;
-            }
-            if (task.HasPosition)
-            {
-                x = task.RequestedX;
-                y = task.RequestedY;
-                return true;
-            }
-            return RoleTargetPoint(task, out x, out y);
         }
 
         // 取某任务所属编队的最新采样，转成依赖观察输入。

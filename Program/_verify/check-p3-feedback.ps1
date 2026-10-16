@@ -1023,28 +1023,72 @@ if ($frozen.Count -eq 0) {
             if (-not $req.Success) { continue }
             $oldRolePoints[$o] = @([double]$req.Groups[1].Value, [double]$req.Groups[2].Value)
         }
+        #
+        # Two distinct questions live here and must not be collapsed into one:
+        #   (a) is there a contradictory reading - the object still executing the abandoned
+        #       role-point advance? -> that is a violation;
+        #   (b) is there any independent, explainable reading at all for that object after its
+        #       own stop was written? -> absence of evidence is "unverified", never "pass".
+        # Folding (b) into (a) is what let a tampered run with every post-decision order field
+        # removed still read as a timely stop: with no readable target the contradiction set came
+        # out empty and an empty set was scored as success.
+        #
+        # The boundary is the object's OWN exit write, not the decision moment. The contract gives
+        # the stop a limited budget: between the decision and that write the old plan is still
+        # being wound down, so a reading there is a legitimate intermediate state, not a breach.
+        # Charging the whole window from the decision effectively squeezed the budget to zero.
+        # Once the stop HAS been written, however, any later reading of the old target is a breach,
+        # so the window runs to the end of the run rather than to a fixed 1s.
+        $stopAt = @{}
+        foreach ($d in $exitDone) {
+            if ([string]$d['plan'] -ne $oldPlan) { continue }
+            $o = [string]$d['obj']
+            $a = Num $d['at']
+            if ($o.Length -eq 0 -or [double]::IsNaN($a)) { continue }
+            if ((-not $stopAt.ContainsKey($o)) -or ($a -lt $stopAt[$o])) { $stopAt[$o] = $a }
+        }
         $stillAdvancing = @()
-        if ($oldRolePoints.Count -gt 0) {
-            $facts = @(Get-IndependentOrderFacts $full $invAt ($invAt + 1.0))
-            foreach ($o in $oldAssignedObjs) {
-                if (-not $oldRolePoints.ContainsKey($o)) { continue }
+        $unexplainedObjs = @()
+        $pushedObjs = @($oldAssignedObjs | Where-Object { $oldRolePoints.ContainsKey($_) })
+        if ($pushedObjs.Count -gt 0) {
+            $facts = @(Get-IndependentOrderFacts $full $invAt ([double]::MaxValue))
+            foreach ($o in $pushedObjs) {
                 $pt = $oldRolePoints[$o]
                 $hash = $o.Split('@')[0]
+                $stop = if ($stopAt.ContainsKey($o)) { $stopAt[$o] } else { $invAt }
+                $explained = 0
+                $contradicted = $false
                 foreach ($fct in $facts) {
                     if ([string]$fct.obj -ne $hash) { continue }
-                    if (-not $fct.readable) { continue }
-                    if ([double]::IsNaN($fct.x) -or [double]::IsNaN($fct.y)) { continue }
-                    if ((Close $fct.x $pt[0] 0.5) -and (Close $fct.y $pt[1] 0.5)) {
-                        $stillAdvancing += ($o + "@" + $fct.mission_time)
-                        break
+                    if ([double]$fct.mission_time -le $stop) { continue }
+                    if ($fct.readable -and (-not [double]::IsNaN($fct.x)) -and (-not [double]::IsNaN($fct.y))) {
+                        if ((Close $fct.x $pt[0] 0.5) -and (Close $fct.y $pt[1] 0.5)) {
+                            $stillAdvancing += ($o + "@" + $fct.mission_time)
+                            $contradicted = $true
+                            break
+                        }
+                        $explained++
+                    } elseif (([string]$fct.order).Length -gt 0 -and ([string]$fct.order -notmatch '^(Move|Advance)')) {
+                        # A standing order that cannot be the abandoned advance: it explains the
+                        # object without a target coordinate, which is how a real stop reads.
+                        $explained++
                     }
                 }
+                if ((-not $contradicted) -and $explained -eq 0) { $unexplainedObjs += $o }
             }
         } else {
             Note "gate2 independent order readback: old plan has no move_to_role_point writes, nothing to contradict"
         }
         Check 'gate2_stopped_objects_not_still_executing_old_order' ($stillAdvancing.Count -eq 0) `
             ("required=$($oldAssignedObjs.Count) old_role_points=$($oldRolePoints.Count) still_on_old_order=" + $(if ($stillAdvancing.Count -eq 0) { '<none>' } else { $stillAdvancing -join ',' }))
+        # Not a Check(): missing readings must not fail the arm, but they must also not be
+        # silently spent as agreement. The verdict below turns this into "unverified".
+        $evidenceOk = ($unexplainedObjs.Count -eq 0)
+        if (-not $evidenceOk) {
+            Note ("gate2 independent stop evidence missing for required objects (no explainable order reading after their own stop write): " + ($unexplainedObjs -join ',') + " - unverified, not agreement")
+        } else {
+            Note ("gate2 independent stop evidence present for pushed_objects=" + $pushedObjs.Count + " unexplained=0")
+        }
 
         # The 8s post-conversion window must be observed at real evaluation points, not merely
         # counted off cadence ticks. The independent ~1Hz sampler is the evidence source here:
@@ -1073,8 +1117,13 @@ if ($frozen.Count -eq 0) {
         $withdrawFail = @($withdrawEvents | Where-Object { $_['_marker'] -eq 'WITHDRAW_COMMAND_FAILED' -or $_['_marker'] -eq 'WITHDRAW_DEADLINE' })
         Note ("withdraw: arrived=" + $withdrawArrived.Count + " hold_created=" + $withdrawHold.Count + " failed_or_deadline=" + $withdrawFail.Count)
         $retreatProven = ($stoppedObjs.Count -gt 0) -and ($failedObjs.Count -eq 0)
-        $v = if ($script:ChecksOk -and $retreatProven -and $stableOk -and $revived.Count -eq 0 -and $unaccountedObjs.Count -eq 0 -and $prematureObjs.Count -eq 0) { 'pass' } else { 'fail' }
-        Set-Gate 'gate2_negative' $v ("old=" + $oldPlan + " new=" + $newPlan + " decision=" + $stopper['decision'] + " objects_stopped=" + $stoppedObjs.Count + "/" + $oldAssignedObjs.Count + " stop_failed=" + $failedObjs.Count + " unaccounted=" + $unaccountedObjs.Count + " taken_over_before_confirmation=" + $prematureObjs.Count)
+        # "No contradiction found" is not the same as "a stop was observed". When the checks pass
+        # but some required object has no independent reading to explain it, the gate is unverified
+        # rather than passed - the evidence for that object simply is not there.
+        $v = if (-not $script:ChecksOk) { 'fail' }
+             elseif ($retreatProven -and $stableOk -and $evidenceOk -and $revived.Count -eq 0 -and $unaccountedObjs.Count -eq 0 -and $prematureObjs.Count -eq 0) { 'pass' }
+             else { 'unverified' }
+        Set-Gate 'gate2_negative' $v ("old=" + $oldPlan + " new=" + $newPlan + " decision=" + $stopper['decision'] + " objects_stopped=" + $stoppedObjs.Count + "/" + $oldAssignedObjs.Count + " stop_failed=" + $failedObjs.Count + " unaccounted=" + $unaccountedObjs.Count + " taken_over_before_confirmation=" + $prematureObjs.Count + " independent_stop_evidence=" + $(if ($evidenceOk) { 'present' } else { 'incomplete:' + $unexplainedObjs.Count }))
       }
     }
 

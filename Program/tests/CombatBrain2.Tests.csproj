@@ -44,6 +44,7 @@
     <Compile Include="..\src\Core\CoordinationPlan.cs" Link="Core\CoordinationPlan.cs" />
     <Compile Include="..\src\Core\CoordinationDriver.cs" Link="Core\CoordinationDriver.cs" />
     <Compile Include="..\src\Core\ProposalArbiter.cs" Link="Core\ProposalArbiter.cs" />
+    <Compile Include="..\src\Core\ProposalWiring.cs" Link="Core\ProposalWiring.cs" />
     <Compile Include="..\src\Core\ExitStopLedger.cs" Link="Core\ExitStopLedger.cs" />
     <Compile Include="..\src\Core\EligibilityTrigger.cs" Link="Core\EligibilityTrigger.cs" />
     <Compile Include="..\src\Core\ActionFeedback.cs" Link="Core\ActionFeedback.cs" />

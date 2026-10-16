@@ -4,6 +4,8 @@
 依据：`CB2-PROMPT-0006`（`P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md`，SHA256 `368e880bfff6802bc034df96fe08395e038eaba74eba28654d7bd306019ddd7e`）。
 `CB2-PROMPT-0005`（`P3-RESTART-REMEDIATION-DISPATCH.md`）与 `CB2-PROMPT-0004`（`P3-FEEDBACK-REPLANNING-DISPATCH.md`）继续有效；本次未改变公式、三门判据或命令域。
 
+**第二轮（复核退回三缺陷整改）**：独立复核 `P3-CONTINUATION-REVIEW-732f6df-20261016.md` 对提交 `732f6df` 判「仍退回整改」，给出三项 P1 缺陷与第 4 节更正要求。本文件已按该报告整补：§2.8b 记录坐标接线的接线级测试整补，§3.2/§3.3 记录门2证据判定收紧，§3.4 记录 R5 归属判定与 `end_mission` 前置，§4 与 §7 记录更正后的根因表述。**第二轮整改结论未经过独立复核。**
+
 **本轮为新开发会话接续。** 接手时存在未提交的 P3 成果（14 项已跟踪 dirty + 未跟踪生产源码 `TaskDelivery.cs`），按派单 §5 逐路径精准暂存提交，未 `git add -A` / `commit -a`、未 reset/clean、未回滚任何既有 dirty。
 
 ---
@@ -54,6 +56,24 @@ Program/tests/TaskSelectionDeadlineTests.cs     +161
 - ` M Program/src/Host/BuildIdentity.g.cs` — 自动生成身份（`b20261014-120018-9828293f` → `b20261015-222818-c9f62071`），派单 L149 明示不混入。
 - 未跟踪：`Program/_verify/_r5sim/`、`_stagesim/`、`_tamper4/`、`_ps51check.ps1`、`gabs-config/`、大量 `_lastrun-*.txt`、`Program/_scratch/`、`_scratch/`、`_scratch_chk.diff` — 均为本次离线取证脚手架与历史 runner 输出，按派单 L149 不混入提交。
 
+**第二轮整补逐路径清单**（相对 `732f6df`，11 项；代码与脚本为 `git diff --numstat` 实测，两份文档随本批同交，行数取提交时实际值）：
+
+```
+Program/CombatBrain2.csproj                      +1
+Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    （本文件，随本批同交）
+Program/_verify/check-p3-feedback.ps1            +60/-11
+Program/_verify/run-p3.ps1                       +55/-4
+Program/_verify/sessions/INDEX.md                （随本批同交）
+Program/src/Core/BattlePlan.cs                   +15
+Program/src/Core/ProposalArbiter.cs              +7/-16
+Program/src/Core/ProposalWiring.cs               +91/-0    （新文件）
+Program/src/Host/TestDriver.cs                   +15/-84
+Program/tests/CombatBrain2.Tests.csproj          +1
+Program/tests/CoordinateSemanticsTests.cs        +123
+```
+
+（与第一轮「docs 单独一个提交」不同，本轮文档与实现同批提交，便于审阅者一次看到状态与证据的对应关系。最终行数以 `git show --stat` 为准。）
+
 **未动他方材料**：`E:\MBmod\BattleObservation-V1\{CB2,CBATH,TCL}` 未修改、未构建、未切换、未提交（`git worktree list` 复核：观测组两 worktree 仍在 `e2a0e38` / `925c224`）；`ObservationAdapter.cs` 约定接口与事件位置未改；`sources/` 与历史失败原始场未改。
 
 ### 1.2 构建与测试（提交后重跑）
@@ -62,25 +82,35 @@ Program/tests/TaskSelectionDeadlineTests.cs     +161
 cd "E:\MBmod\CombatBrain 2.0\Program"
 dotnet build CombatBrain2.csproj -c Release --no-restore -t:Rebuild   → 0 个警告 0 个错误
 dotnet build CombatBrain2.csproj -c Debug   --no-restore              → 0 个警告 0 个错误
-dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过 304 / 失败 0 / 总计 304
+dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过 309 / 失败 0 / 总计 309
+```
+
+第二轮整改后重跑（2026-10-16）：
+
+```
+dotnet build CombatBrain2.csproj -c Release --no-restore --nologo     → 0 个警告 0 个错误
+dotnet build CombatBrain2.csproj -c Debug   --no-restore --nologo     → 0 个警告 0 个错误
+dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过 309 / 失败 0 / 总计 309
 ```
 
 本地产物（提交后重建）：
 
 | 产物 | 长度 | SHA256（前 16） |
 |---|---|---|
-| `Program\bin\Release\CombatBrain2.dll` | 177152 | `F426B3773EBA9BF2` |
-| `Program\bin\Debug\CombatBrain2.dll` | 196096 | `A04B881D6529ECD5` |
+| `Program\bin\Release\CombatBrain2.dll` | 177664 | `488585FBC248369B` |
+| `Program\bin\Debug\CombatBrain2.dll` | 196096 | `7DD4E1AEB4BB98B3` |
 
-测试构成（逐文件对 `ced0a18` 实数 `[Fact]`+`[Theory]`：276 → **304**，+28）：
+（上表为第二轮整改后本地重建读数；`BuildIdentity.g.cs` 每次构建重新生成，DLL 哈希随构建身份变化，不与提交绑定。）
 
-| 测试文件 | ced0a18 | HEAD | 差 | 归属 |
+测试构成（逐文件实数 `[Fact]`+`[Theory]`，第二轮后共 **309**）：
+
+| 测试文件 | `ced0a18` | 第二轮后 | 差 | 归属 |
 |---|---|---|---|---|
-| `Program/tests/CoordinateSemanticsTests.cs` | 0 | 10 | +10 | §2 坐标语义（新建文件） |
+| `Program/tests/CoordinateSemanticsTests.cs` | 0 | 15 | +15 | §2 坐标语义（新建文件；本轮 +5） |
 | `Program/tests/TaskSelectionDeadlineTests.cs` | 25 | 36 | +11 | 8 个投递时序/幂等用例（0005 批工作，随未跟踪的 `TaskDelivery.cs` 本次一并收） + 3 个 §3.1 用例 |
 | `Program/tests/ActionFeedbackTests.cs` | 52 | 59 | +7 | §3.2 R1 继任状态用例 |
 
-本会话新增的 `[Fact]` 共 13 个（§2 的 10 个 + §3.1 的 3 个）；其余 15 个是本会话开始前已在工作树内、本次首次随源码进入提交的用例。派单 §1.2 L47 记载「隔离源码快照独立 Rebuild 全量测试 291 通过」= 276 + 这 15 个未提交增量，与本表一致（`291 → 304` 即本会话的 13 个新增）。
+第一轮本会话新增 `[Fact]` 13 个（§2 的 10 个 + §3.1 的 3 个）；其余 15 个是第一轮开始前已在工作树内、随源码首次进入提交的用例。派单 §1.2 L47 记载「隔离源码快照独立 Rebuild 全量测试 291 通过」= 276 + 这 15 个未提交增量，与第一轮一致（`291 → 304`）。第二轮再 +5（`CoordinateSemanticsTests` 由 10 → 15），全量 `304 → 309`。
 
 `CombatBrain2.csproj` 内无 post-build 部署 target。测试工程保持 `net8.0`，只 `Link` Core 源、不链 Host。
 
@@ -201,6 +231,24 @@ internal static double AnchoredRequest(double tactic, double anchor, double cent
 
 修复后 **10/10 通过**；全量由 276 → **304/304**（本会话新增 13 个，见 §1.2）。
 
+### 2.8b 复核退回后的接线级测试（第二轮整补）
+
+复核指出 §2.8 的夹具自己复刻了 Host 读取逻辑（`task.TryTacticTarget`），没有覆盖「公布提案→写前换算→当前裁决复核」的真实接线。
+
+**处理**：把这条判定链从 Host 提到 Core —— 新建 `Program/src/Core/ProposalWiring.cs`，导出 `TacticTargetPoint` / `BuildProposal` / `RecheckPublished`。Host 的 `ProposalFor` 与 `CoordinationWriteBlock`（`TestDriver.cs`）改为直接转调，原来的 `RoleTargetPoint` 私有复本删除；`Program/CombatBrain2.csproj` 与 `Program/tests/CombatBrain2.Tests.csproj` 各加一条 `Compile Include`。测试工程不含 Host（net8.0，Host 依赖 TaleWorlds），提到 Core 后离线夹具才能走与实机同一份实现。
+
+`Program/tests/CoordinateSemanticsTests.cs` 的 `ProposalOf` 改为调 `ProposalWiring.BuildProposal`，并新增 3 个用例：
+
+| 用例 | 断言 | 覆盖 |
+|---|---|---|
+| `WriteGateRejectsTargetChangedAfterPublish` | 公布后职责点改 10 m → `decision_content_changed` | 写前复核真的拦得住 |
+| `WriteGateBlocksWhenNoDecisionPublished` | 无已公布裁决 → `no_published_decision` | 查不到结果不得默认放行 |
+| `WriteBoundaryConversionKeepsProposalIdentity`（加强） | 追加断言 `RecheckPublished(...) == null` | 非零二维偏移下正常命令能写出 |
+
+**红态验证（本轮实测）**：把 `BattlePlan.TryTacticTarget` 的读取顺序倒回「先 Requested 后 Canonical」，`CoordinateSemanticsTests` 立刻 **2 失败 / 13 通过**（`WriteBoundaryConversionKeepsProposalIdentity` 期望 `...|0.000,35.000` 实得 `...|-10.000,33.000`；`CompetitionErrorUsesTacticTargetAfterWriteBoundary` 期望 0 实得 10），恢复后 15/15 通过 —— 夹具确实挂在生产实现上，不是自证。
+
+全量测试由 304 → **309/309**：`CoordinateSemanticsTests.cs` 事实数 10 → 15（fix1 的 3 个 + 复核实要求的 2 个写前复核用例，另加强 1 个既有用例的断言）。
+
 ### 2.9 同步调整的既有测试
 
 `DependencyReadinessTests.cs`（3 处）、`CoordinationDriverTests.cs`（`CommandsInEffect`）、`CoordinationIntegrationTests.cs`（`BringBothInPosition`）此前把 `SetOrderTarget` 设为几何点本身，与新语义冲突，已补 `SetCanonicalTarget`。`TaskSelectionDeadlineTests.cs:355 MoveRequiresClosingDistance` 是**锚点语义**用例（不填质心），未改，锁定 P1 语义不变。
@@ -287,6 +335,14 @@ GATES: gate3_control: unverified -- with_counter_action=True control=False field
 
 **无产物携带 height/slope**，故朝向与地形关系只能部分取证（facing 有、terrain 缺），verdict 中已如实记为 `terrain=absent_depth_data`，未假设等价。
 
+**（d）第二轮整改：门2 判定改为三值，「没发现矛盾」不再等于「已看到停止」。** 复核第 2 项指出门2 在缺少独立订单证据时仍给 PASS。`check-p3-feedback.ps1` 的 `gate2_negative` 改为：
+
+- 区间按**逐对象自身退出写出时刻** `$stopAt` 建立（取该 obj 在 `$exitDone` 中的最小 `at`，缺省 `$invAt`），扫描窗口由 `$invAt+1.0` 延到 `[double]::MaxValue` —— 停止写出之前的读数不再被算作违约；
+- 新增 `$unexplainedObjs` / `$evidenceOk`：每条必需对象要有**独立可解释读数**（非 Move/Advance 的常备命令计为可解释）；
+- 三值：`ChecksOk` 失败 → **fail**；`$evidenceOk` 为假 → **unverified**；全满足 → **pass**。gate 描述串新增 `independent_stop_evidence=present|incomplete:N`。
+
+第二轮实跑（10 场，无回归）：`p3-P-20261015-221833` → gate2=pass `independent_stop_evidence=present`；`p3-P-20261015-220249`、`-004350` → gate1=fail；`-222821`/`N-004851`/`N-211938`/`N-213231` → 全 unverified；`N-005621` → gate2=fail；`tamper-missing-reassigned-exit`、`tamper-independent-order-contradiction` → gate2=fail。新增两例：`tamper-missing-independent-orders` → **unverified `incomplete:3`**（旧版会误判 pass）；`counterexample-before-exit-within-budget`（133.900 预算内读数）→ **pass**（旧版会误判 fail）。
+
 ### 3.4 R5：完整入口失败路径与 WhatIf（§3.4）
 
 审查退回项 R5 位于 `REVIEW.md:71-80`，受审 `run-p3.ps1:320-377`/`:635-693` 与 `_p3-exclusive-stage.ps1:47-85`。四条：
@@ -303,23 +359,31 @@ game stage returned ok: <Boolean>
 
 `$gameStage` 在进入该 stage 时即置位（表示本场自此接管游戏生命周期），`$acquiredGame` 只表示该 stage 成功返回。
 
-**隔离模拟取证**（`Program/_verify/_r5sim/make-sim.ps1`：把真实 `run-p3.ps1` 按锚点正则切片、对 helper/进程表打桩后独立执行；**不触碰任何游戏进程、GABS helper 或共享开关**）。五模式实测（`_r5sim/r5-isolation-results.json`，runner SHA256 `27A9067DA18B90D80F2E46B3266EF0C11B46C3E00E24260CD704507F8C3F3CE9`）：
+**第二轮整改补充（复核第 3 项）**：
 
-| mode | helper_closed | batch_kill | foreign_pid_stopped | own_pid_stopped | failures |
-|---|---|---|---|---|---|
-| ok | True | False | False | True | `<none>` |
-| connfail | True | False | False | False | `exception: simulated_endpoint_timeout` |
-| neverconnect | True | False | False | True | `games_connect never succeeded \| exception: no_connect` |
-| forcetook | True | False | False | True | `games_connect force-took a session this run did not own \| exception: force_takeover_refused` |
-| startthrow | True | False | False | True | `exception: simulated_launch_timeout_after_process` |
+5. **进程收尾改按实际归属证据限定。** 原实现把启动期间出现的**所有**同名新增 PID 都并入 `$script:OwnGamePids`——若他方进程恰在 `games_start` 调用期间启动就会被误杀。现改为三分支：`no_new_process` / `single_new_process_during_launch`（唯一新增才归本场）/ **`ambiguous_multiple_new_processes`**（多个同名新增 → 不认领、不杀，记入 `$script:UnownedNewPids`）；`games_start` 结果未确认时降级为 `single_new_process_launch_result_unconfirmed`。归属不明时按 `process ownership unresolved: … ; left running` 登记清理失败，**不强杀未知 PID**。
+6. **`end_mission` 只在确有本场会话归属时执行。** `:518` 解析 `games_connect` 结果为 `Discovered|Re-synced|Already connected` 时置 `$script:SessionConnected = $true`；`:772` 仅在此为真时才发 `end_mission`，否则打印 `end_mission skipped: this run never connected to a game session`。helper HTTP 可用不再被当作已取得连接的证明。
+7. stage record（`_p3-exclusive-stage.ps1:163/165`）新增 `ownership_basis` / `launch_process_started` / `unowned_new_pids` / `session_connected` 四项，使归属判定可事后核对。
 
-五模式全部 `cleanup_reached=True`；`force_takeover_arg_sent` 恒 False。关键路径：
+**隔离模拟取证**（`Program/_verify/_r5sim/make-sim.ps1`：把真实 `run-p3.ps1` 按锚点正则切片、对 helper/进程表打桩后独立执行；**不触碰任何游戏进程、GABS helper 或共享开关**）。六模式实测（`_r5sim/r5-isolation-results.json`，runner SHA256 `FE917341959068FBEC0B11E0A4CC9D27027A2E7F44D64F486A7662A6D6CE01F3`，generator SHA256 `8F9B2F451B5CBBCB2F5B35B981CD3A7E6AD8DA4CE8C64322F00D02F58EF71C37`）：
+
+| mode | helper_closed | batch_kill | foreign_pid_stopped | own_pid_stopped | end_mission_sent | failures |
+|---|---|---|---|---|---|---|
+| ok | True | False | False | True | **True** | `<none>` |
+| connfail | True | False | False | False | False | `exception: simulated_endpoint_timeout` |
+| neverconnect | True | False | False | True | False | `games_connect never succeeded \| exception: no_connect` |
+| forcetook | True | False | False | True | False | `games_connect force-took a session this run did not own \| exception: force_takeover_refused` |
+| startthrow | True | False | False | True | False | `exception: simulated_launch_timeout_after_process` |
+| **startthrow-other-during-launch** | True | False | **False** | **False** | False | `exception: simulated_launch_timeout_after_process \| cleanup: process ownership unresolved: 777001,777999 appeared during the launch call and could not be attributed to this run (basis=ambiguous_multiple_new_processes); left running` |
+
+六模式全部 `cleanup_reached=True`；`force_takeover_arg_sent` 恒 False。关键路径：
 
 - `connfail` trace = `helper_process_acquired -> helper_closed` —— **正是 R5 第一条要闭合的「连接失败时 helper 未进 Close-McpHttp」**。
 - `startthrow` trace = `helper_process_acquired -> mcp:games_start -> … -> stop-process:777001 -> helper_closed` —— 启动调用已产生进程后抛错，本场 PID 仍被归属并结束（此前名单在 `games_start` 成功返回后才取，会漏记）。
+- `ok` trace = `… -> tool:cbath/get_mission_state -> tool:cbath/end_mission -> tool:cbath/get_last_run -> mcp:games_stop -> stop-process:777001 -> helper_closed` —— **`end_mission_sent=True` 只在 `ok` 模式出现**，其余模式（含 `neverconnect`、`forcetook`）均 False；即 `end_mission` 已改由实际连接的 Mission 归属（`$script:SessionConnected`）决定，helper HTTP 可达不再作为已取得连接的证明。
 - 各模式 `end_state` 均为 `p1=enabled=0 p2=enabled=0 p3=enabled=0 probes_empty=True safely_exited=1 residual_own=0 helper_residual=0`。
 
-桩表含他人进程 `777999`（仅在启动快照之后出现），用于暴露按名批量强杀；五模式均未命中。
+桩表含他人进程 `777999`（仅在启动快照之后出现），用于暴露按名批量强杀。前五模式均未命中；第六模式 `startthrow-other-during-launch` 让两个同名新进程在启动调用期间同时出现，结果**不再认领、不再批量强杀**（`foreign_pid_stopped=False`），而是如实登记归属不明并保留其运行——**这正是复核第 3 项要求的「PID 差集不等于本场所有权」**。
 
 **stage 三场景模拟**（`Program/_verify/_stagesim/stage-results.json`）：
 
@@ -338,7 +402,7 @@ game stage returned ok: <Boolean>
 
 ## 4. 原合同三门逐门自检
 
-检查器：`Program/_verify/check-p3-feedback.ps1`（74757 B，SHA256 `D7D140FDEF14B7B2541D3DF56315760891E0FF49DDBD90AE0024E2D859566FAB`）。
+检查器：`Program/_verify/check-p3-feedback.ps1`（78262 B，SHA256 `998BE4883F18307153FD12F7325EE4C71326ECB410863FF8CC5EFFE2DB7365C2`，为第二轮整改后读数）。
 调用：`powershell.exe -NoProfile -ExecutionPolicy Bypass -File <chk> -SessionDir <绝对路径> [-ControlSessionDir <绝对路径>]`。**`-SessionDir` 必须传绝对路径**，相对路径会拼到工作目录导致 `session dir not found`。退出码 0 只表示检查器跑完，各门状态单列。
 
 | 场次 | 门1 正 | 门2 负 | 门3 对照 |
@@ -358,7 +422,7 @@ game stage returned ok: <Boolean>
 
 原始索引：`p3-P-20261015-004350`（基线旧场）、`p3-P-20261015-220249`（上批新场，build `b20261015-220246-a9c223d9`）。两场失败明细相同：`gate1_commitment_actually_changed old_main_requested= new_main_requested=`、`gate1_new_main_actually_advanced role_point_main_writes=0 proof=`、`gate1_guard_and_support_placed guard_writes=0 support_writes=0`。
 
-**根因为真实缺陷，非检查器过严**（本节保留为原始失败证据，本轮未修复）。`p3-P-20261015-220249` 逐行：
+**该场门1 的失败是真实的**（不是检查器过严），但它记录的是**旧构建**的行为，不能推广成当前提交的根因。`p3-P-20261015-220249` 逐行：
 
 ```
 124.703 SUCCESSOR_STANDBY old=plan-1 pending=plan-2 decision=Reinforce tasks=3 deadline=125.703
@@ -373,13 +437,19 @@ game stage returned ok: <Boolean>
 128.539 TASK_FEEDBACK task-1 state=failed reason=CommandOverridden → PLAN_INVALIDATED plan-2
 ```
 
-`plan-2` 的 Guard(task-2)/Support(task-3) 始终 `candidate_not_submitted`，`COORDINATION_STATE` 全程 `guard=None support=None`，`advance_allowed=0` 因而从未生成推进任务。机制：`BattleAssessment.BuildSuccessorCoordination`（`:227`）只调 `BuildCoordination`，后者设 `guardTask.DependsOnTaskId = mainTask.TaskId`（`:212`）与 `supportTask.DependsOnTaskId = mainTask.TaskId`（`:214`）；`TestDriver.WriteDelayBlock` 的 `PredecessorNotWritten` 对 Ordinal 2/3 的 Guard/Support 返回 `predecessor_not_written`，而 Main 推进任务的前置门 `CoordinationPlan.MainAdvanceAllowed`（`:99`）又要求 `guard.WrittenAt >= 0 && support.WrittenAt >= 0` 且 Feedback 为 Effective —— 形成互锁，继任协同计划在原生覆盖（约 3.3 s 后）之前无法建立保护/辅助关系，也无 `move_to_role_point role=Main` 写入。
+`plan-2` 的 Guard(task-2)/Support(task-3) 始终 `candidate_not_submitted`，`COORDINATION_STATE` 全程 `guard=None support=None`，`advance_allowed=0` 因而从未生成推进任务。
+
+**根因是继任计划寿命与投递节奏不足，不是依赖环。** 逐刻实测：125.197 公布 `plan-2` 三任务；该场构建（`b20261015-220247-b67b2b93`）的 `SubmitPending` 只在 3 s 评价点被调用，故 125.204/126.208/127.218 三个 tick 无任何投递日志，首个候选迟至 **127.708** 才提交（`TASK_CANDIDATE_SUBMITTED task=plan-2-task-1`），task-2/task-3 同刻因 `predecessor_not_written` 延后；128.039 task-1（Main Hold）写出；**128.539 task-1 被原生改目标 → `TASK_FEEDBACK state=failed reason=CommandOverridden` → `PLAN_INVALIDATED plan-2`**，task-2/task-3 从未获得提交机会。
+
+`BattleAssessment.cs:212/214` 的依赖方向必须说清：`guardTask.DependsOnTaskId`/`supportTask.DependsOnTaskId` 指向的 `mainTask` 是 `:199` 建立的 **`TaskKind.Hold` 等待任务**（`coordination_main_hold_wait`），**不是**推进任务——推进任务由 `CoordinationTick` 在 `MainAdvanceAllowed` 成立后另行创建。因此依赖链是 `main-hold → guard/support → advance` 的无环 DAG，不存在「`DependsOnTaskId` 与 `MainAdvanceAllowed` 互锁」。旧交回文档（本轮已更正）把 `Hold` 等待任务与后续推进任务混为一条，由此得出的「假想依赖环」不成立。
+
+该失败也不能用来证明当前提交的根因：`732f6df` 把 `SubmitPending` 改为逐 tick 调用（原 125.204 那种 tick 会立刻进入时序门判定），可预期缩短合法等待，但**是否足以让继任计划在被原生覆盖前完成 Guard/Support 落位与主力推进，只有新实机场次能回答**。
 
 对照组证据：**初始** `plan-1` 可走通——`p3-P-20261015-220249` 有 `WRITE_EXECUTED task=plan-1-task-2 geometry=move_to_role_point role=Guard`(7.591)、`task-3 role=Support`(10.641)、`COORDINATION_ADVANCE plan-1-task-4-g1`(18.747)、`WRITE_EXECUTED task-4-g1 role=Main`(23.039，readback_error=0.000)。故写令通路本身可用，问题是继任计划寿命不足。
 
 独立复算：`p3-P-20261015-220249` counts `evaluations=34 freezes=1 replans=1 invalidations=2 writes=15 exit_stop_queued=6 exit_stop_done=6 successor_tasks=3`。
 
-**注意**：该缺陷涉及 `BuildSuccessorCoordination` → `DependsOnTaskId` 与 `MainAdvanceAllowed` 的互锁，属继任协同计划可执行性；本轮 §2 只改了位置语义与到位判据，**未改该互锁**，故门1 判定不变，仍为 fail。
+**注意**：该场门1 失败是历史事实，但它是**旧构建**（`b20261015-220247-b67b2b93`）的结果，只能作为「历史没有观察到成功的继任推进」的证据，不能作为 `732f6df` 的根因结论，也不能据此断言逐 tick 投递后仍不会重现。门1 所需的「新保护/辅助关系 + 新主力有限推进」属于派单 §3.1（投递/提案/裁决链）与 §4（新职责与主力推进）的原有要求，`BattleAssessment`、`CoordinationPlan`/`CoordinationDriver` 均在派单 §5 白名单内，**无需另行申请授权**。
 
 ### 门2（负反馈调整/终止并停止旧命令）— **取得 pass 与 fail 各一**
 
@@ -450,7 +520,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File Program\_verify\check-p3
 
 ```
 Program\_verify\_r5sim\make-sim.ps1    由真实 run-p3.ps1 按锚点切片生成 sim-<mode>.ps1
-Program\_verify\_r5sim\r5-isolation-results.json   五模式结论
+Program\_verify\_r5sim\r5-isolation-results.json   六模式结论
 Program\_verify\_stagesim\              stage 替身与 stage-results.json
 Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据敏感性）
 ```
@@ -489,18 +559,20 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 ## 7. 失败与未覆盖项
 
-1. **门1 未取得 pass。** 根因是继任协同计划的可执行性缺陷（§4 门1），已定位到源码行（`BattleAssessment.cs:212/214/227`、`CoordinationPlan.cs:99`、`TestDriver.PredecessorNotWritten`），**本轮未修复**——超出本单 §2/§3 授权面，且需要新的实机窗口验证。派单 §4 表要求的「修复后正例须实际完成新保护/辅助关系及新主力有限推进」**未达成**。
+1. **门1 未取得 pass。** 本轮全部实机场次都早于 `732f6df`，它们只能证明历史成功/失败与工具的敏感性，**不能为当前提交给出任何门的结论**。旧场观测到的继任协同计划未完成保护/辅助落位与主力推进，其直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不是依赖环**——`DependsOnTaskId` 指向的是 Hold 等待任务，依赖链无环（详见 §4 门1）。因此不存在需要另行申请的「互锁修复授权」；门1 的后续验证属于派单 §4 原有要求。当前产物三个门**均未实机验证**。
 2. **门3 未取得 pass（unverified）。** P/C 实际部署不可比 + 无地形深度产物；未取匹配对照场次。**未放宽容差凑 pass。**
-3. **本轮提交的源码未在任何实机运行过。** §1.3 全部场次的源码 mtime 为 20:16–20:25、构建早于本次提交。`732f6df` 的改动只经过离线验证（304/304 测试、Release/Debug 重建 0 警告 0 错误、PS 5.1 语法、WhatIf、隔离模拟与篡改反例）。**资源未正式交回，按派单只做离线工作。**
+3. **本轮提交的源码未在任何实机运行过。** §1.3 全部场次的源码 mtime 为 20:16–20:25、构建早于本次提交。`732f6df` 与第二轮整补的改动只经过离线验证（309/309 测试、Release/Debug 重建 0 警告 0 错误、PS 5.1 语法、WhatIf、R5 隔离模拟与门2 篡改反例、坐标接线红态验证）。**资源未正式交回，按派单只做离线工作。**
 4. **R5 隔离模拟是替身证据，不是实机证据。** 它证明控制流按预期收尾（helper 关闭、只杀本场 PID、清理失败登记、stage 分列），但不能替代一次真实 `Invoke-ExclusiveGame.ps1` 全流程收尾的实读。
 5. **晚场的独占入口证据不完整**（沿用上批结论）。只有 `p3-P-20261015-203136`、`p3-N-20261015-211938`、`p3-N-20261015-213231` 三场留存完整 stage record（`_lastrun-p3-exclusive-*.txt`）。`p3-P-20261015-214532`、`-215314`、`-220249`、`p3-C-20261015-214157`、`-220738`、`p3-P-20261015-221833`、`-222821` 未留存 stage-record 日志，**不作为「经 `Invoke-ExclusiveGame.ps1` 独占执行」的证据**；其运行身份（§1.3）与产物仍有效，但启动通道归属未证实。
 6. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。
 7. **`_tamper4` 目录内含被修改过的 `CombatBrain2.log`（mtime 2026-10-16 1:34）**，用于门2 缺证据敏感性；原始场 `_verify\sessions\p3-P-20261015-221833` 未被清洗改写。审查副本位于 `E:\Agent\codex\2026-10-14\p3\work\review-20261016\`。
 
-**未触发的自然边界**（保留为未验证，不登记为通过）：获选超时、写令截止后才首次获选、`FLIGHT`/`STOP_LOSS` 触发的继任、P1/P2 相关回归——本轮 §2 改动了 `TaskFeedback`/`CoordinationPlan`/`TestDriver` 的位置语义判断，已用 304 项单测覆盖，但**未在任何实机窗口回归**。P1 锚点语义由 `AnchorDefinedTaskKeepsAnchorSemantics` 与 `TaskSelectionDeadlineTests.MoveRequiresClosingDistance` 锁定。
+**未触发的自然边界**（保留为未验证，不登记为通过）：获选超时、写令截止后才首次获选、`FLIGHT`/`STOP_LOSS` 触发的继任、P1/P2 相关回归——本轮 §2 改动了 `TaskFeedback`/`CoordinationPlan`/`TestDriver` 的位置语义判断，已用 309 项单测覆盖，但**未在任何实机窗口回归**。P1 锚点语义由 `AnchorDefinedTaskKeepsAnchorSemantics` 与 `TaskSelectionDeadlineTests.MoveRequiresClosingDistance` 锁定。
 
 ---
 
 ## 8. 本轮新增概念清单
 
 无新增架构、战术、指标或命令概念。`TaskDelivery`/`DeliveryFacts` 是接手时已存在的未提交实现（本轮收录并补身份门）。`FormationTask.AnchoredRequest` 是唯一新增生产 API，实现派单 §2.1 已裁定的换算；未引入新全局坐标系、未建通用变换框架。
+
+第二轮新增 `Program/src/Core/ProposalWiring.cs`：它不是新概念，只是把 §2 已裁定的「战术目标语义」判定链（读哪个点、写前怎么复核）从 Host 搬到 Core，使离线夹具与实机走同一份实现。行为不变，`Host/TestDriver.cs` 相应减少 84 行（删除 `RoleTargetPoint`/`TryReadTargetPoint` 两份私有复本）。
