@@ -164,13 +164,15 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 
 依据 `CB2-PROMPT-0005`（`../P3-RESTART-REMEDIATION-DISPATCH.md`）与 `CB2-PROMPT-0006`（`../P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md`）；原验收合同 `CB2-PROMPT-0004`。**状态：限定自检完成，待独立验收。** 完整说明见 `../P3-IMPLEMENTATION-HANDOVER.md`。
 
-CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:00）→ 接续提交 `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，19 files, +1467/−164）→ 交回文档提交 `5bbdeeb`（2 files, +352/−142）→ 独立复核退回后第二轮整补 `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（11 files, +475/−146，含新建 `Program/src/Core/ProposalWiring.cs`）。CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，未变）。第二轮后：Release/Debug 重建 0 警告 0 错误；测试 **309/309** 通过（相对 `ced0a18` 的 276：+15 `CoordinateSemanticsTests`、+11 `TaskSelectionDeadlineTests`、+7 `ActionFeedbackTests`）。全部提交为本地提交，未 push、未建 PR。
+CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:00）→ 接续提交 `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，19 files, +1467/−164）→ 交回文档提交 `5bbdeeb`（2 files, +352/−142）→ 独立复核退回后第二轮整补 `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（11 files, +475/−146，含新建 `Program/src/Core/ProposalWiring.cs`）→ 第二轮复核退回后**第三轮整改**（`Program/_verify/check-p3-feedback.ps1` +36/−1、`Program/_verify/run-p3.ps1` +12/−12、本文件与 `../P3-IMPLEMENTATION-HANDOVER.md`；**未改 C# 源码**）。CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，未变）。第三轮后：Release 重建 0 警告 0 错误；测试 **309/309** 通过（相对 `ced0a18` 的 276：+15 `CoordinateSemanticsTests`、+11 `TaskSelectionDeadlineTests`、+7 `ActionFeedbackTests`）。全部提交为本地提交，未 push、未建 PR。
 
 第二轮整补针对独立复核退回的三个 P1 缺陷与一个文档问题：①提案身份/竞争误差/写前复核统一使用战术目标语义（判定链提到 `ProposalWiring`）；②门2 改为三值判定，「没发现矛盾」不再等于「已看到停止」；③进程收尾按实际归属证据限定、归属不明不强杀、`end_mission` 只在确有本场连接时执行；④更正 handover/INDEX 中「依赖环互锁」与「超出授权」的说法。
 
-门状态以 `../check-p3-feedback.ps1`（78262 B，SHA256 `998BE4883F18307153FD12F7325EE4C71326ECB410863FF8CC5EFFE2DB7365C2`，第二轮读数）逐门单列为准；退出码 0 只表示工具跑完。`-SessionDir` 必须传**绝对路径**。
+第三轮整改针对第二轮复核（`P3-ROUND2-REVIEW-5ac034b-20261016.md`）退回的两处边界：①**新增进程数不是所有权**——`games_start` 只有自身声明 `processStarted=true` 时，唯一新增同名 PID 才可进结束名单，否则与多个未知 PID 一样登记 unresolved 并保留运行（新增 `foreignonly` 隔离模式复现复核反例）；②**门2 后续归属**——停止时刻之后的读数，若该对象在此之前已有合法后继普通写令（非旧 plan、非 `-exit`），归后继，不再仅因坐标与旧角色点相等就判旧动作未停；缺证据仍 unverified、矛盾仍 fail。
 
-**下表的全部场次都产生于第二轮整补之前**（源码 mtime 20:16–20:25）。两轮提交的改动只经过离线验证，未在任何实机运行过——接手时无正式资源交回，按派单 §4/§5 只做离线工作。
+门状态以 `../check-p3-feedback.ps1`（80510 B，SHA256 `94832DFD103625431D70471EA76751484BAC90BBB7DDB5BDE5EE9A564FC479EB`，第三轮读数）逐门单列为准；退出码 0 只表示工具跑完。`-SessionDir` 必须传**绝对路径**。第三轮已对 `sessions/` 下全部 41 个场次目录复跑，非 `unverified` 的仍只有下表四行（`P-221833` 门2 pass、`N-005621` 门2 fail、`P-220249`/`P-004350` 门1 fail），无回归。
+
+**下表的全部场次都产生于第二轮整补之前**（源码 mtime 20:16–20:25）。两轮提交及第三轮脚本改动的结论只经过离线验证，未在任何实机运行过——接手时无正式资源交回，按派单 §4/§5 只做离线工作。
 
 | 场次 | build_id | 部署 SHA 前 16 | 门1 | 门2 | 门3 | 说明 |
 |---|---|---|---|---|---|---|
@@ -199,6 +201,10 @@ CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:0
 | `...\tamper-independent-order-contradiction` | **fail** | `still_on_old_order=008c0c1e@HorseArcher@134.746`（独立订单与停止声明冲突） |
 | 第二轮新增 `tamper-missing-independent-orders` | **unverified** | `independent_stop_evidence=incomplete:3`（删光独立订单字段后不再算 pass，旧版会误判 pass） |
 | 第二轮新增 `counterexample-before-exit-within-budget` | **pass** | 133.900 的预算内中间读数不再被判违约（旧版会误判 fail） |
+| 第三轮定向探针 `successor_write_before_same_coordinate_reading` | **不矛盾** | 后继在 137.0 对同一点写下普通令，137.5 的 `(50,0)` 读数归后继（第三轮修掉的误判；指向第二轮检查器复跑为 `contradiction=True`） |
+| 第三轮定向探针 `no_successor_write_same_coordinate_reading` | **矛盾** | 无任何后继写令时同坐标读数仍是旧令未停 |
+| 第三轮定向探针 `reading_before_successor_write` | **矛盾** | 后继写令（140.0）晚于读数（137.5），不得提前归属 |
+| 第三轮定向探针 `successor_exit_write_does_not_reattribute` | **矛盾** | 后继只有 `-exit` 停止任务写下同一点，不算续令 |
 
-四例都必须按上表取值，本轮复跑未回归。原始场 `p3-P-20261015-221833` 未被清洗改写。门2 现为三值判定：`ChecksOk` 失败 → fail；缺少独立可解释读数 → unverified；全满足 → pass。
+八例都必须按上表取值，本轮复跑未回归（前四例为场次副本，后四例为定向探针场景）。原始场 `p3-P-20261015-221833` 未被清洗改写。门2 现为三值判定：`ChecksOk` 失败 → fail；缺少独立可解释读数 → unverified；全满足 → pass。探针位于 `../../_gate2probe/run-probe.ps1`（切出检查器同一段生产代码，只替换写入记录与独立样本，不读写任何场次目录）。
 

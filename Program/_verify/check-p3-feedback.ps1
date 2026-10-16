@@ -1047,8 +1047,25 @@ if ($frozen.Count -eq 0) {
             if ($o.Length -eq 0 -or [double]::IsNaN($a)) { continue }
             if ((-not $stopAt.ContainsKey($o)) -or ($a -lt $stopAt[$o])) { $stopAt[$o] = $a }
         }
+        # A coordinate is not an identity. Once a legal successor has written its own order for the
+        # object, a later reading at the same coordinates belongs to that successor, not to the
+        # abandoned plan: the old role point and the new order can legitimately name the same
+        # point, so target equality alone cannot decide ownership. Only a reading with no
+        # successor order before it is still attributable to the old action. Task ids ending in
+        # -exit are the stop this conversion queued, not a renewal.
+        $successorWrites = @{}
+        foreach ($w in $writes) {
+            if ([string]$w['plan'] -eq $oldPlan) { continue }
+            if ([string]$w['task'] -match '-exit$') { continue }
+            $wo = [string]$w['obj']
+            $wa = Num $w['at']
+            if ($wo.Length -eq 0 -or [double]::IsNaN($wa)) { continue }
+            if (-not $successorWrites.ContainsKey($wo)) { $successorWrites[$wo] = @() }
+            $successorWrites[$wo] += $wa
+        }
         $stillAdvancing = @()
         $unexplainedObjs = @()
+        $reattributed = @()
         $pushedObjs = @($oldAssignedObjs | Where-Object { $oldRolePoints.ContainsKey($_) })
         if ($pushedObjs.Count -gt 0) {
             $facts = @(Get-IndependentOrderFacts $full $invAt ([double]::MaxValue))
@@ -1060,7 +1077,22 @@ if ($frozen.Count -eq 0) {
                 $contradicted = $false
                 foreach ($fct in $facts) {
                     if ([string]$fct.obj -ne $hash) { continue }
-                    if ([double]$fct.mission_time -le $stop) { continue }
+                    $ft = [double]$fct.mission_time
+                    if ($ft -le $stop) { continue }
+                    if ($successorWrites.ContainsKey($o)) {
+                        $succ = @($successorWrites[$o] | Where-Object { $_ -gt $stop -and $_ -le $ft })
+                        if ($succ.Count -gt 0) {
+                            # This reading follows an order a legal successor wrote for the same
+                            # object, so it is the successor's action and cannot be charged to the
+                            # old plan - even when the coordinates happen to coincide.
+                            $explained++
+                            if ($fct.readable -and (-not [double]::IsNaN($fct.x)) -and (-not [double]::IsNaN($fct.y)) -and
+                                (Close $fct.x $pt[0] 0.5) -and (Close $fct.y $pt[1] 0.5)) {
+                                $reattributed += ($o + "@" + $ft)
+                            }
+                            continue
+                        }
+                    }
                     if ($fct.readable -and (-not [double]::IsNaN($fct.x)) -and (-not [double]::IsNaN($fct.y))) {
                         if ((Close $fct.x $pt[0] 0.5) -and (Close $fct.y $pt[1] 0.5)) {
                             $stillAdvancing += ($o + "@" + $fct.mission_time)
@@ -1078,6 +1110,9 @@ if ($frozen.Count -eq 0) {
             }
         } else {
             Note "gate2 independent order readback: old plan has no move_to_role_point writes, nothing to contradict"
+        }
+        if ($reattributed.Count -gt 0) {
+            Note ("gate2 readings at the old coordinates after a legal successor order re-attributed to that successor (coordinates coincide, identity differs): " + ($reattributed -join ','))
         }
         Check 'gate2_stopped_objects_not_still_executing_old_order' ($stillAdvancing.Count -eq 0) `
             ("required=$($oldAssignedObjs.Count) old_role_points=$($oldRolePoints.Count) still_on_old_order=" + $(if ($stillAdvancing.Count -eq 0) { '<none>' } else { $stillAdvancing -join ',' }))

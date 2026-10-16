@@ -458,7 +458,7 @@ try {
     Write-Sentinels
     # The launch call can produce the game process and still fail afterwards (endpoint timeout,
     # refused connect), so the new-PID set is computed by diffing around the call in a finally:
-    # a snapshot taken only on the success path would leave that process unowned and never stopped.
+    # a snapshot taken only on the success path would lose that information entirely.
     $beforePids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
         Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id })
     try {
@@ -473,25 +473,25 @@ try {
         $newPids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
             Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id } |
             Where-Object { $beforePids -notcontains $_ })
+        # A before/after diff proves only "newly appeared". A single new same-name process is NOT
+        # proof it is this run's: another group's session can start while this call is failing,
+        # and the count cannot tell the two apart. The only verifiable identity this entry has is
+        # the launch call's own statement that it started a process, so a PID may enter the
+        # killable list only when that statement is present AND the diff is unambiguous. Anything
+        # else is left running and recorded as unresolved rather than guessed at.
         if ($newPids.Count -eq 0) {
             $script:OwnershipBasis = 'no_new_process'
-        } elseif ($newPids.Count -eq 1) {
-            # Exactly one same-name process appeared across the launch call: the run's own start.
+        } elseif ($script:LaunchProcessStarted -and $newPids.Count -eq 1) {
             $script:OwnGamePids = $newPids
-            $script:OwnershipBasis = 'single_new_process_during_launch'
+            $script:OwnershipBasis = 'launch_result_confirmed_single_new_process'
+        } elseif ($newPids.Count -eq 1) {
+            $script:UnownedNewPids = $newPids
+            $script:OwnershipBasis = 'single_new_process_launch_result_unconfirmed'
         } else {
-            # Several same-name processes appeared while this run was starting a game. At most one
-            # of them is ours and the process table cannot say which, so none may be claimed or
-            # killed; the ambiguity is recorded as a cleanup failure instead of a silent guess.
             $script:UnownedNewPids = $newPids
             $script:OwnershipBasis = 'ambiguous_multiple_new_processes'
         }
         if ($script:OwnGamePids.Count -gt 0) { $script:GameStarted = $true }
-    }
-    if (-not $script:LaunchProcessStarted -and $script:OwnershipBasis -eq 'single_new_process_during_launch') {
-        # The diff alone is weaker than the launch result; keep the process (it is the only new
-        # one) but record that the call did not confirm starting it.
-        $script:OwnershipBasis = 'single_new_process_launch_result_unconfirmed'
     }
     # The launch result is this run's own statement that it started a game, so it stays true even
     # when the new process could not be attributed.
