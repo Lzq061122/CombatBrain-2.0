@@ -1047,12 +1047,14 @@ if ($frozen.Count -eq 0) {
             if ($o.Length -eq 0 -or [double]::IsNaN($a)) { continue }
             if ((-not $stopAt.ContainsKey($o)) -or ($a -lt $stopAt[$o])) { $stopAt[$o] = $a }
         }
-        # A coordinate is not an identity. Once a legal successor has written its own order for the
-        # object, a later reading at the same coordinates belongs to that successor, not to the
-        # abandoned plan: the old role point and the new order can legitimately name the same
-        # point, so target equality alone cannot decide ownership. Only a reading with no
-        # successor order before it is still attributable to the old action. Task ids ending in
-        # -exit are the stop this conversion queued, not a renewal.
+        # A coordinate is not an identity, but a write record is not a blank cheque either: what a
+        # successor actually ordered, and for how long that order stayed in force, is what decides
+        # whether a later reading belongs to it. So each successor write is kept with its own
+        # identity (plan/task), its order type and target, and its interval [at, until) - where
+        # "until" is the object's next write of any kind, or its task close, whichever comes first.
+        # Carrying one early write forward for the rest of the run is exactly what hid a successor
+        # that ordered elsewhere, stood down, or was closed. Task ids ending in -exit are the stop
+        # this conversion queued, not a renewal.
         $successorWrites = @{}
         foreach ($w in $writes) {
             if ([string]$w['plan'] -eq $oldPlan) { continue }
@@ -1060,15 +1062,70 @@ if ($frozen.Count -eq 0) {
             $wo = [string]$w['obj']
             $wa = Num $w['at']
             if ($wo.Length -eq 0 -or [double]::IsNaN($wa)) { continue }
+            $wgeom = [string]$w['geometry']
+            # The target a write asks for comes from the record's own requested field; the
+            # geometry note is only a fallback, because a record's geometry can be a plain
+            # order name ("hold") with no coordinates at all - and a successor whose target
+            # cannot be read must not be treated as if it named the old point.
+            $wx = [double]::NaN
+            $wy = [double]::NaN
+            foreach ($cand in @([string]$w['requested'], $wgeom)) {
+                if ($cand.Length -eq 0) { continue }
+                $req = [regex]::Match($cand, '\(?([-0-9.]+),([-0-9.]+)\)?')
+                if ($req.Success) { $wx = [double]$req.Groups[1].Value; $wy = [double]$req.Groups[2].Value; break }
+            }
             if (-not $successorWrites.ContainsKey($wo)) { $successorWrites[$wo] = @() }
-            $successorWrites[$wo] += $wa
+            $successorWrites[$wo] += @{ at = $wa; task = [string]$w['task']; geometry = $wgeom; x = $wx; y = $wy; until = [double]::MaxValue }
+        }
+        $writeTimes = @{}
+        foreach ($w in $writes) {
+            $wo = [string]$w['obj']
+            $wa = Num $w['at']
+            if ($wo.Length -eq 0 -or [double]::IsNaN($wa)) { continue }
+            if (-not $writeTimes.ContainsKey($wo)) { $writeTimes[$wo] = @() }
+            $writeTimes[$wo] += $wa
+        }
+        $closedAt = @{}
+        foreach ($c in $closes) {
+            $co = [string]$c['obj']
+            $ca = Num $c['at']
+            if ($co.Length -eq 0 -or [double]::IsNaN($ca)) { continue }
+            if ((-not $closedAt.ContainsKey($co)) -or ($ca -lt $closedAt[$co])) { $closedAt[$co] = $ca }
+        }
+        foreach ($wo in @($successorWrites.Keys)) {
+            foreach ($so in $successorWrites[$wo]) {
+                $until = [double]::MaxValue
+                if ($writeTimes.ContainsKey($wo)) {
+                    foreach ($na in $writeTimes[$wo]) { if ($na -gt $so['at'] -and $na -lt $until) { $until = $na } }
+                }
+                if ($closedAt.ContainsKey($wo) -and $closedAt[$wo] -gt $so['at'] -and $closedAt[$wo] -lt $until) { $until = $closedAt[$wo] }
+                $so['until'] = $until
+            }
         }
         $stillAdvancing = @()
         $unexplainedObjs = @()
         $reattributed = @()
+        $successorExplained = @()
+        $successorMismatched = @()
         $pushedObjs = @($oldAssignedObjs | Where-Object { $oldRolePoints.ContainsKey($_) })
         if ($pushedObjs.Count -gt 0) {
-            $facts = @(Get-IndependentOrderFacts $full $invAt ([double]::MaxValue))
+            # Sample counts, not just sample presence, are read once: a step that drops whole
+            # formation entries from the sampler must not be able to shrink the evidence to
+            # nothing and still read as agreement.
+            $allFacts = @(Get-IndependentOrderFacts $full $invAt ([double]::MaxValue))
+            $facts = $allFacts
+            # A step that deletes whole formation entries must not shrink the evidence to nothing
+            # and still read as agreement: every pushed object needs at least one independent
+            # reading of its own before absence of contradiction counts for anything.
+            $pushedObjectsWithFacts = @($pushedObjs | Where-Object {
+                $h = $_.Split('@')[0]
+                @($allFacts | Where-Object { [string]$_.obj -eq $h }).Count -gt 0
+            }).Count
+            # Inside a successor order's own interval the reading belongs to that successor, but
+            # only when that order actually names the point the engine reports. A successor that
+            # ordered elsewhere (or ordered a Hold) cannot explain a Move to the abandoned role
+            # point - the coordinates simply disagree, and the object is still executing the old
+            # action. Outside every such interval nothing explains the reading at all.
             foreach ($o in $pushedObjs) {
                 $pt = $oldRolePoints[$o]
                 $hash = $o.Split('@')[0]
@@ -1079,19 +1136,30 @@ if ($frozen.Count -eq 0) {
                     if ([string]$fct.obj -ne $hash) { continue }
                     $ft = [double]$fct.mission_time
                     if ($ft -le $stop) { continue }
+                    $covered = $null
                     if ($successorWrites.ContainsKey($o)) {
-                        $succ = @($successorWrites[$o] | Where-Object { $_ -gt $stop -and $_ -le $ft })
-                        if ($succ.Count -gt 0) {
-                            # This reading follows an order a legal successor wrote for the same
-                            # object, so it is the successor's action and cannot be charged to the
-                            # old plan - even when the coordinates happen to coincide.
+                        foreach ($so in $successorWrites[$o]) {
+                            if ($ft -gt $so['at'] -and $ft -le $so['until']) { $covered = $so; break }
+                        }
+                    }
+                    if ($null -ne $covered -and $fct.readable -and (-not [double]::IsNaN($fct.x)) -and (-not [double]::IsNaN($fct.y))) {
+                        if ((-not [double]::IsNaN($covered['x'])) -and (Close $fct.x $covered['x'] 0.5) -and (Close $fct.y $covered['y'] 0.5)) {
                             $explained++
-                            if ($fct.readable -and (-not [double]::IsNaN($fct.x)) -and (-not [double]::IsNaN($fct.y)) -and
-                                (Close $fct.x $pt[0] 0.5) -and (Close $fct.y $pt[1] 0.5)) {
-                                $reattributed += ($o + "@" + $ft)
-                            }
+                            $successorExplained += ($o + "@" + $ft + "=>" + $covered['task'])
+                            if ((Close $fct.x $pt[0] 0.5) -and (Close $fct.y $pt[1] 0.5)) { $reattributed += ($o + "@" + $ft) }
                             continue
                         }
+                        # Engine reports a Move to the OLD point while the successor's live order
+                        # names a different point: the two disagree, so the successor cannot be
+                        # credited and the object is still on the abandoned advance.
+                        if ((Close $fct.x $pt[0] 0.5) -and (Close $fct.y $pt[1] 0.5)) {
+                            $stillAdvancing += ($o + "@" + $ft)
+                            $successorMismatched += ($o + "@" + $ft + " successor=" + $covered['task'] + " target=(" + $covered['x'] + "," + $covered['y'] + ") readback=(" + $fct.x + "," + $fct.y + ")")
+                            $contradicted = $true
+                            break
+                        }
+                        $explained++
+                        continue
                     }
                     if ($fct.readable -and (-not [double]::IsNaN($fct.x)) -and (-not [double]::IsNaN($fct.y))) {
                         if ((Close $fct.x $pt[0] 0.5) -and (Close $fct.y $pt[1] 0.5)) {
@@ -1108,8 +1176,17 @@ if ($frozen.Count -eq 0) {
                 }
                 if ((-not $contradicted) -and $explained -eq 0) { $unexplainedObjs += $o }
             }
+            if ($pushedObjectsWithFacts -eq 0) {
+                Note "gate2 independent order readback: independent sampler carries no formation entry for any pushed object, so no stop was observed - unverified, not agreement"
+            }
         } else {
             Note "gate2 independent order readback: old plan has no move_to_role_point writes, nothing to contradict"
+        }
+        if ($successorExplained.Count -gt 0) {
+            Note ("gate2 readings explained by the successor's own live order (order target matches readback): " + (($successorExplained | Select-Object -First 8) -join ',') + $(if ($successorExplained.Count -gt 8) { " (+$($successorExplained.Count - 8) more)" } else { '' }))
+        }
+        if ($successorMismatched.Count -gt 0) {
+            Note ("gate2 successor order disagreed with the engine readback (successor target differs, object still moving to the abandoned role point): " + ($successorMismatched -join ','))
         }
         if ($reattributed.Count -gt 0) {
             Note ("gate2 readings at the old coordinates after a legal successor order re-attributed to that successor (coordinates coincide, identity differs): " + ($reattributed -join ','))
@@ -1118,7 +1195,7 @@ if ($frozen.Count -eq 0) {
             ("required=$($oldAssignedObjs.Count) old_role_points=$($oldRolePoints.Count) still_on_old_order=" + $(if ($stillAdvancing.Count -eq 0) { '<none>' } else { $stillAdvancing -join ',' }))
         # Not a Check(): missing readings must not fail the arm, but they must also not be
         # silently spent as agreement. The verdict below turns this into "unverified".
-        $evidenceOk = ($unexplainedObjs.Count -eq 0)
+        $evidenceOk = (($unexplainedObjs.Count -eq 0) -and ($pushedObjectsWithFacts -eq $pushedObjs.Count))
         if (-not $evidenceOk) {
             Note ("gate2 independent stop evidence missing for required objects (no explainable order reading after their own stop write): " + ($unexplainedObjs -join ',') + " - unverified, not agreement")
         } else {

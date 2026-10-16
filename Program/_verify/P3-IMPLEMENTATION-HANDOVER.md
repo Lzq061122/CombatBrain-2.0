@@ -8,6 +8,8 @@
 
 **第三轮（第二轮复核退回两处边界）**：独立复核 `P3-ROUND2-REVIEW-5ac034b-20261016.md` 对提交 `5ac034b` 判「离线收尾仍不通过」，剩两处：①启动失败且只出现一个他方 PID 时仍被当成本场进程；②门2 把后续合法新计划的同坐标写令当作旧动作未停。本文件相应整补：§3.3（e）记录门2 后继归属与定向探针，§3.4 第 5b 条记录「新增进程数不是所有权」并新增 `foreignonly` 模式。**第三轮整改结论未经过独立复核。**
 
+**第四轮（第三轮复核退回两处边界 + 死战不退前置）**：独立复核 `P3-ROUND3-REVIEW-85e2171-20261016.md`（受审实现 `85e2171`，文档 `badd8d3`）判「离线收尾仍不通过」，剩两处：①门2 一旦出现后继写令就跳过后续全部独立订单核对，「仍执行旧目标」由 fail 变 pass、「独立订单缺失」由 unverified 变 pass；②`processStarted=true` 加差集唯一仍不能证明剩余 PID 属于本场，本场进程退出后只剩他方 PID 时该他方 PID 仍被结束。另要求补齐 `d64055d` 的「死战不退」实机前置。本文件相应整补：§3.3（f）记录门2 后继归属收紧与七场景探针，§3.4 第 5c 条记录「PID 身份由游戏进程自己报出」并新增 `startedthenexited`、`fighttodeathoff` 模式，§3.4 末尾记录死战不退前置接线位置。**第四轮整改结论未经过独立复核。**
+
 **本轮为新开发会话接续。** 接手时存在未提交的 P3 成果（14 项已跟踪 dirty + 未跟踪生产源码 `TaskDelivery.cs`），按派单 §5 逐路径精准暂存提交，未 `git add -A` / `commit -a`、未 reset/clean、未回滚任何既有 dirty。
 
 ---
@@ -27,6 +29,8 @@
 | 本轮交回文档提交 | `5bbdeeb` "docs(p3): hand back the coordinate/execution continuation with self-check scope"（本文件 + `sessions/INDEX.md`，2 files, +352 / −142）；不含实现，不进入身份链 |
 | 第二轮整补提交 | `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（master，本地，未 push / 未建 PR，11 files, +475 / −146） |
 | 第三轮整改提交 | `85e2171` "fix(p3): attribute round-2 process ownership and gate-2 successor orders"（master，本地，未 push / 未建 PR，4 files, +120 / −30；父提交为另一组的 `d64055d`，其内容与本次无关） |
+| 第三轮交回文档提交 | `badd8d3` "docs(p3): record the round-3 commit hash in the handover and session index"（2 files, +3 / −2） |
+| 第四轮整改提交 | 尚未提交；提交后在此补记实际短哈希（届时 `git show --stat` 实测） |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
@@ -88,6 +92,19 @@ Program/_verify/sessions/INDEX.md               +10/-4
 ```
 
 本轮**未改任何 C# 源码**：两处退回都在离线工具与收尾脚本里，生产 DLL 与上一轮一致。`Program/tests/CoordinateSemanticsTests.cs` 等 309 项测试保持通过，仅作为「未回归」的证据，不是本轮改动。
+
+**第四轮整改逐路径清单**（相对 `badd8d3`，`git diff --numstat` 实测）：
+
+```
+Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    +111/-39（本文件）
+Program/_verify/check-p3-feedback.ps1            +95/-18
+Program/_verify/run-p3.ps1                       +174/-21
+Program/_verify/sessions/INDEX.md               +21/-4（随本批同交）
+```
+
+本轮同样**未改任何 C# 源码**（`git diff --name-only` 对 `Program/src`、`Program/tests` 为空），改动只在两个验证脚本、两份文档，以及未提交的隔离/探针脚手架（`Program/_verify/_r5sim/`、`_gate2probe/`）。按入口 §4a「仅改脚本或文档不机械重跑未变的 C# 全量测试」，本轮**未重跑 `dotnet test`**，沿用第三轮整改后的 309/309 读数（本轮无任何 C# 改动，`git diff` 可复核）；如独立复核要求新鲜读数，请复跑 §1.2 命令。
+
+守则一处提示：`Program/README.md` 由 `d64055d`（另一组）加入的「死战不退」要求已在本轮接入 `run-p3.ps1`（§3.4），并新增 `fighttodeathoff` 隔离模式给出失败阻断证据。
 
 **未动他方材料**：`E:\MBmod\BattleObservation-V1\{CB2,CBATH,TCL}` 未修改、未构建、未切换、未提交（`git worktree list` 复核：观测组两 worktree 仍在 `e2a0e38` / `925c224`）；`ObservationAdapter.cs` 约定接口与事件位置未改；`sources/` 与历史失败原始场未改。
 
@@ -365,36 +382,49 @@ GATES: gate3_control: unverified -- with_counter_action=True control=False field
 
 第二轮实跑（10 场，无回归）：`p3-P-20261015-221833` → gate2=pass `independent_stop_evidence=present`；`p3-P-20261015-220249`、`-004350` → gate1=fail；`-222821`/`N-004851`/`N-211938`/`N-213231` → 全 unverified；`N-005621` → gate2=fail；`tamper-missing-reassigned-exit`、`tamper-independent-order-contradiction` → gate2=fail。新增两例：`tamper-missing-independent-orders` → **unverified `incomplete:3`**（旧版会误判 pass）；`counterexample-before-exit-within-budget`（133.900 预算内读数）→ **pass**（旧版会误判 fail）。
 
-**（e）第三轮整改：门2 后续窗口按「合法后继写令」归属，不再以坐标相等定旧令复活。** 第二轮把窗口延到 `MaxValue` 修掉了零预算误判，但**坐标不是身份**：旧角色点与新计划的普通写令可以合法落在同一点，此时后续读数属于新命令，不能判成旧动作未停。
+**（e）第三轮整改（已被第四轮收紧取代）：门2 后续窗口按「合法后继写令」归属。** 第二轮把窗口延到 `MaxValue` 修掉了零预算误判，但坐标不是身份：旧角色点与新计划的普通写令可以合法落在同一点。第三轮引入逐对象 `$successorWrites`，只要阅读时刻之前有非旧 plan、非 `-exit` 的写令即归后继并计入可解释。**该判据过宽——它不核对后继写的是什么命令、什么目标，也不要求独立读数可解释**，第四轮复核据此判回（见（f））。
 
-- 新增逐对象 `$successorWrites`（非旧 plan、非 `-exit` 任务、按 `obj` 记 `at`）。对每个「停止时刻之后」的独立读数：若该对象在 `(stop, 读数时刻]` 区间内已有合法后继写令，则该读数**归后继**并计入可解释（`$explained`），即使坐标与旧角色点重合；否则仍按原判据比较坐标，重合即 `$stillAdvancing`。
-- 归后继的读数单独 `Note`（`gate2 readings at the old coordinates after a legal successor order re-attributed to that successor …`），使「不是没看见、而是看见了但归属别人」可事后核对。
-- 停止起点（逐对象 `$stopAt`）、缺证据 unverified、矛盾 fail 三条不变。
+**（f）第四轮整改：后继写令必须与独立读数相互核对，不能只凭「存在一条后继写令」放行。** 复核 `P3-ROUND3-REVIEW-85e2171-20261016.md` §2 指出：第三轮只要某条写令早于读数就 `$explained++` 并 `continue`，于是「后继写向别处、对象仍奔向旧点」（应 fail）与「后继之后独立订单全缺」（应 unverified）都错误变成 pass。
 
-**归属判定的定向探针**（`Program/_verify/_gate2probe/run-probe.ps1`：按锚点切出检查器里 `$oldRolePoints` 到 8s 窗口之前的**同一段生产代码**执行，只替换写入记录与独立样本；不读写任何场次目录）。四场景实测（`_gate2probe/gate2-probe-results.json`）：
+- **写令记录携带身份与生效区间**：`$successorWrites[$obj]` 每条记 `at / task / geometry / x / y / until`；`until` 取该对象**下一条**写令时刻与该对象**最早 TASK_CLOSED 时刻**中的更早者。**后继退出、失效或被替换后不能沿用早先那条写令**——这正是「一次写令永久通行」的直接封堵。
+- **写令目标取法**：先取记录的 `requested` 字段，回退才解析 `geometry`（后继持 `hold` 时 `geometry` 无坐标）。只用 `geometry` 会让后继停在原地却已改持 `hold` 的合法情形被误判为「目标不同」。
+- **读数必须与后继目标吻合才算归后继**：仅当覆盖该时刻的后继写令**有目标坐标**且读数坐标与之 `0.5m` 内一致，才 `$explained++`（`$successorExplained`）；若后继写令存在但读数落在**旧角色点**（后继目标不同），记 `$stillAdvancing` + `$successorMismatched` 并 `break`；覆盖写令目标缺失（如 `hold`）而读数仍奔向旧点，同样判矛盾。无覆盖写令时保持原判据。
+- **证据门不再只看「没发现矛盾」**：`$evidenceOk = ($unexplainedObjs.Count -eq 0) -and ($pushedObjectsWithFacts -eq $pushedObjs.Count)`，即**每个被推对象都必须有属于它自己的至少一条独立读数**。缺读数的对象使 verdict 落 `unverified`，而不是让「后继写令已存在」把它抬成 pass。
+- 逐对象 `$stopAt` 起点、旧 plan 自身停止后继续写令的独立检查（`gate2_no_further_old_role_advance_writes`）、原四例判据均保留。
 
-| 场景 | 写入条件 | 读数 | 期望 | 结果 |
-|---|---|---|---|---|
-| `successor_write_before_same_coordinate_reading` | 后继在 137.0 对同一点写下普通令 | 137.5 `(50,0)` | 不矛盾 | **contradiction=False**（旧版 True） |
-| `no_successor_write_same_coordinate_reading` | 无任何后继写令 | 137.5 `(50,0)` | 矛盾 | contradiction=True |
-| `reading_before_successor_write` | 后继写令在 140.0，晚于读数 | 137.5 `(50,0)` | 矛盾 | contradiction=True |
-| `successor_exit_write_does_not_reattribute` | 后继只有 `-exit` 停止任务写下同一点 | 138.5 `(50,0)` | 矛盾 | contradiction=True |
+**归属判定的定向探针**（`Program/_verify/_gate2probe/run-probe.ps1`：按锚点 `        $oldRolePoints = @{}` 到 `        # The 8s post-conversion` 切出检查器里**同一段生产代码**执行，只替换写入记录与独立样本；锚点缺失即 `throw 'production fragment anchor missing'`；注入替身仅 `Num`/`Close`/`Note`/`Check`/`Get-IndependentOrderFacts` 五个纯函数）。七场景实测，同一探针分别指向工作树检查器（`checker_sha256=3DED788E7F2354344A5D1998666ECA8786AD5A0AACF8BCA9961691998EC3635E`）与第三轮 HEAD 版（`git show HEAD:Program/_verify/check-p3-feedback.ps1` 取出，`checker_sha256=16BEE51F5C9FEB6564D9069CF4F21245078B57151EF886F3AC59F5DEDDD3DBB8`；结果 `_gate2probe/gate2-probe-head-results.json`）：
 
-把同一探针指向第二轮检查器（`git show HEAD:Program/_verify/check-p3-feedback.ps1` 取出为 `_gate2probe/head-check-p3-feedback.ps1`，SHA256 `3D580448EF25357A09793B5C046387A40E253339C09D76D93900BF387991F354`；结果 `_gate2probe/gate2-probe-head-results.json`）复跑，四场景**全部 contradiction=True**——即第一场景正是本轮修掉的误判，探针能区分修复前后。工作树检查器 SHA256 = `94832DFD103625431D70471EA76751484BAC90BBB7DDB5BDE5EE9A564FC479EB`（即 `gate2-probe-results.json` 的 `checker_sha256`）。
+| 场景 | 工作树 | 第三轮 HEAD | 说明 |
+|---|---|---|---|
+| `successor_write_before_same_coordinate_reading` | False | False | 后继同点普通令，读数为后继所写 —— 不矛盾 |
+| `no_successor_write_same_coordinate_reading` | True | True | 无后继写令，读数落旧点 —— 矛盾 |
+| `reading_before_successor_write` | True | True | 后继写令晚于读数 —— 矛盾 |
+| `successor_exit_write_does_not_reattribute` | True | True | 后继只有 `-exit` 停止任务 —— 不归后继 |
+| `successor_target_differs_but_independent_old_move` | **True** | **False（错）** | 后继目标 `(90,30)`、读数仍 `(50,0)` —— 对象仍奔向旧点 |
+| `successor_hold_but_independent_old_move` | **True** | **False（错）** | 后继持 `hold`（无目标）、读数仍 `(50,0)` —— 无目标不能解释 |
+| `successor_with_only_unreadable_independent_fact` | False | False | 无可读订单、无目标 —— **落 `unverified`**（note：`independent stop evidence missing for required objects`），不是矛盾也不是同意 |
 
-**全量复跑（第三轮实测）**：对 `sessions/` 下全部 41 个场次目录逐一执行检查器，**非 `unverified` 的只有 4 行**——`p3-P-20261015-221833` gate2=pass、`p3-N-20261015-005621` gate2=fail、`p3-P-20261015-220249` gate1=fail、`p3-P-20261015-004350` gate1=fail，其余全 unverified，与第二轮基线一致。反例副本复跑：`review-20261016/tamper-missing-reassigned-exit` gate2=fail、`tamper-independent-order-contradiction` gate2=fail（`still_on_old_order=008c0c1e@HorseArcher@134.746`）、`_tamper4/A-noHorseArcherExitDone` gate2=fail、`_tamper4/B-samplesStillOldOrder` gate2=fail、`review-732f6df-20261016/tamper-missing-independent-orders` gate2=unverified、`counterexample-before-exit-within-budget` gate2=pass。本轮改动未使任何一例改变取值。
+后三行即复核新增的三场景；第三轮实现对其中两例判「无矛盾」（错误），工作树判矛盾。第一、六场景的 note 原文分别为 `gate2 readings explained by the successor's own live order (order target matches readback): object-a@Infantry@137.5=>`（归后继，坐标吻合）与 `gate2 successor order disagreed with the engine readback (successor target differs, object still moving to the abandoned role point): object-a@Infantry@137.5 successor=new-main target=(NaN,NaN) readback=(50,0)`（后继无目标、实测仍奔向旧点）。
 
-**探针切片口径**：`run-probe.ps1:57-60` 按锚点 `        $oldRolePoints = @{}` 到 `        # The 8s post-conversion` 取检查器源码；锚点缺失即 `throw 'production fragment anchor missing'`，不会静默产出空片段。注入的替身只有 `Num`/`Close`/`Note`/`Check`/`Get-IndependentOrderFacts` 五个纯函数——判定逻辑本身即生产代码。
+**复核的两个完整检查器反例（本轮实测）**：复核用历史场次 `p3-P-20261015-221833` 的完整副本，只改 Main 的独立订单字段，其余（CB2 日志、终态、成员、决定、退出回执）一律不动 ——
+
+| 副本 | 第三轮 HEAD | 工作树（本轮） |
+|---|---|---|
+| `review-85e2171-20261016/new_order_different_target_old_readback`（`137.034` 后 57 条读数改为 Move 到旧点） | pass（错） | **fail** `still_on_old_order=030dd50e@Infantry@137.564`，note `successor order disagreed … successor=plan-2-task-10 target=(1141.468,582.703) readback=(1147.344,603.044)` |
+| `review-85e2171-20261016/new_order_missing_independent_orders`（自身退出后 60 条读数的 movement_order/move_target 全删） | pass（错） | `Check` ok 但 **unverified** `independent stop evidence missing for required objects … 030dd50e@Infantry` |
+
+注：原场 `137.034` 的 Main 后继写令目标 `(1141.468,582.703)` 与旧 Main 角色点 `(1147.344,603.044)` 本就不同坐标 —— 第三轮「同坐标才归后继」的前提在该场并不成立，这也是误报被暴露的直接原因；**坐标是否相等不是判据，后继目标是否与读数一致才是**。
+
+**全量矩阵与 HEAD 对照（第四轮实测）**：对 `sessions/` 下 41 个场次目录 + 复核证据目录下的 8 个反例副本，共 **49 个目录**逐一执行工作树与 HEAD 两版检查器并比对，**只有复核那两个 `new_order_*` 副本取值不同**（HEAD 均 pass → 工作树分别 fail / unverified），其余 47 个取值完全一致。工作树侧取值：`p3-P-20261015-221833` gate2=pass；`p3-N-20261015-005621` gate2=fail；`p3-P-20261015-220249`、`p3-P-20261015-004350` gate1=fail；`review-20261016/tamper-missing-reassigned-exit`、`tamper-independent-order-contradiction`、`_tamper4/A-noHorseArcherExitDone`、`_tamper4/B-samplesStillOldOrder` gate2=fail；`review-732f6df-20261016/tamper-missing-independent-orders` gate2=unverified；`counterexample-before-exit-within-budget` gate2=pass；其余全 unverified。本轮改动未使任何非目标场景改变取值。
 
 ### 3.4 R5：完整入口失败路径与 WhatIf（§3.4）
 
 审查退回项 R5 位于 `REVIEW.md:71-80`，受审 `run-p3.ps1:320-377`/`:635-693` 与 `_p3-exclusive-stage.ps1:47-85`。四条：
 
-1. **helper 移入 try**：`Program/_verify/run-p3.ps1:453-455` `try { $script:OwnGabsPid = Open-McpHttp ...; $script:McpOpened = $true }`。注释原文：「The helper must be opened INSIDE the try: it starts gabs before probing the endpoint and throws when the endpoint never becomes ready」。
-2. **只按本场 PID 收尾**：全脚本 `Stop-Process` 只剩 1 处（`:827`），`:823-824` 先按 `$script:OwnGamePids -contains $_.Id` 过滤，`:836-838` 对非本场 PID 打 `Note-Others`。
+1. **helper 移入 try**：`Program/_verify/run-p3.ps1:503-505` `try { $script:OwnGabsPid = Open-McpHttp ...; $script:McpOpened = $true }`。注释原文：「The helper must be opened INSIDE the try: it starts gabs before probing the endpoint and throws when the endpoint never becomes ready」。
+2. **只按本场 PID 收尾**：全脚本 `Stop-Process` 只剩 1 处（`:975`），`:971-972` 先按 `$script:OwnGamePids -contains $_.Id` 过滤，`:985` 对非本场 PID 打 `Note-Others`。
 3. **清理失败独立登记 + 结束实读**：`finally` 内每个 teardown 步骤独立 `try/catch` 并 `$script:CleanupFailures += …`（end_mission / games_stop / Close-McpHttp / crash report / sentinel restore / end-state read-back），末尾逐条 `Fail "cleanup: $cf"`；`Assert-CleanEndState` 实读 `safely_exited`、P1/P2/P3 开关、两探针空、本场残留 PID、helper 残留。
 4. **stage 分列「开始尝试」与「实际取得」**：`Program/_verify/_p3-exclusive-stage.ps1:88-89` 改为两行：
-
 ```
 game stage attempted:  <stage|none>
 game stage returned ok: <Boolean>
@@ -404,16 +434,24 @@ game stage returned ok: <Boolean>
 
 **第二轮整改补充（复核第 3 项）**：
 
-5. **进程收尾改按实际归属证据限定。** 原实现把启动期间出现的**所有**同名新增 PID 都并入 `$script:OwnGamePids`——若他方进程恰在 `games_start` 调用期间启动就会被误杀。现改为三分支：`no_new_process` / **`launch_result_confirmed_single_new_process`**（唯一新增 **且** `games_start` 自身声明 `processStarted=true` 才归本场）/ **`ambiguous_multiple_new_processes`**（多个同名新增 → 不认领、不杀，记入 `$script:UnownedNewPids`）。归属不明时按 `process ownership unresolved: … ; left running` 登记清理失败，**不强杀未知 PID**。
+5. **进程收尾改按实际归属证据限定。** 原实现把启动期间出现的**所有**同名新增 PID 都并入 `$script:OwnGamePids`——若他方进程恰在 `games_start` 调用期间启动就会被误杀。现改为三分支：`no_new_process` / **`launch_result_confirmed_single_new_process`**（唯一新增 **且** `games_start` 自身声明 `processStarted=true` 才归本场）/ **`ambiguous_multiple_new_processes`**（多个同名新增 → 不认领、不杀，记入 `$script:UnownedNewPids`）。归属不明时按 `process ownership unresolved: … ; left running` 登记清理失败，**不强杀未知 PID**。**这一条的三分支口径在第三轮被 5b 收紧、第四轮被 5c 取代**，此处仅记录当轮实现，勿按本条读当前代码。
 
 5b. **第三轮整改：新增进程数不是所有权，`games_start` 的启动声明是唯一可核对的本次身份。** 第二轮仍把「**恰好一个**新同名 PID」直接当本场进程（`OwnGamePids = newPids`），与是否确认启动无关；启动失败而恰有一个他方 PID 出现时，该他方 PID 仍会进结束名单并被杀。复核反例就是删除本场假 PID 777001、只留他方 777999，结果 trace 出现 `stop-process:777999`、end-state 记 `own_game_pids=[777999] basis=single_new_process_during_launch`。
- - 现取条件改为 `$script:LaunchProcessStarted`（`:469` 解析 `games_start` 返回的 `"processStarted"\s*:\s*true`）**与** `newPids.Count -eq 1` **同时成立**才可认领；两者缺一即降级为 `single_new_process_launch_result_unconfirmed`，PID 进 `$script:UnownedNewPids` 并保留运行。
- - `:498` 起 `LaunchProcessStarted` 与「能否归属」解耦：启动调用已声明起进程时 `GameStarted` 仍为真（`games_stop` 等收尾照常走），但不因此获得杀 PID 的权力。
+ - 现取条件改为 `$script:LaunchProcessStarted`（解析 `games_start` 返回的 `"processStarted"\s*:\s*true`）**与** `newPids.Count -eq 1` **同时成立**才可认领；两者缺一即降级为 `single_new_process_launch_result_unconfirmed`，PID 进 `$script:UnownedNewPids` 并保留运行。
+ - `LaunchProcessStarted` 与「能否归属」解耦：启动调用已声明起进程时 `GameStarted` 仍为真（`games_stop` 等收尾照常走），但不因此获得杀 PID 的权力。
  - **不能仅依赖候选数=1，也不能假设「启动调用期间不会有其他进程出现」。** 要求的是先有可核对的本次身份，才进结束名单；没有就与多个未知 PID 同样登记 unresolved。
-6. **`end_mission` 只在确有本场会话归属时执行。** `:518` 解析 `games_connect` 结果为 `Discovered|Re-synced|Already connected` 时置 `$script:SessionConnected = $true`；`:772` 仅在此为真时才发 `end_mission`，否则打印 `end_mission skipped: this run never connected to a game session`。helper HTTP 可用不再被当作已取得连接的证明。
-7. stage record（`_p3-exclusive-stage.ps1:163/165`）新增 `ownership_basis` / `launch_process_started` / `unowned_new_pids` / `session_connected` 四项，使归属判定可事后核对。
 
-**隔离模拟取证**（`Program/_verify/_r5sim/make-sim.ps1`：把真实 `run-p3.ps1` 按锚点正则切片、对 helper/进程表打桩后独立执行；**不触碰任何游戏进程、GABS helper 或共享开关**）。七模式实测（`_r5sim/r5-isolation-results.json`，runner SHA256 `43607B588BACD1FAA3DF0EECE1A310E7E1D99A57E60E1A4B8E56CEFB25D18D7D`，generator SHA256 `2EC7C7089E07204BB6143F69FDC2656AEEBE5E6FD00B74C9CB14DDFF56862CB4`）：
+5c. **第四轮整改：启动声明 + 差集唯一仍不是身份，PID 必须由游戏进程自己报出。** 第三轮把 `processStarted=true` 与「恰好一个新增 PID」当成所有权，但两者都不给出 PID：`processStarted` 只说明**曾经**起过进程，进程完全可能在启动回执生成后、runner 取后快照前退出，此时另一个同名进程出现，差集仍只有一个 PID——那个他方 PID 于是被判为本场并结束。复核隔离反例（`started-then-exited-foreign-only`，启动回执 `code=started_bridge_pending / processStarted=true / gabpConnected=false`，本场进程在启动侧最后一次存活检查后退出）实测输出 `own game pids: 777999 basis=launch_result_confirmed_single_new_process` → `stop-process:777999`，end-state 记 `own_game_pids=[777999]`。
+ - **身份来源改为游戏进程自写的 PID，且只此一路。** CBATH 在模块加载时由游戏进程自身写出 `cbath-runtime-identity-<pid>.txt`（`CBATH RuntimeIdentity.Emit`，内容含 `pid=<自身 PID>`）；preflight 已清空该目录（`:418-419`），所以**跨本次启动调用新出现的身份文件，只可能由本次启动的进程写出**。它同时回答了「进程已经退出、差集已看不见它」的情形——文件还在，身份还在。
+ - `Get-RuntimeIdentityPids` 收集身份文件 PID；启动 `finally` 内与差集取交（`$identityCandidate = $script:IdentityPids | Where-Object { $newPids -contains $_ }`）：恰好 1 个 → `OwnGamePids` 并记 `runtime_identity_file_matched_launch_candidate`；>1 个 → `ambiguous_multiple_identified_processes`，全部保留不杀；身份非空但不含任何新增 PID → `launched_process_exited`（或 `launched_process_exited_other_process_present`），**说明本场进程已退出、差集所见皆他方**，他方 PID 全部记 unresolved 保留运行；无身份文件且无新增 → `no_new_process`；无身份但已声明启动 → 候选挂起（见下）；无身份且无启动声明 → `new_process_without_launch_result`，同样保留。
+ - 仅在**没有身份文件**时才回落连接后的 `cbath/ping` 自身 PID：`session_runtime_pid_matched_launch_candidate`（PID 须同时是启动候选），否则 `runtime_identity_not_a_launch_candidate` / `runtime_identity_unavailable` 并把候选记 unresolved。**回落路径不是替代品**：连接未成功时（`startedthenexited`、`neverconnect` 的前半段）它不执行，故不能靠它认领。
+ - 未归属时收尾把 `LaunchCandidatePids` 并入 `UnownedNewPids` 一并登记 `process ownership unresolved: … ; left running`；仍只对 `$script:OwnGamePids` 内的 PID 执行 `Stop-Process`。
+ - **唯一能进结束名单的路径是「身份文件所指 PID ∩ 启动差集候选」，或（无身份文件时）「会话自身 PID ∩ 启动差集候选」。** 只凭启动布尔值、只凭候选数、只凭时间差集，都不构成身份。
+6. **`end_mission` 只在确有本场会话归属时执行。** 解析 `games_connect` 结果为 `Discovered|Re-synced|Already connected` 时置 `$script:SessionConnected = $true`；收尾仅在此为真时才发 `end_mission`，否则打印 `end_mission skipped: this run never connected to a game session`。helper HTTP 可用不再被当作已取得连接的证明。
+7. **`end-state.json` 新增四项归属记录**（由 `run-p3.ps1` 的 finally 写出，与 `_p3-exclusive-stage.ps1` 打印的 stage record 是两份不同的东西——后者只有 `completed` / `game stage attempted` / `game stage returned ok`）：`ownership_basis`、`launch_process_started`、`unowned_new_pids`、`session_connected`（现 `run-p3.ps1:160-176`），使归属判定可事后核对。
+8. **`cbath/get_last_run` 归档失败只在确有本场会话时算失败。** 未连接的模式（`connfail`、`foreignonly`）本就没有 timeline，原实现会把「读取失败」记成清理失败；现仅在 `$script:SessionConnected` 为真时才 `Fail`，其余只打印结果。
+
+**隔离模拟取证**（`Program/_verify/_r5sim/make-sim.ps1`：把真实 `run-p3.ps1` 按锚点正则切片、对 helper/进程表打桩后独立执行；**不触碰任何游戏进程、GABS helper 或共享开关**）。九模式实测（`_r5sim/r5-isolation-results.json`，runner SHA256 `D63F1457D5DC19427F2866E72520F291BC27DE109DF14FD9DD0D3586A07E6B4C`，generator SHA256 `CD5C8933B3C7B0EE87D0B0C9E2FFB86A39EF9D5CBE8113C9697D974F808AD707`）：
 
 | mode | helper_closed | batch_kill | foreign_pid_stopped | own_pid_stopped | end_mission_sent | failures |
 |---|---|---|---|---|---|---|
@@ -421,18 +459,23 @@ game stage returned ok: <Boolean>
 | connfail | True | False | False | False | False | `exception: simulated_endpoint_timeout` |
 | neverconnect | True | False | False | True | False | `games_connect never succeeded \| exception: no_connect` |
 | forcetook | True | False | False | True | False | `games_connect force-took a session this run did not own \| exception: force_takeover_refused` |
-| startthrow | True | False | **False** | **False** | False | `exception: simulated_launch_timeout_after_process \| cleanup: process ownership unresolved: 777001 appeared during the launch call and could not be attributed to this run (basis=single_new_process_launch_result_unconfirmed); left running` |
-| startthrow-other-during-launch | True | False | **False** | **False** | False | `exception: simulated_launch_timeout_after_process \| cleanup: process ownership unresolved: 777001,777999 appeared during the launch call and could not be attributed to this run (basis=ambiguous_multiple_new_processes); left running` |
-| **foreignonly**（第三轮新增） | True | False | **False** | **False** | False | `exception: simulated_launch_failure_no_process \| cleanup: process ownership unresolved: 777999 appeared during the launch call and could not be attributed to this run (basis=single_new_process_launch_result_unconfirmed); left running` |
+| startthrow | True | False | **False** | **True** | False | `exception: simulated_launch_timeout_after_process` |
+| startthrow-other-during-launch | True | False | **False** | **True** | False | `exception: simulated_launch_timeout_after_process` |
+| foreignonly（第三轮新增） | True | False | **False** | **False** | False | `exception: simulated_launch_failure_no_process \| cleanup: process ownership unresolved: 777999 … (basis=new_process_without_launch_result); left running` |
+| **startedthenexited**（第四轮新增） | True | False | **False** | **False** | False | `games_connect never succeeded \| exception: no_connect \| cleanup: process ownership unresolved: 777999 … (basis=launched_process_exited_other_process_present); left running` |
+| **fighttodeathoff**（第四轮新增） | True | False | False | **True** | True | `fight_to_death not in force at pre_mission: status=ok patches_installed=True enabled=False \| exception: fight_to_death_off \| fight_to_death was off for 2 of 2 sampled battle seconds` |
 
-七模式全部 `cleanup_reached=True`；`force_takeover_arg_sent` 恒 False。关键路径：
+九模式全部 `cleanup_reached=True`；`force_takeover_arg_sent` 恒 False；各模式 `end_state` 均为 `p1=enabled=0 p2=enabled=0 p3=enabled=0 probes_empty=True safely_exited=1 residual_own=0 helper_residual=0`。
+
+关键路径：
 
 - `connfail` trace = `helper_process_acquired -> helper_closed` —— **正是 R5 第一条要闭合的「连接失败时 helper 未进 Close-McpHttp」**。
-- `startthrow` trace = `helper_process_acquired -> mcp:games_start -> … -> stop-process:777001 -> helper_closed`：第三轮起该模式**不再结束 777001**（`own_pid_stopped=False`，登记 `single_new_process_launch_result_unconfirmed` 并保留运行）。这只说明「启动调用未确认起进程时，任何新 PID 都不认领」；**唯一确认启动的模式是 `ok`**，其 trace 仍为 `… -> tool:cbath/get_mission_state -> tool:cbath/end_mission -> tool:cbath/get_last_run -> mcp:games_stop -> stop-process:777001 -> helper_closed`，可核对身份存在时收尾照常。
-- `end_mission_sent=True` 只在 `ok` 模式出现，其余模式（含 `neverconnect`、`forcetook`）均 False；即 `end_mission` 已改由实际连接的 Mission 归属（`$script:SessionConnected`）决定，helper HTTP 可达不再作为已取得连接的证明。
-- 各模式 `end_state` 均为 `p1=enabled=0 p2=enabled=0 p3=enabled=0 probes_empty=True safely_exited=1 residual_own=0 helper_residual=0`。
-
-桩表含他人进程 `777999`（仅在启动快照之后出现）。**第三轮新增 `foreignonly`**：删除本场假 PID 777001、只留他方 777999，且 `games_start` 未声明起进程——结果 `777999` **未被结束**（`foreign_pid_stopped=False`），登记 `basis=single_new_process_launch_result_unconfirmed` 并保留运行；`startthrow-other-during-launch`（两个同名新进程同时出现）同样不认领、不批量强杀，登记 `ambiguous_multiple_new_processes`。二者正是复核第 3 项要求的「PID 差集不等于本场所有权：先有可核对的本次身份，才进结束名单」。
+- `ok` trace = `… -> tool:cbath/end_mission -> tool:cbath/get_last_run -> mcp:games_stop -> stop-process:777001 -> helper_closed`，end-state 记 `own_game_pids=[777001] basis=runtime_identity_file_matched_launch_candidate`：**身份存在时收尾照常，且认领依据是身份文件而非候选数**。
+- `end_mission_sent=True` 出现在 `ok` 与 `fighttodeathoff`（后者在 pre_mission 就已判定失败，收尾路径照常走完），其余模式均 False；`end_mission` 已改由实际连接的 Mission 归属决定，helper HTTP 可达不再作为已取得连接的证明。
+- **`startthrow` 与 `startthrow-other-during-launch` 现在是 `own_pid_stopped=True`，这是收紧后的正面例**：第三轮两者都是 `own=False`（无法归属，一律保留）；第四轮中这两个模式下 777001 确实写出了身份文件且仍在新进程差集内，身份 → 归属成立，于是正常结束本场 PID。对比 `foreignonly`（无身份文件、只一个他方 PID）与 `startedthenexited`（身份文件存在但进程已退出、差集只剩他方）两者仍 `own=False`——**区别只来自身份，不来自候选数**。
+- `foreignonly`（启动失败、无本场进程、只出现他方 777999）与 `startthrow-other-during-launch`（两个同名新进程同时出现）均 `foreign_pid_stopped=False`；**都不批量强杀，归属不明者登记 unresolved 保留运行。**
+- **`startedthenexited` 是第四轮的核心反例**：本场进程真实启动（身份文件已写出）后在取快照前退出，差集只剩他方 777999，`games_connect` 始终失败。结果 `foreign_pid_stopped=False`、`own_pid_stopped=False`，end-state 记 `own_game_pids=[] / unowned_new_pids=[777999] / basis=launched_process_exited_other_process_present`。第三轮实现此处会输出 `own game pids: 777999 basis=launch_result_confirmed_single_new_process` 并 `stop-process:777999`（见 §3.4 第 5c 条）；把该模式指向第三轮 runner 复跑可复现 `foreign_pid_stopped=True`。
+- `fighttodeathoff` 在 `pre_mission` 检查点即抛 `fight_to_death_off`，未进入 mission；同时 last-run 归档记 `sample_enabled_false=2`（两个采样秒都读到 `enabled=false`）并对每个关闭的采样秒记失败；根字段与每样本都带 `fight_to_death`，故不触发「状态缺失」那条失败，两条失败信息因此不能混为一条。
 
 **stage 三场景模拟**（`Program/_verify/_stagesim/stage-results.json`）：
 
@@ -445,13 +488,23 @@ game stage returned ok: <Boolean>
 
 `collect-fail` 行是本条要求的直接证据：「开始尝试 collect」与「collect 成功返回」已分开记录。
 
-**PS 5.1 语法与 WhatIf**：`run-p3.ps1`、`check-p3-feedback.ps1`、`_p3-exclusive-stage.ps1`、`run-p3-exclusive.ps1`、`_r5sim/make-sim.ps1` 经 `[Parser]::ParseFile` 全部 `OK (0 errors)`（PS 5.1.26100.9444）。`run-p3-exclusive.ps1 -Scenario P -WhatIf` → exit 0、输出末行 `RESULT: WHATIF`、前后 Bannerlord 进程数均为 0（无副作用）。
+**PS 5.1 语法与 WhatIf**：`run-p3.ps1`、`check-p3-feedback.ps1`、`_p3-exclusive-stage.ps1`、`run-p3-exclusive.ps1`、`_r5sim/make-sim.ps1`、`_r5sim/run-isolation.ps1`、`_gate2probe/run-probe.ps1` 经 `[Parser]::ParseFile` 全部 `OK (0 errors)`（PS 5.1.26100.9444）。`run-p3-exclusive.ps1 -Scenario P -WhatIf` → exit 0、输出末行 `RESULT: WHATIF`、前后 Bannerlord 进程数均为 0（无副作用）。
+
+### 3.5 死战不退前置（第四轮新增，依据 `Program/README.md` 由 `d64055d` 加入的要求）
+
+`Program/README.md` 要求：进战斗前与部署结束前核对 `cbath/get_fight_to_death` 的 `status=ok`、`patches_installed=true`、`enabled=true`，并归档 `cbath/get_last_run` 中的同名 `fight_to_death` 记录；缺工具或未开启不得继续测试。本轮把它接进 `run-p3.ps1`：
+
+- `Assert-FightToDeath([string]$stage)`（`run-p3.ps1:303-321`）：调用 `Invoke-Tool 'cbath/get_fight_to_death' 25`，读不到即 `Fail` + `throw 'no_fight_to_death'`；读得到但 `status` ≠ `ok` 或 `patches_installed` 非真或 `enabled` 非真 → `Fail "fight_to_death not in force at ${stage}: status=… patches_installed=… enabled=…"` + `throw 'fight_to_death_off'`。成功时打印 `fight_to_death[$stage]: status=… patches_installed=… enabled=… policy=… mission_active=… panicked=… fleeing=…`。
+- 两个检查点：`run-p3.ps1:704` `Assert-FightToDeath 'pre_mission'`（进战斗前）、`:756` `Assert-FightToDeath 'post_deployment'`（部署结束前）。**失败即抛，脚本不会继续进入 mission。**
+- `observed_panicked` / `observed_fleeing` 大于 0 时只 `Note-Others` 提示核查，不据此改判——它们是真实回调计数，不是开关状态。
+- 归档：`run-p3.ps1:900-933` 从 `cbath/get_last_run` 取根字段与每个 1 Hz 样本的 `fight_to_death`，打印 `fight_to_death[last_run]: root_enabled=… samples=… enabled_true=… enabled_false=… panicked=… fleeing=…`；任一采样秒 `enabled` 为假 → `Fail "fight_to_death was off for N of M sampled battle seconds"`；样本缺 `fight_to_death` 字段 → `Fail "fight_to_death state missing from N of M battle samples"`。
+- **未取得任何实机读回**：以上行为只在 `fighttodeathoff` 隔离模式（桩）验证过；真实 `get_fight_to_death` 响应字段名以实机交接后第一次运行为准，若与桩不符需按实际响应修正解析（见 §7 第 4b 条）。
 
 ---
 
 ## 4. 原合同三门逐门自检
 
-检查器：`Program/_verify/check-p3-feedback.ps1`（80510 B，SHA256 `94832DFD103625431D70471EA76751484BAC90BBB7DDB5BDE5EE9A564FC479EB`，为第三轮整改后读数）。
+检查器：`Program/_verify/check-p3-feedback.ps1`（85771 B，SHA256 `3DED788E7F2354344A5D1998666ECA8786AD5A0AACF8BCA9961691998EC3635E`，为第四轮整改后读数）。
 调用：`powershell.exe -NoProfile -ExecutionPolicy Bypass -File <chk> -SessionDir <绝对路径> [-ControlSessionDir <绝对路径>]`。**`-SessionDir` 必须传绝对路径**，相对路径会拼到工作目录导致 `session dir not found`。退出码 0 只表示检查器跑完，各门状态单列。
 
 | 场次 | 门1 正 | 门2 负 | 门3 对照 |
@@ -569,16 +622,34 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File Program\_verify\check-p3
 
 ```
 Program\_verify\_r5sim\make-sim.ps1    由真实 run-p3.ps1 按锚点切片生成 sim-<mode>.ps1
-Program\_verify\_r5sim\r5-isolation-results.json   七模式结论
+Program\_verify\_r5sim\r5-isolation-results.json   九模式结论
+Program\_verify\_r5sim\run-isolation.ps1           一次跑完全部模式并写结果 JSON
 Program\_verify\_gate2probe\run-probe.ps1          门2 后续归属判定的定向探针（切出检查器同一段生产代码）
-Program\_verify\_gate2probe\gate2-probe-results.json   四场景结论（含指向 HEAD 版检查器的对照）
+Program\_verify\_gate2probe\gate2-probe-results.json   七场景结论（含指向 HEAD 版检查器的对照）
 Program\_verify\_stagesim\              stage 替身与 stage-results.json
 Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据敏感性）
 ```
 
-运行隔离模拟须缩短等待窗口（如 `-LaunchWaitSec 6 -PollTimeoutSec 6`），否则桩的模拟时钟会刷出数百行 `connect attempt`。
+九模式：`ok`、`connfail`、`neverconnect`、`forcetook`、`startthrow`、`startthrow-other-during-launch`、`foreignonly`（第三轮）、`startedthenexited`、`fighttodeathoff`（第四轮）。
 
-### 5.5 共享资源交接与清理实读
+运行隔离模拟须缩短等待窗口（如 `-LaunchWaitSec 6 -PollTimeoutSec 6`），否则桩的模拟时钟会刷出数百行 `connect attempt`。`run-isolation.ps1` 每次运行前会重建 sandbox，避免上一模式的 `cbath-runtime-identity-*.txt` 被当成「启动前已存在」。
+
+### 5.5 进程归属判定的依据与边界（第四轮）
+
+收尾可强制结束的名单**只来自游戏进程自己写出的身份**：
+
+| 来源 | 位置 | 强度 |
+|---|---|---|
+| `cbath-runtime-identity-<pid>.txt` | `Documents\CommandBrainATH\`，游戏进程 `OnSubModuleLoad` 时自写；runner preflight 已清空该目录 | 强：命名具体 PID，进程退出后证据仍在 |
+| `cbath/ping` 的 `pid` | `CbathTools.cs` 的 `Ping()`，仅在会话连上后可用 | 强但脆弱：依赖连接路径 |
+| `games_start` 的 `processStarted` | 启动回执，**不含 pid** | 弱：只证明「曾启动过某个进程」 |
+| 进程快照差集 | 启动调用前后各取一次 | 弱：只证明「有同名新进程出现」，不证明是谁的 |
+
+判定只用**强来源 ∩ 启动差集**；两个弱来源都不足以进入结束名单（第三轮曾用「`processStarted=true` + 恰好一个新增 PID」当所有权，被本轮回退）。强来源缺席时一律登记 `process ownership unresolved` 并保留进程运行，如实记为清理失败，不猜、不强杀。
+
+对应反例（`startedthenexited`）：本场进程真实启动、身份文件已写出，随后在 diff 快照前退出，此时差集里只剩他方进程——旧实现会把它当本场进程结束。
+
+### 5.6 共享资源交接与清理实读
 
 - 本轮接手时：**无 Bannerlord 进程**；`coordination\handoff.md` mtime 仍为 **2026-10-12 13:36:43**，**无本轮正式交回记录**；`shared-game-session.lock`（221 B）mtime 2026-10-16 0:36:13。按派单 L137「旧锁 JSON 不是占用证明，也不是空闲交接证明」，判定无正式交回。
 - 因此本会话**只做离线工作**：未部署、未启动/结束游戏、未改共享开关、未取锁、未运行任何实机场次。`_verify\sessions\` 目录中不存在创建于接手之后的新场次。
@@ -612,8 +683,9 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 1. **门1 未取得 pass。** 本轮全部实机场次都早于 `732f6df`，它们只能证明历史成功/失败与工具的敏感性，**不能为当前提交给出任何门的结论**。旧场观测到的继任协同计划未完成保护/辅助落位与主力推进，其直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不是依赖环**——`DependsOnTaskId` 指向的是 Hold 等待任务，依赖链无环（详见 §4 门1）。因此不存在需要另行申请的「互锁修复授权」；门1 的后续验证属于派单 §4 原有要求。当前产物三个门**均未实机验证**。
 2. **门3 未取得 pass（unverified）。** P/C 实际部署不可比 + 无地形深度产物；未取匹配对照场次。**未放宽容差凑 pass。**
-3. **本轮提交的源码未在任何实机运行过。** §1.3 全部场次的源码 mtime 为 20:16–20:25、构建早于本次提交。`732f6df`、第二轮整补 `5ac034b` 与第三轮整改的改动只经过离线验证（309/309 测试、Release/Debug 重建 0 警告 0 错误、PS 5.1 语法、WhatIf、R5 七模式隔离模拟与门2 篡改反例、门2 归属定向探针、坐标接线红态验证）。**资源未正式交回，按派单只做离线工作。**
-4. **R5 隔离模拟是替身证据，不是实机证据。** 它证明控制流按预期收尾（helper 关闭、只杀本场 PID、清理失败登记、stage 分列），但不能替代一次真实 `Invoke-ExclusiveGame.ps1` 全流程收尾的实读。
+3. **本轮提交的源码未在任何实机运行过。** §1.3 全部场次的源码 mtime 为 20:16–20:25、构建早于本次提交。`732f6df` 及第二至第四轮整补的改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四轮未改 C#，沿用该读数；另有 PS 5.1 语法、WhatIf、R5 九模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照）。**资源未正式交回，按派单只做离线工作。**
+4. **R5 隔离模拟是替身证据，不是实机证据。** 它证明控制流按预期收尾（helper 关闭、只杀本场身份所确认的 PID、归属不明时保留并登记、stage 分列），但**不能替代一次真实 `Invoke-ExclusiveGame.ps1` 全流程收尾的实读**。尤其 `startedthenexited` 只是桩级复现：真实环境下「本场进程退出、仅剩他方同名进程」是否出现、`cbath-runtime-identity-<pid>.txt` 的写入时机是否总能先于进程退出，都需要实机确认。
+4b. **死战不退前置只做到接线，未取得任何实机读回。** `Assert-FightToDeath` 在 `pre_mission` 与 `post_deployment` 两个检查点调用 `cbath/get_fight_to_death`，判据为 `status=ok` + `patches_installed=true` + `enabled=true`，不符即 `Fail` 并抛 `fight_to_death_off`；收尾从 `cbath/get_last_run` 逐 1 Hz 采样核对 `fight_to_death` 并归档。上述行为只在 `fighttodeathoff` 隔离模式（桩）验证过，**本轮没有任何实机 `get_fight_to_death` 读数**。
 5. **晚场的独占入口证据不完整**（沿用上批结论）。只有 `p3-P-20261015-203136`、`p3-N-20261015-211938`、`p3-N-20261015-213231` 三场留存完整 stage record（`_lastrun-p3-exclusive-*.txt`）。`p3-P-20261015-214532`、`-215314`、`-220249`、`p3-C-20261015-214157`、`-220738`、`p3-P-20261015-221833`、`-222821` 未留存 stage-record 日志，**不作为「经 `Invoke-ExclusiveGame.ps1` 独占执行」的证据**；其运行身份（§1.3）与产物仍有效，但启动通道归属未证实。
 6. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。
 7. **`_tamper4` 目录内含被修改过的 `CombatBrain2.log`（mtime 2026-10-16 1:34）**，用于门2 缺证据敏感性；原始场 `_verify\sessions\p3-P-20261015-221833` 未被清洗改写。审查副本位于 `E:\Agent\codex\2026-10-14\p3\work\review-20261016\`。

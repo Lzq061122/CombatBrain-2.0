@@ -238,6 +238,8 @@ if ($WhatIf) {
     Write-Host "would clear: $cb2Log"
     Write-Host "would clear: $cbathOut"
     Write-Host "would run: h3_provider_start -> h3_start_from_screen -> auto_finish_deployment -> delegate_team_to_ai"
+    Write-Host "would require: cbath/get_fight_to_death status=ok patches_installed=true enabled=true at pre_mission and post_deployment"
+    Write-Host "would archive: fight-to-death-pre_mission.json , fight-to-death-post_deployment.json , fight-to-death-last-run.json"
     Write-Host "would sample: cbath/get_p2_formation_evidence at ~1 Hz for $CombatHoldSec s"
     Write-Host "would write: $p2Sentinel -> enabled=1 ; $p1Sentinel -> enabled=0 ; $p3Sentinel -> enabled=1"
     Write-Host "would leave empty: $probeSentinel , $p2ProbeSentinel"
@@ -292,6 +294,31 @@ function Get-ToolObject($r) {
         }
     } catch { }
     return $null
+}
+
+# Fight-to-death is a precondition of every combat test, not a reported detail: the switch is read
+# back from the harness itself rather than assumed, and a missing tool or a switched-off mode stops
+# the run before it produces evidence. Each read is archived as its own record so the mode actually
+# in force at each stage can be audited later.
+function Assert-FightToDeath([string]$stage) {
+    $r = Invoke-Tool 'cbath/get_fight_to_death' 25
+    if ([string]::IsNullOrWhiteSpace($r)) { Fail "cbath/get_fight_to_death returned nothing at ${stage}"; throw 'no_fight_to_death' }
+    [System.IO.File]::WriteAllText((Join-Path $OutDir ("fight-to-death-$stage.json")), $r)
+    $f = Get-ToolObject $r
+    if (-not $f) { Fail "cbath/get_fight_to_death unreadable at ${stage}: $r"; throw 'no_fight_to_death' }
+    $status = [string]$f.status
+    $installed = ($f.patches_installed -eq $true)
+    $enabled = ($f.enabled -eq $true)
+    Write-Host "fight_to_death[$stage]: status=$status patches_installed=$installed enabled=$enabled policy=$($f.policy) mission_active=$($f.mission_active) panicked=$($f.observed_panicked) fleeing=$($f.observed_fleeing)"
+    if ($status -ne 'ok' -or -not $installed -or -not $enabled) {
+        Fail "fight_to_death not in force at ${stage}: status=$status patches_installed=$installed enabled=$enabled"
+        throw 'fight_to_death_off'
+    }
+    $panicked = if ($null -eq $f.observed_panicked) { 0 } else { [int]$f.observed_panicked }
+    $fleeing = if ($null -eq $f.observed_fleeing) { 0 } else { [int]$f.observed_fleeing }
+    if ($panicked -ne 0 -or $fleeing -ne 0) {
+        Note-Others "fight_to_death[$stage] reports observed_panicked=$panicked observed_fleeing=$fleeing; investigate rather than assume the block held"
+    }
 }
 
 # Side mapping: our side is the NON-player AI team, which this fixed entry exposes as the
@@ -443,12 +470,34 @@ $script:OwnGamePids = @()
 $script:McpOpened = $false
 $script:GameStarted = $false
 $script:SessionConnected = $false
-# A before/after diff proves "newly appeared", not "started by this run". These record what the
-# launch call actually reported and how the new PIDs were attributed, so the end state can state
-# the basis instead of implying a proof it does not have.
+# A before/after diff proves "newly appeared", not "started by this run", and the launch flag only
+# says that a process was started at some point - neither one names a PID. A single new same-name
+# process is therefore a CANDIDATE: the diff is taken immediately after the launch call, but the
+# process it counted can exit before anything else reads it, and another group's process can take
+# its place. What turns a candidate into an owned PID is a concrete identity read out of the game
+# itself - normally the identity file the loading process writes, and only as a fallback the pid
+# the connected session reports in cbath/ping. Until such an identity arrives, nothing is killable.
+$script:LaunchCandidatePids = @()
 $script:LaunchProcessStarted = $false
+$script:OwnershipResolved = $false
+$script:RuntimeGamePid = 0
+# PIDs named by the game's own runtime identity files. Preflight wipes their directory, so any
+# file found afterwards was written by a process that started during this run, from inside itself.
+$script:IdentityPids = @()
 $script:OwnershipBasis = ''
 $script:UnownedNewPids = @()
+
+# The game names its own process. CBATH writes cbath-runtime-identity-<pid>.txt from inside the
+# game process when the module loads, and preflight wipes that directory, so a file that appears
+# across this run's launch call names a PID this run started. That is the only evidence here that
+# survives the process exiting; the launch result merely says a process was started at some point
+# and never names one.
+function Get-RuntimeIdentityPids {
+    if (-not (Test-Path -LiteralPath $cbathOut)) { return @() }
+    return @(Get-ChildItem -LiteralPath $cbathOut -Filter 'cbath-runtime-identity-*.txt' -ErrorAction SilentlyContinue |
+        ForEach-Object { if ($_.BaseName -match '^cbath-runtime-identity-(\d+)$') { [int]$Matches[1] } } |
+        Select-Object -Unique)
+}
 
 try {
     $script:OwnGabsPid = Open-McpHttp -ConfigDir $cfgDir -ListenPort $McpPort
@@ -461,6 +510,7 @@ try {
     # a snapshot taken only on the success path would lose that information entirely.
     $beforePids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
         Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id })
+    $beforeIdentityPids = Get-RuntimeIdentityPids
     try {
         $r = Invoke-McpHttp -Tool 'games_start' -Arguments @{ gameId = $GameId; timeout = 150 } -TimeoutSec $LaunchWaitSec
         Write-Host "games_start: $r"
@@ -473,29 +523,52 @@ try {
         $newPids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
             Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id } |
             Where-Object { $beforePids -notcontains $_ })
-        # A before/after diff proves only "newly appeared". A single new same-name process is NOT
-        # proof it is this run's: another group's session can start while this call is failing,
-        # and the count cannot tell the two apart. The only verifiable identity this entry has is
-        # the launch call's own statement that it started a process, so a PID may enter the
-        # killable list only when that statement is present AND the diff is unambiguous. Anything
-        # else is left running and recorded as unresolved rather than guessed at.
-        if ($newPids.Count -eq 0) {
-            $script:OwnershipBasis = 'no_new_process'
-        } elseif ($script:LaunchProcessStarted -and $newPids.Count -eq 1) {
-            $script:OwnGamePids = $newPids
-            $script:OwnershipBasis = 'launch_result_confirmed_single_new_process'
-        } elseif ($newPids.Count -eq 1) {
+        # The game's own identity files are collected in the same instant as the diff. A PID this
+        # run started is one whose identity file appeared across the launch call; a file that was
+        # already there belongs to a process that was running before this run touched anything.
+        $script:IdentityPids = @(Get-RuntimeIdentityPids | Where-Object { $beforeIdentityPids -notcontains $_ })
+        # The diff is only a CANDIDATE list. It is taken at one instant, and a process counted
+        # here can exit before anything else looks at it, while another group's process appears
+        # in its place - so even a single candidate is not proof of ownership.
+        #
+        # Binding is decided here, before any connection: the identity file is written by the game
+        # process itself, so it names a PID this run started even when that process is already gone
+        # and the diff can only still see someone else's. Connection is not required to tell those
+        # two apart, and waiting for it would leave the wrong PID killable in the meantime.
+        $identityCandidate = @($script:IdentityPids | Where-Object { $newPids -contains $_ })
+        if ($identityCandidate.Count -eq 1) {
+            $script:OwnGamePids = @($identityCandidate[0])
+            $script:LaunchCandidatePids = @()
+            $script:OwnershipBasis = 'runtime_identity_file_matched_launch_candidate'
+        } elseif ($identityCandidate.Count -gt 1) {
+            # Two processes both published an identity across this launch call and both are still
+            # running. Nothing available here says which one this run started.
+            $script:LaunchCandidatePids = @()
             $script:UnownedNewPids = $newPids
-            $script:OwnershipBasis = 'single_new_process_launch_result_unconfirmed'
+            $script:OwnershipBasis = 'ambiguous_multiple_identified_processes'
+        } elseif ($script:IdentityPids.Count -gt 0) {
+            # A PID published an identity but is no longer among the new processes: the process
+            # this run started has exited, and anything the diff sees is somebody else's.
+            $script:LaunchCandidatePids = @()
+            $script:UnownedNewPids = $newPids
+            $script:OwnershipBasis = if ($newPids.Count -eq 0) { 'launched_process_exited' } else { 'launched_process_exited_other_process_present' }
+        } elseif ($newPids.Count -eq 0) {
+            $script:OwnershipBasis = 'no_new_process'
+        } elseif ($script:LaunchProcessStarted) {
+            $script:LaunchCandidatePids = $newPids
+            $script:OwnershipBasis = 'launch_candidate_pending_runtime_identity'
         } else {
             $script:UnownedNewPids = $newPids
-            $script:OwnershipBasis = 'ambiguous_multiple_new_processes'
+            $script:OwnershipBasis = 'new_process_without_launch_result'
         }
-        if ($script:OwnGamePids.Count -gt 0) { $script:GameStarted = $true }
     }
     # The launch result is this run's own statement that it started a game, so it stays true even
     # when the new process could not be attributed.
     if ($script:LaunchProcessStarted) { $script:GameStarted = $true }
+    # Every outcome above except "still waiting for an identity" is a settled decision. The teardown
+    # report must not call a settled attribution unresolved just because the session never got far
+    # enough to confirm it a second way.
+    if ($script:OwnershipBasis -ne 'launch_candidate_pending_runtime_identity') { $script:OwnershipResolved = $true }
     Write-Host "own game pids: $(if ($script:OwnGamePids.Count -gt 0) { $script:OwnGamePids -join ',' } else { '<none>' }) basis=$script:OwnershipBasis"
 
     $deadline = (Get-Date).AddSeconds($LaunchWaitSec)
@@ -534,14 +607,46 @@ try {
 
     $deadline = (Get-Date).AddSeconds($PollTimeoutSec)
     $pingOk = $false
+    $runtimePid = 0
     while ((Get-Date) -lt $deadline) {
         try {
             $r = Invoke-Tool 'cbath/ping' 20
-            if ($r -match 'pong') { $pingOk = $true; Write-Host "ping ok"; break }
+            if ($r -match 'pong') {
+                $pingOk = $true
+                $po = Get-ToolObject $r
+                if ($po -and $null -ne $po.pid) {
+                    $runtimePid = [int]$po.pid
+                } else {
+                    $m = [regex]::Match($r, '"pid"\s*:\s*(\d+)')
+                    if ($m.Success) { $runtimePid = [int]$m.Groups[1].Value }
+                }
+                Write-Host "ping ok (runtime pid=$runtimePid)"
+                break
+            }
         } catch { }
         Start-Sleep -Seconds 3
     }
     if (-not $pingOk) { Fail 'cbath ping never answered'; throw 'no_ping' }
+    $script:RuntimeGamePid = $runtimePid
+
+    # The identity file already settled attribution when the game published one. What remains is
+    # the case where no identity file was written: the connected session's own report of the PID it
+    # runs in is then the only concrete identity, and it must still be one of the launch candidates.
+    # A candidate confirmed by neither is left running and recorded as unresolved - an unproven PID
+    # must not become killable just because it was the only new one.
+    if ($script:OwnGamePids.Count -eq 0 -and $script:LaunchCandidatePids.Count -gt 0) {
+        if ($runtimePid -gt 0 -and ($script:LaunchCandidatePids -contains $runtimePid)) {
+            $script:OwnGamePids = @($runtimePid)
+            $script:LaunchCandidatePids = @()
+            $script:OwnershipBasis = 'session_runtime_pid_matched_launch_candidate'
+        } else {
+            $script:UnownedNewPids = @(@($script:UnownedNewPids) + @($script:LaunchCandidatePids) | Select-Object -Unique)
+            $script:OwnershipBasis = if ($runtimePid -gt 0) { 'runtime_identity_not_a_launch_candidate' } else { 'runtime_identity_unavailable' }
+            $script:LaunchCandidatePids = @()
+        }
+    }
+    $script:OwnershipResolved = $true
+    Write-Host "game ownership resolved: pids=$(if ($script:OwnGamePids.Count -gt 0) { $script:OwnGamePids -join ',' } else { '<none>' }) basis=$script:OwnershipBasis"
 
     $r = Invoke-Tool 'cbath/get_build_identity' 25
     [System.IO.File]::WriteAllText((Join-Path $OutDir 'build-identity.json'), $r)
@@ -595,6 +700,8 @@ try {
     if (-not $atScreen) { Fail 'CustomBattleScreen never reached'; throw 'no_screen' }
     Write-Host "at CustomBattleScreen"
 
+    Assert-FightToDeath 'pre_mission'
+
     $r = Invoke-StartConfigured
     [System.IO.File]::WriteAllText((Join-Path $OutDir 'start-from-screen.json'), $r)
     Write-Host "h3_start_from_screen (own=$ownComp enemy=$enemyComp) sent"
@@ -644,6 +751,8 @@ try {
     if (-not $deployed) {
         if ($lastStatus -eq 'not_ready' -or $lastStatus -eq '') { Fail "auto_finish_deployment never reached ok (last status=$lastStatus)" }
     }
+
+    Assert-FightToDeath 'post_deployment'
 
     $r = Invoke-Tool 'cbath/delegate_team_to_ai' 30
     [System.IO.File]::WriteAllText((Join-Path $OutDir 'delegate.json'), $r)
@@ -786,6 +895,44 @@ finally {
         $r = Invoke-Tool 'cbath/get_last_run' 30
         [System.IO.File]::WriteAllText((Join-Path $OutDir 'cbath-timeline.json'), $r)
         Write-Host "cbath-timeline captured"
+        # The timeline is where the mode actually in force during the battle is recorded: the root
+        # field and every 1 Hz sample carry their own fight_to_death. Extracting them here keeps the
+        # switch state of the battle that produced this evidence auditable on its own.
+        $lr = Get-ToolObject $r
+        if ($lr) {
+            $samples = @($lr.samples)
+            # Property access, not ['name']: these are PSCustomObjects, and indexing one by key
+            # yields nothing under Windows PowerShell 5.1, which is where this script runs.
+            $sampleStates = @($samples | ForEach-Object { $_.fight_to_death })
+            $sampleEnabled = @($sampleStates | Where-Object { $_ -and $_.enabled -eq $true }).Count
+            $sampleDisabled = @($sampleStates | Where-Object { $_ -and $_.enabled -eq $false }).Count
+            $samplePanicked = 0
+            $sampleFleeing = 0
+            foreach ($s in $sampleStates) {
+                if ($s) {
+                    if ($s.observed_panicked) { $samplePanicked = [Math]::Max($samplePanicked, [int]$s.observed_panicked) }
+                    if ($s.observed_fleeing) { $sampleFleeing = [Math]::Max($sampleFleeing, [int]$s.observed_fleeing) }
+                }
+            }
+            $rec = [ordered]@{
+                root                = $lr.fight_to_death
+                sample_count        = $samples.Count
+                samples_with_state  = @($sampleStates | Where-Object { $_ }).Count
+                sample_enabled_true = $sampleEnabled
+                sample_enabled_false = $sampleDisabled
+                max_observed_panicked = $samplePanicked
+                max_observed_fleeing  = $sampleFleeing
+            }
+            [System.IO.File]::WriteAllText((Join-Path $OutDir 'fight-to-death-last-run.json'), ($rec | ConvertTo-Json -Depth 6 -Compress))
+            Write-Host "fight_to_death[last_run]: root_enabled=$($lr.fight_to_death.enabled) samples=$($samples.Count) enabled_true=$sampleEnabled enabled_false=$sampleDisabled panicked=$samplePanicked fleeing=$sampleFleeing"
+            if ($sampleDisabled -gt 0) { Fail "fight_to_death was off for $sampleDisabled of $($samples.Count) sampled battle seconds" }
+            # An absent sample field and a present-but-disabled one are different failures; reporting the
+            # first for the second would send the next reader looking for a missing field that is there.
+            $sampleMissing = $samples.Count - @($sampleStates | Where-Object { $_ }).Count
+            if ($sampleMissing -gt 0) { Fail "fight_to_death state missing from $sampleMissing of $($samples.Count) battle samples" }
+        } elseif ($script:SessionConnected) {
+            Fail "cbath/get_last_run unreadable: $r"
+        }
     } catch { Write-Host "cbath-timeline capture failed: $_" }
     try {
         $r = Invoke-Tool 'cbath/get_p2_formation_evidence' 25
@@ -838,10 +985,15 @@ finally {
     }
 
     # Ownership that could not be established is a cleanup failure, not something to hide: this run
-    # started a game but cannot say which of the new same-name processes was its own, so it stopped
-    # none of them rather than risk ending another group's session.
+    # launched a process but cannot say which PID it was, so it stopped none rather than risk ending
+    # another group's session.
+    if (-not $script:OwnershipResolved) {
+        $script:UnownedNewPids = @(@($script:UnownedNewPids) + @($script:LaunchCandidatePids) | Select-Object -Unique)
+    }
     if ($script:UnownedNewPids.Count -gt 0) {
         $script:CleanupFailures += "process ownership unresolved: $($script:UnownedNewPids -join ',') appeared during the launch call and could not be attributed to this run (basis=$script:OwnershipBasis); left running"
+    } elseif (-not $script:OwnershipResolved -and $script:LaunchProcessStarted) {
+        $script:CleanupFailures += "process ownership unresolved: the launched process could not be tied to a runtime identity before it was needed (basis=$script:OwnershipBasis); no PID was killed"
     }
 
     # The helper starts gabs before it probes the endpoint, so a failed handshake still leaves an
