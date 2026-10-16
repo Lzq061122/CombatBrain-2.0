@@ -1,74 +1,90 @@
 # P3 接续整改 — 实现交接
 
 **状态：限定自检完成，待独立验收。** 本文不宣称 P3 通过，不授权进入 P4。
-依据：`CB2-PROMPT-0005`（`P3-RESTART-REMEDIATION-DISPATCH.md`）；原验收合同仍为 `CB2-PROMPT-0004`（`P3-FEEDBACK-REPLANNING-DISPATCH.md`），公式、三门、命令域均未改变。
+依据：`CB2-PROMPT-0006`（`P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md`，SHA256 `368e880bfff6802bc034df96fe08395e038eaba74eba28654d7bd306019ddd7e`）。
+`CB2-PROMPT-0005`（`P3-RESTART-REMEDIATION-DISPATCH.md`）与 `CB2-PROMPT-0004`（`P3-FEEDBACK-REPLANNING-DISPATCH.md`）继续有效；本次未改变公式、三门判据或命令域。
+
+**本轮为新开发会话接续。** 接手时存在未提交的 P3 成果（14 项已跟踪 dirty + 未跟踪生产源码 `TaskDelivery.cs`），按派单 §5 逐路径精准暂存提交，未 `git add -A` / `commit -a`、未 reset/clean、未回滚任何既有 dirty。
 
 ---
 
 ## 1. 来源、构建、部署与运行身份
 
-### 1.1 实现提交
+### 1.1 接续基线与本轮提交
 
-| 项 | CB2 | CBATH |
-|---|---|---|
-| 工作树 | `E:\MBmod\CombatBrain 2.0` | `E:\MBmod\CBATH-P2` |
-| 分支 / HEAD | `master` / `ced0a1895929524d8d3f5a628e112370422f265c` | `codex/cb20-p2-evidence` / `5a2275de434e953802d8de8498b3f09ca1a4fbb6` |
-| 时间 | 2026-10-16 00:10:00 +0800 | 2026-10-16 00:10:12 +0800 |
-| 首行 | `fix(p3): close restart remediation items 1-5 for bounded feedback replanning` | `feat(p3-evidence): expose independent formation coverage, exit timing and counter-action arm` |
-| 规模 | 18 files, +5212 / −11 | 6 files, +433 / −3 |
+| 项 | 值 |
+|---|---|
+| 接续基线（接手时工作树 HEAD） | `f1f01a1` "Dispatch P3 coordinate and execution continuation for replacement developer session" |
+| 本轮 CB2 提交 | `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，本地，未 push / 未建 PR） |
+| 上批 CB2 实现提交（历史） | `ced0a18` "fix(p3): close restart remediation items 1-5 for bounded feedback replanning" |
+| 上批 CB2 交回提交（历史） | `46aca61` "docs(p3): hand back bounded restart remediation with self-check scope" |
+| CBATH 提交（未变） | `E:\MBmod\CBATH-P2`，`codex/cb20-p2-evidence` / `5a2275de434e953802d8de8498b3f09ca1a4fbb6` |
+| 本轮规模 | 19 files, +1467 / −164 |
+| 本轮交回文档提交 | `732f6df` 之后的独立 docs 提交（本文件 + `sessions/INDEX.md`，2 files, +351 / −142），哈希见 `git log --oneline -1`；不含实现，不进入身份链 |
 
-未 push、未建 PR，未用 `git add -A` / `commit -a`（逐路径暂存）。
+`f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
-CB2 提交后 `git status --porcelain` 仅剩 3 项，均为**故意留在工作树**：
+**本轮提交逐路径清单**（19 项，全部先核归属再暂存）：
 
-- ` M AGENTS.md`、` M prompts/registry.json` — 治理维护者文件（不同编辑者），非本组交付物。
-- ` M Program/src/Host/BuildIdentity.g.cs` — 自动生成身份；派单第 90 行明确记入运行身份、不作为手写源码成果提交。
+```
+Program/CombatBrain2.csproj                     +1
+Program/_verify/_p3-exclusive-stage.ps1         +15/-1
+Program/_verify/check-p3-feedback.ps1           +302/-...
+Program/_verify/run-p3.ps1                      +169/-...
+Program/src/Core/ActionFeedback.cs              +73
+Program/src/Core/BattlePlan.cs                  +21/-...
+Program/src/Core/CoordinationPlan.cs            +25/-...
+Program/src/Core/TaskDelivery.cs                +88   （新文件）
+Program/src/Core/TaskFeedback.cs                +20/-...
+Program/src/Host/SamplingBehavior.cs            +19/-...
+Program/src/Host/TestDriver.ActionFeedback.cs   +100/-...
+Program/src/Host/TestDriver.cs                  +198/-...
+Program/tests/ActionFeedbackTests.cs            +139
+Program/tests/CombatBrain2.Tests.csproj         +2
+Program/tests/CoordinateSemanticsTests.cs       +284  （新文件）
+Program/tests/CoordinationDriverTests.cs        +4
+Program/tests/CoordinationIntegrationTests.cs   +2
+Program/tests/DependencyReadinessTests.cs       +8/-...
+Program/tests/TaskSelectionDeadlineTests.cs     +161
+```
 
-CBATH 提交后 `git status --porcelain` 为空。
+提交后 `git status --porcelain` 剩余（**均为故意留在工作树，非本组交付物**）：
 
-### 1.2 改动范围（相对审查基线 `_audit/cb20-p3/2026-10-15-progress-review/baseline.json`）
+- ` M AGENTS.md`、` M prompts/registry.json` — 治理维护者文件（不同编辑者）。
+- ` M Program/src/Host/BuildIdentity.g.cs` — 自动生成身份（`b20261014-120018-9828293f` → `b20261015-222818-c9f62071`），派单 L149 明示不混入。
+- 未跟踪：`Program/_verify/_r5sim/`、`_stagesim/`、`_tamper4/`、`_ps51check.ps1`、`gabs-config/`、大量 `_lastrun-*.txt`、`Program/_scratch/`、`_scratch/`、`_scratch_chk.diff` — 均为本次离线取证脚手架与历史 runner 输出，按派单 L149 不混入提交。
 
-CB2 受审 61 文件中 **same=51 / changed=10 / missing=0**：
+**未动他方材料**：`E:\MBmod\BattleObservation-V1\{CB2,CBATH,TCL}` 未修改、未构建、未切换、未提交（`git worktree list` 复核：观测组两 worktree 仍在 `e2a0e38` / `925c224`）；`ObservationAdapter.cs` 约定接口与事件位置未改；`sources/` 与历史失败原始场未改。
 
-| 文件 | 基线 SHA256 前 16 | 现 SHA256 前 16 |
-|---|---|---|
-| `src\Core\ActionFeedback.cs` | 3A0A276452B2A1BA | 3FAF018C2D4CF51F |
-| `src\Host\TestDriver.ActionFeedback.cs` | F24B2E5AE80C8E52 | C2E47CCF979E53D0 |
-| `src\Host\TestDriver.cs` | 32D0E7FD498DF0E8 | 04495A6F1D23E3D6 |
-| `src\Host\EligibilityProbe.cs` | F4F2F3B9557847DC | EAB7C3A34AF6F3EC |
-| `src\Host\SamplingBehavior.cs` | 4C3611B039DDB32D | 3F774A0D22854AA1 |
-| `src\Host\BuildIdentity.g.cs`（自动生成） | 29B676C033A16745 | 7A42D8A9782A5C08 |
-| `tests\ActionFeedbackTests.cs` | E6177CE2114F0611 | 8C6D4F881EB54F8B |
-| `_verify\check-p3-feedback.ps1` | 074F8685782E88C6 | 16BD2060627D1116 |
-| `_verify\run-p3.ps1` | ED28ECA77F556C0B | 496E4D29A0179AB4 |
-| `_verify\_p3-exclusive-stage.ps1` | 73F2F40179C0C7C4 | AC58C80FD45382EC |
-
-新增（不在基线受审清单内）：`src/Core/ActionFeedback.cs`、`src/Host/TestDriver.ActionFeedback.cs`、`_verify/run-p3-exclusive.ps1`。（`tests/ActionFeedbackTests.cs` 在基线清单内，见上表。）
-
-CBATH 受审 16 文件中 **same=15 / changed=1**：仅 `BuildIdentity.g.cs`（自动生成，`BD8186A99EF09812…` → `FCC743A4445558101C1BEB03A8413C53843A8778D4C40E67CD90ED10BFCD09F5`）。
-
-**未动他方材料**：`src\Host\ObservationAdapter.cs` 与基线字节相同（`522495EE7032F4D5…`）；`sources/`、P2 历史、原始失败场未改；`E:\MBmod\BattleObservation-V1\{CB2,CBATH,TCL}` 未修改、未构建、未切换、未提交。
-
-### 1.3 构建
+### 1.2 构建与测试（提交后重跑）
 
 ```
 cd "E:\MBmod\CombatBrain 2.0\Program"
-dotnet build CombatBrain2.csproj -c Release -v q --nologo   → 0 个警告 0 个错误
-dotnet test  tests\CombatBrain2.Tests.csproj -c Release -v q --nologo → 通过 276 / 失败 0 / 总计 276
+dotnet build CombatBrain2.csproj -c Release --no-restore -t:Rebuild   → 0 个警告 0 个错误
+dotnet build CombatBrain2.csproj -c Debug   --no-restore              → 0 个警告 0 个错误
+dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过 304 / 失败 0 / 总计 304
 ```
 
-本地产物：
+本地产物（提交后重建）：
 
-| 产物 | 长度 | SHA256 |
+| 产物 | 长度 | SHA256（前 16） |
 |---|---|---|
-| `Program\bin\Release\CombatBrain2.dll` | 173568 | `75DEB2D3F3AA6E672D033209EA6679E8AB3C2E9F59A013849A38F499F28687A0` |
-| `Program\bin\Debug\CombatBrain2.dll` | 191488 | `1E980EB3ACD51410041A4B05B817EE15FE3323E2B79A64F3CE4737CF55B3AADC` |
+| `Program\bin\Release\CombatBrain2.dll` | 177152 | `F426B3773EBA9BF2` |
+| `Program\bin\Debug\CombatBrain2.dll` | 196096 | `A04B881D6529ECD5` |
 
-`CombatBrain2.csproj` 内无 post-build 部署 target。`BuildIdentity.g.cs` 由 `_deploy\deploy.ps1` 在部署时重生成（当前内容 `BuildId = "b20261015-222818-c9f62071"`）。
+测试构成（逐文件对 `ced0a18` 实数 `[Fact]`+`[Theory]`：276 → **304**，+28）：
 
-测试构成 276 = **255 基线 + 21 新增**（全部在 `ActionFeedbackTests`：31 → 52）。其余 15 个测试类计数与基线一致。既有非本组引入的警告：`ProposalArbiterTests.cs(82,13)`、`(563,13)` 的 `xUnit2013`。
+| 测试文件 | ced0a18 | HEAD | 差 | 归属 |
+|---|---|---|---|---|
+| `Program/tests/CoordinateSemanticsTests.cs` | 0 | 10 | +10 | §2 坐标语义（新建文件） |
+| `Program/tests/TaskSelectionDeadlineTests.cs` | 25 | 36 | +11 | 8 个投递时序/幂等用例（0005 批工作，随未跟踪的 `TaskDelivery.cs` 本次一并收） + 3 个 §3.1 用例 |
+| `Program/tests/ActionFeedbackTests.cs` | 52 | 59 | +7 | §3.2 R1 继任状态用例 |
 
-### 1.4 逐场运行身份
+本会话新增的 `[Fact]` 共 13 个（§2 的 10 个 + §3.1 的 3 个）；其余 15 个是本会话开始前已在工作树内、本次首次随源码进入提交的用例。派单 §1.2 L47 记载「隔离源码快照独立 Rebuild 全量测试 291 通过」= 276 + 这 15 个未提交增量，与本表一致（`291 → 304` 即本会话的 13 个新增）。
+
+`CombatBrain2.csproj` 内无 post-build 部署 target。测试工程保持 `net8.0`，只 `Link` Core 源、不链 Host。
+
+### 1.3 逐场运行身份
 
 | 场次 | build_id | pid | assembly_file_sha256 前 16 | 部署长度 | 部署 SHA 前 16 |
 |---|---|---|---|---|---|
@@ -89,103 +105,249 @@ dotnet test  tests\CombatBrain2.Tests.csproj -c Release -v q --nologo → 通过
 | p3-P-20261015-221833 | b20261015-221826-977cb576 | 46552 | db58cbe71973f790 | 191488 | DB58CBE71973F790 |
 | p3-P-20261015-222821 | b20261015-222818-c9f62071 | 24920 | 1e980eb3acd51410 | 191488 | 1E980EB3ACD51410 |
 
-证据来源：各场 `CombatBrain2.log` 的 `RUNTIME_IDENTITY`（`assembly_file_sha256` / `pid` / `Location`）与 `deployed-module.json`（`path` / `size` / `sha256` / `last_write`）。182784 = 基线旧构建；190976 / 191488 = 本次新构建。`p3-P-20261015-222821` 的 `assembly_file_sha256` 与本组 `bin\Debug` 完全一致。
+证据来源：各场 `CombatBrain2.log` 的 `RUNTIME_IDENTITY`（`assembly_file_sha256` / `pid` / `Location`）与 `deployed-module.json`（`path` / `size` / `sha256` / `last_write`）。182784 = 基线旧构建；190976 / 191488 = 上批新构建。
 
 `p3-P-20261015-221833` CBATH 身份（`build-identity.json`）：`build_id=b20261015-221831-76da5cbd`、`assembly_sha256=be477d94514ff700770c6939d833a01933daeebe57e72661f9b0ba9279374b8c`、`mvid=6c443e22-98c3-4463-9da1-23f63ec73d88`、`pid=46552`、`game_version=v1.4.8.119303`，`active_modules` 含 `CombatBrain2` 与 `CombatBrainAutonomousTestHarness`。
 
-CBATH 模块源码 SHA256（当前，均与 baseline.json 的 `cbath.reviewed_source_files` 一致）：`CbathTools.cs`=A894FA6979BF5E13…、`P2FormationEvidence.cs`=63F66BD9EAD0A174…、`P3OpponentControl.cs`=B0EFA5DE88CA510A…、`RunRecord.cs`=A26EA645402EF0C5…、`SamplingMissionBehavior.cs`=8239AA21DCF3C6A2…、`CombatBrainAutonomousTestHarness.csproj`=1521AD981EBA2E1E…
+CBATH 模块源码 SHA256（与 `_audit/cb20-p3/2026-10-16-coordinate-restart/baseline.json` 的 `cbath.reviewed_source_files` 逐项一致）：`CbathTools.cs`=A894FA6979BF5E13…、`P2FormationEvidence.cs`=63F66BD9EAD0A174…、`P3OpponentControl.cs`=B0EFA5DE88CA510A…、`RunRecord.cs`=A26EA645402EF0C5…、`SamplingMissionBehavior.cs`=8239AA21DCF3C6A2…、`CombatBrainAutonomousTestHarness.csproj`=1521AD981EBA2E1E…
+
+**重要说明**：§1.3 全部实机场次都产生于本轮提交之前（源码 mtime 20:16–20:25、场次时间 22:00–23:00）。本轮提交的源码改动 **未在任何实机运行过**。这不是遗漏，而是本单的资源条件——见 §4.4。
 
 ---
 
-## 2. 整改 1–5 逐项结果
+## 2. 位置语义全链修复（派单 §2）
 
-### 整改1：旧命令退出确认后才接续新分配 — 已实现
+### 2.1 已裁定的换算契约
 
-- 删除 Host 的缺陷函数 `ExitAppliedOnOwnObject()`（原扫 `_tasks.OpenTasks()`，而退出写完即 `CloseTask`，成功记录反被排除；且任意一条旧退出写出即 true）。
-- 新增 Core 唯一生产判定入口 `ActionFeedback.DecideSuccessorStandby(SuccessorStandby)`，输入结构保留旧 Plan、必需对象、各对象退出结果与**实际写出时间**、归属是否被新分配接管、是否明确未应用、继任是否已准备及无效原因、退出截止。`DecayStandby` 只调这一个入口。
-- `BeginSuccessorPlan` 改为「取号 → 构建 → `InvalidatePlan` → `EnterStandby`」，等待期内不 Adopt / 不 Publish / 不占槽 / 不武装。`CompleteStandby` 在确认后才 `Adopt` + `PublishSuccessorTasks` + `RetargetStandbyPlan`。
-- 必需对象改由**旧计划的退出任务集**确定（原先取全部普通任务，而 `CoordinationDriver.RebindRole/RebindSameObject` 关闭被换掉的旧任务时不排退出，导致确认门永久 `exit_outcome_missing`）。
-- `StandbyInvalidReason` 区分协同计划与撤退休整计划（`BuildWithdraw` 的 `Role=None` 不再被判 `roles_incomplete`）。
-- `FeedbackTick` 增加逐 tick 等待期分支，避免 1s 截止落在两个 3s 决策点之间而既不确认也不超时。
-- 保留：继任任务 ID 避开子串 `exit`；同一 t0 只追加一次；`CloneForSuccessor` 保留 E0/F0 与累计损失；3s/3m、1.5s、1s 截止均未放宽。
+派单 §2.1 裁定：设写前有效锚点 `A`、同对象同批读数质心 `C`、希望质心到达的战术目标 `T`，则 **实际下发的锚点目标 = T − (C − A) = T + (A − C)**。旧提议 `T + (C − A)` 方向错误，未采用。
 
-新增 13 个纯函数行为测试（Red→Green），覆盖五条要求：成功后关闭的退出仍可确认 / 只完成一个对象不得公布 / 超时退出不得补算成功 / 身份不匹配不影响新 Plan / 迟到旧退出不影响新 Plan，另含重复必需对象、事实缺失、继任失效、归属被接管、明确未应用。连同整改1 早期三条状态机测试（`StandbyTrackerKeepsOriginalPlanIdentityUntilRetargeted`、`StoppedIsOnlySetAfterExitConfirmation`、`StandbyFailureTerminatesSuccessionAndKeepsStopFailed`），`ActionFeedbackTests` 中 `Standby*`/`StoppedIsOnly*` 共 14 条。
+唯一新增生产 API，`Program/src/Core/BattlePlan.cs:146`：
 
-**实机正例**（`p3-P-20261015-221833`，门2 pass）：
-
-```
-133.844 PLAN_INVALIDATED plan=plan-1 reason=NotEffective detail=action_feedback disengage
-133.844 3× EXIT_STOP_QUEUED (plan=plan-1, kind=Hold, origin_plan=plan-1)
-133.844 SUCCESSOR_STANDBY old=plan-1 pending=plan-2 decision=Disengage tasks=3 deadline=134.844
-134.036/134.086/134.182 3× EXIT_STOP_DONE (030dd50e@Infantry / 038572bf@Ranged / 008c0c1e@HorseArcher)
-134.187 SUCCESSOR_EXIT_CONFIRMED pending=plan-2 waited=0.344 detail=all_exits_applied
-134.187 ACTION_REPLAN old=plan-1 new=plan-2 decision=Disengage tasks=3 standby_waited=1
+```csharp
+internal static double AnchoredRequest(double tactic, double anchor, double center) => tactic + (anchor - center);
 ```
 
-三个必需对象全部在 `deadline=134.844` 之前真实写出，确认后才公布 plan-2；无一条被提前接管。
+最小校验已固化为测试：`A=100, C=110, T=150 → 140`（下发 160 会把预期质心推到 170）。
 
-### 整改2：风险门只统计当前三职责的不同对象 — 已实现
+### 2.2 字段语义分离（§2.2 第 1 条）
 
-`RiskGate` 签名由 `(snapshot, teamIndex, List<string> roleKeys, List<int> baselines, cx, cy)` 改为 `(snapshot, teamIndex, List<RoleAssignment> roles, cx, cy)`。校验顺序：`no_snapshot` → `roles_incomplete` → 第一遍 `roles_not_distinct`（空 `ObjectIdentity` 或重复对象）+ 三角色齐备性 → 第二遍逐角色 `role_object_missing key=` / `role_identity_stale key=` → 之后才是 `center_unknown` / `enemy_center_unknown` / `role_below_continue_line` / `enemy_more_than_roles` / `allowed`。
+`Program/src/Core/BattlePlan.cs` 字段注释与用途已分开表达，未新建通用变换框架：
 
-Host 侧删除遍历全部 `plan.Tasks` 的 `CollectRoleBaselines`（会重复计 Main），改为 `CollectRoleAssignments` 只从当前计划版本的权威槽位 `MainWaitTask` / `AdvanceTask` / `GuardTask` / `SupportTask` 各取一个，要求未关闭且 `PlanId`/`Revision` 与当前计划一致，否则该职责缺席。风险中心改用 `ProjectedMainCenter`（当前实际质心 + 目标方向），弃用 `plan.Geometry.MainX/MainY`。
+| 字段 | 语义 |
+|---|---|
+| `CanonicalX/Y` + `HasCanonicalTarget` | **战术目标 T**（期望质心位置），来自计划几何（含撤回的质心向后 20m 点） |
+| `RequestedX/Y` + `HasPosition` | **本次实际写给引擎的锚点目标** |
+| `BaselineX/Y` | 锚点语义任务记当时编队锚点；质心语义任务（`HasCanonicalTarget`）记同批读数有效成员质心 |
+| `OrderTargetX/Y` | 原生 MovementOrder 的实际读回值（非请求值） |
 
-反例已固化：三角色键重复（Main 0/0、Guard 0/1、Support 0/2 各 10 人）对敌 35 人 → 旧实现得 40 人放行，去重后 30 人正确拒绝。保留风险半径 30m、人数相等允许、未知位置不追加。
+提案阶段的 `TargetError`（`Program/src/Core/ProposalArbiter.cs:416`）保持原样：任务未写令时 `HasPosition=false` 走 `CanonicalX/Y`，写令后比 `RequestedX/Y`，两阶段语义各自正确。
 
-### 整改3：冻结成员必须逐个可解释 — 已实现
+### 2.3 写前换算与冻结（§2.2 第 2 条）
 
-新增 `MissingCoverage(missionKey, snapshot, out detail)`：`not_frozen` / `no_snapshot` / `mission_changed` → 逐记录检查 `ActiveMembers` 可读 → `_side` 中每个冻结成员必须能在当前活跃成员中定位，或已有可信终态，否则 `unexplained_member key=`。接入 `RefreshFeedbackIntegrity`（`member_coverage <detail>`），无法解释即置 `_feedbackIntegrityOk = false`，阻断该窗口正负判定而非补为 0 损失。
+`Program/src/Host/TestDriver.cs:2000-2037` `CoordinationOrderFor`：
 
-三个区分性反例已写：缺一人无终态（`unexplained_member`，阻断 Reinforce）/ 正常转编仍可定位（`DF==0`）/ 已知终态后 Deleted（`DF==1`、`UnknownCount==0`、`Complete==true`）。骑兵骑手计入人数、马匹排除；`Killed/Unconscious` 不因后续 `Deleted` 降级。
+- 新增 `anchor_unreadable`（`:2093`）与 `center_unreadable`（`:2088`）两道门 —— **质心缺失不再退用编队锚点冒充**，直接不写令。
+- `requestX/Y = FormationTask.AnchoredRequest(targetX, record.PosX, record.ActiveCenterX)`，并加 `non_finite_request` 门。
+- `task.SetCanonicalTarget(targetX, targetY)` + `task.SetTarget(centerX, centerY, requestX, requestY)`；下发 `MovementOrderMove(requestX, requestY)`。
+- note 改为 `move_to_role_point role=… tactic=(…) anchor=(…) center=(…) requested=(…) revision=`，五个量同时留痕。
 
-### 整改4：修正复算工具的过度 PASS — 已实现
+撤回分支（`Program/src/Host/TestDriver.cs:1955` 一带）做同口径修复：`withdraw_center_unreadable` 门 + `AnchoredRequest(wx, wrec.PosX, wrec.ActiveCenterX)`，原点与基线用质心。
 
-针对审查 `REVIEW.md` 第 4 条 P1（门2/门3 过度判通过）逐条修正 `Program/_verify/check-p3-feedback.ps1`：
+### 2.4 真实写令基线（§2.2 第 3 条）
 
-**门1** 重写为五条可单列检查：`gate1_successor_has_all_three_roles`（从 `SUCCESSOR_TASK` 取 role 去重须含 Main/Guard/Support）、`gate1_new_plan_has_tasks_and_real_writes`（排除 `-exit$` 后统计普通写入）、`gate1_commitment_actually_changed`（比对旧/新 `move_to_role_point role=Main requested=(x,y)` 集合）、`gate1_new_main_actually_advanced`（`origin=(x,y)` → `requested=(x,y)` 欧氏距离 > 0.5m，Hold 不算）、`gate1_guard_and_support_placed`。五条全成立才算 pass。
+`Program/src/Host/TestDriver.cs:1698-1736` 重写。原实现无条件 `task.SetBaseline(f.CurrentPosition)`（锚点）却对 `RequestedX/Y`（T 语义）算距离。现按任务语义分流：
 
-**门2** 改为逐旧对象关联：`EXIT_STOP_DONE` / `EXIT_STOP_NOT_APPLIED` 均按 `obj` **且 `plan == 旧 Plan`** 筛选（原代码不筛 plan，后继计划的退出也能充当"本次转换及时停止旧对象"的证据）；新增 `gate2_exit_not_superseded_before_confirmation`，只针对本次 `[$invAt, $invAt + 1.0]` 窗口内的 `EXIT_STOP_SUPERSEDED` 判失败，不全局禁止该事件；8s 窗口改用 CBATH 独立采样（`p2-evidence-*.json`），不足两个独立采样点时记 `unverified`，不打 FAIL；决定预算从独立实际损失/有效速率窗口复算越线时点。
+- 质心语义（`task.HasCanonicalTarget`）：从 `_snapshot.FindByKey(task.FormationKey)` 取同批 `ActiveCenterX/Y` 作基线；快照缺失或 `!HasActiveCenter` → 记 `BASELINE_REFUSED … reason=center_unreadable`（`:1722`）并 **return 不写令**；`goalX/goalY = task.CanonicalX/Y`。
+- 锚点语义（P1 普通位置任务）：保持 `f.CurrentPosition` + `task.RequestedX/Y`。
+- 两者都写 `task.DistanceToTargetAtWrite = task.BaselineDistanceTo(goalX, goalY)`。
 
-**门3** 增加实际部署比较（己方/敌方质心、人数），`$armFields` 移除 `opponent_control`（它本身即被比较的差异）、加入 `opponent_delay_sec`、排除 `scenario`。
+计划创建到发令之间的原生移动因此不计入本命令效果；到点与接近距离不再混用不同参考点。
 
-**本轮修复的真实工具缺陷**：
+### 2.5 命令读回核对实际下发目标（§2.2 第 4 条）
 
-1. 门2 分支体原运行在**脚本主作用域**，体内的裸 `return` 会终止整个脚本 → 跳过门3、报告和 `GATES` 行（实测 N-213231 修复前无任何输出却报 `CHECK RESULT: no failures`）。已用内层 `& { … }` 将那些退出限制在该 scriptblock 内。
-2. `gate2_loss_stop_records_exception` 引用了不存在的 `$trig['consecutive']`，对 Disengage 恒判失败；改为 `exception -eq 1 -or streak >= 2`（Disengage 是受门的两点决策，只有 StopLoss 才要求 exception 旗标）。
-3. 旧 Plan 已被 `ConditionChanged` 等另一路径关闭时，`gate2_replan_owns_old_plan_invalidation` 由 fail 改判 `unverified`（termination only）；仅当旧 Plan 完全未失效时仍判 fail。
+`OrderTargetReadbackError()`（`BattlePlan.cs:200`）语义未改：比较「当前实际引擎目标」与「本次锚点请求」，0.5 m 容差；读不到/被原生改目标/旧版本旧身份都不拿首次缓存顶替（`RefreshOrderTargetReadback` 读不到即 `ClearOrderTarget()`）。修复只改了**消费方**：不再拿锚点读回直接对 T。
 
-**敏感性验证**（对审查副本 `_verify\_tamper3`，验证后已删；原始场次未清洗改写）：
+### 2.6 效果与依赖各守本义（§2.2 第 5 条）
 
-| 副本 | 篡改 | 门2 变化 | 证明 |
+`Program/src/Core/TaskFeedback.cs:137-155` 的 Reposition 分支改为三层：
+
+- `task.HasCanonicalTarget && !now.HasActiveCenter` → `detail = "center_unreadable"`，**不 effective**（`:137`）。
+- 其余：`bool byCentroid = task.HasCanonicalTarget`（`:144`）；`refX/refY` 取质心或锚点（`:145-146`）；`goalX/goalY` 取 `CanonicalX/Y` 或 `RequestedX/Y`（`:147-148`）；`distance` 与 `from = BaselineDistanceTo(goalX, goalY)`（`:152`）同源。
+- 判据数值未动：3 m 进度、0.5 m 到点、0.5 m 读回、5 m 职责到位仍相互独立，未合并或放宽。
+
+`Program/src/Core/CoordinationPlan.cs:111-136`：`CommandTargetStillValid` 签名改为 `(BattlePlan plan, FormationTask task, bool isGuard)`，要求 `HasPosition`、`HasOrderTarget`、`OrderTargetReadbackError() <= 0.5`、`HasCanonicalTarget`、`task.PlanId == plan.PlanId`、`task.Revision == plan.Revision`，最后比较 `CanonicalX/Y` 与 `Geometry` 该职责规范点距离 ≤ 0.5 m。**不再调用 `PlanBuilder.GuardInPosition`/`SupportInPosition`**。
+
+残留核查（grep 全 `src/`）：`GuardInPosition`/`SupportInPosition` 生产调用点只剩 2 处，均为**质心口径、正确**——`TestDriver.cs:782-783`（竞争注入候选合法性，用注入坐标）与 `CoordinationDriver.cs:200-201`（`ObserveOne` 用 `obs.X/obs.Y`，即 `ObservationFor` 填的 `rec.ActiveCenterX/Y`）。`CoordinationPlan.cs` 已无调用。
+
+### 2.7 撤回链与 P1 边界（§2.2 第 6 条）
+
+- `Program/src/Host/TestDriver.ActionFeedback.cs:820-823` `WithdrawTick` 到点判据改为 `goalX = task.HasCanonicalTarget ? task.CanonicalX : task.RequestedX`，用 `(rec.ActiveCenterX, rec.ActiveCenterY)` 对目标比 `<= P3WithdrawArrivalMeters(5.0)`。
+- 撤回建任务（`BattleAssessment.cs:299-300`）仍以质心为 origin、`tx/ty` 为 requested/canonical，未改语义。
+- P1 普通位置任务（`MakeTask` 用 `record.PosX/Y` 为 origin）**未全局改语义**，`AnchorDefinedTaskKeepsAnchorSemantics` 用例锁定。
+
+### 2.8 红测试证据（§2.2 L76）
+
+新增 `Program/tests/CoordinateSemanticsTests.cs`（10 个 `[Fact]`，已加入 `Program/tests/CombatBrain2.Tests.csproj`）。夹具分开给 `PosX`（锚点）与 `ActiveCenterX`（质心），使用生产实际调用的函数。
+
+**修复前实测：失败 5 / 通过 5**，失败项与缺陷点一一对应：
+
+| 用例 | 修复前 | 对应 §2.2 条 |
+|---|---|---|
+| `AnchorArrivalWithStalledCentroidIsNotEffective` | Expected Pending，Actual **Effective** | 3/5 |
+| `OffsetApproximationCannotFakeArrival` | `ReachedTargetPoint` Expected False，Actual **True** | 7 |
+| `UnreadableCentroidDoesNotFallBackToAnchor` | Expected Not Effective，Actual **Effective** | 2 |
+| `StaleTacticTargetBlocksMainAdvanceEvenIfAnchorIsInside` | Expected False，Actual **True** | 5 |
+| `CurrentTacticTargetStillReleasesMainAdvance` | Expected True，Actual **False** | 5 |
+
+修复后 **10/10 通过**；全量由 276 → **304/304**（本会话新增 13 个，见 §1.2）。
+
+### 2.9 同步调整的既有测试
+
+`DependencyReadinessTests.cs`（3 处）、`CoordinationDriverTests.cs`（`CommandsInEffect`）、`CoordinationIntegrationTests.cs`（`BringBothInPosition`）此前把 `SetOrderTarget` 设为几何点本身，与新语义冲突，已补 `SetCanonicalTarget`。`TaskSelectionDeadlineTests.cs:355 MoveRequiresClosingDistance` 是**锚点语义**用例（不填质心），未改，锁定 P1 语义不变。
+
+### 2.10 不把固定偏移当实际到位（§2.2 第 7 条）
+
+未引入任何按 tick 连续改写目标追质心的逻辑；近似不足时走既有失败/重规划路径（`TaskFeedback` Failed → `InvalidatePlan`），未增权重、未延寿、未循环重试。
+
+---
+
+## 3. 投递调度、R1、R4、R5（派单 §3）
+
+### 3.1 投递调度（§3.1）
+
+**结构核实结论：逐 tick 投递的结构在交接时已存在（未提交的 `SamplingBehavior.cs` 改动）**，`SubmitPending` 与 `PublishCoordinationProposals` 已移出 3 s 决策块，且 `SubmitPending` 在 `PublishCoordinationProposals` **之前**（否则首个到达写前门的提案会被当唯一竞争者提前公布）。本轮补的是**身份门**与**日志节流**。
+
+**实机延迟归因**：`p3-P-20261015-220249` 的 125.197 公布 → 127.708 首次投递（合法最早 126.697，额外等待约 1.011 s），是**该场构建尚未做逐 tick 投递**所致，不是当前代码缺陷。证据：全场 `TASK_CANDIDATE_SUBMITTED` 时刻全部落在 3 s 评价网格（4.538 / 7.540 / 10.547 / … / 124.703×3 / 127.708）；`EVAL_TICK` 网格为 …124.708 / 127.708，plan-2 于 125.197 公布，下一个评价点才是 127.708。**逐 tick 结构落地后不会再现。** 未承诺固定 4.5 s 或 9 s 必写完。
+
+**本轮修复（`Program/src/Core/TaskDelivery.cs`，88 行，新收录）**：`TimingDeferral` 新增
+
+```csharp
+if (f.ExitTask) return "";                       // :61  退出任务不受身份门与时序门
+if (!f.HasPlan) return "not_in_current_plan";    // :64  关闭 L85 绕过点
+```
+
+`Decide`（`:47`）对退出任务仍直接 `Queue`。此前 `if (!f.HasPlan) return ""` 让已关闭/被替换/无当前计划的普通任务绕过全部时序门直接进 Queue —— 派单 L85 明示禁止，现已闭合。重分配任务从新分配时刻重新计时（`AssignedAt` 优先于 `PlanCreatedAt`）；`ExecutionGate.SubmitCandidate` 仍只记首次提交、重投不刷新获选截止（既有测试 `ExtendDeadline` 锁定）。
+
+**日志节流（L87）**：`Program/src/Host/TestDriver.cs:46` 新增 `_lastDelayReason` 字典，`:1112-1114` 只在原因变化时打 `WRITE_DELAYED`，`OnMissionStart`（`:2914`）清空。不改 `check-p3-feedback.ps1` 的解析面（该脚本只解析 `REAL_SELECTION_NOT_SUBMITTED`，不解析 `WRITE_DELAYED`）。
+
+**3 个新用例**（`TaskSelectionDeadlineTests.cs:723/736/754`）：`TaskWithoutCurrentPlanIsNotQueued`、`PlanIdentityGateIsDistinctFromTimingGates`、`ExitTaskIsQueuedEvenWithoutCurrentPlan`。
+
+### 3.2 R1：继任状态与公布前合法性（§3.2）
+
+审查退回项 R1 位于 `_audit/cb20-p3/2026-10-16-coordinate-restart/REVIEW.md:31-42`。四条已在工作树中修复（本轮补入版本库并补测）：
+
+1. `Program/src/Core/ActionFeedback.cs:270-281` `AfterStandbyCompleted`：仅当 `WaitingForExitConfirmation && ExitStandbyCompleted && !Reinforced` 才置 `Stopped/OffensiveBlocked` —— **正反馈继任不再误置进攻禁入**。
+2. `Program/src/Host/TestDriver.ActionFeedback.cs:13-45` `ActionFeedbackStep`：`OffensiveBlocked` 早退分支（`ACTION_BLOCKED reason=loss_not_resolved`）只在负反馈触发；② 止损分支先于 ① 正反馈执行，正反馈确认后累计代价评价仍继续。
+3. `Program/src/Core/ActionFeedback.cs:287-294` `MarkStandbyFailed()` 只清等待态，**不清 `Stopped`/`OffensiveBlocked`**（已判定的负反馈禁入不因退出失败被解除）。
+4. `Program/src/Host/TestDriver.ActionFeedback.cs:400-464` `StandbyInvalidReason` 从 `_snapshot.FindByKey` 补 `Found/CurrentObjectIdentity/ActiveMemberCount/TeamIndex/HasActiveCenter/IsAiControlled` 造 `SuccessorRoleFact`，调 `:452 ActionFeedback.SuccessorRolesStillValid(...)`（身份/归属/AI/兵种/人数继续线/互不相同）；协同计划再要求 `ProjectedMainCenterOf` 与 `ActionFeedback.RiskGate(...).Allowed`。
+
+**7 个 R1 用例**（`Program/tests/ActionFeedbackTests.cs:1082-1192`）：`PositiveSuccessionKeepsOffensiveEvaluationAliveAfterExitConfirmation`、`NegativeSuccessionAppliesStopOnlyOnExitConfirmation`、`FailedExitConfirmationKeepsKnownNegativeBlock`、`SuccessorRolesRejectStaleObjectIdentity`、`SuccessorRolesRejectObjectLostAiControl`、`SuccessorRolesRejectRoleBelowContinueLine`、`SuccessorRolesAcceptCurrentObjects`。
+
+截止行为未放宽：`DecideSuccessorStandby` 逐必需对象要求实际写出且 `WrittenAt <= DeadlineAt`；`allApplied` 后仍需 `RequiredObjects.Count != 0`、`SuccessorPrepared`、`SuccessorInvalidReason` 为空才 `Confirmed`；否则到 `DeadlineAt` 才 `TimedOut`。新分配延迟从**实际公布**起算（`PublishSuccessorTasks` 置 `RoleAssignedAt = now`）。
+
+### 3.3 R4：独立复算与敏感性反例（§3.3）
+
+审查退回项 R4 位于 `REVIEW.md:44-69`，三处已闭合：
+
+**（a）门2 必需对象改取决定时版本。** `Program/_verify/check-p3-feedback.ps1:842-905`：从决定时刻前（`at <= invAt`）的 `ASSIGNMENT_PUBLISHED` 中取**最大 revision** 行，逐 `obj` 去重（不可用整场最后版本，也不可用后来 plan-2 的退出补算）；无该行时回退 `TASK_CREATED` 并显式 Note。退出证据只认**同 plan** 的退出任务（`:900-904`）。
+
+`p3-P-20261015-221833` 本次必需对象为**三个**：
+
+| 角色 | 对象 | 本次 `EXIT_STOP_DONE` | 说明 |
 |---|---|---|---|
-| 基线 `p3-P-20261015-221833` | — | pass | 正例 |
-| T2-fewsamples | 仅保留 `p2-evidence-0*.json` ≤120 | pass → **unverified**（`fewer_than_two_independent_samples_in_8s_window`） | 缺独立样本只记未验证，不无条件 PASS |
-| T3-noexitdone | 删 3 行 `EXIT_STOP_DONE` 且 `plan=plan-1` | pass → **fail**（`objects_stopped=0/2 unaccounted=2`） | 缺逐对象及时停止证据判失败 |
+| Main | `030dd50e@Infantry` | 134.036 | order_before=StandYourGround |
+| Support | `038572bf@Ranged` | 134.086 | order_before=Move |
+| Guard | `008c0c1e@HorseArcher` | 134.182 | 重分配进入；**实际兵种 Cavalry，不能按槽位后缀推断** |
 
-历史旧误判样例的修正结果：`p3-N-20261015-005621` 现判 **fail**（`gate2_exit_not_superseded_before_confirmation required=2 taken_over_before_confirmation=2 objects=007dbf45@Infantry,035c31d5@Ranged`），保留为修复前缺陷的真实回归证据。
+`SUCCESSOR_EXIT_CONFIRMED pending=plan-2 waited=0.344 detail=all_exits_applied` @134.187，`deadline=134.844`。**不再报 2/2。** `0364ad2d@Cavalry` 由更早一次重分配交出，不列为必需停止项（检查器显式 Note）。
 
-### 整改5：完整入口、来源身份与安全收尾 — 已实现
+**（b）逐条复跑旧反例（本轮实测）**：
 
-`Program/_verify/_p3-exclusive-stage.ps1` 全文重写为三 stage（`deploy_cb2` / `deploy_cbath` / `collect`），顺序执行并记录 `$completed` / `$acquiredGame` / `$failure` / `$failureStage`，结束打印 `=== stage record ===`，失败 `RESULT: FAILED at <stage>` + exit 1。**不杀进程、不删锁、不复位共享开关、不在锁外部署**；finally 只按本场已取得的资源记录。
+| 场次 / 副本 | 门2 | 关键 detail |
+|---|---|---|
+| `p3-P-20261015-221833` | **pass** | `assigned=3 stopped=3 stop_failed=0 unaccounted=0 taken_over_before_confirmation=0` |
+| `p3-N-20261015-005621`（旧硬反例） | **fail**（保留） | `unaccounted=3`、`stopped=0 of assigned=3`、`taken_over_before_confirmation=3`、`still_on_old_order=035c31d5@Ranged@142.972,0341f44c@HorseArcher@142.972` |
+| `tamper-missing-reassigned-exit` | **fail** | `assigned=3 stopped=2 unaccounted=1`（删重分配 Guard 的本次退出即不再 pass） |
+| `tamper-independent-order-contradiction` | **fail** | `still_on_old_order=008c0c1e@HorseArcher@134.746`（独立订单与停止声明冲突被拒） |
+| `p3-N-20261015-004851` / `-211938` / `-213231` | unverified | 无 stop/disengage 决定 |
+| `p3-P-20261015-222821` | unverified | 无 `ACTION_FEEDBACK_FROZEN` |
 
-**修掉一个真实参数传递缺陷**：`& $stage.path @($stage.args)` 中的 `@(hashtable)` 是数组构造而非 splatting，会把整个 hashtable 当第一个位置参数传入，令全部实参静默取默认值。已改为先赋值再 splat：`$stageArgs = $stage.args; & $stage.path @stageArgs`。
+**（c）门3 按 t0 对齐，且不擅自扩容差。** `Get-SceneFingerprint([string]$dir, [double]$t0)` 重写为读 `cbath-timeline.json`（唯一带 per-formation `facing` 的产物），取 mission time 最接近 t0 的样本（不再取首个数字编号样本）。判定链：离散事实（map / own_size / enemy_size / own_comp / enemy_comp）不符 → **fail**；几何（own_center / enemy_center / relative_distance / own_facing / bearing）不等 → **unverified**（等价未证明，不判 fail、不扩容差）；地形独立记 Note。
 
-离线四条失败控制流（本地替身，未碰共享部署）：deploy_cb2 失败 → `completed: <none>` / exit 1；deploy_cbath 失败 → `completed: deploy_cb2` / exit 1；collect 失败 → `completed: deploy_cb2, deploy_cbath` / exit 1 且替身回显 `scenario=N`（证明参数已正确到达）；全成功 → `RESULT: OK` / exit 0。
+`p3-P-20261015-220249` vs `p3-C-20261015-220738` 本轮实测：
 
-四个脚本在 PS 5.1（5.1.26100.9444）下 `[Parser]::ParseFile` 全部通过；`run-p3-exclusive.ps1 -Scenario P -WhatIf` 输出 `owner: 主线组` / `RESULT: WHATIF` / exit 0。
+```
+ok    gate3_arms_differ_only_in_counter_action counter_action this=1 control=0 other_fields_match=True
+ok    gate3_scene_discrete_match map/army/composition compared: identical
+ok    gate3_control_arm_has_no_matching_decision control replan=False decision=False freezes=1
+GATES: gate3_control: unverified -- with_counter_action=True control=False fields_match=True scene_discrete=True scene_geometry=False
+```
+
+两臂离散事实相同（map=`battle_terrain_biome_096`、sizes 21/184、comp `Infantry=21 | Cavalry=46,Infantry=29,Ranged=109`）；几何不同（P t0=23.039 样本 t=23.132：center `1287.3,897.8 → 1119.9,1028.5` rel=212.4，facing `-0.767,0.642`，bearing=2；C t0=20.051 样本 t=20.14：center `989.2,922.6 → 747.1,700.7` rel=328.4，facing `-0.546,-0.838`，bearing=-14.4）。
+
+**无产物携带 height/slope**，故朝向与地形关系只能部分取证（facing 有、terrain 缺），verdict 中已如实记为 `terrain=absent_depth_data`，未假设等价。
+
+### 3.4 R5：完整入口失败路径与 WhatIf（§3.4）
+
+审查退回项 R5 位于 `REVIEW.md:71-80`，受审 `run-p3.ps1:320-377`/`:635-693` 与 `_p3-exclusive-stage.ps1:47-85`。四条：
+
+1. **helper 移入 try**：`Program/_verify/run-p3.ps1:443` 起 `try { $script:OwnGabsPid = Open-McpHttp ...; $script:McpOpened = $true }`。注释原文：「The helper must be opened INSIDE the try: it starts gabs before probing the endpoint and throws when the endpoint never becomes ready」。
+2. **只按本场 PID 收尾**：全脚本 `Stop-Process` 只剩 1 处（`:783`），`:779-780` 先按 `$script:OwnGamePids -contains $_.Id` 过滤，`:790-794` 对非本场 PID 打 `Note-Others`。
+3. **清理失败独立登记 + 结束实读**：`finally` 内每个 teardown 步骤独立 `try/catch` 并 `$script:CleanupFailures += …`（end_mission / games_stop / Close-McpHttp / crash report / sentinel restore / end-state read-back），末尾逐条 `Fail "cleanup: $cf"`；`Assert-CleanEndState` 实读 `safely_exited`、P1/P2/P3 开关、两探针空、本场残留 PID、helper 残留。
+4. **stage 分列「开始尝试」与「实际取得」**：`Program/_verify/_p3-exclusive-stage.ps1:88-89` 改为两行：
+
+```
+game stage attempted:  <stage|none>
+game stage returned ok: <Boolean>
+```
+
+`$gameStage` 在进入该 stage 时即置位（表示本场自此接管游戏生命周期），`$acquiredGame` 只表示该 stage 成功返回。
+
+**隔离模拟取证**（`Program/_verify/_r5sim/make-sim.ps1`：把真实 `run-p3.ps1` 按锚点正则切片、对 helper/进程表打桩后独立执行；**不触碰任何游戏进程、GABS helper 或共享开关**）。五模式实测（`_r5sim/r5-isolation-results.json`，runner SHA256 `27A9067DA18B90D80F2E46B3266EF0C11B46C3E00E24260CD704507F8C3F3CE9`）：
+
+| mode | helper_closed | batch_kill | foreign_pid_stopped | own_pid_stopped | failures |
+|---|---|---|---|---|---|
+| ok | True | False | False | True | `<none>` |
+| connfail | True | False | False | False | `exception: simulated_endpoint_timeout` |
+| neverconnect | True | False | False | True | `games_connect never succeeded \| exception: no_connect` |
+| forcetook | True | False | False | True | `games_connect force-took a session this run did not own \| exception: force_takeover_refused` |
+| startthrow | True | False | False | True | `exception: simulated_launch_timeout_after_process` |
+
+五模式全部 `cleanup_reached=True`；`force_takeover_arg_sent` 恒 False。关键路径：
+
+- `connfail` trace = `helper_process_acquired -> helper_closed` —— **正是 R5 第一条要闭合的「连接失败时 helper 未进 Close-McpHttp」**。
+- `startthrow` trace = `helper_process_acquired -> mcp:games_start -> … -> stop-process:777001 -> helper_closed` —— 启动调用已产生进程后抛错，本场 PID 仍被归属并结束（此前名单在 `games_start` 成功返回后才取，会漏记）。
+- 各模式 `end_state` 均为 `p1=enabled=0 p2=enabled=0 p3=enabled=0 probes_empty=True safely_exited=1 residual_own=0 helper_residual=0`。
+
+桩表含他人进程 `777999`（仅在启动快照之后出现），用于暴露按名批量强杀；五模式均未命中。
+
+**stage 三场景模拟**（`Program/_verify/_stagesim/stage-results.json`）：
+
+| case | exit | completed | attempted | returned ok | result |
+|---|---|---|---|---|---|
+| all-ok | 0 | deploy_cb2, deploy_cbath, collect | collect | True | `RESULT: OK` |
+| cb2-fail | 1 | `<none>` | `<none>` | False | `RESULT: FAILED at deploy_cb2` |
+| cbath-fail | 1 | deploy_cb2 | `<none>` | False | `RESULT: FAILED at deploy_cbath` |
+| collect-fail | 1 | deploy_cb2, deploy_cbath | **collect** | False | `RESULT: FAILED at collect` |
+
+`collect-fail` 行是本条要求的直接证据：「开始尝试 collect」与「collect 成功返回」已分开记录。
+
+**PS 5.1 语法与 WhatIf**：`run-p3.ps1`、`check-p3-feedback.ps1`、`_p3-exclusive-stage.ps1`、`run-p3-exclusive.ps1`、`_r5sim/make-sim.ps1` 经 `[Parser]::ParseFile` 全部 `OK (0 errors)`（PS 5.1.26100.9444）。`run-p3-exclusive.ps1 -Scenario P -WhatIf` → exit 0、输出末行 `RESULT: WHATIF`、前后 Bannerlord 进程数均为 0（无副作用）。
 
 ---
 
-## 3. 原合同三门逐门自检
+## 4. 原合同三门逐门自检
 
-检查器：`Program/_verify/check-p3-feedback.ps1`（61348 B，SHA256 `16BD2060627D111606ABCEB77BB38560933DF21E632F65CEDF06FE54CF3FC95E`）。
-调用：`powershell.exe -NoProfile -ExecutionPolicy Bypass -File <chk> -SessionDir <dir> [-ControlSessionDir <dir2>]`。退出码 0 只表示检查器跑完，各门状态单列。
+检查器：`Program/_verify/check-p3-feedback.ps1`（74757 B，SHA256 `D7D140FDEF14B7B2541D3DF56315760891E0FF49DDBD90AE0024E2D859566FAB`）。
+调用：`powershell.exe -NoProfile -ExecutionPolicy Bypass -File <chk> -SessionDir <绝对路径> [-ControlSessionDir <绝对路径>]`。**`-SessionDir` 必须传绝对路径**，相对路径会拼到工作目录导致 `session dir not found`。退出码 0 只表示检查器跑完，各门状态单列。
 
 | 场次 | 门1 正 | 门2 负 | 门3 对照 |
 |---|---|---|---|
 | p3-P-20261015-221833 | unverified | **pass** | unverified |
 | p3-N-20261015-005621 | unverified | **fail** | unverified |
 | p3-N-20261015-213231 | unverified | unverified | unverified |
+| p3-N-20261015-211938 | unverified | unverified | unverified |
+| p3-N-20261015-004851 | unverified | unverified | unverified |
 | p3-P-20261015-220249 | **fail** | unverified | unverified |
 | p3-P-20261015-004350 | **fail** | unverified | unverified |
 | p3-P-20261015-203136 | unverified | unverified | unverified |
@@ -194,10 +356,9 @@ Host 侧删除遍历全部 `plan.Tasks` 的 `CollectRoleBaselines`（会重复�
 
 ### 门1（正反馈改变后续投入）— **未取得 pass**
 
-原始索引：`p3-P-20261015-004350`（基线旧场）、`p3-P-20261015-220249`（修复后新场，build b20261015-220246-a9c223d9）。
-两场失败明细相同：`gate1_commitment_actually_changed old_main_requested= new_main_requested=`、`gate1_new_main_actually_advanced role_point_main_writes=0 proof=`、`gate1_guard_and_support_placed guard_writes=0 support_writes=0`。
+原始索引：`p3-P-20261015-004350`（基线旧场）、`p3-P-20261015-220249`（上批新场，build `b20261015-220246-a9c223d9`）。两场失败明细相同：`gate1_commitment_actually_changed old_main_requested= new_main_requested=`、`gate1_new_main_actually_advanced role_point_main_writes=0 proof=`、`gate1_guard_and_support_placed guard_writes=0 support_writes=0`。
 
-**根因为真实缺陷，非检查器过严**。`p3-P-20261015-220249` 逐行：
+**根因为真实缺陷，非检查器过严**（本节保留为原始失败证据，本轮未修复）。`p3-P-20261015-220249` 逐行：
 
 ```
 124.703 SUCCESSOR_STANDBY old=plan-1 pending=plan-2 decision=Reinforce tasks=3 deadline=125.703
@@ -208,39 +369,43 @@ Host 侧删除遍历全部 `plan.Tasks` 的 `CollectRoleBaselines`（会重复�
 127.708 ACTION_BLOCKED plan=plan-2 reason=loss_not_resolved stopped=1
 127.708 WRITE_DELAYED task=plan-2-task-2 / -task-3 reason=predecessor_not_written
 128.039 WRITE_EXECUTED task=plan-2-task-1 kind=Hold geometry=hold_stop
-128.544 TASK_FEEDBACK task-1 state=effective detail=hold_no_displacement_required
+128.044 TASK_FEEDBACK task-1 state=effective detail=hold_no_displacement_required
 128.539 TASK_FEEDBACK task-1 state=failed reason=CommandOverridden → PLAN_INVALIDATED plan-2
 ```
 
-`plan-2` 的 Guard(task-2)/Support(task-3) 始终 `candidate_not_submitted`，`COORDINATION_STATE` 全程 `guard=None support=None`，`advance_allowed=0` 因而从未生成推进任务。机制：`BattleAssessment.BuildSuccessorCoordination`（`:227`）只调 `BuildCoordination`，后者设 `guardTask.DependsOnTaskId = mainTask.TaskId`（`:212`）与 `supportTask.DependsOnTaskId = mainTask.TaskId`（`:214`）；`TestDriver.WriteDelayBlock`（`:1802`）的 `PredecessorNotWritten` 对 Ordinal 2/3 的 Guard/Support 返回 `predecessor_not_written`，而 Main 推进任务的前置门 `CoordinationPlan.MainAdvanceAllowed`（`:99`）又要求 `guard.WrittenAt >= 0 && support.WrittenAt >= 0` 且 Feedback 为 Effective —— 形成互锁，继任协同计划在原生覆盖（约 3.3s 后）之前无法建立保护/辅助关系，也无 `move_to_role_point role=Main` 写入。
+`plan-2` 的 Guard(task-2)/Support(task-3) 始终 `candidate_not_submitted`，`COORDINATION_STATE` 全程 `guard=None support=None`，`advance_allowed=0` 因而从未生成推进任务。机制：`BattleAssessment.BuildSuccessorCoordination`（`:227`）只调 `BuildCoordination`，后者设 `guardTask.DependsOnTaskId = mainTask.TaskId`（`:212`）与 `supportTask.DependsOnTaskId = mainTask.TaskId`（`:214`）；`TestDriver.WriteDelayBlock` 的 `PredecessorNotWritten` 对 Ordinal 2/3 的 Guard/Support 返回 `predecessor_not_written`，而 Main 推进任务的前置门 `CoordinationPlan.MainAdvanceAllowed`（`:99`）又要求 `guard.WrittenAt >= 0 && support.WrittenAt >= 0` 且 Feedback 为 Effective —— 形成互锁，继任协同计划在原生覆盖（约 3.3 s 后）之前无法建立保护/辅助关系，也无 `move_to_role_point role=Main` 写入。
 
 对照组证据：**初始** `plan-1` 可走通——`p3-P-20261015-220249` 有 `WRITE_EXECUTED task=plan-1-task-2 geometry=move_to_role_point role=Guard`(7.591)、`task-3 role=Support`(10.641)、`COORDINATION_ADVANCE plan-1-task-4-g1`(18.747)、`WRITE_EXECUTED task-4-g1 role=Main`(23.039，readback_error=0.000)。故写令通路本身可用，问题是继任计划寿命不足。
 
 独立复算：`p3-P-20261015-220249` counts `evaluations=34 freezes=1 replans=1 invalidations=2 writes=15 exit_stop_queued=6 exit_stop_done=6 successor_tasks=3`。
 
+**注意**：该缺陷涉及 `BuildSuccessorCoordination` → `DependsOnTaskId` 与 `MainAdvanceAllowed` 的互锁，属继任协同计划可执行性；本轮 §2 只改了位置语义与到位判据，**未改该互锁**，故门1 判定不变，仍为 fail。
+
 ### 门2（负反馈调整/终止并停止旧命令）— **取得 pass 与 fail 各一**
 
-- **pass 正例**：`p3-P-20261015-221833`（`gate2_negative: pass :: old=plan-1 new=plan-2 decision=Disengage objects_stopped=2/2 stop_failed=0 unaccounted=0 taken_over_before_confirmation=0`）。逐对象转换时间表见 §2 整改1；独立复算 `independent_crossing=133.844 invalidated_at=133.844 latency=0s`、`independent_samples_after_8s=292`、`max recompute error: LE=0 LF=0.00039 B=0 C=0.0003 U=0.00043`；`independent casualties: DE=53 DF=128` 与 mod 上报 `ACTION_TERMINAL: DE=53 DF=128` 一致。
-- **fail 反例（预期保留）**：`p3-N-20261015-005621`（`required=2 taken_over_before_confirmation=2`）——用户 2026-10-15 裁定：它就是修复前缺陷的证据，不能因对象后来停住而认定旧退出接续符合合同。修正后的工具不再无条件 PASS。
-- **unverified**：`p3-N-20261015-213231`（`push stopped and plan invalidated, but no successor replan (termination only)`）。
+- **pass 正例**：`p3-P-20261015-221833`。逐门检查全绿：`gate2_every_old_object_accounted_for assigned=3 stopped=3 stop_failed=0 unaccounted=0`、`gate2_old_push_actually_terminated stopped=3 stop_failed=0 of assigned=3`、`gate2_exit_not_superseded_before_confirmation required=3 taken_over_before_confirmation=0 objects=<none>`、`gate2_no_further_old_role_advance_writes offending_writes_after_stop=0`、`gate2_stopped_objects_not_still_executing_old_order still_on_old_order=<none>`、`gate2_post_conversion_8s_two_points independent_samples_after_8s=292`、`gate2_old_plan_identity_not_revived old_plan_writes_after_8s=0`；`gate2_loss_to_decision_within_budget independent_crossing=133.844 invalidated_at=133.844 latency=0s`；`gate2_loss_stop_records_exception decision=Disengage exception=0 streak=2 at=133.844 note=two_point_gate`（Disengage 是受门的两点决策，只有 StopLoss 才要求 exception 旗标）；`independent_recompute_matches_production mismatching evaluations=0 of 37 (tolerance=0.002)`、`logged_decisions_consistent_with_independent_numbers inconsistent decisions=0`；`independent casualties: DE=53 DF=128 routed=56 unknown=237 foreign=4` 与 mod 上报 `ACTION_TERMINAL: DE=53 DF=128` 一致。
+- **fail 反例（预期保留）**：`p3-N-20261015-005621` — 用户 2026-10-15 裁定：它就是修复前缺陷的证据，不能因对象后来停住而认定旧退出接续符合合同。`NOT_APPLIED` 不是停止成功。修正后的工具不再无条件 PASS，四项 FAIL 全部保留。
+- **unverified**：`p3-N-20261015-213231`（`push stopped and plan invalidated, but no successor replan (termination only)`）、`p3-N-20261015-211938`、`p3-N-20261015-004851`、`p3-P-20261015-222821`（无冻结）。
 
-### 门3（对照只改变关键反馈）— **未取得 pass**
+### 门3（对照只改变关键反馈）— **未取得 pass（unverified）**
 
-`gate3_arms_differ_only_in_counter_action` 成立（`counter_action this=1 control=0 other_fields_match=True`，比较 `own_army_size`/`own_composition`/`enemy_army_size`/`enemy_composition`/`p1_enabled`/`p2_enabled`/`p3_enabled`/`competition_inject`/`opponent_delay_sec`/`combat_hold_seconds`）。
+`gate3_arms_differ_only_in_counter_action` 成立（比较 `own_army_size`/`own_composition`/`enemy_army_size`/`enemy_composition`/`p1_enabled`/`p2_enabled`/`p3_enabled`/`competition_inject`/`opponent_delay_sec`/`combat_hold_seconds`；`opponent_control` 被排除，它本身即被比较的差异；`scenario` 排除）。
 
-`gate3_scene_equivalent` 全部 **FAIL**，实测对照四组：
+`gate3_scene_discrete_match` 在 P-220249 / C-220738 上 **ok**（map/army/composition identical）。几何不等，故 verdict 为 **unverified**（不是 fail，也不是 pass）。四组对照的几何差异原始数据：
+
 - P-221833 vs C-220738：`own_center this=822.2,523.9 control=965.8,945.2; enemy_center this=1182,598.3 control=711.8,685.9`
 - P-203136 vs C-214157：`own_center this=952.7,628.5 control=1301.8,863.9; enemy_center this=1002.2,946.9 control=1464.4,1128.4`
 - P-004350 vs C-010928：`own_center this=1070.3,794.3 control=786.7,531; enemy_center this=759.1,833 control=1095.2,551.3`
-- P-220249 vs C-220738：同类
+- P-220249 vs C-220738：见 §3.3(c)
 
-P/C 两场实际开局部署质心相差数百米，属派单 §3 表已点明的证据缺口（"P/C t0 附近实际位置和朝向不同，缺实际部署/地形关系可比和行为产物等价证明"）。**这是工具的正确发现，不是工具缺陷。** 门3 用坐标字符串精确相等判场景等价，语义偏严；因本次 P/C 连地图部署都不同，任何判据都不成立，按最小改动原则未改判据。
+P/C 两场实际开局部署质心相差数百米，属派单 §4 表已点明的证据缺口。**位置不同本身不能否定等价，但也不能当等价证明**——按派单「不擅自定新数值容差凑 PASS」的要求，维持 unverified。
+另：`cbath-timeline.json`、`p2-evidence-*.json`、`formations-early.json` 三份产物**均不含 height/slope 字段**（正则扫描无命中），故地形关系无法证明，已独立记 Note。
 
 ---
 
-## 4. 入口、WhatIf 与复算工具用法
+## 5. 入口、WhatIf 与复算工具用法
 
-### 4.1 唯一完整入口
+### 5.1 唯一完整入口
 
 ```
 E:\MBmod\BattleObservation-V1\coordination\Invoke-ExclusiveGame.ps1
@@ -260,7 +425,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File Program\_verify\run-p3-e
 
 stages：`deploy_cb2` = `Program\_deploy\deploy.ps1`（已有 Bannerlord 进程则 exit 2 拒绝；删 `obj`/`bin` 强制重建 Debug）；`deploy_cbath` = `E:\MBmod\CBATH-P2\RD\...\CBATH\build-deploy.ps1`；`collect` = `Program\_verify\run-p3.ps1`（~1 Hz 采样 `cbath/get_p2_formation_evidence`，写 `p1-command-loop.txt=enabled=0` / `p2-command-loop.txt=enabled=1` / `p3-feedback.txt=enabled=1`，清空两探针，跑 `h3_provider_start → h3_start_from_screen → auto_finish_deployment → delegate_team_to_ai`）。
 
-### 4.2 场景配置（当前 `run-p3.ps1`）
+### 5.2 场景配置（当前 `run-p3.ps1`）
 
 | 场景 | 己方 | 敌方 | 对手反制 |
 |---|---|---|---|
@@ -268,40 +433,74 @@ stages：`deploy_cb2` = `Program\_deploy\deploy.ps1`（已有 Bannerlord 进程�
 | N | 100 `30,55,15,0` | 130 `95,25,10,0` | 开 |
 | C | 300 `159,106,35,0` | 60 `100,0,0,0` | 关 |
 
-P/C 均已修正为敌方 `100,0,0,0`（原先 `50,50,0,0` 会使 `ranged_edge` 为负，协同计划无法成立——该首跑失败根因已在 §5 记录）。
+P/C 均已修正为敌方 `100,0,0,0`（原先 `50,50,0,0` 会使 `ranged_edge` 为负，协同计划无法成立——该首跑失败根因见 §7）。各场景实参含 `-Scenario <X> -CombatHoldSec <n> -PollTimeoutSec <n> -LaunchWaitSec 900 -McpPort <n> -GameId bannerlord148-cb2 -OpponentDelaySec <n>`。
 
-### 4.3 复算工具
+### 5.3 复算工具
 
 ```
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File Program\_verify\check-p3-feedback.ps1 `
-  -SessionDir <sessions\p3-X-...> [-ControlSessionDir <sessions\p3-C-...>]
+  -SessionDir <绝对路径 sessions\p3-X-...> [-ControlSessionDir <绝对路径 sessions\p3-C-...>] [-OutFile <json>]
 ```
 
-读 `CombatBrain2.log` 表示"决定"，读 CBATH `p2-evidence-*.json` / `cbath-timeline.json` 表示"战场"，不把生产分数当真值；输出 `GATES:` 行与 `<SessionDir>\p3-offline-check.json`。注意：对照必须传另一个场次目录，把 C 场与自身比较必然使 `gate3_arms_differ_only_in_counter_action` FAIL。
+读 `CombatBrain2.log` 表示「决定」，读 CBATH `p2-evidence-*.json` 表示「战场」，不把生产分数当真值；输出 `GATES:` 行与 `<SessionDir>\p3-offline-check.json`。**注意**：对照必须传另一个场次目录，把 C 场与自身比较必然使 `gate3_arms_differ_only_in_counter_action` FAIL。
 
 **环境约束**：本机无 `pwsh` 命令，必须用 `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe`。
 
-### 4.4 共享资源取得与清理实读
+### 5.4 隔离取证脚手架（本轮新增，未提交，可复跑）
 
-- 锁 `E:\MBmod\BattleObservation-V1\coordination\shared-game-session.lock`（221 B，mtime 2026-10-15T23:55:12）：记录 owner=`本次 P3 观测接入执行方`、pid=21528，**该 pid 已不存在**；实测 `[File]::Open(..., None)` 可取得。锁文件残留不等于占锁 —— 判定占用必须看实际进程与目录活动。
-- `coordination\handoff.md` mtime 仍为 2026-10-12T13:36:43，**无本轮资源交回记录**。
-- **截至本文撰写（2026-10-16 00:39）共享资源由他方占用**：观测组于 00:36:22 起又一次独占运行——Bannerlord pid 52328（00:36:22 启动）存活，`Documents\CombatBrain2\` 开关被置为 `p1-command-loop.txt=enabled=0` / `p2-command-loop.txt=enabled=1` / `p3-feedback.txt=enabled=1` / 两探针空（mtime 00:36:22），`Documents\CommandBrainATH\` 出现 `cbath-*-52328.txt` 与 `current-battle.txt`（00:36:31–00:36:41）。更早一轮（23:55:13）部署点 DLL 为 194560 B / `1609BF99BDBDD06CF7FDF4C3F59652A3F2E6794E1E864D7C39A6756F203A4F90`，非本组产物。**按派单 §3/§4/§5，本组不抢用共享资源、不在锁外复位开关或强杀他方进程；因此本组未在提交后补跑实机。**
-- 本组最后一次独占运行（`_lastrun-p3-exclusive-N2.txt`，21:40:02）结束状态：`completed: deploy_cb2, deploy_cbath, collect` / `game acquired: True` / `RESULT: OK`；该次收尾已实读复位`p1/p2/p3` 全为 0、两探针空、无本组残留进程、崩溃目录为空。
+```
+Program\_verify\_r5sim\make-sim.ps1    由真实 run-p3.ps1 按锚点切片生成 sim-<mode>.ps1
+Program\_verify\_r5sim\r5-isolation-results.json   五模式结论
+Program\_verify\_stagesim\              stage 替身与 stage-results.json
+Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据敏感性）
+```
 
----
+运行隔离模拟须缩短等待窗口（如 `-LaunchWaitSec 6 -PollTimeoutSec 6`），否则桩的模拟时钟会刷出数百行 `connect attempt`。
 
-## 5. 失败与未覆盖项
+### 5.5 共享资源交接与清理实读
 
-1. **门1 未取得 pass。** 根因是继任协同计划的可执行性缺陷（§3 门1），已定位到源码行，未修复——超出本单五项整改范围，且需要新的实机窗口验证。派单 §3 表要求的"修复后正例须实际完成新保护/辅助关系及新主力有限推进"**未达成**。
-2. **门3 未取得 pass。** P/C 实际部署不可比；未取匹配对照场次。
-3. **晚场的独占入口证据不完整。** 只有 `p3-P-20261015-203136`、`p3-N-20261015-211938`、`p3-N-20261015-213231` 三场留存了完整 stage record（`_lastrun-p3-exclusive-*.txt`）。`p3-P-20261015-214532`、`-215314`、`-220249`、`p3-C-20261015-214157`、`-220738`、`p3-P-20261015-221833`、`-222821` 未留存 stage-record 日志；`gabs-config\bannerlord148-cb2\history.json` 显示 GABS 直启（`lastSuccessAt=2026-10-15T14:28:24Z` 对应 222821 场）不经协调锁。**这些晚场不作为"经 `Invoke-ExclusiveGame.ps1` 独占执行"的证据**；其运行身份（§1.4）与产物仍有效，但启动通道归属未证实。
-4. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。
-5. **提交后未能补跑实机。** `ced0a189` 提交（00:10）后共享资源一直被观测组占用（§4.4），本组不抢用共享资源，故提交后仅完成离线回归（0 警告 0 错误 / 276 通过）。§1.4 全部实机场次的源码 mtime 为 20:16–20:25、构建早于提交，**提交所记录的源码内容与当时实机运行的源码内容一致**（`git diff HEAD` 仅剩 3 项非源码文件），但提交后的 Release 产物 `75DEB2D3…` 从未实机运行。
-6. **继任等待期的迟到回调与原生覆盖交叉路径** 只有 221833 一例正例，样本量不足以声称稳健。
-7. **门3 判据偏严**（坐标字符串精确相等）未改，属已知工具局限。
-
-**未触发的自然边界**（保留为未验证，不登记为通过）：获选超时、写令截止后才首次获选、`FLIGHT`/`STOP_LOSS` 触发的继任、P1/P2 相关回归——本批未受影响路径按 diff 继承旧证据，未重复整套场景。
+- 本轮接手时：**无 Bannerlord 进程**；`coordination\handoff.md` mtime 仍为 **2026-10-12 13:36:43**，**无本轮正式交回记录**；`shared-game-session.lock`（221 B）mtime 2026-10-16 0:36:13。按派单 L137「旧锁 JSON 不是占用证明，也不是空闲交接证明」，判定无正式交回。
+- 因此本会话**只做离线工作**：未部署、未启动/结束游戏、未改共享开关、未取锁、未运行任何实机场次。`_verify\sessions\` 目录中不存在创建于接手之后的新场次。
+- 本组最后一次独占运行（`_lastrun-p3-exclusive-N2.txt`，21:40:02）结束状态：`completed: deploy_cb2, deploy_cbath, collect` / `RESULT: OK`；该次收尾已实读复位 `p1/p2/p3` 全为 0、两探针空、无本组残留进程、崩溃目录为空。
+- 上一批交回记录（`P3-IMPLEMENTATION-HANDOVER.md` 旧版 §4.4）记载：截至 2026-10-16 00:39 共享资源由观测组占用。**本轮未复核该项是否已释放**，因为本单明确不要求为离线工作等交接，且未取得正式交回。
 
 ---
 
-开发侧结论：**限定自检完成，待独立验收。** 五项整改均已实现并通过离线验证（276/276、0 警告 0 错误）与敏感性验证；实机三门中门2 取得 pass 与 fail 各一，门1、门3 未取得 pass 且根因已定位。P3 阶段是否通过由独立审核裁定。
+## 6. 逐场转换时序与独立复算
+
+`p3-P-20261015-221833`（门2 正例，本轮实测复核）：
+
+```
+133.844 PLAN_INVALIDATED plan=plan-1 reason=NotEffective detail=action_feedback disengage
+133.844 3× EXIT_STOP_QUEUED (plan=plan-1, kind=Hold)
+133.844 SUCCESSOR_STANDBY old=plan-1 pending=plan-2 decision=Disengage tasks=3 deadline=134.844
+134.036 EXIT_STOP_DONE plan-1-task-92-1-exit        obj=030dd50e@Infantry   order_before=StandYourGround
+134.086 EXIT_STOP_DONE plan-1-task-92-r2-support-exit obj=038572bf@Ranged   order_before=Move
+134.182 EXIT_STOP_DONE plan-1-task-92-r2-guard-exit  obj=008c0c1e@HorseArcher order_before=Move
+134.187 SUCCESSOR_EXIT_CONFIRMED pending=plan-2 waited=0.344 detail=all_exits_applied
+134.187 ACTION_REPLAN old=plan-1 new=plan-2 decision=Disengage tasks=3 standby_waited=1
+```
+
+三个必需对象全部在 `deadline=134.844` 之前实际写出，确认后才公布 plan-2；`taken_over_before_confirmation=0`；`withdraw: arrived=0 hold_created=0 failed_or_deadline=0`（撤回 3 秒效果未成功，未写成撤回成功）。
+
+`ASSIGNMENT_PUBLISHED` 依据：`plan-1-task-92-r2-support` obj=`038572bf@Ranged` @125.090；`plan-1-task-92-r2-guard` obj=`008c0c1e@HorseArcher` @125.090；`plan-1-task-92-1` role=Main obj=`030dd50e@Infantry` @125.090；plan-2 三条 role=None @134.187。
+
+---
+
+## 7. 失败与未覆盖项
+
+1. **门1 未取得 pass。** 根因是继任协同计划的可执行性缺陷（§4 门1），已定位到源码行（`BattleAssessment.cs:212/214/227`、`CoordinationPlan.cs:99`、`TestDriver.PredecessorNotWritten`），**本轮未修复**——超出本单 §2/§3 授权面，且需要新的实机窗口验证。派单 §4 表要求的「修复后正例须实际完成新保护/辅助关系及新主力有限推进」**未达成**。
+2. **门3 未取得 pass（unverified）。** P/C 实际部署不可比 + 无地形深度产物；未取匹配对照场次。**未放宽容差凑 pass。**
+3. **本轮提交的源码未在任何实机运行过。** §1.3 全部场次的源码 mtime 为 20:16–20:25、构建早于本次提交。`732f6df` 的改动只经过离线验证（304/304 测试、Release/Debug 重建 0 警告 0 错误、PS 5.1 语法、WhatIf、隔离模拟与篡改反例）。**资源未正式交回，按派单只做离线工作。**
+4. **R5 隔离模拟是替身证据，不是实机证据。** 它证明控制流按预期收尾（helper 关闭、只杀本场 PID、清理失败登记、stage 分列），但不能替代一次真实 `Invoke-ExclusiveGame.ps1` 全流程收尾的实读。
+5. **晚场的独占入口证据不完整**（沿用上批结论）。只有 `p3-P-20261015-203136`、`p3-N-20261015-211938`、`p3-N-20261015-213231` 三场留存完整 stage record（`_lastrun-p3-exclusive-*.txt`）。`p3-P-20261015-214532`、`-215314`、`-220249`、`p3-C-20261015-214157`、`-220738`、`p3-P-20261015-221833`、`-222821` 未留存 stage-record 日志，**不作为「经 `Invoke-ExclusiveGame.ps1` 独占执行」的证据**；其运行身份（§1.3）与产物仍有效，但启动通道归属未证实。
+6. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。
+7. **`_tamper4` 目录内含被修改过的 `CombatBrain2.log`（mtime 2026-10-16 1:34）**，用于门2 缺证据敏感性；原始场 `_verify\sessions\p3-P-20261015-221833` 未被清洗改写。审查副本位于 `E:\Agent\codex\2026-10-14\p3\work\review-20261016\`。
+
+**未触发的自然边界**（保留为未验证，不登记为通过）：获选超时、写令截止后才首次获选、`FLIGHT`/`STOP_LOSS` 触发的继任、P1/P2 相关回归——本轮 §2 改动了 `TaskFeedback`/`CoordinationPlan`/`TestDriver` 的位置语义判断，已用 304 项单测覆盖，但**未在任何实机窗口回归**。P1 锚点语义由 `AnchorDefinedTaskKeepsAnchorSemantics` 与 `TaskSelectionDeadlineTests.MoveRequiresClosingDistance` 锁定。
+
+---
+
+## 8. 本轮新增概念清单
+
+无新增架构、战术、指标或命令概念。`TaskDelivery`/`DeliveryFacts` 是接手时已存在的未提交实现（本轮收录并补身份门）。`FormationTask.AnchoredRequest` 是唯一新增生产 API，实现派单 §2.1 已裁定的换算；未引入新全局坐标系、未建通用变换框架。
