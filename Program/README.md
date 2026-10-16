@@ -6,6 +6,8 @@
 
 本目录是 CombatBrain 2.0 的**权威源码根**。
 
+实机测试默认条件：按用户要求，后续 P1/P2/P3 及其他战斗测试统一开启 CBATH「死战不退」，双方同等禁止士气溃逃与原生全军撤逃，保留真实伤亡和战术撤回整队。使用主线 CBATH 工作树 `E:\MBmod\CBATH-P2` 的配套版本；进入战斗前和部署结束前核对 `cbath/get_fight_to_death` 的 `status=ok`、`patches_installed=true`、`enabled=true`，并归档 `cbath/get_last_run` 中的同名 `fight_to_death` 记录。缺工具/未开启不得继续测试；专门的溃逃对照场才显式关闭并标注。历史证据不补标、P/C 必须同设置。共享资源仍须交接并走独占入口，源码支持不等于已部署或实机生效。开关用法见 `E:\MBmod\CBATH-P2\README.md`。
+
 - 2.0 实装代码以本目录为唯一权威来源。
 - 实现层不得重新定义或覆盖 Charter 的上位产品目标和约束；
   上位约束见 `../charter/Charter V0.2.md`。
