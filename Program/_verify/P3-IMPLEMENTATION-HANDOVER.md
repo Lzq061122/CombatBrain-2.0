@@ -10,6 +10,8 @@
 
 **第四轮（第三轮复核退回两处边界 + 死战不退前置）**：独立复核 `P3-ROUND3-REVIEW-85e2171-20261016.md`（受审实现 `85e2171`，文档 `badd8d3`）判「离线收尾仍不通过」，剩两处：①门2 一旦出现后继写令就跳过后续全部独立订单核对，「仍执行旧目标」由 fail 变 pass、「独立订单缺失」由 unverified 变 pass；②`processStarted=true` 加差集唯一仍不能证明剩余 PID 属于本场，本场进程退出后只剩他方 PID 时该他方 PID 仍被结束。另要求补齐 `d64055d` 的「死战不退」实机前置。本文件相应整补：§3.3（f）记录门2 后继归属收紧与七场景探针，§3.4 第 5c 条记录「PID 身份由游戏进程自己报出」并新增 `startedthenexited`、`fighttodeathoff` 模式，§3.4 末尾记录死战不退前置接线位置。**第四轮整改结论未经过独立复核。**
 
+**第五轮（定向复核只退回一处防误杀）**：定向复核 `P3-FOCUSED-REVIEW-1e7b088-20261017.md`（受审实现 `1e7b088`，现场 HEAD `76713ef`）确认门2 上轮两条反例与死战不退前置接线均已通过、不必重做，仅剩一处：**「身份文件证明它是谁，仍不能证明由本场启动」**——另一组加载 CBATH 时也会把自己的 PID 身份文件写进共享的 `Documents\CommandBrainATH`，在原 `foreignonly` 反例上加入这一正常行为后，入口仍认领并结束了他方假 PID `777999`。本轮整改：§3.4 第 5d 条改为**归属只认本场自己的启动上下文**（本场 GABS 的 `runtime.json` / `launch.log`），共享身份目录在归属判定中完全弃用，`cbath/ping` 降格为只给已点名 PID 补活性；隔离模拟新增 `foreignidentity` 模式并取 HEAD 红态对照。**第五轮整改结论未经过独立复核。**
+
 **本轮为新开发会话接续。** 接手时存在未提交的 P3 成果（14 项已跟踪 dirty + 未跟踪生产源码 `TaskDelivery.cs`），按派单 §5 逐路径精准暂存提交，未 `git add -A` / `commit -a`、未 reset/clean、未回滚任何既有 dirty。
 
 ---
@@ -106,6 +108,18 @@ Program/_verify/sessions/INDEX.md               +21/-4（随本批同交）
 
 守则一处提示：`Program/README.md` 由 `d64055d`（另一组）加入的「死战不退」要求已在本轮接入 `run-p3.ps1`（§3.4），并新增 `fighttodeathoff` 隔离模式给出失败阻断证据。
 
+**第五轮整改逐路径清单**（相对 `badd8d3`；`git diff --numstat HEAD` 实测值在提交前最后一次编辑后填入，不在中途猜写）：
+
+```
+Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    （本文件）
+Program/_verify/run-p3.ps1                       （进程归属改绑本场启动上下文）
+Program/_verify/sessions/INDEX.md               （随本批同交）
+```
+
+本轮同样**未改任何 C# 源码**（`git diff --name-only` 对 `Program/src`、`Program/tests` 为空），改动只在 `run-p3.ps1`、两份文档，以及未提交的隔离脚手架（`Program/_verify/_r5sim/`，新增 `foreignidentity` 模式）。按入口 §4a「仅改脚本或文档不机械重跑未变的 C# 全量测试」，本轮**未重跑 `dotnet test`**，沿用 309/309 读数；如独立复核要求新鲜读数，请复跑 §1.2 命令。
+
+守则一处提示：这次退回的根因正是「用了共享目录里的文件当本场归属证据」。`Documents\CommandBrainATH` 是**共享**目录，任何 CBATH 实例都会写自己的身份文件；本场归属只能取自本场自己的 GABS 启动上下文。
+
 **未动他方材料**：`E:\MBmod\BattleObservation-V1\{CB2,CBATH,TCL}` 未修改、未构建、未切换、未提交（`git worktree list` 复核：观测组两 worktree 仍在 `e2a0e38` / `925c224`）；`ObservationAdapter.cs` 约定接口与事件位置未改；`sources/` 与历史失败原始场未改。
 
 ### 1.2 构建与测试（提交后重跑）
@@ -131,6 +145,8 @@ dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过
 dotnet build CombatBrain2.csproj -c Release --no-restore --nologo     → 0 个警告 0 个错误
 dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过 309 / 失败 0 / 总计 309
 ```
+
+第四、五轮整改后**未重跑**（两轮都只改 `Program/_verify/` 下的脚本与文档，`git diff --name-only` 对 `Program/src`、`Program/tests` 为空，唯一命中的 `.cs` 是自动生成的 `BuildIdentity.g.cs`），按入口 §4a 沿用上表 309/309 作为未回归证据。第五轮实际执行的离线验证见 §3.4 / §5.4 / §5.5。
 
 本地产物（提交后重建）：
 
@@ -441,17 +457,21 @@ game stage returned ok: <Boolean>
  - `LaunchProcessStarted` 与「能否归属」解耦：启动调用已声明起进程时 `GameStarted` 仍为真（`games_stop` 等收尾照常走），但不因此获得杀 PID 的权力。
  - **不能仅依赖候选数=1，也不能假设「启动调用期间不会有其他进程出现」。** 要求的是先有可核对的本次身份，才进结束名单；没有就与多个未知 PID 同样登记 unresolved。
 
-5c. **第四轮整改：启动声明 + 差集唯一仍不是身份，PID 必须由游戏进程自己报出。** 第三轮把 `processStarted=true` 与「恰好一个新增 PID」当成所有权，但两者都不给出 PID：`processStarted` 只说明**曾经**起过进程，进程完全可能在启动回执生成后、runner 取后快照前退出，此时另一个同名进程出现，差集仍只有一个 PID——那个他方 PID 于是被判为本场并结束。复核隔离反例（`started-then-exited-foreign-only`，启动回执 `code=started_bridge_pending / processStarted=true / gabpConnected=false`，本场进程在启动侧最后一次存活检查后退出）实测输出 `own game pids: 777999 basis=launch_result_confirmed_single_new_process` → `stop-process:777999`，end-state 记 `own_game_pids=[777999]`。
- - **身份来源改为游戏进程自写的 PID，且只此一路。** CBATH 在模块加载时由游戏进程自身写出 `cbath-runtime-identity-<pid>.txt`（`CBATH RuntimeIdentity.Emit`，内容含 `pid=<自身 PID>`）；preflight 已清空该目录（`:418-419`），所以**跨本次启动调用新出现的身份文件，只可能由本次启动的进程写出**。它同时回答了「进程已经退出、差集已看不见它」的情形——文件还在，身份还在。
- - `Get-RuntimeIdentityPids` 收集身份文件 PID；启动 `finally` 内与差集取交（`$identityCandidate = $script:IdentityPids | Where-Object { $newPids -contains $_ }`）：恰好 1 个 → `OwnGamePids` 并记 `runtime_identity_file_matched_launch_candidate`；>1 个 → `ambiguous_multiple_identified_processes`，全部保留不杀；身份非空但不含任何新增 PID → `launched_process_exited`（或 `launched_process_exited_other_process_present`），**说明本场进程已退出、差集所见皆他方**，他方 PID 全部记 unresolved 保留运行；无身份文件且无新增 → `no_new_process`；无身份但已声明启动 → 候选挂起（见下）；无身份且无启动声明 → `new_process_without_launch_result`，同样保留。
- - 仅在**没有身份文件**时才回落连接后的 `cbath/ping` 自身 PID：`session_runtime_pid_matched_launch_candidate`（PID 须同时是启动候选），否则 `runtime_identity_not_a_launch_candidate` / `runtime_identity_unavailable` 并把候选记 unresolved。**回落路径不是替代品**：连接未成功时（`startedthenexited`、`neverconnect` 的前半段）它不执行，故不能靠它认领。
+5c. **第四轮整改（口径已被第五轮 5d 取代，勿按本条读当前代码）：启动声明 + 差集唯一仍不是身份，PID 必须由游戏进程自己报出。** 第三轮把 `processStarted=true` 与「恰好一个新增 PID」当成所有权，但两者都不给出 PID：`processStarted` 只说明**曾经**起过进程，进程完全可能在启动回执生成后、runner 取后快照前退出，此时另一个同名进程出现，差集仍只有一个 PID——那个他方 PID 于是被判为本场并结束。复核隔离反例（`started-then-exited-foreign-only`，启动回执 `code=started_bridge_pending / processStarted=true / gabpConnected=false`，本场进程在启动侧最后一次存活检查后退出）实测输出 `own game pids: 777999 basis=launch_result_confirmed_single_new_process` → `stop-process:777999`，end-state 记 `own_game_pids=[777999]`。
+ - 当轮口径（**已被第五轮 5d 取代**）：把共享目录 `Documents\CommandBrainATH` 下跨启动新出现的 `cbath-runtime-identity-<pid>.txt` 当身份，与差集取交，恰好 1 个即认领。**该目录是共享目录，另一组加载 CBATH 时也会写自己的同类文件，此口径不成立。**
+ - 判定读数为 `runtime_identity_file_matched_launch_candidate` / `ambiguous_multiple_identified_processes` / `launched_process_exited(_other_process_present)` / `no_new_process` / `launch_candidate_pending_runtime_identity` / `new_process_without_launch_result`；仅在**没有身份文件**时才回落 `cbath/ping` 的自身 PID。**回落路径不是替代品**：连接未成功时（`startedthenexited`、`neverconnect` 的前半段）它不执行，故不能靠它认领。
  - 未归属时收尾把 `LaunchCandidatePids` 并入 `UnownedNewPids` 一并登记 `process ownership unresolved: … ; left running`；仍只对 `$script:OwnGamePids` 内的 PID 执行 `Stop-Process`。
- - **唯一能进结束名单的路径是「身份文件所指 PID ∩ 启动差集候选」，或（无身份文件时）「会话自身 PID ∩ 启动差集候选」。** 只凭启动布尔值、只凭候选数、只凭时间差集，都不构成身份。
+
+5d. **第五轮整改：身份文件只证明「它是谁」，不证明「由本场启动」；归属只认本场自己的启动上下文。** 复核反例（`review-1e7b088\sim\foreign-with-cbath-identity.ps1`）：另一组也正常加载 CBATH，也会把自己的 PID 身份文件写进同一个共享的 `Documents\CommandBrainATH`。在本场启动失败、只出现他方 777999 的 `foreignonly` 情形上加入这一**完全正常**的行为后，第四轮实现仍输出 `own_game_pids=[777999] / ownership_basis=runtime_identity_file_matched_launch_candidate`，随后 `stop-process:777999 -> helper_closed`。身份文件命名了 777999，但没有任何证据说 777999 由本场启动。
+ - **归属证据只取本场自己的启动上下文**：本场 GABS 实例（`Open-McpHttp -ConfigDir $cfgDir`，`$cfgDir = $here\gabs-config`）自己的 `$here\gabs-config\<gameId>\` 目录。两处来源：①`runtime.json` 的 `gamePid`（GABS 在 fenced spawn-state transition 里写入的 workload PID）；②`launch.log` 内子进程自打印的 `pid=`（该文件由本场 GABS 在 spawn 时 `O_TRUNC` 打开，天然按启动隔离）。新函数 `Get-LaunchContextPids` 取两者并集（`run-p3.ps1:488-512`）。**共享的 `Documents\CommandBrainATH` 身份目录在归属判定中已完全不再使用。**
+ - 判定（启动 `finally` 内，不依赖连接，`run-p3.ps1:534-570`）：本场启动上下文跨启动调用新出现的 PID ∩ 新进程差集 → 恰好 1 个则 `OwnGamePids` + `launch_context_pid_matched_new_process`；多个 → `ambiguous_launch_context_pids`（全部保留）；上下文有名但无存活者 → `launched_process_exited` / `launched_process_exited_other_process_present`；无上下文且无新增 → `no_new_process`；无上下文但已声明启动 → `launch_candidate_pending_runtime_identity`；否则 → `new_process_without_launch_result`。
+ - `cbath/ping` 的 `pid` 降格为**只给已由上下文点名的 PID 补活性**：连接成功且会话报告的 PID ∈ 本场启动上下文 → `session_runtime_pid_matched_launch_context`；否则不认领，记 `session_runtime_pid_not_in_launch_context`。另一组的游戏回 ping 与我们的完全一样，故 ping 单独不构成归属。ping 阶段会重读一次启动上下文（`run-p3.ps1:647`），使子进程的 `pid=` 恰好落在 `games_start` 返回之后的正常情形也能绑定，不把本来正常的场次误报成未归属清理。
+ - **任何拿不到本场绑定的 PID 一律并入 `UnownedNewPids` 并登记 `process ownership unresolved: … ; left running`，绝不进入结束名单**；`Stop-Process` 仍只对 `$script:OwnGamePids` 内的 PID 执行。
 6. **`end_mission` 只在确有本场会话归属时执行。** 解析 `games_connect` 结果为 `Discovered|Re-synced|Already connected` 时置 `$script:SessionConnected = $true`；收尾仅在此为真时才发 `end_mission`，否则打印 `end_mission skipped: this run never connected to a game session`。helper HTTP 可用不再被当作已取得连接的证明。
 7. **`end-state.json` 新增四项归属记录**（由 `run-p3.ps1` 的 finally 写出，与 `_p3-exclusive-stage.ps1` 打印的 stage record 是两份不同的东西——后者只有 `completed` / `game stage attempted` / `game stage returned ok`）：`ownership_basis`、`launch_process_started`、`unowned_new_pids`、`session_connected`（现 `run-p3.ps1:160-176`），使归属判定可事后核对。
 8. **`cbath/get_last_run` 归档失败只在确有本场会话时算失败。** 未连接的模式（`connfail`、`foreignonly`）本就没有 timeline，原实现会把「读取失败」记成清理失败；现仅在 `$script:SessionConnected` 为真时才 `Fail`，其余只打印结果。
 
-**隔离模拟取证**（`Program/_verify/_r5sim/make-sim.ps1`：把真实 `run-p3.ps1` 按锚点正则切片、对 helper/进程表打桩后独立执行；**不触碰任何游戏进程、GABS helper 或共享开关**）。九模式实测（`_r5sim/r5-isolation-results.json`，runner SHA256 `D63F1457D5DC19427F2866E72520F291BC27DE109DF14FD9DD0D3586A07E6B4C`，generator SHA256 `CD5C8933B3C7B0EE87D0B0C9E2FFB86A39EF9D5CBE8113C9697D974F808AD707`）：
+**隔离模拟取证**（`Program/_verify/_r5sim/make-sim.ps1`：把真实 `run-p3.ps1` 按锚点正则切片、对 helper/进程表打桩后独立执行；**不触碰任何游戏进程、GABS helper 或共享开关**）。十模式实测（`_r5sim/r5-isolation-results.json`，runner SHA256 `E61FC9466A13263F1733A6841C1E05E9D1232A80392DB8CD2591B5B7E2EE817A`，generator SHA256 `79D671263AC90130C42631CDB7BE520DB0B91391DB20D8C1A8FAB61EDEDAE885`）：
 
 | mode | helper_closed | batch_kill | foreign_pid_stopped | own_pid_stopped | end_mission_sent | failures |
 |---|---|---|---|---|---|---|
@@ -462,20 +482,23 @@ game stage returned ok: <Boolean>
 | startthrow | True | False | **False** | **True** | False | `exception: simulated_launch_timeout_after_process` |
 | startthrow-other-during-launch | True | False | **False** | **True** | False | `exception: simulated_launch_timeout_after_process` |
 | foreignonly（第三轮新增） | True | False | **False** | **False** | False | `exception: simulated_launch_failure_no_process \| cleanup: process ownership unresolved: 777999 … (basis=new_process_without_launch_result); left running` |
+| **foreignidentity**（第五轮新增，复核反例） | True | False | **False** | **False** | False | `exception: simulated_launch_failure_no_process \| cleanup: process ownership unresolved: 777999 … (basis=new_process_without_launch_result); left running` |
 | **startedthenexited**（第四轮新增） | True | False | **False** | **False** | False | `games_connect never succeeded \| exception: no_connect \| cleanup: process ownership unresolved: 777999 … (basis=launched_process_exited_other_process_present); left running` |
 | **fighttodeathoff**（第四轮新增） | True | False | False | **True** | True | `fight_to_death not in force at pre_mission: status=ok patches_installed=True enabled=False \| exception: fight_to_death_off \| fight_to_death was off for 2 of 2 sampled battle seconds` |
 
-九模式全部 `cleanup_reached=True`；`force_takeover_arg_sent` 恒 False；各模式 `end_state` 均为 `p1=enabled=0 p2=enabled=0 p3=enabled=0 probes_empty=True safely_exited=1 residual_own=0 helper_residual=0`。
+十模式全部 `cleanup_reached=True`；`force_takeover_arg_sent` 恒 False；各模式 `end_state` 均为 `p1=enabled=0 p2=enabled=0 p3=enabled=0 probes_empty=True safely_exited=1 residual_own=0 helper_residual=0`。
 
 关键路径：
 
 - `connfail` trace = `helper_process_acquired -> helper_closed` —— **正是 R5 第一条要闭合的「连接失败时 helper 未进 Close-McpHttp」**。
-- `ok` trace = `… -> tool:cbath/end_mission -> tool:cbath/get_last_run -> mcp:games_stop -> stop-process:777001 -> helper_closed`，end-state 记 `own_game_pids=[777001] basis=runtime_identity_file_matched_launch_candidate`：**身份存在时收尾照常，且认领依据是身份文件而非候选数**。
+- `ok` trace = `… -> tool:cbath/end_mission -> tool:cbath/get_last_run -> mcp:games_stop -> stop-process:777001 -> helper_closed`，end-state 记 `own_game_pids=[777001] basis=launch_context_pid_matched_new_process`：**认领依据是本场自己的启动上下文（GABS `runtime.json` / `launch.log` 里的 workload PID），不是候选数、也不是共享目录里的身份文件。**
 - `end_mission_sent=True` 出现在 `ok` 与 `fighttodeathoff`（后者在 pre_mission 就已判定失败，收尾路径照常走完），其余模式均 False；`end_mission` 已改由实际连接的 Mission 归属决定，helper HTTP 可达不再作为已取得连接的证明。
-- **`startthrow` 与 `startthrow-other-during-launch` 现在是 `own_pid_stopped=True`，这是收紧后的正面例**：第三轮两者都是 `own=False`（无法归属，一律保留）；第四轮中这两个模式下 777001 确实写出了身份文件且仍在新进程差集内，身份 → 归属成立，于是正常结束本场 PID。对比 `foreignonly`（无身份文件、只一个他方 PID）与 `startedthenexited`（身份文件存在但进程已退出、差集只剩他方）两者仍 `own=False`——**区别只来自身份，不来自候选数**。
-- `foreignonly`（启动失败、无本场进程、只出现他方 777999）与 `startthrow-other-during-launch`（两个同名新进程同时出现）均 `foreign_pid_stopped=False`；**都不批量强杀，归属不明者登记 unresolved 保留运行。**
-- **`startedthenexited` 是第四轮的核心反例**：本场进程真实启动（身份文件已写出）后在取快照前退出，差集只剩他方 777999，`games_connect` 始终失败。结果 `foreign_pid_stopped=False`、`own_pid_stopped=False`，end-state 记 `own_game_pids=[] / unowned_new_pids=[777999] / basis=launched_process_exited_other_process_present`。第三轮实现此处会输出 `own game pids: 777999 basis=launch_result_confirmed_single_new_process` 并 `stop-process:777999`（见 §3.4 第 5c 条）；把该模式指向第三轮 runner 复跑可复现 `foreign_pid_stopped=True`。
+- **`startthrow` 与 `startthrow-other-during-launch` 现在是 `own_pid_stopped=True`，这是收紧后的正面例**：这两个模式下 777001 确实由本场启动上下文点名且仍在新进程差集内，归属成立，于是正常结束本场 PID（第五轮改用启动上下文后这一正面路径保持不变）。
+- **`foreignidentity` 是第五轮的核心反例**（复核反例的原样复现）：本场启动失败、不产生任何进程，他方 777999 出现**并且像任何正常 CBATH 实例一样把自己的身份文件写进共享的 `Documents\CommandBrainATH`**。第四轮实现会把该身份文件当作归属依据并输出 `own_game_pids=[777999] / basis=runtime_identity_file_matched_launch_candidate` + `stop-process:777999`（见下方 HEAD 红态对照）；第五轮改为只认本场启动上下文后，`own_pid_stopped=False`、`foreign_pid_stopped=False`，777999 记 unresolved 保留运行。
+- **`startedthenexited` 是第四轮的核心反例，第五轮仍成立**：本场进程真实启动后在取快照前退出，差集只剩他方 777999，`games_connect` 始终失败。结果 `foreign_pid_stopped=False`、`own_pid_stopped=False`，end-state 记 `own_game_pids=[] / unowned_new_pids=[777999] / basis=launched_process_exited_other_process_present`。
 - `fighttodeathoff` 在 `pre_mission` 检查点即抛 `fight_to_death_off`，未进入 mission；同时 last-run 归档记 `sample_enabled_false=2`（两个采样秒都读到 `enabled=false`）并对每个关闭的采样秒记失败；根字段与每样本都带 `fight_to_death`，故不触发「状态缺失」那条失败，两条失败信息因此不能混为一条。
+
+**HEAD 红态对照（第五轮实测）**：把 HEAD（`76713ef`）的 `run-p3.ps1` 落盘（`cmd /c "git cat-file blob HEAD:Program/_verify/run-p3.ps1 > <tmp>"`，sha256 `954934B1AE29C694A8123B3998AF129C7EA347D5CE8AA422A3AA847CF7A6081D`），用同一套生成器（仅把 `$src` 与 `$runner` 精确指向该副本）复跑十模式：**`foreignidentity` → `own_pid_stopped=False`、`foreign_pid_stopped=True`，trace 尾为 `stop-process:777999 -> helper_closed`**，即旧版把身份文件当归属并结束了唯一他方 PID；其余九模式取值与修复版一致。即修复版不再复现该误杀。
 
 **stage 三场景模拟**（`Program/_verify/_stagesim/stage-results.json`）：
 
@@ -622,7 +645,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File Program\_verify\check-p3
 
 ```
 Program\_verify\_r5sim\make-sim.ps1    由真实 run-p3.ps1 按锚点切片生成 sim-<mode>.ps1
-Program\_verify\_r5sim\r5-isolation-results.json   九模式结论
+Program\_verify\_r5sim\r5-isolation-results.json   十模式结论
 Program\_verify\_r5sim\run-isolation.ps1           一次跑完全部模式并写结果 JSON
 Program\_verify\_gate2probe\run-probe.ps1          门2 后续归属判定的定向探针（切出检查器同一段生产代码）
 Program\_verify\_gate2probe\gate2-probe-results.json   七场景结论（含指向 HEAD 版检查器的对照）
@@ -630,22 +653,24 @@ Program\_verify\_stagesim\              stage 替身与 stage-results.json
 Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据敏感性）
 ```
 
-九模式：`ok`、`connfail`、`neverconnect`、`forcetook`、`startthrow`、`startthrow-other-during-launch`、`foreignonly`（第三轮）、`startedthenexited`、`fighttodeathoff`（第四轮）。
+十模式：`ok`、`connfail`、`neverconnect`、`forcetook`、`startthrow`、`startthrow-other-during-launch`、`foreignonly`（第三轮）、`startedthenexited`、`fighttodeathoff`（第四轮）、`foreignidentity`（第五轮，复核反例原样复现）。
 
-运行隔离模拟须缩短等待窗口（如 `-LaunchWaitSec 6 -PollTimeoutSec 6`），否则桩的模拟时钟会刷出数百行 `connect attempt`。`run-isolation.ps1` 每次运行前会重建 sandbox，避免上一模式的 `cbath-runtime-identity-*.txt` 被当成「启动前已存在」。
+运行隔离模拟须缩短等待窗口（如 `-LaunchWaitSec 6 -PollTimeoutSec 6`），否则桩的模拟时钟会刷出数百行 `connect attempt`。`run-isolation.ps1` 每次运行前会重建 sandbox（含共享身份目录与本场 config 目录两个），避免上一模式的残留文件被当成「启动前已存在」。
 
-### 5.5 进程归属判定的依据与边界（第四轮）
+### 5.5 进程归属判定的依据与边界（第五轮口径）
 
-收尾可强制结束的名单**只来自游戏进程自己写出的身份**：
+收尾可强制结束的名单**只认同本场自己的启动上下文**：本场 GABS 实例（`$here\gabs-config\<gameId>\`）在 spawn 时写下的 workload PID。
 
 | 来源 | 位置 | 强度 |
 |---|---|---|
-| `cbath-runtime-identity-<pid>.txt` | `Documents\CommandBrainATH\`，游戏进程 `OnSubModuleLoad` 时自写；runner preflight 已清空该目录 | 强：命名具体 PID，进程退出后证据仍在 |
-| `cbath/ping` 的 `pid` | `CbathTools.cs` 的 `Ping()`，仅在会话连上后可用 | 强但脆弱：依赖连接路径 |
+| 本场 GABS `runtime.json` 的 `gamePid` | `$here\gabs-config\<gameId>\runtime.json`，本场 GABS 在 fenced spawn transition 里写入 | **强：只有本场启动才有这一条记录** |
+| 本场 GABS `launch.log` 里的 `pid=` | 同上目录，文件在 spawn 时 `O_TRUNC` 打开，子进程自打印 | **强：文件按启动隔离** |
+| `cbath/ping` 的 `pid` | `CbathTools.cs` 的 `Ping()`，仅在会话连上后可用 | 中：只给上下文已点名的 PID 补活性；他方游戏回 ping 与己方无异 |
+| `Documents\CommandBrainATH\cbath-runtime-identity-<pid>.txt` | 共享目录，任何 CBATH 实例都会写自己的 | **无效：命名了 PID，但不证明由本场启动（第五轮退回）** |
 | `games_start` 的 `processStarted` | 启动回执，**不含 pid** | 弱：只证明「曾启动过某个进程」 |
 | 进程快照差集 | 启动调用前后各取一次 | 弱：只证明「有同名新进程出现」，不证明是谁的 |
 
-判定只用**强来源 ∩ 启动差集**；两个弱来源都不足以进入结束名单（第三轮曾用「`processStarted=true` + 恰好一个新增 PID」当所有权，被本轮回退）。强来源缺席时一律登记 `process ownership unresolved` 并保留进程运行，如实记为清理失败，不猜、不强杀。
+判定只用**本场启动上下文 ∩ 启动差集**；ping 只能给已点名的 PID 补活性，单独的弱来源都不足以进入结束名单（第三轮曾用「`processStarted=true` + 恰好一个新增 PID」，第四轮曾用共享身份文件，均被退回）。拿不到本场绑定时一律登记 `process ownership unresolved` 并保留进程运行，如实记为清理失败，不猜、不强杀。
 
 对应反例（`startedthenexited`）：本场进程真实启动、身份文件已写出，随后在 diff 快照前退出，此时差集里只剩他方进程——旧实现会把它当本场进程结束。
 
@@ -683,8 +708,10 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 1. **门1 未取得 pass。** 本轮全部实机场次都早于 `732f6df`，它们只能证明历史成功/失败与工具的敏感性，**不能为当前提交给出任何门的结论**。旧场观测到的继任协同计划未完成保护/辅助落位与主力推进，其直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不是依赖环**——`DependsOnTaskId` 指向的是 Hold 等待任务，依赖链无环（详见 §4 门1）。因此不存在需要另行申请的「互锁修复授权」；门1 的后续验证属于派单 §4 原有要求。当前产物三个门**均未实机验证**。
 2. **门3 未取得 pass（unverified）。** P/C 实际部署不可比 + 无地形深度产物；未取匹配对照场次。**未放宽容差凑 pass。**
-3. **本轮提交的源码未在任何实机运行过。** §1.3 全部场次的源码 mtime 为 20:16–20:25、构建早于本次提交。`732f6df` 及第二至第四轮整补的改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四轮未改 C#，沿用该读数；另有 PS 5.1 语法、WhatIf、R5 九模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照）。**资源未正式交回，按派单只做离线工作。**
-4. **R5 隔离模拟是替身证据，不是实机证据。** 它证明控制流按预期收尾（helper 关闭、只杀本场身份所确认的 PID、归属不明时保留并登记、stage 分列），但**不能替代一次真实 `Invoke-ExclusiveGame.ps1` 全流程收尾的实读**。尤其 `startedthenexited` 只是桩级复现：真实环境下「本场进程退出、仅剩他方同名进程」是否出现、`cbath-runtime-identity-<pid>.txt` 的写入时机是否总能先于进程退出，都需要实机确认。
+3. **本轮提交的源码未在任何实机运行过。** §1.3 全部场次的源码 mtime 为 20:16–20:25、构建早于本次提交。`732f6df` 及第二至第五轮整补的改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四、五轮未改 C#，沿用该读数；另有 PS 5.1 语法、WhatIf、R5 十模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照）。**资源未正式交回，按派单只做离线工作。**
+4. **R5 隔离模拟是替身证据，不是实机证据。** 它证明控制流按预期收尾（helper 关闭、只杀本场启动上下文所确认的 PID、归属不明时保留并登记、stage 分列），但**不能替代一次真实 `Invoke-ExclusiveGame.ps1` 全流程收尾的实读**。尤其第五轮新增的 `foreignidentity` 与 `startedthenexited` 都只是桩级复现：真实环境下「他方 CBATH 实例同时加载并写自己的身份文件」「本场进程退出、仅剩他方同名进程」是否出现、本场 GABS 的 `runtime.json` / `launch.log` 是否总能在收尾前拿到 workload PID，都需要实机确认。若实机发现本场启动上下文在收尾时仍不可读，正确结果是登记 unresolved 保留进程，**不是**退回共享身份文件或候选数当归属。
+
+5. **`Get-LaunchContextPids` 依赖本场 GABS 的落盘行为。** 它读 `runtime.json` 的 `gamePid` 与 `launch.log` 里的 `pid=`，两者都是 GABS 内部实现的产物（字段名与 `O_TRUNC` 时机来自源码阅读与一处真实样本 `gabs-config\bannerlord148\runtime.json`，但**本组自己的 config 目录里当前没有 `runtime.json` 样本**）。字段若改名或不再写，归属会退回 `launch_candidate_pending_runtime_identity`／`new_process_without_launch_result`——即登记 unresolved 保留进程，不会误杀，但正常场次的 PID 也停不掉。**这一风险只能由实机首发场次暴露，须在实机后立即核对 `own game pids:` 一行的 basis 取值。**
 4b. **死战不退前置只做到接线，未取得任何实机读回。** `Assert-FightToDeath` 在 `pre_mission` 与 `post_deployment` 两个检查点调用 `cbath/get_fight_to_death`，判据为 `status=ok` + `patches_installed=true` + `enabled=true`，不符即 `Fail` 并抛 `fight_to_death_off`；收尾从 `cbath/get_last_run` 逐 1 Hz 采样核对 `fight_to_death` 并归档。上述行为只在 `fighttodeathoff` 隔离模式（桩）验证过，**本轮没有任何实机 `get_fight_to_death` 读数**。
 5. **晚场的独占入口证据不完整**（沿用上批结论）。只有 `p3-P-20261015-203136`、`p3-N-20261015-211938`、`p3-N-20261015-213231` 三场留存完整 stage record（`_lastrun-p3-exclusive-*.txt`）。`p3-P-20261015-214532`、`-215314`、`-220249`、`p3-C-20261015-214157`、`-220738`、`p3-P-20261015-221833`、`-222821` 未留存 stage-record 日志，**不作为「经 `Invoke-ExclusiveGame.ps1` 独占执行」的证据**；其运行身份（§1.3）与产物仍有效，但启动通道归属未证实。
 6. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。

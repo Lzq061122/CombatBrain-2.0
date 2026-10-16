@@ -138,7 +138,7 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 - `sessions/` 下全部场次材料：外置归档，仓库只留本索引。
 - `gabs-config/bannerlord148-cb2/`：GABS 运行时状态（`bridge.json` / `runtime.json` / `history.json` / `launch.log`），非交付物。配置本体 `gabs-config/config.json` 已提交。
 - `Program/_scratch/`：构建期反射探针与反编译产物（临时工具，非交付物），磁盘保留、不入库。
-- `Program/_verify/_r5sim/`、`_gate2probe/`、`_stagesim/`、`_tamper4/`：第四轮离线取证脚手架（隔离模式生成器与结果 JSON、门2 定向探针、stage 替身、审查副本），非交付物，磁盘保留、不入库。用法见 `../P3-IMPLEMENTATION-HANDOVER.md` §5.4。
+- `Program/_verify/_r5sim/`、`_gate2probe/`、`_stagesim/`、`_tamper4/`：第四、五轮离线取证脚手架（隔离模式生成器与结果 JSON、门2 定向探针、stage 替身、审查副本），非交付物，磁盘保留、不入库。用法见 `../P3-IMPLEMENTATION-HANDOVER.md` §5.4。
 - `_verify/_lastrun*.txt`：实机脚本控制台输出副本，非交付物。
 
 ## 第三轮 P1 复验（2026-10-12，两处缺口修复后）
@@ -165,13 +165,15 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 
 依据 `CB2-PROMPT-0005`（`../P3-RESTART-REMEDIATION-DISPATCH.md`）与 `CB2-PROMPT-0006`（`../P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md`）；原验收合同 `CB2-PROMPT-0004`。**状态：限定自检完成，待独立验收。** 完整说明见 `../P3-IMPLEMENTATION-HANDOVER.md`。
 
-CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:00）→ 接续提交 `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，19 files, +1467/−164）→ 交回文档提交 `5bbdeeb`（2 files, +352/−142）→ 独立复核退回后第二轮整补 `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（11 files, +475/−146，含新建 `Program/src/Core/ProposalWiring.cs`）→ 第二轮复核退回后**第三轮整改提交 `85e2171`** "fix(p3): attribute round-2 process ownership and gate-2 successor orders"（4 files, +120/−30）+ 文档提交 `badd8d3` → 第三轮复核退回后**第四轮整改提交 `1e7b088`** "fix(p3): bind gate-2 successor readings to live orders and PID ownership to runtime identity"（相对 `badd8d3`：`Program/_verify/check-p3-feedback.ps1` +95/−18、`Program/_verify/run-p3.ps1` +173/−21、本文件 +21/−4、`../P3-IMPLEMENTATION-HANDOVER.md` 随批同交；**未改 C# 源码**），其文档哈希提交 `3ecfa2c`。CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，未变）。第四轮后未重跑 `dotnet test`（本轮无 C# 改动，沿用 309/309）。全部提交为本地提交，未 push、未建 PR。
+CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:00）→ 接续提交 `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，19 files, +1467/−164）→ 交回文档提交 `5bbdeeb`（2 files, +352/−142）→ 独立复核退回后第二轮整补 `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（11 files, +475/−146，含新建 `Program/src/Core/ProposalWiring.cs`）→ 第二轮复核退回后**第三轮整改提交 `85e2171`** "fix(p3): attribute round-2 process ownership and gate-2 successor orders"（4 files, +120/−30）+ 文档提交 `badd8d3` → 第三轮复核退回后**第四轮整改提交 `1e7b088`** "fix(p3): bind gate-2 successor readings to live orders and PID ownership to runtime identity"（相对 `badd8d3`：`Program/_verify/check-p3-feedback.ps1` +95/−18、`Program/_verify/run-p3.ps1` +173/−21、本文件 +21/−4、`../P3-IMPLEMENTATION-HANDOVER.md` 随批同交；**未改 C# 源码**），其文档哈希提交 `3ecfa2c`。第五轮定向复核退回一处防误杀后**本轮整改**只动 `Program/_verify/run-p3.ps1`（归属改绑本场启动上下文）、本文件与 `../P3-IMPLEMENTATION-HANDOVER.md`，**同样未改 C# 源码**；提交号待提交后按 `git show --stat` 补记。CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，未变）。第四、五轮后均未重跑 `dotnet test`（两轮无 C# 改动，沿用 309/309）。全部提交为本地提交，未 push、未建 PR。
 
 第二轮整补针对独立复核退回的三个 P1 缺陷与一个文档问题：①提案身份/竞争误差/写前复核统一使用战术目标语义（判定链提到 `ProposalWiring`）；②门2 改为三值判定，「没发现矛盾」不再等于「已看到停止」；③进程收尾按实际归属证据限定、归属不明不强杀、`end_mission` 只在确有本场连接时执行；④更正 handover/INDEX 中「依赖环互锁」与「超出授权」的说法。
 
 第三轮整改针对第二轮复核（`P3-ROUND2-REVIEW-5ac034b-20261016.md`）退回的两处边界：①**新增进程数不是所有权**——`games_start` 只有自身声明 `processStarted=true` 时，唯一新增同名 PID 才可进结束名单，否则与多个未知 PID 一样登记 unresolved 并保留运行（新增 `foreignonly` 隔离模式复现复核反例）；②**门2 后续归属**——停止时刻之后的读数，若该对象在此之前已有合法后继普通写令（非旧 plan、非 `-exit`），归后继，不再仅因坐标与旧角色点相等就判旧动作未停；缺证据仍 unverified、矛盾仍 fail。
 
 第四轮整改针对第三轮复核（`P3-ROUND3-REVIEW-85e2171-20261016.md`）退回的两处边界与一项前置：①**后继写令不再是通行证**——第三轮只要存在一条后继写令就跳过该对象后续全部独立读数，「仍执行旧目标」与「独立订单缺失」因此被误报为 pass；现要求后继写令带上目标与生效区间，读数必须与后继目标吻合才算解释，写向别处则判旧令未停；②**可结束名单必须绑定游戏进程自报的 PID 身份**——`processStarted=true` 加差集唯一只证明「曾启动过某个进程」，本场进程退出后剩余的他方 PID 会被误杀（新增 `startedthenexited` 隔离模式复现，第三轮 runner 上 `foreign_pid_stopped=True`）；③接入 `cbath/get_fight_to_death` 前置校验与 `cbath/get_last_run` 归档（新增 `fighttodeathoff` 隔离模式）。
+
+第五轮定向复核（`P3-FOCUSED-REVIEW-1e7b088-20261017.md`，受审 `1e7b088`）确认门2 两条反例与死战不退前置接线均已通过、不必重做，只退回一处：**「身份文件证明它是谁，仍不能证明由本场启动」**。第四轮把共享目录 `Documents\CommandBrainATH` 下新出现的 `cbath-runtime-identity-<pid>.txt` 当归属依据，但另一组加载 CBATH 时也会把自己的身份文件写进**同一个共享目录**——在该反例上加入这一正常行为后，入口仍认领并结束了他方假 PID `777999`（新增 `foreignidentity` 隔离模式复现，第四轮 runner 上 `foreign_pid_stopped=True`）。整改：归属只认**本场自己的启动上下文**（本场 GABS 的 `runtime.json` `gamePid` 与 `launch.log` 里的 `pid=`，两者都在 `$here\gabs-config\<gameId>\` 内、随本场启动写入），`cbath/ping` 的 `pid` 降格为只给已点名 PID 补活性，共享身份目录在归属判定中完全弃用。**拿不到本场绑定的 PID 一律登记 unresolved 保留运行，绝不强杀。**
 
 门状态以 `../check-p3-feedback.ps1` 逐门单列为准；退出码 0 只表示工具跑完。`-SessionDir` 必须传**绝对路径**。第四轮已对 `sessions/` 下全部 41 个场次目录 + 复核证据目录下 8 个反例副本（共 49 个目录）用工作树与 HEAD 两版检查器比对，**只有复核点名的那两个副本改变取值**（均由第三轮的误判 pass 变为 fail / unverified），其余 47 个逐门取值完全一致；非 `unverified` 的仍只有下表四行（`P-221833` 门2 pass、`N-005621` 门2 fail、`P-220249`/`P-004350` 门1 fail），无回归。
 
@@ -214,14 +216,15 @@ CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:0
 | 第四轮定向探针 `successor_hold_but_independent_old_move` | **矛盾** | 后继只写 `hold`（无目标），不能解释指向旧点的 Move 读数；HEAD 版误报不矛盾 |
 | 第四轮定向探针 `successor_with_only_unreadable_independent_fact` | **不矛盾（证据不足）** | 唯一读数无可读订单/目标 → 不判违约，由 `independent_stop_evidence=incomplete` 判 unverified |
 
-**进程归属的隔离反例（同一套九模式模拟，见 `../P3-IMPLEMENTATION-HANDOVER.md` §3.4）**
+**进程归属的隔离反例（同一套十模式模拟，见 `../P3-IMPLEMENTATION-HANDOVER.md` §3.4）**
 
 | 模式 | own_pid_stopped | foreign_pid_stopped | 归属依据 |
 |---|---|---|---|
-| `ok` | True | False | `runtime_identity_file_matched_launch_candidate` |
-| `startthrow`（含 `-other-during-launch`） | True | False | 身份文件所指 777001 仍在新进程差集中 |
-| `foreignonly` | False | **False** | 无身份文件、只一个他方 PID → `new_process_without_launch_result`，登记 unresolved 保留 |
-| **`startedthenexited`** | False | **False** | 身份文件已写出但进程已退出、差集只剩他方 → `launched_process_exited_other_process_present`；**第三轮 runner 在同一模式上 `foreign_pid_stopped=True`** |
+| `ok` | True | False | `launch_context_pid_matched_new_process`（本场 GABS `runtime.json` / `launch.log` 指名的 workload PID） |
+| `startthrow`（含 `-other-during-launch`） | True | False | 本场启动上下文指名的 777001 仍在新进程差集中 |
+| `foreignonly` | False | **False** | 本场启动失败无进程、只一个他方 PID → `new_process_without_launch_result`，登记 unresolved 保留 |
+| **`foreignidentity`（第五轮新增，复核反例）** | False | **False** | 他方 777999 照常把自己的身份文件写进共享的 `Documents\CommandBrainATH`；**身份文件不是归属**，777999 登记 unresolved 保留。**第四轮 runner 在同一模式上 `foreign_pid_stopped=True`** |
+| **`startedthenexited`** | False | **False** | 本场进程已退出、差集只剩他方 → `launched_process_exited_other_process_present`；**第三轮 runner 在同一模式上 `foreign_pid_stopped=True`** |
 | `fighttodeathoff` | True | False | 死战不退未开启 → `pre_mission` 即阻断，不进入 mission |
 
 **十三例都必须按上表取值**（其中六例是场次副本：前四行 + `new_order_*` 两行；另七例是定向探针场景）。原始场 `p3-P-20261015-221833` 未被清洗改写。门2 现为三值判定：`ChecksOk` 失败 → fail；缺少独立可解释读数 → unverified；全满足 → pass。探针位于 `../../_gate2probe/run-probe.ps1`（切出检查器同一段生产代码，只替换写入记录与独立样本，不读写任何场次目录）。进程归属的隔离反例见下表。

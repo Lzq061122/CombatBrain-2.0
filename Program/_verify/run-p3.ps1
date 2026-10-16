@@ -474,29 +474,41 @@ $script:SessionConnected = $false
 # says that a process was started at some point - neither one names a PID. A single new same-name
 # process is therefore a CANDIDATE: the diff is taken immediately after the launch call, but the
 # process it counted can exit before anything else reads it, and another group's process can take
-# its place. What turns a candidate into an owned PID is a concrete identity read out of the game
-# itself - normally the identity file the loading process writes, and only as a fallback the pid
-# the connected session reports in cbath/ping. Until such an identity arrives, nothing is killable.
+# its place. What turns a candidate into an owned PID is a PID that this run's own launch context
+# names. Until such a binding arrives, nothing is killable.
 $script:LaunchCandidatePids = @()
 $script:LaunchProcessStarted = $false
 $script:OwnershipResolved = $false
 $script:RuntimeGamePid = 0
-# PIDs named by the game's own runtime identity files. Preflight wipes their directory, so any
-# file found afterwards was written by a process that started during this run, from inside itself.
-$script:IdentityPids = @()
+# PIDs named by this run's own launch context. See Get-LaunchContextPids below.
+$script:LaunchContextPids = @()
 $script:OwnershipBasis = ''
 $script:UnownedNewPids = @()
 
-# The game names its own process. CBATH writes cbath-runtime-identity-<pid>.txt from inside the
-# game process when the module loads, and preflight wipes that directory, so a file that appears
-# across this run's launch call names a PID this run started. That is the only evidence here that
-# survives the process exiting; the launch result merely says a process was started at some point
-# and never names one.
-function Get-RuntimeIdentityPids {
-    if (-not (Test-Path -LiteralPath $cbathOut)) { return @() }
-    return @(Get-ChildItem -LiteralPath $cbathOut -Filter 'cbath-runtime-identity-*.txt' -ErrorAction SilentlyContinue |
-        ForEach-Object { if ($_.BaseName -match '^cbath-runtime-identity-(\d+)$') { [int]$Matches[1] } } |
-        Select-Object -Unique)
+# Which PIDs did THIS run's launch produce? The answer can only come from state this run owns: the
+# GABS config dir the helper was pointed at with --configDir. GABS stamps runtime.json with the
+# workload PID of the launch it performed and truncates launch.log while spawning, so a PID found
+# there is one this run's launch produced. The shared Documents identity directory is deliberately
+# NOT used: another group running CBATH writes its own game's identity file there, so a file in it
+# proves which process announced a PID but never who started that process.
+$script:GabsGameDir = Join-Path $cfgDir $GameId
+function Get-LaunchContextPids {
+    $pids = @()
+    $rt = Join-Path $script:GabsGameDir 'runtime.json'
+    if (Test-Path -LiteralPath $rt) {
+        try {
+            $j = [System.IO.File]::ReadAllText($rt) | ConvertFrom-Json
+            if ($j.gamePid -and [int]$j.gamePid -gt 0) { $pids += [int]$j.gamePid }
+        } catch { }
+    }
+    $ll = Join-Path $script:GabsGameDir 'launch.log'
+    if (Test-Path -LiteralPath $ll) {
+        try { $txt = [System.IO.File]::ReadAllText($ll) } catch { $txt = '' }
+        # CBATH's identity block puts pid= on its own line; CB2's puts it inline in one long line.
+        foreach ($m in [regex]::Matches($txt, '(?m)^pid=(\d+)\s*$')) { $pids += [int]$m.Groups[1].Value }
+        foreach ($m in [regex]::Matches($txt, 'RUNTIME_IDENTITY[^\r\n]*\bpid=(\d+)')) { $pids += [int]$m.Groups[1].Value }
+    }
+    return @($pids | Select-Object -Unique)
 }
 
 try {
@@ -510,7 +522,7 @@ try {
     # a snapshot taken only on the success path would lose that information entirely.
     $beforePids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
         Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id })
-    $beforeIdentityPids = Get-RuntimeIdentityPids
+    $beforeLaunchContextPids = Get-LaunchContextPids
     try {
         $r = Invoke-McpHttp -Tool 'games_start' -Arguments @{ gameId = $GameId; timeout = 150 } -TimeoutSec $LaunchWaitSec
         Write-Host "games_start: $r"
@@ -523,32 +535,26 @@ try {
         $newPids = @(Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue |
             Where-Object { -not $_.HasExited } | ForEach-Object { $_.Id } |
             Where-Object { $beforePids -notcontains $_ })
-        # The game's own identity files are collected in the same instant as the diff. A PID this
-        # run started is one whose identity file appeared across the launch call; a file that was
-        # already there belongs to a process that was running before this run touched anything.
-        $script:IdentityPids = @(Get-RuntimeIdentityPids | Where-Object { $beforeIdentityPids -notcontains $_ })
-        # The diff is only a CANDIDATE list. It is taken at one instant, and a process counted
-        # here can exit before anything else looks at it, while another group's process appears
-        # in its place - so even a single candidate is not proof of ownership.
-        #
-        # Binding is decided here, before any connection: the identity file is written by the game
-        # process itself, so it names a PID this run started even when that process is already gone
-        # and the diff can only still see someone else's. Connection is not required to tell those
-        # two apart, and waiting for it would leave the wrong PID killable in the meantime.
-        $identityCandidate = @($script:IdentityPids | Where-Object { $newPids -contains $_ })
-        if ($identityCandidate.Count -eq 1) {
-            $script:OwnGamePids = @($identityCandidate[0])
+        # Only PIDs that appeared in this run's own launch context AND are alive among the new
+        # processes. Both halves matter: the context half proves this run's GABS performed the
+        # launch, the alive half keeps a PID that has already exited out of the killable list.
+        $script:LaunchContextPids = @(Get-LaunchContextPids | Where-Object { $beforeLaunchContextPids -notcontains $_ })
+        # A PID named by another group's process is not in this run's context at all, and a PID
+        # this run started and lost is no longer alive - neither one becomes killable here.
+        $contextCandidate = @($script:LaunchContextPids | Where-Object { $newPids -contains $_ })
+        if ($contextCandidate.Count -eq 1) {
+            $script:OwnGamePids = @($contextCandidate[0])
             $script:LaunchCandidatePids = @()
-            $script:OwnershipBasis = 'runtime_identity_file_matched_launch_candidate'
-        } elseif ($identityCandidate.Count -gt 1) {
-            # Two processes both published an identity across this launch call and both are still
-            # running. Nothing available here says which one this run started.
+            $script:OwnershipBasis = 'launch_context_pid_matched_new_process'
+        } elseif ($contextCandidate.Count -gt 1) {
+            # Two processes are both named by this run's own launch context and both are alive.
+            # Nothing available here says which one this run should end.
             $script:LaunchCandidatePids = @()
             $script:UnownedNewPids = $newPids
-            $script:OwnershipBasis = 'ambiguous_multiple_identified_processes'
-        } elseif ($script:IdentityPids.Count -gt 0) {
-            # A PID published an identity but is no longer among the new processes: the process
-            # this run started has exited, and anything the diff sees is somebody else's.
+            $script:OwnershipBasis = 'ambiguous_launch_context_pids'
+        } elseif ($script:LaunchContextPids.Count -gt 0) {
+            # This run's launch named a PID that is no longer alive: the process it started has
+            # exited, and anything the diff still sees is somebody else's.
             $script:LaunchCandidatePids = @()
             $script:UnownedNewPids = $newPids
             $script:OwnershipBasis = if ($newPids.Count -eq 0) { 'launched_process_exited' } else { 'launched_process_exited_other_process_present' }
@@ -629,21 +635,30 @@ try {
     if (-not $pingOk) { Fail 'cbath ping never answered'; throw 'no_ping' }
     $script:RuntimeGamePid = $runtimePid
 
-    # The identity file already settled attribution when the game published one. What remains is
-    # the case where no identity file was written: the connected session's own report of the PID it
-    # runs in is then the only concrete identity, and it must still be one of the launch candidates.
-    # A candidate confirmed by neither is left running and recorded as unresolved - an unproven PID
-    # must not become killable just because it was the only new one.
-    if ($script:OwnGamePids.Count -eq 0 -and $script:LaunchCandidatePids.Count -gt 0) {
-        if ($runtimePid -gt 0 -and ($script:LaunchCandidatePids -contains $runtimePid)) {
+    # A connected session that reports the PID it runs in adds liveness to a PID this run's own
+    # launch context names: the process answered, so it is alive now, and the context proves this
+    # run's GABS performed its launch. A PID the launch context does not name is not this run's -
+    # another group's game answers a ping exactly as well as ours.
+    #
+    # The context is read again here rather than reusing the launch-time snapshot: the child prints
+    # its identity while it loads, which can land just after games_start returned. By now the
+    # session answered, so a slow record still binds and a normal run does not end up reported as
+    # an unresolved cleanup it never was.
+    $script:LaunchContextPids = @(Get-LaunchContextPids | Where-Object { $beforeLaunchContextPids -notcontains $_ })
+    if ($script:OwnGamePids.Count -eq 0) {
+        if ($runtimePid -gt 0 -and ($script:LaunchContextPids -contains $runtimePid)) {
             $script:OwnGamePids = @($runtimePid)
-            $script:LaunchCandidatePids = @()
-            $script:OwnershipBasis = 'session_runtime_pid_matched_launch_candidate'
-        } else {
-            $script:UnownedNewPids = @(@($script:UnownedNewPids) + @($script:LaunchCandidatePids) | Select-Object -Unique)
-            $script:OwnershipBasis = if ($runtimePid -gt 0) { 'runtime_identity_not_a_launch_candidate' } else { 'runtime_identity_unavailable' }
-            $script:LaunchCandidatePids = @()
+            $script:OwnershipBasis = 'session_runtime_pid_matched_launch_context'
+        } elseif ($script:OwnershipBasis -eq '' -or $script:OwnershipBasis -eq 'launch_candidate_pending_runtime_identity') {
+            # Keep a more specific launch-phase finding (process exited, several context pids) as
+            # the recorded basis; this lookup only replaces the "still waiting" placeholder.
+            $script:OwnershipBasis = if ($runtimePid -gt 0) { 'session_runtime_pid_not_in_launch_context' } else { 'runtime_identity_unavailable' }
         }
+        # Neither the pid the session reported nor anything the launch context named could be bound,
+        # so no PID is killable. They are still reported: teardown must neither kill them nor stay
+        # silent about them.
+        $script:UnownedNewPids = @(@($script:UnownedNewPids) + @($script:LaunchCandidatePids) | Select-Object -Unique)
+        $script:LaunchCandidatePids = @()
     }
     $script:OwnershipResolved = $true
     Write-Host "game ownership resolved: pids=$(if ($script:OwnGamePids.Count -gt 0) { $script:OwnGamePids -join ',' } else { '<none>' }) basis=$script:OwnershipBasis"
@@ -993,7 +1008,7 @@ finally {
     if ($script:UnownedNewPids.Count -gt 0) {
         $script:CleanupFailures += "process ownership unresolved: $($script:UnownedNewPids -join ',') appeared during the launch call and could not be attributed to this run (basis=$script:OwnershipBasis); left running"
     } elseif (-not $script:OwnershipResolved -and $script:LaunchProcessStarted) {
-        $script:CleanupFailures += "process ownership unresolved: the launched process could not be tied to a runtime identity before it was needed (basis=$script:OwnershipBasis); no PID was killed"
+        $script:CleanupFailures += "process ownership unresolved: no PID this run's own launch context names is still alive (basis=$script:OwnershipBasis); no PID was killed"
     }
 
     # The helper starts gabs before it probes the endpoint, so a failed handshake still leaves an
