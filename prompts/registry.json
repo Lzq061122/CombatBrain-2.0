@@ -76,6 +76,21 @@
       "content_sha256": "dc2da0e46bd80b4bb1c75929a82d58cb8f0a4bfa12243f0167c2907eafcbc60c",
       "auto_archive": false,
       "notes": "根据2026-10-15进展独立复核接续未提交P3，限定五项整改及实机补证；0004继续作为原验收合同，三门、公式阈值和命令域不降级。登记表示本单可用；开发收到用户下发后执行，不自动授权编写会话实施，不代表P3阶段通过。"
+    },
+    {
+      "prompt_id": "CB2-PROMPT-0006",
+      "series_id": "p3-feedback-replanning",
+      "title": "CombatBrain 2.0 P3 Coordinate and Execution Continuation Dispatch",
+      "kind": "development-dispatch",
+      "root": "repo",
+      "path": "Program/_verify/P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md",
+      "status": "ACTIVE",
+      "created_at": "2026-10-16",
+      "updated_at": "2026-10-16",
+      "owner": "project-maintainer",
+      "content_sha256": "368e880bfff6802bc034df96fe08395e038eaba74eba28654d7bd306019ddd7e",
+      "auto_archive": false,
+      "notes": "旧开发会话失效后的接续派单v1.0；保全未提交P3/TaskDelivery，落实已裁定的质心与锚点正确换算、写令基线、投递和R1/R4/R5收尾。0004继续为原验收合同、0005为前次整改；本单不改变三门/阈值/命令域，开发收到用户下发后连续实施，资源未正式交回仅做离线工作；不代表P3通过或授权P4。"
     }
   ]
 }

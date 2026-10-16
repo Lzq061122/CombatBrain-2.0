@@ -1,0 +1,12 @@
+E:\Agent\codex\2026-10-14\p3\work\restart-dispatch-20261016\snapshot\cb2\Program\tests\ProposalArbiterTests.cs(82,13): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [E:\Agent\codex\2026-10-14\p3\work\restart-dispatch-20261016\snapshot\cb2\Program\tests\CombatBrain2.Tests.csproj]
+E:\Agent\codex\2026-10-14\p3\work\restart-dispatch-20261016\snapshot\cb2\Program\tests\ProposalArbiterTests.cs(563,13): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [E:\Agent\codex\2026-10-14\p3\work\restart-dispatch-20261016\snapshot\cb2\Program\tests\CombatBrain2.Tests.csproj]
+  CombatBrain2.Tests -> E:\Agent\codex\2026-10-14\p3\work\restart-dispatch-20261016\snapshot\cb2\Program\tests\bin\Release\net8.0\CombatBrain2.Tests.dll
+
+已成功生成。
+
+E:\Agent\codex\2026-10-14\p3\work\restart-dispatch-20261016\snapshot\cb2\Program\tests\ProposalArbiterTests.cs(82,13): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [E:\Agent\codex\2026-10-14\p3\work\restart-dispatch-20261016\snapshot\cb2\Program\tests\CombatBrain2.Tests.csproj]
+E:\Agent\codex\2026-10-14\p3\work\restart-dispatch-20261016\snapshot\cb2\Program\tests\ProposalArbiterTests.cs(563,13): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [E:\Agent\codex\2026-10-14\p3\work\restart-dispatch-20261016\snapshot\cb2\Program\tests\CombatBrain2.Tests.csproj]
+    2 个警告
+    0 个错误
+
+已用时间 00:00:01.89
