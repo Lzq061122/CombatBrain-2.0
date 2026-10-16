@@ -26,6 +26,7 @@
 | 本轮规模 | 19 files, +1467 / −164 |
 | 本轮交回文档提交 | `5bbdeeb` "docs(p3): hand back the coordinate/execution continuation with self-check scope"（本文件 + `sessions/INDEX.md`，2 files, +352 / −142）；不含实现，不进入身份链 |
 | 第二轮整补提交 | `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（master，本地，未 push / 未建 PR，11 files, +475 / −146） |
+| 第三轮整改提交 | `85e2171` "fix(p3): attribute round-2 process ownership and gate-2 successor orders"（master，本地，未 push / 未建 PR，4 files, +120 / −30；父提交为另一组的 `d64055d`，其内容与本次无关） |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
@@ -77,7 +78,7 @@ Program/tests/CoordinateSemanticsTests.cs        +123
 
 （与第一轮「docs 单独一个提交」不同，本轮文档与实现同批提交，便于审阅者一次看到状态与证据的对应关系。最终行数以 `git show --stat` 为准。）
 
-**第三轮整改逐路径清单**（相对 `5ac034b`，4 项；`git diff --numstat` 实测）：
+**第三轮整改逐路径清单**（提交 `85e2171`，相对 `5ac034b`，4 项；`git diff --numstat` 实测）：
 
 ```
 Program/_verify/check-p3-feedback.ps1            +36/-1
