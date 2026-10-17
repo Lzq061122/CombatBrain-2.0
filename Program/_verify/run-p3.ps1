@@ -687,9 +687,43 @@ try {
     $script:OwnershipResolved = $true
     Write-Host "game ownership resolved: pids=$(if ($script:OwnGamePids.Count -gt 0) { $script:OwnGamePids -join ',' } else { '<none>' }) basis=$script:OwnershipBasis"
 
-    $r = Invoke-Tool 'cbath/get_build_identity' 25
-    [System.IO.File]::WriteAllText((Join-Path $OutDir 'build-identity.json'), $r)
-    Write-Host "build_identity: $r"
+    # cbath/ping answers from the TCP thread and says nothing about the game's tick loop, so it
+    # cannot tell "the bridge is up" apart from "the bridge is up and the main thread is still
+    # dispatching". cbath/get_build_identity is served from the main thread, so it is the first
+    # reading that proves the thread the whole run depends on is still alive. The wait is bounded
+    # because the main thread stops dispatching near the end of startup instead of failing.
+    $mainThreadDeadline = (Get-Date).AddSeconds($PollTimeoutSec)
+    $mainThreadOk = $false
+    while ((Get-Date) -lt $mainThreadDeadline) {
+        if (-not (Get-Process -Name 'Bannerlord' -ErrorAction SilentlyContinue | Where-Object { -not $_.HasExited })) {
+            Fail 'Bannerlord exited while waiting for the main thread'
+            throw 'died_during_launch'
+        }
+        $r = ''
+        try {
+            $r = Invoke-Tool 'cbath/get_build_identity' 25
+            [System.IO.File]::WriteAllText((Join-Path $OutDir 'build-identity.json'), $r)
+            $bi = Get-ToolObject $r
+            if ($bi -and $bi.build_id) {
+                $mainThreadOk = $true
+                Write-Host "main thread dispatching: build_id=$($bi.build_id) pid=$($bi.pid) ticks=$($bi.main_thread.ticks) enqueued=$($bi.main_thread.enqueued) completed=$($bi.main_thread.completed)"
+                break
+            }
+            Write-Host "main thread not dispatching yet: $($r.Substring(0, [Math]::Min(200, $r.Length)))"
+        } catch {
+            $msg = "$_"
+            Write-Host "main thread probe threw: $msg"
+            if ($msg -match 'forcibly closed|connection refused|not connected|Not connected|No connection') {
+                Fail "the game session was lost while waiting for the main thread: $msg"
+                throw 'session_lost_before_main_thread'
+            }
+        }
+        Start-Sleep -Seconds 3
+    }
+    if (-not $mainThreadOk) {
+        Fail "the game's main thread never served a tool call within $PollTimeoutSec s of the bridge answering"
+        throw 'no_main_thread'
+    }
 
     # Both entries the P3 evidence depends on must exist in the loaded harness: the member
     # evidence reader and the scenario-only opponent control. A missing tool means the
