@@ -41,6 +41,7 @@
 | 首场实机（本轮源码） | `p3-P-20261017-104721`，2026-10-17 10:47，经 `run-p3-exclusive.ps1 -Scenario P`；CB2 `b20261017-104710-f41051eb`、CBATH `b20261017-104719-6f4500f2`；`RESULT: FAILURES (2)`、三门全 unverified，见 §4 的「首个本轮源码实机场」 |
 | 第六轮整改提交 | `2a8de3b` "fix(p3): correct aim-point selection and lock read-back after the first real run"（master，本地，未 push / 未建 PR，3 files, +89 / −13；父提交 `d04c65b`；只改 `Program/_verify/run-p3.ps1` 与两份文档，未改 C#） |
 | 第七轮整改提交 | `8942e48` "fix(p3): aim the counter-action at the frozen Main key, not the largest formation"（master，本地，未 push / 未建 PR，3 files, +141 / −39；父提交 `4e170b8`；只改 `Program/_verify/run-p3.ps1` 与两份文档，未改 C#） |
+| 第二场实机（本轮源码） | `p3-P-20261017-181046`，2026-10-17 18:10，经 `run-p3-exclusive.ps1 -Scenario P`；CB2 `b20261017-181039-a691fa85`、CBATH `b20261017-181044-83c59fba`；`RESULT: OK`、三门全 unverified，见 §4 的「第二个实机场」 |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
@@ -222,16 +223,17 @@ dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过
 | p3-P-20261015-221833 | b20261015-221826-977cb576 | 46552 | db58cbe71973f790 | 191488 | DB58CBE71973F790 |
 | p3-P-20261015-222821 | b20261015-222818-c9f62071 | 24920 | 1e980eb3acd51410 | 191488 | 1E980EB3ACD51410 |
 | **p3-P-20261017-104721** | **b20261017-104710-f41051eb** | **35948** | 51a113c6a0f57478 | **196096** | 51A113C6A0F57478 |
+| **p3-P-20261017-181046** | **b20261017-181039-a691fa85** | **56080** | 0a4dd23cbd06c310 | **196096** | 0A4DD23CBD06C310 |
 
 证据来源：各场 `CombatBrain2.log` 的 `RUNTIME_IDENTITY`（`assembly_file_sha256` / `pid` / `Location`）与 `deployed-module.json`（`path` / `size` / `sha256` / `last_write`）。182784 = 基线旧构建；190976 / 191488 = 上批新构建；196096 = 本轮新构建。
 
-最后一行的 `p3-P-20261017-104721` 是**首个用本轮源码实机运行的场次**（2026-10-17 10:47，经独占入口 `run-p3-exclusive.ps1 -Scenario P`）。它取自工作树（含第五轮已提交内容 + 本轮两处未提交的 runner 修复），因此**不能作为本仓库任何提交的产物证据**；其 `RESULT: FAILURES (2)` 与三门全 unverified 见 §4 的「首个本轮源码实机场」。
+最后两行 `p3-P-20261017-104721`（10:47）与 `p3-P-20261017-181046`（18:10）是**用本轮源码实机运行的两场**，均经独占入口 `run-p3-exclusive.ps1 -Scenario P`。前者取自含第六轮未提交 runner 修复的工作树、`RESULT: FAILURES (2)`；后者取自第七轮提交 `8942e48`/`bd5674e` 的工作树、`RESULT: OK`。两场三门全 unverified，见 §4 的两个实机小节。
 
 `p3-P-20261015-221833` CBATH 身份（`build-identity.json`）：`build_id=b20261015-221831-76da5cbd`、`assembly_sha256=be477d94514ff700770c6939d833a01933daeebe57e72661f9b0ba9279374b8c`、`mvid=6c443e22-98c3-4463-9da1-23f63ec73d88`、`pid=46552`、`game_version=v1.4.8.119303`，`active_modules` 含 `CombatBrain2` 与 `CombatBrainAutonomousTestHarness`。
 
 CBATH 模块源码 SHA256（与 `_audit/cb20-p3/2026-10-16-coordinate-restart/baseline.json` 的 `cbath.reviewed_source_files` 逐项一致）：`CbathTools.cs`=A894FA6979BF5E13…、`P2FormationEvidence.cs`=63F66BD9EAD0A174…、`P3OpponentControl.cs`=B0EFA5DE88CA510A…、`RunRecord.cs`=A26EA645402EF0C5…、`SamplingMissionBehavior.cs`=8239AA21DCF3C6A2…、`CombatBrainAutonomousTestHarness.csproj`=1521AD981EBA2E1E…
 
-**重要说明**：§1.3 全部实机场次都产生于本轮提交之前（源码 mtime 20:16–20:25、场次时间 22:00–23:00）。本轮提交的源码改动 **未在任何实机运行过**。这不是遗漏，而是本单的资源条件——见 §4.4。
+**重要说明**：§1.3 中除最后两行外的实机场次都产生于本轮提交之前（源码 mtime 20:16–20:25、场次时间 22:00–23:00），它们**不能**为本轮提交给出任何门的结论。最后两行（`p3-P-20261017-104721` / `p3-P-20261017-181046`）用本轮源码实机跑过，但三门仍全 unverified。见 §4 的两个实机小节与 §7。
 
 ---
 
@@ -577,6 +579,8 @@ game stage returned ok: <Boolean>
 | p3-P-20261015-203136 | unverified | unverified | unverified |
 | p3-P-20261015-222821 | unverified | unverified | unverified |
 | p3-C-20261015-010928 | unverified | unverified | unverified |
+| p3-P-20261017-104721 | unverified | unverified | unverified |
+| p3-P-20261017-181046 | unverified | unverified | unverified |
 
 ### 门1（正反馈改变后续投入）— **未取得 pass**
 
@@ -703,6 +707,59 @@ P/C 两场实际开局部署质心相差数百米，属派单 §4 表已点明�
 - 日志无按帧刷屏：`WRITE_DELAYED` 29 条、`REAL_SELECTION_NOT_SUBMITTED` 64 条。
 - **未覆盖**：本场 `RESULT: FAILURES (2)` 意味着控制臂反制动作未下发，故本场**不构成对照臂**，门3 无从评价。
 
+### 第二个实机场（2026-10-17 18:10，P 场景，第七轮整改后）— **`RESULT: OK`，但三门仍全部 unverified**
+
+观测方 2026-10-17 16:29 结束其第三场完整战例并交回。执行前只读核对：Bannerlord/GABS/mcp-http 全 0、锁 FREE（原持锁 pid 11696 已退出）、`safely_exited=1`、两探针空。经 `Invoke-ExclusiveGame.ps1`（Owner=主线组）跑唯一一场，未转 P/N/C 全套。
+
+**运行身份**：CB2 `build_id=b20261017-181039-a691fa85`、`source_sha256 = deployed_sha256 = 0A4DD23CBD06C31041EABDDD459DCB9F6C1E3ABFD31DB4B88D33EFC019C31CF6`（196096 B）；CBATH `build_id=b20261017-181044-83c59fba`、`21a182d1ece43a86fa597712520e15f299249ede0855a95cc5d43489f75f136e`。`own game pids: 56080 basis=launch_context_pid_matched_new_process`，`ping ok (runtime pid=56080)`。死战不退两次前置均 `status=ok patches_installed=True enabled=True`，`get_last_run` 181/181 采样 enabled=true。场次 `p3-P-20261017-181046`（顶层 209 个文件、递归 212 个；`CombatBrain2.log` 287689 B / 1542 行；`cbath-timeline.json` 793426 B；`INDEPENDENT_SAMPLE` 181 条、编号样本 `p2-evidence-NNNN.json` 185 份）。收尾：`end_mission sent`、`games_stop sent`、`mcp helper closed`、无新 crash；事后复核进程全 0、锁 FREE、`safely_exited=1`、三开关 `enabled=0`、探针空。
+
+**控制臂这次真正成立了。** 第六轮的两处缺陷修复后首次跑通：
+
+| 项 | 值 |
+|---|---|
+| `opponent-target.json` | `status=aimed, frozen_main_key=1/0, armed_main_key=1/0, identity=00bec9c9@Formation, class=Cavalry, unit_count=52, x=860.389, y=823.109` |
+| 冻结行 | `ACTION_FEEDBACK_FROZEN plan=plan-2 task=plan-2-task-4-g1 main=1/0 t0=30.548 NE=59 NF=280` |
+| 反制对象 | `02229289@Formation` team0/slot0 **Infantry 59**，`center_before=(1080.521,1051.228)` |
+| 反制结果 | `order_before=Move order_after=Move`、`move_target_readback=(860.389,823.109) readable=true`、`is_ai_controlled_after=false`、`order_error=""` |
+
+冻结的 Main 是 **Cavalry 52**，不是第七轮之前会误选的 Ranged 175，`armed_main_key` 与 `frozen_main_key` 一致（中途未换计划）。反制对象是 CB2 视角的**敌方**（`BATTLE_STATE my_team=1 enemy_team=0`，team0 `is_player_team=true`）那支 Infantry 59；反制动作把它从 `(1080.521,1051.228)` 以普通 Move 调到冻结 Main 的 `(860.389,823.109)`，也就是**把敌方步兵拉向我方骑兵线**，不是去打远程线。
+
+**反制确实造成接敌**（`cbath-timeline.json` 逐秒独立读数，我方 Main `1/0` 与反制编队 `0/0` 的质心距离；168/181 个样本两侧同时存在）：
+
+```
+ t= 34.08  330.2 m   52 人 / 59 人   (Move / Move)
+ t= 60.10  238.6 m
+ t= 90.10  157.7 m
+ t=120.11   60.2 m
+ t=140.13   10.1 m   52 人 / 55 人   (StandYourGround / Move)  ← 接敌
+ t=147.14    9.2 m   52 人 / 29 人   ← 最近
+ t=168.15   24.8 m   52 人 /  1 人
+```
+
+最小距离 9.2 m 出现在 t=147.14；反制编队人数 59→55→29→1，我方 Main 全程 52 人未变。
+
+106 条 terminal（`terminal_count=106`、`terminal_overflow=False`）全部落在 `at` 136.466–180.925，即接敌之后；`Killed` 70 / `Deleted` 36，`is_mount` 全为 false。归属按编队：`team0/slot0`（反制那支 Infantry）59、`team0` 无编队 30、`team1/slot1`（我方 Ranged）11、`team1` 无编队 6 —— 合计 team0 89 / team1 17。施加方：`team1/1` 45、`team1/0` 6、`team1/2` 6、`team0/0` 11、无施加者（`-1/-1`）36、`team1/9` 2。**即反制编队在这一战里被打掉大半（59→1），我方主力骑兵 52 人全程未减。**
+
+**CB2 侧行为（参考，不是验收结论）**
+
+- 6 个 plan（`plan-1`…`plan-6`）、6 次 `PLAN_INVALIDATED`、18 次 `EXIT_STOP_DONE`、0 次 `EXIT_STOP_SUPERSEDED`、19 次 `TASK_CANDIDATE_SUBMITTED`、37 次 `WRITE_EXECUTED`、43 次 `WRITE_DELAYED`、103 次 `REAL_SELECTION_NOT_SUBMITTED`。
+- 锚点换算继续生效且偏移非零：`plan-2-task-4-g1` Main `tactic=(869.393,840.088) anchor=(852.476,810.144) center=(855.795,819.348) requested=(866.074,830.884)`，`order_target=(866.074,830.884) readback_error=0.000`；`plan-6-task-2` Guard `tactic=(848.112,834.925) requested=(845.009,844.365)`。
+- 协同链真实推进过：`plan-2` 从 18.554 起 `guard_ready=1`，29.556 起 `phase=MainAdvancing guard_ready=1 support_ready=1 advance_allowed=1`，维持到 130.661（102 次 `advance_allowed=1`），推进任务 `plan-2-task-4-g1` 于 28.571 建立、30.548 写出。
+- **计划寿命仍然很短**：`plan-1` 8.135、`plan-3` 140.087、`plan-4` 149.133、`plan-5` 158.138、`plan-6` 167.134 均以 `NotEffective`（`closed_distance` 未达 3.0 m）失效。
+- **`plan-2` 的 131.041 失效已定位，是 `lostRole` 误标注（不是 Support 真的丢了）**：日志写 `role=Support failure=None task=plan-2-task-3`，但逐秒独立采样显示 Support `030dd50e@Ranged` 全程在 S\* 0.23 m 内、`order=Move` 未变；真正越界的是 Guard `0162fb49@Cavalry`——131.139 时 `d(G*)=5.079 m`，刚超 5 m 到位半径（129.234 `4.303` / 130.181 `4.486` / 131.139 `5.079`），因此 `DependencyReadiness.Note(..., inPosition=false)` 把 `_guardReadiness` 清零，`MainAdvanceAllowed` 随即为假。`Program/src/Host/TestDriver.cs:458-463` 的 `lostRole` 只在 `GuardFailure != None` 时取 Guard，否则一律取 Support；本场两侧 `PremiseFailure` 都是 `None`（人数/身份/资格全正常），只是到位窗口断掉，于是被记成 Support 且补救对象也按 Support 的候选排序挑选。**属真实缺陷（无测试覆盖），本轮未改代码，只记录。**
+- `ACTION_FEEDBACK` 只有 **1 次冻结**（`plan-2 t0=30.548 NE=59 NF=280`），35 条评价全为 `LE=0.000 LF=0.000 U=0.500 decision=Continue`，`exception=0`，`STOP`/`Disengage` 从未触发；`ACTION_FEEDBACK_RESET at=136.596 reason=plan_identity_changed`（`plan-2 → plan-3`）。
+- `plan-6` 三次写令全部 `first_command_delay` 偏大（1.931 / 3.531 / 5.481 s），且 167.134 立即失效——`plan-6` 的 Guard 写令在 164.134 才落地，写后 3 s 就被判 `closed_distance=2.78`。
+
+**为什么三门仍全部 unverified**
+
+`check-p3-feedback.ps1 -SessionDir p3-P-20261017-181046` → `CHECK RESULT: no failures`，独立复算 `mismatching evaluations=0 of 35`、`inconsistent decisions=0`、terminal 重算 `mod DE=1 DF=0 engine DE=1 DF=0`，**但**：
+
+- `gate1_positive: unverified -- no reinforce decision in this window`：冻结窗口内从未出现 reinforce。
+- `gate2_negative: unverified -- no stop-loss or disengage decision in this window`：`LE`/`LF` 在 35 条评价里全部为 0，止损条件从未触发过（也谈不上漏触发）。
+- `gate3_control: unverified -- no control session supplied`：本场只有 P 臂，检查器没有对照组可比。反制动作成立 ≠ 对照臂成立，门3 需要 P 与 C 在同一场次规则下配对。
+
+**因此：本场仍不构成任何门的通过，P3 不得阶段收口。** 它的价值是把「反制到底有没有打到冻结的 Main」从猜测变成了实测：之前无法判断，现在能证明 19 m 的偏差已被消除，且反制真的带来了接敌与伤亡。剩下的缺口是战术层面的——CB2 在接敌后没有产生正/负反馈决定，且计划在 3 s 内以 `closed_distance` 未达 3.0 m 连续失效。
+
 ---
 
 ## 5. 入口、WhatIf 与复算工具用法
@@ -818,15 +875,17 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 1. **门1 未取得 pass。** 除 2026-10-17 的首个本轮源码实机场（见第 3 条）外，全部实机场次都早于 `732f6df`，它们只能证明历史成功/失败与工具的敏感性，**不能为当前提交给出任何门的结论**。旧场观测到的继任协同计划未完成保护/辅助落位与主力推进，其直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不是依赖环**——`DependsOnTaskId` 指向的是 Hold 等待任务，依赖链无环（详见 §4 门1）。因此不存在需要另行申请的「互锁修复授权」；门1 的后续验证属于派单 §4 原有要求。当前产物三个门**均未实机验证通过**。
 2. **门3 未取得 pass（unverified）。** P/C 实际部署不可比 + 无地形深度产物；未取匹配对照场次。**未放宽容差凑 pass。**
-3. **首个本轮源码实机场已完成（2026-10-17 10:47），但不能作为任何门的证据。** `p3-P-20261017-104721` 用工作树（含第五轮已提交内容 + 本轮两处未提交 runner 修复）运行，`RESULT: FAILURES (2)`、`failed stage: collect`，三门均 unverified。两处失败已定位为主线采集脚本缺陷并修复（见 §4 的「首个本轮源码实机场」），**不是 CB2 产品代码缺陷**。其余场次（§1.3 前 16 行）都早于本轮提交。`732f6df` 及第二至第五轮整补的 C# 改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四、五轮未改 C#，沿用该读数）+ 首场实机运行；脚本侧另有 PS 5.1 语法、WhatIf、R5 十模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照。**P3 三门仍未取得任何 pass。**
+3. **两场本轮源码实机场已完成，但都不能作为任何门的证据。** `p3-P-20261017-104721`（10:47，`RESULT: FAILURES (2)`、`failed stage: collect`，两处失败均在主线采集脚本、已修）与 `p3-P-20261017-181046`（18:10，`RESULT: OK`、三 stage 全完成）三门均 unverified（无 reinforce、无止损/撤出决定、无对照会话）。其余场次（§1.3 前 16 行）都早于本轮提交。`732f6df` 及第二至第五轮整补的 C# 改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四、五轮未改 C#，沿用该读数）+ 两场实机运行；脚本侧另有 PS 5.1 语法、WhatIf、R5 十模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照。**P3 三门仍未取得任何 pass。**
 4. **R5 隔离模拟是替身证据，不能替代实机收尾。** 它证明控制流按预期收尾（helper 关闭、只杀本场启动上下文所确认的 PID、归属不明时保留并登记、stage 分列）。第五轮新增的 `foreignidentity` 与 `startedthenexited` 仍只是桩级复现。**实机已部分回答**：`p3-P-20261017-104721` 的 `own game pids: 35948 basis=launch_context_pid_matched_new_process` 与 `ping ok (runtime pid=35948)` 同时成立，证明启动上下文路径在真实 GABS 上可用、且与游戏自报一致；清理实读为 Bannerlord 0 / gabs 0 / 锁 FREE / `safely_exited=1`。但「他方 CBATH 同时写身份文件」「本场进程退出仅剩他方同名进程」两类竞争条件在实机中未出现，仍只有桩级证据。若实机发现本场启动上下文在收尾时不可读，正确结果是登记 unresolved 保留进程，**不是**退回共享身份文件或候选数当归属。
 
 5. **`Get-LaunchContextPids` 的实机风险已基本排除，但仍需每场核对 basis。** 它读 `runtime.json` 的 `gamePid` 与 `launch.log` 里的 `pid=`。首场实机证明：`runtime.json` 由 GABS 在 claim/spawn 时写入、clean stop 后删除，因此只存在于运行期间（这也解释了为何静态检查 `gabs-config\` 时看不到它）。若字段改名，归属会退回 `launch_candidate_pending_runtime_identity`／`new_process_without_launch_result`——登记 unresolved 保留进程，不会误杀，但正常场次的 PID 也停不掉。**每场仍须核对 `own game pids:` 一行的 basis 取值。**
 6. **死战不退前置已取得实机读回。** `p3-P-20261017-104721` 的 `pre_mission` 与 `post_deployment` 两次均为 `status=ok patches_installed=True enabled=True policy=fight_to_death_v1`，panicked=0 fleeing=0；`get_last_run` 根 `enabled=true`、`samples=181 / enabled_true=181 / enabled_false=0`。三份归档齐备。这一项从「只接线」升级为「一轮实机成立」，但仍只有单场、单一场景（P）；本场未覆盖士气溃逃的压力边界。
-7. **反制目标的定位已改为按冻结键，但仍未经实机验证。** 首场实机因 `Find-OurMain` 缺陷从未下发反制动作，第六轮的兜底又选错对象（Ranged 175 vs 冻结的 Cavalry 52，相距 19.442 m）；第七轮改为按 `ACTION_FEEDBACK_FROZEN main=<team>/<slot>` 定位。离线复算八例全部符合预期，但**下一次实机才是它第一次真正跑在场上**，须核对 `opponent-target.json` 的 `frozen_main_key`/`identity`/`class`/`unit_count` 与实际战场一致，并确认反制真的产生接敌与反馈。
+7. **反制目标的定位已改为按冻结键，并已在第二场实机成立。** 首场实机因 `Find-OurMain` 缺陷从未下发反制动作，第六轮的兜底又选错对象（Ranged 175 vs 冻结的 Cavalry 52，相距 19.442 m）；第七轮改为按 `ACTION_FEEDBACK_FROZEN main=<team>/<slot>` 定位。`p3-P-20261017-181046` 中 `opponent-target.json` 的 `frozen_main_key=armed_main_key=1/0`、`identity=00bec9c9@Formation`、`class=Cavalry`、`unit_count=52`，反制动作 `move_target_readback=(860.389,823.109)` 与该点一致；接敌最小距离 9.2 m（t=147.14），反制编队 59→1、我方骑兵全程 52。**仍只覆盖 P 臂一场，且未产生任何正/负反馈决定。**
 8. **晚场的独占入口证据不完整**（沿用上批结论）。只有 `p3-P-20261015-203136`、`p3-N-20261015-211938`、`p3-N-20261015-213231` 三场留存完整 stage record（`_lastrun-p3-exclusive-*.txt`）。`p3-P-20261015-214532`、`-215314`、`-220249`、`p3-C-20261015-214157`、`-220738`、`p3-P-20261015-221833`、`-222821` 未留存 stage-record 日志，**不作为「经 `Invoke-ExclusiveGame.ps1` 独占执行」的证据**；其运行身份（§1.3）与产物仍有效，但启动通道归属未证实。
 9. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。
 10. **`_tamper4` 目录内含被修改过的 `CombatBrain2.log`（mtime 2026-10-16 1:34）**，用于门2 缺证据敏感性；原始场 `_verify\sessions\p3-P-20261015-221833` 未被清洗改写。审查副本位于 `E:\Agent\codex\2026-10-14\p3\work\review-20261016\`。
+
+11. **新发现的产品缺陷（第二场实机暴露，尚未修复）：`HandleAdvanceDependencyLost` 的 `lostRole` 在两侧都无 `PremiseFailure` 时一律回落到 Support。** 位置 `Program/src/Host/TestDriver.cs:458-463`。第二场 `p3-P-20261017-181046` 的 `plan-2` 在 131.041 以此路径失效，日志写 `role=Support failure=None task=plan-2-task-3`，但独立采样证明真正断掉的是 Guard 的到位窗口（`d(G*)=4.303 → 4.486 → 5.079 m`，刚越 5 m 半径，见 §4 第二个实机场）。后果有两层：①日志把健康的一侧报成失效方，误导后续判读；②`BuildReassignments` 会按 Support 的职责点排序候选，若真有可用替补，就会把一个健康职责的编队换掉。该分支在 `Program/tests/` 内**零覆盖**（`HandleAdvanceDependencyLost`/`BuildReassignments`/`COORDINATION_DEPENDENCY_LOST` 引用数均为 0）。本场我方三编队全部已在 plan-2 内承担 Main/Guard/Support，`OrderedRoleCandidates` 又排除 `IsMainHolder` 与已用键，因此替补为 0、直接关计划——**这条缺陷在本场没有造成错误重分配，只造成错误归因**，但换一个编队数更多的战场就会真换错人。**未修、未写红测试。**
 
 **未触发的自然边界**（保留为未验证，不登记为通过）：获选超时、写令截止后才首次获选、`FLIGHT`/`STOP_LOSS` 触发的继任、P1/P2 相关回归——本轮 §2 改动了 `TaskFeedback`/`CoordinationPlan`/`TestDriver` 的位置语义判断，已用 309 项单测覆盖，但**未在任何实机窗口回归**。P1 锚点语义由 `AnchorDefinedTaskKeepsAnchorSemantics` 与 `TaskSelectionDeadlineTests.MoveRequiresClosingDistance` 锁定。
 
