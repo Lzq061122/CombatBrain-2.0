@@ -91,6 +91,21 @@
       "content_sha256": "4aaecbd71666f4efa07290948f2baba02ac49c6c1fc784b29ff735019b96e4d5",
       "auto_archive": false,
       "notes": "接续派单v1.2：保留历史来源、原三门/数值/命令类别；2026-10-18用户已批准每职责一次纠偏、原20s绝对截止与同状态失败抑制，按现有生产链连续实施。超出有界方案仍需具体证据裁定；不代表P3通过或授权P4。"
+    },
+    {
+      "prompt_id": "CB2-PROMPT-0007",
+      "series_id": "p3-feedback-replanning",
+      "title": "CombatBrain 2.0 P3 Bounded Correction Runtime Continuation Dispatch",
+      "kind": "development-dispatch",
+      "root": "repo",
+      "path": "Program/_verify/P3-BOUNDED-CORRECTION-RUNTIME-CONTINUATION-DISPATCH.md",
+      "status": "ACTIVE",
+      "created_at": "2026-10-18",
+      "updated_at": "2026-10-18",
+      "owner": "project-maintainer",
+      "content_sha256": "f714125572975363f87c78a85810ff7b7ceb9b9452983f581ba8180c9c832326",
+      "auto_archive": false,
+      "notes": "从a758799接续，保留已批准且实现的每职责一次纠偏、原截止和同状态失败抑制；先定位战斗前GABP异常，再经正式新交接跑一次有效开发场。0004原验收合同及0006 v1.2约束继续有效；不重复申请方案A，不改变数值/三门，不自动授予共享资源或P4。"
     }
   ]
 }
