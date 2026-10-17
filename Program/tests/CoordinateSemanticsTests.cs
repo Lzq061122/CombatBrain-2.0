@@ -227,6 +227,56 @@ namespace CombatBrain2.Tests
             return plan;
         }
 
+        [Fact]
+        public void FourthRunAnchorArrivalHasMovementEffectButNoGuardReadiness()
+        {
+            // Captured plan-8: write at 266.135, independent read at 285.101.
+            var g = new CoordinationGeometry
+            {
+                MainX = 1154.103, MainY = 790.265,
+                GuardX = 1148.599, GuardY = 781.916,
+                SupportX = 1144.085, SupportY = 796.870,
+                ForwardX = -0.550, ForwardY = -0.835,
+                LateralX = 0.835, LateralY = -0.550,
+            };
+            FormationTask guard, support;
+            var plan = CoordinationPlan(g, out guard, out support);
+            guard.FormationKey = "1/2";
+            guard.ObjectIdentity = "0291e8af@Cavalry";
+            guard.OrderAfter = "Move";
+            guard.WrittenAt = 266.135;
+            guard.SetCanonicalTarget(g.GuardX, g.GuardY);
+            guard.SetTarget(1162.542, 805.387, 1130.574, 778.657);
+            guard.SetOrderTarget(1130.574, 778.658);
+            var observed = new FormationRecord
+            {
+                ObjectIdentity = guard.ObjectIdentity, MovementOrder = "Move",
+                PosX = 1130.516, PosY = 778.606,
+                HasActiveCenter = true, ActiveCenterX = 1133.844, ActiveCenterY = 787.970,
+            };
+
+            var feedback = TaskFeedback.Evaluate(guard, observed, 285.101, double.NaN, double.NaN);
+            Assert.Equal(TaskFeedbackState.Effective, feedback.State);
+            Assert.StartsWith("closed_distance=", feedback.Detail);
+            Assert.False(guard.ReachedTargetPoint);
+            Assert.True(CoordinationGeometry.Distance(observed.PosX, observed.PosY,
+                guard.RequestedX, guard.RequestedY) < 0.1);
+            Assert.True(CoordinationGeometry.Distance(observed.ActiveCenterX, observed.ActiveCenterY,
+                g.GuardX, g.GuardY) > 15.0);
+
+            // The frozen offset predicts arrival; the real member center disproves it.
+            Assert.True(CoordinationGeometry.Distance(
+                observed.PosX + 1162.542 - 1144.517,
+                observed.PosY + 805.387 - 802.128, g.GuardX, g.GuardY) < 0.1);
+            var readiness = new DependencyReadiness();
+            for (int i = 0; i < 3; i++)
+                readiness.Note(283.101 + i,
+                    PlanBuilder.GuardInPosition(g, observed.ActiveCenterX, observed.ActiveCenterY));
+            Assert.Equal(0, readiness.ReadCount);
+            Assert.Equal(RoleDependencyLoss.NotReady, DependencyReadiness.LossOf(
+                plan, guard, true, RolePremiseFailure.None, readiness));
+        }
+
         // 命令锚点即使碰巧落在到位区内，只要战术目标已不属于当前几何的职责点，
         // 就不得释放主力推进（派单 §2.2 第 5 条：不能把命令锚点直接送入到位判据）。
         [Fact]

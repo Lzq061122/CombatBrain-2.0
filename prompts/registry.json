@@ -11,11 +11,11 @@
       "path": "AGENTS.md",
       "status": "ACTIVE",
       "created_at": "2026-10-02",
-      "updated_at": "2026-10-14",
+      "updated_at": "2026-10-18",
       "owner": "project-maintainer",
-      "content_sha256": "b03498e8f4979d3f17e460aef8045d04110548b0157b6492dcfe32fbf54a9f8b",
+      "content_sha256": "41340e0a5f2482a8e0612a7c13677202125c22e618af4e3bd01076afc4e005c7",
       "auto_archive": false,
-      "notes": "项目根 AGENTS.md 内直接包含完整 PAIPOS Lite v0.1；本登记表仅管本工作区。"
+      "notes": "入口v2.2：在已授权连续开发、集中验收与共享资源安全纪律上，增加可观察战术目标、需求/安全约束/实现方案分列、反复整改回查设计前提，以及合同符合性与原始目标的双重复核；不新增审批或放宽原合同。"
     },
     {
       "prompt_id": "CB2-PROMPT-0002",
@@ -86,11 +86,11 @@
       "path": "Program/_verify/P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md",
       "status": "ACTIVE",
       "created_at": "2026-10-16",
-      "updated_at": "2026-10-16",
+      "updated_at": "2026-10-18",
       "owner": "project-maintainer",
-      "content_sha256": "368e880bfff6802bc034df96fe08395e038eaba74eba28654d7bd306019ddd7e",
+      "content_sha256": "d83870dc1b285e64c46adcf2cd833e1abafa58f0084705733e618df40783e89e",
       "auto_archive": false,
-      "notes": "旧开发会话失效后的接续派单v1.0；保全未提交P3/TaskDelivery，落实已裁定的质心与锚点正确换算、写令基线、投递和R1/R4/R5收尾。0004继续为原验收合同、0005为前次整改；本单不改变三门/阈值/命令域，开发收到用户下发后连续实施，资源未正式交回仅做离线工作；不代表P3通过或授权P4。"
+      "notes": "接续派单v1.1：保留v1.0历史来源及坐标/投递/R1/R4/R5要求，按2026-10-18用户纠偏加入当前设计复核与闭环取证方向；既有数值、三门和命令策略不自动改变，必要方案修订须带具体证据裁定；不代表P3通过或授权P4。"
     }
   ]
 }

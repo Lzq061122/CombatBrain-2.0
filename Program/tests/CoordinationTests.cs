@@ -131,6 +131,32 @@ namespace CombatBrain2.Tests
             Assert.Contains(FormationRole.Support, roles);
         }
 
+        [Fact]
+        public void ContestedRoleAssignmentUsesCentroidsForRemainingSupportCandidates()
+        {
+            var snapshot = new FormationSnapshot { MissionKey = "m1", SampledAt = 100.0 };
+            snapshot.Records.Add(Rec(0, 0, "Infantry", 30, 0.0, 0.0, false));
+            var shared = Rec(0, 1, "Ranged", 175, 0.0, 35.0, false);
+            var nearAnchor = Rec(0, 2, "Cavalry", 40, -12.0, 25.0, false);
+            var nearCenter = Rec(0, 3, "Cavalry", 40, 500.0, 500.0, false);
+            shared.HasActiveCenter = nearAnchor.HasActiveCenter = nearCenter.HasActiveCenter = true;
+            shared.ActiveCenterX = 0.0; shared.ActiveCenterY = 35.0;
+            nearAnchor.ActiveCenterX = 100.0; nearAnchor.ActiveCenterY = 100.0;
+            nearCenter.ActiveCenterX = -30.0; nearCenter.ActiveCenterY = 25.0;
+            snapshot.Records.Add(shared);
+            snapshot.Records.Add(nearAnchor);
+            snapshot.Records.Add(nearCenter);
+            snapshot.Records.Add(Rec(1, 0, "Infantry", 100, 0.0, 300.0, true));
+
+            var plan = PlanBuilder.BuildCoordination(StateOf(snapshot), "plan-1", TestParameters.P2Now);
+
+            Assert.NotNull(plan);
+            Assert.Equal("0/1", plan.Tasks.Find(t => t.Role == FormationRole.Guard).FormationKey);
+            // Both roles first prefer slot 1. Once Guard takes it, Support must still compare
+            // actual member centers; slot 2's anchor at S* does not put its members there.
+            Assert.Equal("0/3", plan.Tasks.Find(t => t.Role == FormationRole.Support).FormationKey);
+        }
+
         // 三职责必须由不同对象承担：只有两支合格编队时不得让同一对象兼任两个职责。
         [Fact]
         public void TwoFormationsCannotFormCoordinationPlan()

@@ -1,8 +1,21 @@
 # P3 接续整改 — 实现交接
 
 **状态：限定自检完成，待独立验收。** 本文不宣称 P3 通过，不授权进入 P4。
-依据：`CB2-PROMPT-0006`（`P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md`，SHA256 `368e880bfff6802bc034df96fe08395e038eaba74eba28654d7bd306019ddd7e`）。
+依据：`CB2-PROMPT-0006`（`P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md`，SHA256 `d83870dc1b285e64c46adcf2cd833e1abafa58f0084705733e618df40783e89e`）。
 `CB2-PROMPT-0005`（`P3-RESTART-REMEDIATION-DISPATCH.md`）与 `CB2-PROMPT-0004`（`P3-FEEDBACK-REPLANNING-DISPATCH.md`）继续有效；本次未改变公式、三门判据或命令域。
+
+### 当前纠偏（2026-10-18）
+
+- **行为目标**：恢复统一意图下“行动→实际效果→评价→后续决定”；到位和检查器是手段，原生歼灭不是CB2指挥收益。P3尚未通过，主闭环尚未恢复。
+- **已修的实现偏移**：`AssignGuardAndSupport`在保护/辅助争同一候选后的辅助重选误用锚点距离，现复用首轮相同的质心取数。生产`BuildCoordination`反例旧版失败（选0/2），修复后选0/3；未改变角色、阈值或命令策略。这是离线发现的同源缺陷，不能认定它造成了第四场三编队的全部超时。
+- **已有实机证据新增判读**：第四场285.101秒的`p2-evidence-0299.json`证明Guard锚点距请求0.078m，实际质心距G*15.949m；写时C−A=(18.025,3.259)，此刻=(3.328,9.364)。旧偏移推算会虚报到位，真实质心正确拒绝到位。Support距S*9.456m。已用生产`TaskFeedback`/`GuardInPosition`/`LossOf`重放：位移Effective、未到目标、readiness=0/NotReady可同时成立，不是Observe漏调用。
+- **设计前提复核**：三不同职责可表达协同，但当前固定G*/S*只证明点位关系；距离排序不检验是否实际保护关键远程、遮蔽威胁或形成支援，不能据此声称战术收益。5m/连续1s是有效合同中的实现判据，尚无证据证明是所有队形的普遍战术必要条件；本次不擅自改动它们。一次冻结偏移无法保证变形后仍到位，已被实测证伪。当前PlanLedger仅看占比/兵力继续条件，未消费空间建立失败的原因，因而失败后可再次创建相似计划；不能把19次计划当作有效重规划成果。
+- **验证**：相关红→绿；全量315/315；net472 Release构建0警告0错误。新增两例分别验证生产分配混用与第四场数据重放。离线复算明细：`E:\Agent\codex\2026-10-18\p3-course-correction\fourth-run-replay.json`。本次没有新实机场次，未部署、取锁或改共享开关；不把旧场重算称为新增运行行为。
+- **工作流**：AGENTS §3d/§4已加入可观察战术目标、需求/安全/方案分列、重复整改回查设计前提、合同符合性与目标有效性双重复核；0006 v1.1落实到当前执行范围。不新增审批、模板或长报告。
+
+**需要裁定的最小命令策略方案（尚未实施）**：保留全部几何和到位阈值；仅当原锚点已在现有0.5m容差内、命令仍归当前对象/Plan/Revision、而真实质心尚不满足职责关系时，允许每职责最多一次纠偏。用当前同批A/C/T重新计算请求，经新任务身份、原裁决/资格/主线程/间隔门执行；不得复用已写任务额度，不延长原职责20s截止，剩余预算不足则不发。仍失败就结束，不因同一组对象/成员、相同目标与创建条件再次立即建同类计划；只有相关对象/成员/资格或作战目标条件发生可解释变化才重评。本方案改变了明确的一次写令与重复创建策略，等待用户裁定，不以当前授权擅自实现。其目的为恢复实际到位与行动评价，不保证一次纠偏必成功。
+
+裁定后才准备一个能区分“固定偏移失效/有限纠偏是否实际改善”的开发场，保留反事实离线复算，确认同一有效计划中出现写令、到位/接敌和可解释评价。仍须观测方正式交回并通过既有独占入口，死战开启；先开发行为、后正式P/N/C。
 
 **第二轮（复核退回三缺陷整改）**：独立复核 `P3-CONTINUATION-REVIEW-732f6df-20261016.md` 对提交 `732f6df` 判「仍退回整改」，给出三项 P1 缺陷与第 4 节更正要求。本文件已按该报告整补：§2.8b 记录坐标接线的接线级测试整补，§3.2/§3.3 记录门2证据判定收紧，§3.4 记录 R5 归属判定与 `end_mission` 前置，§4 与 §7 记录更正后的根因表述。**第二轮整改结论未经过独立复核。**
 
@@ -49,7 +62,7 @@
 | 第八轮整改（`lostRole` 归因） | `9958767` "fix(p3): attribute a lost dependency to the role that actually lost it"（master，本地，未 push / 未建 PR，6 files, +236 / −25；父提交 `cc67303`）；本轮唯一改 C# 的一次：`Program/src/Core/CoordinationPlan.cs` +42/−10、`Program/src/Core/CoordinationDriver.cs` +29、`Program/src/Host/TestDriver.cs` +13/−4、`Program/tests/CoordinationDriverTests.cs` +111、本文件 +39/−11、`sessions/INDEX.md` +2；全量测试 309 → 313 |
 | 第八轮口径修订 | `a5f6e44` "docs(p3): record the corrected acceptance target for the lost-dependency fix"（1 file, +1 / −0；父提交 `9958767`）：按用户裁定写入「归因修正不预期让计划多活一段」及三条核对口径 |
 | 第三场实机（本轮源码） | `p3-P-20261017-225827`，2026-10-17 22:58，经 `run-p3-exclusive.ps1 -Scenario P`；CB2 `b20261017-225822-2c279a81`、CBATH `b20261017-225826-4091f839`；`RESULT: OK`、三门全 unverified，归因分支未被触发，见 §4 的「第三个实机场」 |
-| 第四场实机（本轮源码，定向开发实测） | `p3-P-20261018-001730`，2026-10-18 00:17，经 `run-p3-exclusive.ps1 -Scenario P -CombatHoldSec 420`；CB2 `b20261018-001725-aae2c73c`、CBATH `b20261018-001729-315ca01a`；`RESULT: OK`、三门全 unverified，**首次完成接敌与歼灭**但全部发生在无有效计划期间，见 §4 的「第四个实机场」 |
+| 第四场实机（本轮源码，定向开发实测） | `p3-P-20261018-001730`，2026-10-18 00:17，经 `run-p3-exclusive.ps1 -Scenario P -CombatHoldSec 420`；CB2 `b20261018-001725-aae2c73c`、CBATH `b20261018-001729-315ca01a`；`RESULT: OK`、三门全 unverified，**完成接敌与歼灭且补足长窗口证据**但全部发生在无有效计划期间，见 §4 的「第四个实机场」 |
 | 第四场文档更新 | 本文件与 `sessions/INDEX.md`（随第四场一并提交，短哈希见 `git log`，按入口 §4a 不内嵌自指哈希）：新增第四个实机场小节、§1.3 表新增该场行、§7 新增第 12/13 条（`EXIT_STOP_NOT_APPLIED`、260 s 后协同再未建立） |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
@@ -824,7 +837,7 @@ P/C 两场实际开局部署质心相差数百米，属派单 §4 表已点明�
 
 ---
 
-### 第四个实机场（2026-10-18 00:17，P 场景，`CombatHoldSec=420`）— **`RESULT: OK`，首次完成接敌与歼灭，但全部发生在无有效计划期间**
+### 第四个实机场（2026-10-18 00:17，P 场景，`CombatHoldSec=420`）— **`RESULT: OK`，完成接敌与歼灭且补足长窗口证据，但全部发生在无有效计划期间**
 
 用户 m05791 确认交回。本场是按用户裁定的**定向开发实测**：把采集窗口从 180 s 提到 420 s，其余配置不变（未启用 BattleSizeResized、未调整 `OpponentDelaySec`、死战不退全程开启）。执行前只读核对：Bannerlord/GABS/mcp-http 全 0、锁 FREE、`safely_exited=1`、P1/P2/P3 均 `enabled=0`、两探针空、CB2 HEAD `11fb697`、CBATH HEAD `ac7c4ae`（dirty 0）。
 
@@ -980,7 +993,7 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 1. **门1 未取得 pass。** 除 2026-10-17 的首个本轮源码实机场（见第 3 条）外，全部实机场次都早于 `732f6df`，它们只能证明历史成功/失败与工具的敏感性，**不能为当前提交给出任何门的结论**。旧场观测到的继任协同计划未完成保护/辅助落位与主力推进，其直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不是依赖环**——`DependsOnTaskId` 指向的是 Hold 等待任务，依赖链无环（详见 §4 门1）。因此不存在需要另行申请的「互锁修复授权」；门1 的后续验证属于派单 §4 原有要求。当前产物三个门**均未实机验证通过**。
 2. **门3 未取得 pass（unverified）。** P/C 实际部署不可比 + 无地形深度产物；未取匹配对照场次。**未放宽容差凑 pass。**
-3. **四场本轮源码实机场已完成，但都不能作为任何门的证据。** `p3-P-20261017-104721`（10:47，`RESULT: FAILURES (2)`、`failed stage: collect`，两处失败均在主线采集脚本、已修）、`p3-P-20261017-181046`（18:10，`RESULT: OK`、三 stage 全完成）、`p3-P-20261017-225827`（22:58，第八轮 `lostRole` 修复后，`RESULT: OK`）与 `p3-P-20261018-001730`（00:17，`CombatHoldSec=420`，`RESULT: OK`，首次完成接敌与歼灭）三门均 unverified（无 reinforce、无止损/撤出决定、无对照会话）。其余场次（§1.3 前 16 行）都早于本轮提交。`732f6df` 及第二至第五轮整补的 C# 改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四、五轮未改 C#，沿用该读数）+ 四场实机运行；第八轮改 C# 后为 313/313 + 双构建 0 警告 0 错误。脚本侧另有 PS 5.1 语法、WhatIf、R5 十模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照。**P3 三门仍未取得任何 pass。**
+3. **四场本轮源码实机场已完成，但都不能作为任何门的证据。** `p3-P-20261017-104721`（10:47，`RESULT: FAILURES (2)`、`failed stage: collect`，两处失败均在主线采集脚本、已修）、`p3-P-20261017-181046`（18:10，`RESULT: OK`、三 stage 全完成）、`p3-P-20261017-225827`（22:58，第八轮 `lostRole` 修复后，`RESULT: OK`）与 `p3-P-20261018-001730`（00:17，`CombatHoldSec=420`，`RESULT: OK`，完成接敌与歼灭且补足长窗口证据）三门均 unverified（无 reinforce、无止损/撤出决定、无对照会话）。其余场次（§1.3 前 16 行）都早于本轮提交。`732f6df` 及第二至第五轮整补的 C# 改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四、五轮未改 C#，沿用该读数）+ 四场实机运行；第八轮改 C# 后为 313/313 + 双构建 0 警告 0 错误。脚本侧另有 PS 5.1 语法、WhatIf、R5 十模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照。**P3 三门仍未取得任何 pass。**
 4. **R5 隔离模拟是替身证据，不能替代实机收尾。** 它证明控制流按预期收尾（helper 关闭、只杀本场启动上下文所确认的 PID、归属不明时保留并登记、stage 分列）。第五轮新增的 `foreignidentity` 与 `startedthenexited` 仍只是桩级复现。**实机已部分回答**：`p3-P-20261017-104721` 的 `own game pids: 35948 basis=launch_context_pid_matched_new_process` 与 `ping ok (runtime pid=35948)` 同时成立，证明启动上下文路径在真实 GABS 上可用、且与游戏自报一致；清理实读为 Bannerlord 0 / gabs 0 / 锁 FREE / `safely_exited=1`。但「他方 CBATH 同时写身份文件」「本场进程退出仅剩他方同名进程」两类竞争条件在实机中未出现，仍只有桩级证据。若实机发现本场启动上下文在收尾时不可读，正确结果是登记 unresolved 保留进程，**不是**退回共享身份文件或候选数当归属。
 
 5. **`Get-LaunchContextPids` 的实机风险已基本排除，但仍需每场核对 basis。** 它读 `runtime.json` 的 `gamePid` 与 `launch.log` 里的 `pid=`。首场实机证明：`runtime.json` 由 GABS 在 claim/spawn 时写入、clean stop 后删除，因此只存在于运行期间（这也解释了为何静态检查 `gabs-config\` 时看不到它）。若字段改名，归属会退回 `launch_candidate_pending_runtime_identity`／`new_process_without_launch_result`——登记 unresolved 保留进程，不会误杀，但正常场次的 PID 也停不掉。**每场仍须核对 `own game pids:` 一行的 basis 取值。**
@@ -999,9 +1012,9 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 **未触发的自然边界**（保留为未验证，不登记为通过）：获选超时、写令截止后才首次获选、`FLIGHT`/`STOP_LOSS` 触发的继任、P1/P2 相关回归——本轮 §2 改动了 `TaskFeedback`/`CoordinationPlan`/`TestDriver` 的位置语义判断，已用 309 项单测覆盖，但**未在任何实机窗口回归**。P1 锚点语义由 `AnchorDefinedTaskKeepsAnchorSemantics` 与 `TaskSelectionDeadlineTests.MoveRequiresClosingDistance` 锁定。
 
-12. **`EXIT_STOP_NOT_APPLIED`（第四场首次出现，未修复）。** `p3-P-20261018-001730` 出现 6 条：371.542 三条（`ownership=taken_over`，`plan-18`）与 383.218 三条（`ownership=own`，`plan-19`），全部 `submitted=1 selected=0 waited≈1.0 reason=not_completed_in_time`。同一时刻原生 `NATIVE_MOVEMENT_APPLIED` 记录 `ChargeToTarget` / `Charge`（`our_write=0 source=not_ours`），随后 `BEHAVIOR_DISARMED reason=ExitNotApplied`。即敌方全灭后原生行为接管编队，CB2 的停止令在 1 s 预算内**从未获选**，只能撤武装。**这属安全相关边界，是否属缺陷需先判定「敌方全灭后是否仍应保有控制权」，不能仅凭日志断言。** 三条 371.542 的 `ownership=taken_over` 说明退出任务被新分配接管，那一段的语义要单独核。
+12. **`EXIT_STOP_NOT_APPLIED`（第四场首次出现，未修复）。** `p3-P-20261018-001730` 出现 6 条：371.542 三条（`ownership=taken_over`，`plan-18`）与 383.218 三条（`ownership=own`，`plan-19`），全部 `submitted=1 selected=0 waited≈1.0 reason=not_completed_in_time`。同一时刻原生 `NATIVE_MOVEMENT_APPLIED` 记录 `ChargeToTarget` / `Charge`（`our_write=0 source=not_ours`），随后 `BEHAVIOR_DISARMED reason=ExitNotApplied`。即敌方全灭后原生行为接管编队，CB2 的停止令在 1 s 预算内**从未获选**，只能撤武装。**最后一次Killed在370.751秒，404.190为最后一次Deleted。敌方全灭后不要求永久保有进攻控制权，但既存退出义务不能自动判成功；应分别核对结束撤权、未获选及新分配提前接管的实际路径，不放宽1s预算。** 三条 371.542 的 `ownership=taken_over` 说明退出任务被新分配接管，那一段的语义要单独核。
 
-13. **260 s 之后协同关系再未建立（第四场首次出现，原因未定位）。** `plan-8`..`plan-19` 共 12 个计划全部停在 `phase=AwaitingDependencies advance_allowed=0`，`at>=260` 的 102 条 `COORDINATION_STATE` 无一条 `advance_allowed=1`；`guard_loss` CommandInvalid 83 / NotReady 19、`support_loss` CommandInvalid 86 / NotReady 16、`support_ready` 全 0。已知矛盾点：`plan-8` 的 Guard/Support 令已在 266.135 / 268.082 写出且 `readback_error=0.000`、`POST_OBSERVE` 全程 `feedback=Effective`，仍在 286.136 以 `guard_ready=0 support_ready=0` 超时；`plan-9` 到 292.647 已 `guard_ready=1`（`reads=931`）但 `support_ready=0`（`reads=0`）。`reads=0` 与 `POST_OBSERVE` 有读数直接冲突，**下一步应先用唯一标记日志确认 `Observe` 与 `ObserveOne` 在该段是否真的被调用**（按入口 §3/§5 的调试顺序），再谈修法。不可先把原因写成「锚点偏移」或「引擎限制」。
+13. **260 s后协同关系未建立：已缩小原因，主修复待策略裁定。** 现有读数证明plan-8锚点到达而质心未到位；`reads=0`统计连续满足到位关系的读数，不能与任务`POST_OBSERVE Effective`等同。生产复算及共同原因、设计假设失效与候选重选修复见本文“当前纠偏”。没有新增标记或实机场。
 
 ---
 

@@ -471,8 +471,9 @@ namespace CombatBrain2.Core
                 {
                     if (i == guardAt) continue;
                     var r = rest[i];
-                    if (!CoordinationGeometry.IsFinite(r.PosX) || !CoordinationGeometry.IsFinite(r.PosY)) continue;
-                    double error = CoordinationGeometry.Distance(r.PosX, r.PosY, g.SupportX, g.SupportY);
+                    double rx, ry;
+                    if (!MainOriginOf(r, out rx, out ry)) continue;
+                    double error = CoordinationGeometry.Distance(rx, ry, g.SupportX, g.SupportY);
                     if (error < bestSupportError)
                     {
                         bestSupportError = error;
