@@ -37,7 +37,7 @@
 | 第四轮整改提交 | `1e7b088` "fix(p3): bind gate-2 successor readings to live orders and PID ownership to runtime identity"（master，本地，未 push / 未建 PR，4 files, +401 / −83；父提交 `badd8d3`） |
 | 第五轮整改提交 | `573f098` "fix(p3): bind process ownership to this run's own launch context"（master，本地，未 push / 未建 PR，3 files, +127 / −82；父提交 `76713ef`） |
 | 首场实机（本轮源码） | `p3-P-20261017-104721`，2026-10-17 10:47，经 `run-p3-exclusive.ps1 -Scenario P`；CB2 `b20261017-104710-f41051eb`、CBATH `b20261017-104719-6f4500f2`；`RESULT: FAILURES (2)`、三门全 unverified，见 §4 的「首个本轮源码实机场」 |
-| 第六轮整改提交 | 待提交（只改 `Program/_verify/run-p3.ps1` 与两份文档，未改 C#）；提交后在此补记实际短哈希 |
+| 第六轮整改提交 | `2a8de3b` "fix(p3): correct aim-point selection and lock read-back after the first real run"（master，本地，未 push / 未建 PR，3 files, +89 / −13；父提交 `d04c65b`；只改 `Program/_verify/run-p3.ps1` 与两份文档，未改 C#） |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
