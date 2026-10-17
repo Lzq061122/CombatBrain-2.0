@@ -365,7 +365,9 @@ namespace CombatBrain2.Core
             if (plan == null || task == null) return false;
             double deadline = RelationshipDeadline(task);
             if (deadline < 0.0) return false;
-            if (readiness != null && readiness.Ready) return false;
+            if (readiness != null && readiness.Ready &&
+                (task.RelationshipDeadlineAt < 0.0 ||
+                 DependencyReadiness.CommandStillValid(plan, task, task.Role == FormationRole.Guard))) return false;
             return now >= deadline;
         }
 

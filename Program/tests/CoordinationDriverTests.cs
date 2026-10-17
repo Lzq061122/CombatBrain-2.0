@@ -1104,6 +1104,25 @@ namespace CombatBrain2.Tests
         }
 
         [Fact]
+        public void UnwrittenCorrectionCannotOutliveDeadlineOnNativePositionReadiness()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var actual = DriftedRole(state, driver.GuardTask);
+            var correction = driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 205.0, 201.5);
+            Assert.NotNull(correction);
+            var g = plan.Geometry;
+            var guard = At(g, correction, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(208.0, guard, support);
+            var outcome = driver.Observe(209.0, guard, support);
+            Assert.True(outcome.GuardReady);
+            Assert.False(outcome.MainAdvanceAllowed);
+            Assert.True(driver.GuardExpired(plan, 220.0));
+        }
+
+        [Fact]
         public void CorrectionWriteGateRejectsSelectionAtOriginalDeadline()
         {
             var facts = new DeliveryFacts
