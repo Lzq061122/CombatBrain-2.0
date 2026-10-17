@@ -24,6 +24,16 @@ namespace CombatBrain2.Core
         PositionUnknown,
     }
 
+    // 职责失效的归类。前提失效与「前提仍在但到位窗口/命令不再成立」是两件事：
+    // 后者 RolePremiseFailure 仍是 None，只看它会得出错误结论。
+    internal enum RoleDependencyLoss
+    {
+        None = 0,
+        PremiseFailure,
+        CommandInvalid,
+        NotReady,
+    }
+
     // 一个职责的连续有效读数。派单 §4：保护/辅助必须由连续至少 1 s 的两次或更多
     // 有效读取确认；未知/陈旧/身份变化时重新建立，不沿用旧 ready。
     internal sealed class DependencyReadiness
@@ -100,19 +110,41 @@ namespace CombatBrain2.Core
                                                 DependencyReadiness guardReady, DependencyReadiness supportReady)
         {
             if (plan == null || plan.IsClosed) return false;
-            if (guard == null || support == null) return false;
-            if (guard.IsClosed || support.IsClosed) return false;
-            if (guard.Role != FormationRole.Guard) return false;
-            if (support.Role != FormationRole.Support) return false;
-            if (guard.WrittenAt < 0.0 || support.WrittenAt < 0.0) return false;
-            if (guard.Revision != plan.Revision || support.Revision != plan.Revision) return false;
-            if (guard.Feedback != TaskFeedbackState.Effective) return false;
-            if (support.Feedback != TaskFeedbackState.Effective) return false;
-            if (!CommandTargetStillValid(plan, guard, true)) return false;
-            if (!CommandTargetStillValid(plan, support, false)) return false;
             if (guardReady == null || !guardReady.Ready) return false;
             if (supportReady == null || !supportReady.Ready) return false;
+            if (!CommandStillValid(plan, guard, true)) return false;
+            if (!CommandStillValid(plan, support, false)) return false;
             return true;
+        }
+
+        // 单个职责的命令是否仍然成立：已写入、属于本版本、反馈仍为生效，且读回未偏离本次请求。
+        // 释放条件与失效归因必须走同一份判定，否则两处会各说各话。
+        internal static bool CommandStillValid(BattlePlan plan, FormationTask task, bool isGuard)
+        {
+            if (plan == null || plan.IsClosed) return false;
+            if (task == null || task.IsClosed) return false;
+            if (task.Role != (isGuard ? FormationRole.Guard : FormationRole.Support)) return false;
+            if (task.WrittenAt < 0.0) return false;
+            if (task.Revision != plan.Revision) return false;
+            if (task.Feedback != TaskFeedbackState.Effective) return false;
+            return CommandTargetStillValid(plan, task, isGuard);
+        }
+
+        // 单个职责的失效归类：前提失效 > 命令不再成立 > 连续到位窗口不成立。
+        // 前提仍是 None 时不能直接判定「这个职责没事」，到位窗口断开同样使它失去依据。
+        internal static RoleDependencyLoss LossOf(BattlePlan plan, FormationTask task, bool isGuard,
+                                                  RolePremiseFailure premise, DependencyReadiness readiness)
+        {
+            if (premise != RolePremiseFailure.None) return RoleDependencyLoss.PremiseFailure;
+            if (!CommandStillValid(plan, task, isGuard)) return RoleDependencyLoss.CommandInvalid;
+            if (readiness == null || !readiness.Ready) return RoleDependencyLoss.NotReady;
+            return RoleDependencyLoss.None;
+        }
+
+        // 参与判定：该职责已经不满足它的依赖条件。
+        internal static bool IsLost(RoleDependencyLoss loss)
+        {
+            return loss != RoleDependencyLoss.None;
         }
 
         // 该职责的命令是否仍然有效：命令未被改写（读回 = 本次锚点请求），

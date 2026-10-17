@@ -873,6 +873,117 @@ namespace CombatBrain2.Tests
             Assert.Null(driver.Arbiter.CurrentFor(supportKey));
         }
 
+        // ---- 依赖失效的职责归类 ----
+        //
+        // 前提失效为 None 不等于该职责仍然成立：到位窗口断开、命令被改写都会让它
+        // 失去依据。归类必须按实际读数，不能默认落到另一侧（实机
+        // p3-P-20261017-181046 在 131.041 把 Guard 越界报成了 role=Support failure=None）。
+
+        [Fact]
+        public void GuardWindowBreakWithNoPremiseFailureIsReportedAsGuard()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            Assert.True(driver.Observe(TestParameters.P2Now + 1.0, guard, support).MainAdvanceAllowed);
+
+            // 保护编队刚越过到位半径：前提（人数/资格/对象）完全正常，只是不在位。
+            var strayed = At(g, driver.GuardTask, g.GuardX, g.GuardY + 5.2, true);
+            var outcome = driver.Observe(TestParameters.P2Now + 2.0, strayed, support);
+
+            Assert.False(outcome.MainAdvanceAllowed);
+            Assert.Equal(RolePremiseFailure.None, outcome.GuardFailure);
+            Assert.Equal(RoleDependencyLoss.NotReady, outcome.GuardLoss);
+            Assert.Equal(RoleDependencyLoss.None, outcome.SupportLoss);
+            FormationRole role;
+            var kind = CoordinationDriver.LostRoleOf(outcome, out role);
+            Assert.Equal(FormationRole.Guard, role);
+            Assert.Equal(RoleDependencyLoss.NotReady, kind);
+        }
+
+        [Fact]
+        public void SupportWindowBreakWithNoPremiseFailureIsReportedAsSupport()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            Assert.True(driver.Observe(TestParameters.P2Now + 1.0, guard, support).MainAdvanceAllowed);
+
+            // 辅助编队离开到位区，保护不受影响。
+            var strayed = At(g, driver.SupportTask, g.SupportX, g.SupportY + 9.0, false);
+            var outcome = driver.Observe(TestParameters.P2Now + 2.0, guard, strayed);
+
+            Assert.False(outcome.MainAdvanceAllowed);
+            Assert.Equal(RolePremiseFailure.None, outcome.SupportFailure);
+            Assert.Equal(RoleDependencyLoss.NotReady, outcome.SupportLoss);
+            Assert.Equal(RoleDependencyLoss.None, outcome.GuardLoss);
+            FormationRole role;
+            var kind = CoordinationDriver.LostRoleOf(outcome, out role);
+            Assert.Equal(FormationRole.Support, role);
+            Assert.Equal(RoleDependencyLoss.NotReady, kind);
+        }
+
+        // 命令仍被原生改写：前提与位置都正常，只有命令不再成立。
+        [Fact]
+        public void GuardCommandOverrideIsReportedAsCommandInvalid()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            Assert.True(driver.Observe(TestParameters.P2Now + 1.0, guard, support).MainAdvanceAllowed);
+
+            // 原生把保护改成别的目标：读回与本次请求偏离。
+            driver.GuardTask.SetOrderTarget(g.GuardX + 30.0, g.GuardY);
+            var outcome = driver.Observe(TestParameters.P2Now + 2.0, guard, support);
+
+            Assert.False(outcome.MainAdvanceAllowed);
+            Assert.Equal(RoleDependencyLoss.CommandInvalid, outcome.GuardLoss);
+            Assert.True(DependencyReadiness.IsLost(outcome.GuardLoss));
+            FormationRole role;
+            Assert.Equal(RoleDependencyLoss.CommandInvalid, CoordinationDriver.LostRoleOf(outcome, out role));
+            Assert.Equal(FormationRole.Guard, role);
+        }
+
+        // 前提失效仍是更硬的原因：它必须盖住同一侧的窗口/命令判定。
+        [Fact]
+        public void PremiseFailureOutranksWindowAndCommandLoss()
+        {
+            BattlePlan plan;
+            BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, TestParameters.P2Now - 1.0);
+
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, 5, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            var outcome = driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+
+            Assert.Equal(RolePremiseFailure.StrengthBelowLine, outcome.GuardFailure);
+            Assert.Equal(RoleDependencyLoss.PremiseFailure, outcome.GuardLoss);
+            FormationRole role;
+            Assert.Equal(RoleDependencyLoss.PremiseFailure, CoordinationDriver.LostRoleOf(outcome, out role));
+            Assert.Equal(FormationRole.Guard, role);
+        }
+
         // ---- Mission 清理 ----
 
         [Fact]

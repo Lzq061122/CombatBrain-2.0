@@ -18,6 +18,8 @@
 
 **第七轮（定向复核确认第六轮的兜底仍不是 Main）**：定向复核 `E:\Agent\codex\2026-10-17\p3-review-2a8de3b\REVIEW.md`（受审 `2a8de3b` / `4e170b8`）确认锁读取修复与十模式隔离可接受、死战模式实机成立，但指出第六轮的兜底选错了对象：它取「我方人数最多的编队」，本场拿到 Ranged 175 @ (906.361,959.823)，而冻结事件 `ACTION_FEEDBACK_FROZEN main=1/0` 指向的是 **Cavalry 52** @ (911.057,978.689)，两者相距 **19.442 m**。本轮只动采集脚本：按冻结行的 `main=<team>/<slot>` 键定位对象，并把实际瞄准的队伍/槽位/身份/兵种/人数/坐标写入 `opponent-target.json`；拿不到键或键找不到对象时如实失败，不再退化成「最大编队」冒充 Main。**第七轮结论未经过独立复核，不改产品代码、不改变任何门的判据。**
 
+**第八轮（`lostRole` 归因修复，本轮唯一改 C# 的一次）**：第二场实机 `p3-P-20261017-181046` 暴露 `HandleAdvanceDependencyLost` 把「保护没有前提失效」直接等同于「失效的是辅助」。到位窗口断开时 `PremiseFailure` 可以仍是 `None`，于是日志与替补选择都指向错误的一侧。本轮把失效归因改为由实际依赖读数产生（新增 `RoleDependencyLoss` 与 `LostRoleOf`，与释放条件共用 `CommandStillValid`），补 4 个红测试，全量测试 309 → **313**。**未改到位半径、稳定窗口、评价公式、退出规则与计划失效条件；结论未经过独立复核，实机行为尚未验证。**
+
 ---
 
 ## 1. 来源、构建、部署与运行身份
@@ -42,6 +44,7 @@
 | 第六轮整改提交 | `2a8de3b` "fix(p3): correct aim-point selection and lock read-back after the first real run"（master，本地，未 push / 未建 PR，3 files, +89 / −13；父提交 `d04c65b`；只改 `Program/_verify/run-p3.ps1` 与两份文档，未改 C#） |
 | 第七轮整改提交 | `8942e48` "fix(p3): aim the counter-action at the frozen Main key, not the largest formation"（master，本地，未 push / 未建 PR，3 files, +141 / −39；父提交 `4e170b8`；只改 `Program/_verify/run-p3.ps1` 与两份文档，未改 C#） |
 | 第二场实机（本轮源码） | `p3-P-20261017-181046`，2026-10-17 18:10，经 `run-p3-exclusive.ps1 -Scenario P`；CB2 `b20261017-181039-a691fa85`、CBATH `b20261017-181044-83c59fba`；`RESULT: OK`、三门全 unverified，见 §4 的「第二个实机场」 |
+| 第八轮整改（`lostRole` 归因） | "fix(p3): attribute a lost dependency to the role that actually lost it"（master，本地，未 push / 未建 PR，6 files, +236 / −25；父提交 `cc67303`）；本轮唯一改 C# 的一次：`Program/src/Core/CoordinationPlan.cs`、`Program/src/Core/CoordinationDriver.cs`、`Program/src/Host/TestDriver.cs`、`Program/tests/CoordinationDriverTests.cs`；全量测试 309 → 313。按入口 §4a 不再为补记本哈希单独造提交，短哈希由 `git log --oneline -1` 取 |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
@@ -151,6 +154,18 @@ Program/_verify/sessions/INDEX.md               （随本批同交）
 
 本轮同样**未改任何 C# 源码**（`git diff --name-only` 对 `Program/src`、`Program/tests` 只有自动生成的 `BuildIdentity.g.cs`），按入口 §4a 未重跑 `dotnet test`，沿用 309/309。整改细节与离线复算见 §4「首个本轮源码实机场」的第七轮段。提交主题 `fix(p3): aim the counter-action at the frozen Main key, not the largest formation`，3 files、+141/-39。
 
+**第八轮整改逐路径清单**（`lostRole` 归因，相对 `cc67303`，`git diff --numstat` 实测）：
+
+```
+Program/src/Core/CoordinationPlan.cs            +42/-10（RoleDependencyLoss、CommandStillValid、LossOf/IsLost；MainAdvanceAllowed 改为复用同一判定）
+Program/src/Core/CoordinationDriver.cs          +29/-0（DependencyOutcome.GuardLoss/SupportLoss、Observe 填归类、LostRoleOf）
+Program/src/Host/TestDriver.cs                  +13/-4（HandleAdvanceDependencyLost 用 LostRoleOf；日志加 loss= / guard_loss= / support_loss=）
+Program/tests/CoordinationDriverTests.cs        +111/-0（4 个依赖失效归因用例）
+Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    （本文件，本批同改，不给自指行数）
+```
+
+本轮**改了 C#**，按入口 §4a 已重跑全量测试与两套构建：`dotnet test` **313/313 通过**，Release / Debug 均 0 警告 0 错误。红态证据：把 `LostRoleOf` 临时换回旧规则后 39 项中 3 项失败（`GuardWindowBreakWithNoPremiseFailureIsReportedAsGuard` 报 `Expected: Guard / Actual: Support`）。**未改到位半径、稳定窗口、评价公式、退出规则与计划失效条件。**
+
 **未动他方材料**：`E:\MBmod\BattleObservation-V1\{CB2,CBATH,TCL}` 未修改、未构建、未切换、未提交（`git worktree list` 复核：观测组两 worktree 仍在 `e2a0e38` / `925c224`）；`ObservationAdapter.cs` 约定接口与事件位置未改；`sources/` 与历史失败原始场未改。
 
 ### 1.2 构建与测试（提交后重跑）
@@ -185,20 +200,29 @@ dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过
 
 | 产物 | 长度 | SHA256（前 16） |
 |---|---|---|
-| `Program\bin\Release\CombatBrain2.dll` | 177664 | `488585FBC248369B` |
-| `Program\bin\Debug\CombatBrain2.dll` | 196096 | `7DD4E1AEB4BB98B3` |
+| `Program\bin\Release\CombatBrain2.dll` | 178176 | `57AFC58E24ED142B` |
+| `Program\bin\Debug\CombatBrain2.dll` | 197120 | `0902EF29966A40E3` |
 
-（上表为第二轮整改后本地重建读数；`BuildIdentity.g.cs` 每次构建重新生成，DLL 哈希随构建身份变化，不与提交绑定。）
+（上表为第八轮整改后本地重建读数；`BuildIdentity.g.cs` 每次构建重新生成，DLL 哈希随构建身份变化，不与提交绑定。）
 
-测试构成（逐文件实数 `[Fact]`+`[Theory]`，第二轮后共 **309**）：
+第八轮（2026-10-17，`lostRole` 归因修复）改动 C#，已重跑：
 
-| 测试文件 | `ced0a18` | 第二轮后 | 差 | 归属 |
+```
+dotnet build CombatBrain2.csproj -c Release --no-restore --nologo     → 0 个警告 0 个错误
+dotnet build CombatBrain2.csproj -c Debug   --no-restore --nologo     → 0 个警告 0 个错误
+dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过 313 / 失败 0 / 总计 313
+```
+
+测试构成（逐文件实数 `[Fact]`+`[Theory]`，第八轮后共 **313**）：
+
+| 测试文件 | `ced0a18` | 第二轮后 | 第八轮后 | 归属 |
 |---|---|---|---|---|
-| `Program/tests/CoordinateSemanticsTests.cs` | 0 | 15 | +15 | §2 坐标语义（新建文件；本轮 +5） |
-| `Program/tests/TaskSelectionDeadlineTests.cs` | 25 | 36 | +11 | 8 个投递时序/幂等用例（0005 批工作，随未跟踪的 `TaskDelivery.cs` 本次一并收） + 3 个 §3.1 用例 |
-| `Program/tests/ActionFeedbackTests.cs` | 52 | 59 | +7 | §3.2 R1 继任状态用例 |
+| `Program/tests/CoordinateSemanticsTests.cs` | 0 | 15 | 15 | §2 坐标语义（新建文件；第二轮 +5） |
+| `Program/tests/TaskSelectionDeadlineTests.cs` | 25 | 36 | 36 | 8 个投递时序/幂等用例（0005 批工作，随未跟踪的 `TaskDelivery.cs` 本次一并收） + 3 个 §3.1 用例 |
+| `Program/tests/ActionFeedbackTests.cs` | 52 | 59 | 59 | §3.2 R1 继任状态用例 |
+| `Program/tests/CoordinationDriverTests.cs` | 35 | 35 | 39 | 第八轮 4 个依赖失效归因用例 |
 
-第一轮本会话新增 `[Fact]` 13 个（§2 的 10 个 + §3.1 的 3 个）；其余 15 个是第一轮开始前已在工作树内、随源码首次进入提交的用例。派单 §1.2 L47 记载「隔离源码快照独立 Rebuild 全量测试 291 通过」= 276 + 这 15 个未提交增量，与第一轮一致（`291 → 304`）。第二轮再 +5（`CoordinateSemanticsTests` 由 10 → 15），全量 `304 → 309`。
+第一轮本会话新增 `[Fact]` 13 个（§2 的 10 个 + §3.1 的 3 个）；其余 15 个是第一轮开始前已在工作树内、随源码首次进入提交的用例。派单 §1.2 L47 记载「隔离源码快照独立 Rebuild 全量测试 291 通过」= 276 + 这 15 个未提交增量，与第一轮一致（`291 → 304`）。第二轮再 +5，全量 `304 → 309`。第八轮再 +4，全量 `309 → 313`。
 
 `CombatBrain2.csproj` 内无 post-build 部署 target。测试工程保持 `net8.0`，只 `Link` Core 源、不链 Host。
 
@@ -746,7 +770,7 @@ P/C 两场实际开局部署质心相差数百米，属派单 §4 表已点明�
 - 锚点换算继续生效且偏移非零：`plan-2-task-4-g1` Main `tactic=(869.393,840.088) anchor=(852.476,810.144) center=(855.795,819.348) requested=(866.074,830.884)`，`order_target=(866.074,830.884) readback_error=0.000`；`plan-6-task-2` Guard `tactic=(848.112,834.925) requested=(845.009,844.365)`。
 - 协同链真实推进过：`plan-2` 从 18.554 起 `guard_ready=1`，29.556 起 `phase=MainAdvancing guard_ready=1 support_ready=1 advance_allowed=1`，维持到 130.661（102 次 `advance_allowed=1`），推进任务 `plan-2-task-4-g1` 于 28.571 建立、30.548 写出。
 - **计划寿命仍然很短**：`plan-1` 8.135、`plan-3` 140.087、`plan-4` 149.133、`plan-5` 158.138、`plan-6` 167.134 均以 `NotEffective`（`closed_distance` 未达 3.0 m）失效。
-- **`plan-2` 的 131.041 失效已定位，是 `lostRole` 误标注（不是 Support 真的丢了）**：日志写 `role=Support failure=None task=plan-2-task-3`，但逐秒独立采样显示 Support `030dd50e@Ranged` 全程在 S\* 0.23 m 内、`order=Move` 未变；真正越界的是 Guard `0162fb49@Cavalry`——131.139 时 `d(G*)=5.079 m`，刚超 5 m 到位半径（129.234 `4.303` / 130.181 `4.486` / 131.139 `5.079`），因此 `DependencyReadiness.Note(..., inPosition=false)` 把 `_guardReadiness` 清零，`MainAdvanceAllowed` 随即为假。`Program/src/Host/TestDriver.cs:458-463` 的 `lostRole` 只在 `GuardFailure != None` 时取 Guard，否则一律取 Support；本场两侧 `PremiseFailure` 都是 `None`（人数/身份/资格全正常），只是到位窗口断掉，于是被记成 Support 且补救对象也按 Support 的候选排序挑选。**属真实缺陷（无测试覆盖），本轮未改代码，只记录。**
+- **`plan-2` 的 131.041 失效是 `lostRole` 误标注（不是 Support 真的丢了）**：日志写 `role=Support failure=None task=plan-2-task-3`，但逐秒独立采样显示 Support `030dd50e@Ranged` 全程在 S\* 0.23 m 内、`order=Move` 未变；真正越界的是 Guard `0162fb49@Cavalry`——131.139 时 `d(G*)=5.079 m`，刚超 5 m 到位半径（129.234 `4.303` / 130.181 `4.486` / 131.139 `5.079`），因此 `DependencyReadiness.Note(..., inPosition=false)` 把 `_guardReadiness` 清零，`MainAdvanceAllowed` 随即为假。原 `lostRole` 只在 `GuardFailure != None` 时取 Guard，否则一律取 Support；本场两侧 `PremiseFailure` 都是 `None`（人数/身份/资格全正常），只是到位窗口断掉，于是被记成 Support 且补救对象也按 Support 的候选排序挑选。**已在第八轮修复（见 §7 第 11 条），本场读数是修复前的行为。**
 - `ACTION_FEEDBACK` 只有 **1 次冻结**（`plan-2 t0=30.548 NE=59 NF=280`），35 条评价全为 `LE=0.000 LF=0.000 U=0.500 decision=Continue`，`exception=0`，`STOP`/`Disengage` 从未触发；`ACTION_FEEDBACK_RESET at=136.596 reason=plan_identity_changed`（`plan-2 → plan-3`）。
 - `plan-6` 三次写令全部 `first_command_delay` 偏大（1.931 / 3.531 / 5.481 s），且 167.134 立即失效——`plan-6` 的 Guard 写令在 164.134 才落地，写后 3 s 就被判 `closed_distance=2.78`。
 
@@ -885,7 +909,11 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 9. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。
 10. **`_tamper4` 目录内含被修改过的 `CombatBrain2.log`（mtime 2026-10-16 1:34）**，用于门2 缺证据敏感性；原始场 `_verify\sessions\p3-P-20261015-221833` 未被清洗改写。审查副本位于 `E:\Agent\codex\2026-10-14\p3\work\review-20261016\`。
 
-11. **新发现的产品缺陷（第二场实机暴露，尚未修复）：`HandleAdvanceDependencyLost` 的 `lostRole` 在两侧都无 `PremiseFailure` 时一律回落到 Support。** 位置 `Program/src/Host/TestDriver.cs:458-463`。第二场 `p3-P-20261017-181046` 的 `plan-2` 在 131.041 以此路径失效，日志写 `role=Support failure=None task=plan-2-task-3`，但独立采样证明真正断掉的是 Guard 的到位窗口（`d(G*)=4.303 → 4.486 → 5.079 m`，刚越 5 m 半径，见 §4 第二个实机场）。后果有两层：①日志把健康的一侧报成失效方，误导后续判读；②`BuildReassignments` 会按 Support 的职责点排序候选，若真有可用替补，就会把一个健康职责的编队换掉。该分支在 `Program/tests/` 内**零覆盖**（`HandleAdvanceDependencyLost`/`BuildReassignments`/`COORDINATION_DEPENDENCY_LOST` 引用数均为 0）。本场我方三编队全部已在 plan-2 内承担 Main/Guard/Support，`OrderedRoleCandidates` 又排除 `IsMainHolder` 与已用键，因此替补为 0、直接关计划——**这条缺陷在本场没有造成错误重分配，只造成错误归因**，但换一个编队数更多的战场就会真换错人。**未修、未写红测试。**
+11. **`lostRole` 误归因（第二场实机暴露，第八轮已修复）。** 原 `HandleAdvanceDependencyLost` 在两侧 `PremiseFailure` 都为 `None` 时一律取 Support。第二场 `p3-P-20261017-181046` 的 `plan-2` 在 131.041 以此路径失效，日志写 `role=Support failure=None task=plan-2-task-3`，但独立采样证明真正断掉的是 Guard 的到位窗口（`d(G*)=4.303 → 4.486 → 5.079 m`，刚越 5 m 半径，见 §4 第二个实机场）。后果两层：①日志把健康的一侧报成失效方；②`BuildReassignments` 会按 Support 的职责点排序候选，有替补时会把健康职责的编队换掉。该分支当时在 `Program/tests/` 内**零覆盖**。
+    - **修法**：失效归因改由实际依赖读数产生。新增 `RoleDependencyLoss{None, PremiseFailure, CommandInvalid, NotReady}`（`Program/src/Core/CoordinationPlan.cs`），`DependencyReadiness.LossOf(plan, task, isGuard, premise, readiness)` 按「前提失效 > 命令不再成立 > 连续到位窗口不成立」归类，`IsLost` 判参与；`CoordinationDriver.Observe` 每 tick 填 `GuardLoss`/`SupportLoss`，`LostRoleOf(outcome, out role)` 按同一份归类挑出失效职责（两侧同时失效时前提失效优先，再按 Guard 在前）。`MainAdvanceAllowed` 与归因共用新增的 `CommandStillValid`，释放条件与归因不会再各说各话。`TestDriver.HandleAdvanceDependencyLost` 改为消费 `LostRoleOf`，并在未归到具体职责时不再借用另一侧任务（日志 `task=<none>`）。日志新增 `loss=` 与 `guard_loss=/support_loss=`。
+    - **未改**：到位半径、稳定窗口、评价公式、退出规则、计划失效条件均未动。
+    - **测试**：`Program/tests/CoordinationDriverTests.cs` 新增 4 个 `[Fact]` —— `GuardWindowBreakWithNoPremiseFailureIsReportedAsGuard`、`SupportWindowBreakWithNoPremiseFailureIsReportedAsSupport`、`GuardCommandOverrideIsReportedAsCommandInvalid`、`PremiseFailureOutranksWindowAndCommandLoss`。红态（把 `LostRoleOf` 换回旧规则）3 失败 / 36 通过，其中 `GuardWindowBreakWithNoPremiseFailureIsReportedAsGuard` 报 `Expected: Guard / Actual: Support`；恢复后 39/39，全量 **313/313**。
+    - **仍未验证**：实机行为。本轮只做离线证明，`role=`/`loss=` 是否在真实场上正确归类，需观测方交回后跑一场开发实测核对。
 
 **未触发的自然边界**（保留为未验证，不登记为通过）：获选超时、写令截止后才首次获选、`FLIGHT`/`STOP_LOSS` 触发的继任、P1/P2 相关回归——本轮 §2 改动了 `TaskFeedback`/`CoordinationPlan`/`TestDriver` 的位置语义判断，已用 309 项单测覆盖，但**未在任何实机窗口回归**。P1 锚点语义由 `AnchorDefinedTaskKeepsAnchorSemantics` 与 `TaskSelectionDeadlineTests.MoveRequiresClosingDistance` 锁定。
 

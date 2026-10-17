@@ -64,6 +64,10 @@ namespace CombatBrain2.Core
         // 各职责独立计时：窗口自其实际写令时刻开始，未写令即未开始。
         internal bool GuardExpired;
         internal bool SupportExpired;
+        // 依赖失效的职责归类：前提失效与「前提仍在但命令/到位窗口不再成立」分开报告，
+        // 否则前提为 None 时无法说明究竟是哪一侧失去依据。
+        internal RoleDependencyLoss GuardLoss;
+        internal RoleDependencyLoss SupportLoss;
         internal string Detail = "";
     }
 
@@ -170,6 +174,10 @@ namespace CombatBrain2.Core
                                 _guardReadiness.Ready;
             result.SupportReady = result.SupportFailure == RolePremiseFailure.None &&
                                   _supportReadiness.Ready;
+            result.GuardLoss = DependencyReadiness.LossOf(plan, GuardTask, true,
+                result.GuardFailure, _guardReadiness);
+            result.SupportLoss = DependencyReadiness.LossOf(plan, SupportTask, false,
+                result.SupportFailure, _supportReadiness);
             result.MainAdvanceAllowed = DependencyReadiness.MainAdvanceAllowed(
                 plan, GuardTask, SupportTask, _guardReadiness, _supportReadiness);
 
@@ -202,6 +210,27 @@ namespace CombatBrain2.Core
             }
             readiness.Note(missionTime, inPosition, obs.MemberDigest);
             return failure;
+        }
+
+        // 把一次观察结果归类到具体职责。两侧同时失去依据时按「谁的前提/命令先坏」
+        // 排序上报；两侧同类的并列情形按 Guard 在前，由调用方按实际读数取舍。
+        internal static RoleDependencyLoss LostRoleOf(DependencyOutcome outcome, out FormationRole role)
+        {
+            role = FormationRole.None;
+            if (outcome == null) return RoleDependencyLoss.None;
+            bool guardLost = DependencyReadiness.IsLost(outcome.GuardLoss);
+            bool supportLost = DependencyReadiness.IsLost(outcome.SupportLoss);
+            if (!guardLost && !supportLost) return RoleDependencyLoss.None;
+            if (guardLost && supportLost)
+            {
+                // 前提失效比窗口断开更硬：先报前提失效那一侧。
+                bool guardPremise = outcome.GuardLoss == RoleDependencyLoss.PremiseFailure;
+                bool supportPremise = outcome.SupportLoss == RoleDependencyLoss.PremiseFailure;
+                role = guardPremise || !supportPremise ? FormationRole.Guard : FormationRole.Support;
+                return guardPremise || !supportPremise ? outcome.GuardLoss : outcome.SupportLoss;
+            }
+            role = guardLost ? FormationRole.Guard : FormationRole.Support;
+            return guardLost ? outcome.GuardLoss : outcome.SupportLoss;
         }
 
         private static string Describe(DependencyObservation obs, RolePremiseFailure failure,

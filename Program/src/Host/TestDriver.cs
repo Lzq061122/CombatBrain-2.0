@@ -455,12 +455,17 @@ namespace CombatBrain2.Host
         // 补不齐就换下一个候选；一个都补不齐才明确关闭 Plan 记为不可执行。
         private void HandleAdvanceDependencyLost(BattlePlan plan, DependencyOutcome outcome, double now)
         {
-            var lostRole = outcome.GuardFailure != RolePremiseFailure.None
-                ? FormationRole.Guard : FormationRole.Support;
+            // 失效职责必须来自实际依赖读数：前提失效为 None 也可能因到位窗口断开
+            // 或命令被改写而失去依据，只按「保护没有前提失效」就认定辅助是错的。
+            FormationRole lostRole;
+            var lostKind = CoordinationDriver.LostRoleOf(outcome, out lostRole);
+            // 未归到具体职责时不借用另一侧的任务：借了会让日志与替补选择都指向错误对象。
             var lostTask = lostRole == FormationRole.Guard
-                ? _coordinationDriver.GuardTask : _coordinationDriver.SupportTask;
+                ? _coordinationDriver.GuardTask
+                : lostRole == FormationRole.Support ? _coordinationDriver.SupportTask : null;
             var lostFailure = lostRole == FormationRole.Guard
-                ? outcome.GuardFailure : outcome.SupportFailure;
+                ? outcome.GuardFailure
+                : lostRole == FormationRole.Support ? outcome.SupportFailure : RolePremiseFailure.None;
 
             var reassignments = BuildReassignments(plan, lostRole, lostTask);
             string candidateText = "<none>";
@@ -477,6 +482,7 @@ namespace CombatBrain2.Host
                 "plan=" + plan.PlanId +
                 " revision=" + plan.Revision +
                 " role=" + lostRole +
+                " loss=" + lostKind +
                 " failure=" + lostFailure +
                 " task=" + (lostTask == null ? "<none>" : lostTask.TaskId) +
                 " replacement=" + candidateText +
@@ -485,6 +491,7 @@ namespace CombatBrain2.Host
             if (reassignments == null || reassignments.Count == 0)
             {
                 string detail = "advance_dependency_lost_without_replacement role=" + lostRole +
+                                " loss=" + lostKind +
                                 " failure=" + lostFailure +
                                 " advance=" + (_coordinationDriver.AdvanceTaskId.Length == 0
                                     ? "<none>" : _coordinationDriver.AdvanceTaskId);
@@ -983,6 +990,8 @@ namespace CombatBrain2.Host
                 " advance_allowed=" + (outcome.MainAdvanceAllowed ? 1 : 0) +
                 " guard_failure=" + outcome.GuardFailure +
                 " support_failure=" + outcome.SupportFailure +
+                " guard_loss=" + outcome.GuardLoss +
+                " support_loss=" + outcome.SupportLoss +
                 " detail=" + outcome.Detail +
                 " at=" + Cb2Log.F(now));
         }
