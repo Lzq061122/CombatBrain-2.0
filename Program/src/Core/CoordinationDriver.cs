@@ -92,6 +92,7 @@ namespace CombatBrain2.Core
         // 推进任务代次：阶段转换不增 plan_revision，同一计划可多次释放主力推进，
         // 每次都必须换新身份，否则第二次真实获选会被 already_written 拒绝（独立验收缺陷 2）。
         private int _advanceGeneration;
+        private readonly HashSet<FormationRole> _correctedRoles = new HashSet<FormationRole>();
 
         internal ProposalArbiter Arbiter { get { return _arbiter; } }
         internal CoordinationPhase Phase { get { return _phase; } }
@@ -119,6 +120,7 @@ namespace CombatBrain2.Core
             AdvanceTask = null;
             AdvanceTaskId = "";
             _advanceGeneration = 0;
+            _correctedRoles.Clear();
         }
 
         internal static bool IsCoordinationPlan(BattlePlan plan)
@@ -214,6 +216,55 @@ namespace CombatBrain2.Core
 
         // 把一次观察结果归类到具体职责。两侧同时失去依据时按「谁的前提/命令先坏」
         // 排序上报；两侧同类的并列情形按 Guard 在前，由调用方按实际读数取舍。
+        internal FormationTask TryCreateRoleCorrection(BattlePlan plan, FormationRole role,
+            FormationRecord actual, double now, double lastWriteAt)
+        {
+            if (plan == null || plan != _plan || plan.IsClosed ||
+                _phase != CoordinationPhase.AwaitingDependencies || _correctedRoles.Contains(role)) return null;
+            if (role != FormationRole.Guard && role != FormationRole.Support) return null;
+            var old = role == FormationRole.Guard ? GuardTask : SupportTask;
+            bool guard = role == FormationRole.Guard;
+            if (!DependencyReadiness.CommandStillValid(plan, old, guard) || actual == null) return null;
+            if (actual.Key() != old.FormationKey || actual.ObjectIdentity != old.ObjectIdentity ||
+                actual.MissionKey != plan.MissionKey || !actual.HasActiveCenter ||
+                !actual.IsAiControlled || actual.IsPlayerControlled || actual.IsPlayerTeam ||
+                !PlanBuilder.ClassAllows(actual.FormationClass, TaskKind.Reposition) ||
+                !PlanBuilder.RoleStrengthHolds(actual.ActiveMemberCount, old.RoleBaselineUnits)) return null;
+            if (!CoordinationGeometry.IsFinite(actual.PosX) || !CoordinationGeometry.IsFinite(actual.PosY) ||
+                !CoordinationGeometry.IsFinite(actual.ActiveCenterX) ||
+                !CoordinationGeometry.IsFinite(actual.ActiveCenterY)) return null;
+            if (CoordinationGeometry.Distance(actual.PosX, actual.PosY, old.RequestedX, old.RequestedY) >
+                TestParameters.TargetPointToleranceMeters) return null;
+            if (guard ? PlanBuilder.GuardInPosition(plan.Geometry, actual.ActiveCenterX, actual.ActiveCenterY)
+                      : PlanBuilder.SupportInPosition(plan.Geometry, actual.ActiveCenterX, actual.ActiveCenterY)) return null;
+            double deadline = RelationshipDeadline(old);
+            double earliest = Math.Max(now + TestParameters.FirstCommandDelaySeconds,
+                lastWriteAt + TestParameters.FormationStaggerSeconds);
+            // Leave the existing feedback window inside the original relationship budget.
+            if (deadline < 0.0 || earliest + TestParameters.FeedbackWindowSeconds > deadline) return null;
+            var next = new FormationTask
+            {
+                TaskId = old.TaskId + "-correction", PlanId = old.PlanId, Revision = old.Revision,
+                Ordinal = old.Ordinal, FormationKey = old.FormationKey, ObjectIdentity = old.ObjectIdentity,
+                FormationClass = old.FormationClass, TeamIndex = old.TeamIndex, FormationIndex = old.FormationIndex,
+                Kind = old.Kind, Reason = old.Reason, Role = old.Role,
+                RoleBaselineUnits = old.RoleBaselineUnits, RoleAssignedAt = now, CreatedAt = now,
+                Source = ProposalSource.PhaseTransition, ReplacesTaskId = old.TaskId,
+                RelationshipDeadlineAt = deadline,
+            };
+            next.SetCanonicalTarget(old.CanonicalX, old.CanonicalY);
+            old.IsClosed = true;
+            old.ClosedAt = now;
+            old.FailureDetail = "role_correction_replaced_by=" + next.TaskId;
+            plan.Tasks.Add(next);
+            if (guard) { GuardTask = next; _guardReadiness.Reset(); }
+            else { SupportTask = next; _supportReadiness.Reset(); }
+            _correctedRoles.Add(role);
+            ClearSlotOf(old);
+            RebindDependencies(plan);
+            return next;
+        }
+
         internal static RoleDependencyLoss LostRoleOf(DependencyOutcome outcome, out FormationRole role)
         {
             role = FormationRole.None;
@@ -312,22 +363,29 @@ namespace CombatBrain2.Core
                                                  DependencyReadiness readiness, double now)
         {
             if (plan == null || task == null) return false;
-            if (task.WrittenAt < 0.0) return false;
+            double deadline = RelationshipDeadline(task);
+            if (deadline < 0.0) return false;
             if (readiness != null && readiness.Ready) return false;
-            return now >= task.WrittenAt + TestParameters.CoordinationRelationshipDeadlineSeconds;
+            return now >= deadline;
         }
 
         // 分别查询各职责的到位截止时刻：尚未写令返回 -1，表示窗口未开始。
         internal double GuardDeadline()
         {
-            return GuardTask != null && GuardTask.WrittenAt >= 0.0
-                ? GuardTask.WrittenAt + TestParameters.CoordinationRelationshipDeadlineSeconds : -1.0;
+            return RelationshipDeadline(GuardTask);
         }
 
         internal double SupportDeadline()
         {
-            return SupportTask != null && SupportTask.WrittenAt >= 0.0
-                ? SupportTask.WrittenAt + TestParameters.CoordinationRelationshipDeadlineSeconds : -1.0;
+            return RelationshipDeadline(SupportTask);
+        }
+
+        internal static double RelationshipDeadline(FormationTask task)
+        {
+            if (task == null) return -1.0;
+            if (task.RelationshipDeadlineAt >= 0.0) return task.RelationshipDeadlineAt;
+            return task.WrittenAt < 0.0 ? -1.0
+                : task.WrittenAt + TestParameters.CoordinationRelationshipDeadlineSeconds;
         }
 
         internal bool GuardExpired(BattlePlan plan, double now)
@@ -368,6 +426,7 @@ namespace CombatBrain2.Core
             AdvanceTask = null;
             AdvanceTaskId = "";
             _advanceGeneration = 0;
+            _correctedRoles.Clear();
         }
 
         // 计划级重分配入口：一次完整重分配只递增一次版本，由本入口统一递增。

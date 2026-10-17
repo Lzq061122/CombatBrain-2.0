@@ -306,12 +306,14 @@ namespace CombatBrain2.Host
             {
                 Cb2Log.Line("PLAN_UNAVAILABLE",
                     "input=" + inputId +
-                    " reason=missing_controlled_class" +
+                    " reason=" + (_plans.CoordinationCreationBlocked
+                        ? "unchanged_failed_coordination" : "missing_controlled_class") +
                     " at=" + Cb2Log.F(now));
                 ObservationAdapter.Emit("plan.unavailable", now,
                     new EventFields()
                         .Add("input_id", inputId)
-                        .Add("reason", "missing_controlled_class")
+                        .Add("reason", _plans.CoordinationCreationBlocked
+                            ? "unchanged_failed_coordination" : "missing_controlled_class")
                         .ToString());
                 return;
             }
@@ -423,6 +425,10 @@ namespace CombatBrain2.Host
                 return;
             }
 
+            if (_coordinationDriver.Phase == CoordinationPhase.AwaitingDependencies &&
+                (TryPublishRoleCorrection(plan, FormationRole.Guard, now) ||
+                 TryPublishRoleCorrection(plan, FormationRole.Support, now))) return;
+
             // 依赖成立：建立主力推进任务（原子替换等待任务）。
             if (outcome.MainAdvanceAllowed && _coordinationDriver.Phase == CoordinationPhase.AwaitingDependencies)
             {
@@ -453,6 +459,27 @@ namespace CombatBrain2.Host
         // 推进期间保护或辅助前提失效的处置分支。
         // 按新分配的实际对象统一排序候选：换到其他职责持有的编队时同时补齐该职责，
         // 补不齐就换下一个候选；一个都补不齐才明确关闭 Plan 记为不可执行。
+        private bool TryPublishRoleCorrection(BattlePlan plan, FormationRole role, double now)
+        {
+            var old = role == FormationRole.Guard ? _coordinationDriver.GuardTask : _coordinationDriver.SupportTask;
+            if (old == null || !_exits.StillOwnedBy(old.ObjectIdentity, old.TaskId)) return false;
+            var actual = _snapshot.FindByKey(old.FormationKey);
+            var next = _coordinationDriver.TryCreateRoleCorrection(plan, role, actual, now, _lastWriteAt);
+            if (next == null) return false;
+            _gate.Close(old.TaskId, CancelReason.TargetInvalid, now);
+            DisarmBehaviorsFor(old.FormationKey, "RoleCorrection", now);
+            PublishReboundTasks(plan, next, now);
+            Cb2Log.Line("COORDINATION_ROLE_CORRECTION",
+                "plan=" + plan.PlanId + " role=" + role + " old=" + old.TaskId +
+                " new=" + next.TaskId + " obj=" + next.ObjectIdentity +
+                " deadline=" + Cb2Log.F(next.RelationshipDeadlineAt) +
+                " center=(" + Cb2Log.F(actual.ActiveCenterX) + "," + Cb2Log.F(actual.ActiveCenterY) + ")" +
+                " anchor=(" + Cb2Log.F(actual.PosX) + "," + Cb2Log.F(actual.PosY) + ")" +
+                " tactic=(" + Cb2Log.F(next.CanonicalX) + "," + Cb2Log.F(next.CanonicalY) + ")" +
+                " at=" + Cb2Log.F(now));
+            return true;
+        }
+
         private void HandleAdvanceDependencyLost(BattlePlan plan, DependencyOutcome outcome, double now)
         {
             // 失效职责必须来自实际依赖读数：前提失效为 None 也可能因到位窗口断开
@@ -1115,6 +1142,7 @@ namespace CombatBrain2.Host
                 Now = now,
                 AssignedAt = task.RoleAssignedAt,
                 LastWriteAt = _lastWriteAt,
+                RelationshipDeadlineAt = task.RelationshipDeadlineAt,
             };
 
             var plan = _plans.Current;
@@ -2263,6 +2291,9 @@ namespace CombatBrain2.Host
                 return;
             }
 
+            if (_coordination && reason == PlanInvalidReason.NotEffective)
+                _plans.RememberFailedCoordination(_snapshot != null
+                    ? BattleAssessment.Read(_snapshot, plan.PlanInputId) : _state);
             _plans.Invalidate(reason, detail, now);
             Cb2Log.Line("PLAN_INVALIDATED",
                 "plan=" + plan.PlanId +

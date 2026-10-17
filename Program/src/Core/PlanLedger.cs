@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 namespace CombatBrain2.Core
 {
@@ -12,6 +13,8 @@ namespace CombatBrain2.Core
         private BattlePlan _current;
         private int _planCount;
         private int _invalidations;
+        private string _failedCoordinationState = "";
+        internal bool CoordinationCreationBlocked { get; private set; }
         private readonly Dictionary<string, int> _invalidationReasons =
             new Dictionary<string, int>(StringComparer.Ordinal);
 
@@ -45,8 +48,41 @@ namespace CombatBrain2.Core
         }
 
         // P2 路径：与 P1 的 Create 互斥，同一时刻只有一条路径在跑（派单 §7）。
+        internal void RememberFailedCoordination(BattleState state)
+        {
+            if (!CoordinationDriver.IsCoordinationPlan(_current) || state == null) return;
+            _failedCoordinationState = CoordinationStateKey(state);
+        }
+
+        // Time, coordinates and input IDs must not turn the same failed assignment into a new opportunity.
+        private static string CoordinationStateKey(BattleState state)
+        {
+            if (state == null) return "";
+            var c = PlanConditions.From(state);
+            var key = new StringBuilder(state.MissionKey ?? "");
+            key.Append('|').Append(c.RangedAdvantageHolds).Append('|').Append(c.RangedDisadvantageHolds)
+                .Append('|').Append(c.StrengthWithinTolerance).Append('|').Append(c.StrengthCritical)
+                .Append('|').Append(c.CoordinationCanContinue);
+            foreach (var side in new[] { state.MyFormations, state.EnemyFormations })
+            {
+                var records = new List<FormationRecord>(side);
+                records.Sort((a, b) => string.CompareOrdinal(a.Key(), b.Key()));
+                key.Append("/side");
+                foreach (var r in records)
+                    key.Append('|').Append(r.Key()).Append(':').Append(r.ObjectIdentity)
+                        .Append(':').Append(r.FormationClass).Append(':').Append(r.MemberDigest)
+                        .Append(':').Append(r.ActiveMemberCount).Append(':').Append(r.UnitCount)
+                        .Append(':').Append(r.HasActiveCenter).Append(':').Append(r.IsAiControlled)
+                        .Append(':').Append(r.IsPlayerControlled).Append(':').Append(r.IsPlayerTeam);
+            }
+            return key.ToString();
+        }
+
         internal BattlePlan CreateCoordination(BattleState state, double now)
         {
+            CoordinationCreationBlocked = state != null && _failedCoordinationState.Length > 0 &&
+                string.Equals(_failedCoordinationState, CoordinationStateKey(state), StringComparison.Ordinal);
+            if (CoordinationCreationBlocked) return null;
             _planCount++;
             var id = "plan-" + _planCount.ToString(CultureInfo.InvariantCulture);
             var plan = PlanBuilder.BuildCoordination(state, id, now);
@@ -94,6 +130,8 @@ namespace CombatBrain2.Core
             _current = null;
             _planCount = 0;
             _invalidations = 0;
+            _failedCoordinationState = "";
+            CoordinationCreationBlocked = false;
             _invalidationReasons.Clear();
         }
     }

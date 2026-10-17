@@ -984,6 +984,156 @@ namespace CombatBrain2.Tests
             Assert.Equal(FormationRole.Guard, role);
         }
 
+        private static FormationRecord DriftedRole(BattleState state, FormationTask task)
+        {
+            var record = state.MyFormations.Find(r => r.Key() == task.FormationKey);
+            record.PosX = task.RequestedX;
+            record.PosY = task.RequestedY;
+            record.ActiveCenterX = task.CanonicalX + 12.0;
+            record.ActiveCenterY = task.CanonicalY;
+            return record;
+        }
+
+        [Fact]
+        public void RoleCorrectionReplacesOnlyDriftedTaskWithFreshWriteIdentity()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var old = driver.GuardTask;
+            var healthy = driver.SupportTask;
+            var actual = DriftedRole(state, old);
+            var correction = driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 205.0, 201.5);
+            Assert.NotNull(correction);
+            Assert.True(old.IsClosed);
+            Assert.NotEqual(old.TaskId, correction.TaskId);
+            Assert.Equal(-1.0, correction.WrittenAt);
+            Assert.Equal(old.TaskId, correction.ReplacesTaskId);
+            Assert.Equal(old.CanonicalX, correction.CanonicalX);
+            Assert.Equal(old.CanonicalY, correction.CanonicalY);
+            Assert.Same(healthy, driver.SupportTask);
+            Assert.False(healthy.IsClosed);
+            Assert.Equal(200.0, healthy.WrittenAt);
+            Assert.Equal(1, plan.Revision);
+            Assert.Contains(correction.TaskId, driver.MainWaitTask.ReplacesTaskId);
+            Assert.DoesNotContain("|" + old.TaskId + "|", driver.MainWaitTask.ReplacesTaskId);
+        }
+
+        [Theory]
+        [InlineData("identity")]
+        [InlineData("center_unknown")]
+        [InlineData("anchor_not_arrived")]
+        [InlineData("already_in_position")]
+        [InlineData("command_changed")]
+        [InlineData("too_late")]
+        [InlineData("ineligible")]
+        public void RoleCorrectionRejectsUnprovedOrUnbudgetedChange(string problem)
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var old = driver.GuardTask;
+            var actual = DriftedRole(state, old);
+            double now = 205.0;
+            if (problem == "identity") actual.ObjectIdentity = "another-object";
+            if (problem == "center_unknown") actual.HasActiveCenter = false;
+            if (problem == "anchor_not_arrived") actual.PosX += 2.0;
+            if (problem == "already_in_position")
+            { actual.ActiveCenterX = old.CanonicalX; actual.ActiveCenterY = old.CanonicalY; }
+            if (problem == "command_changed") old.SetOrderTarget(old.RequestedX + 5.0, old.RequestedY);
+            if (problem == "too_late") now = 218.0;
+            if (problem == "ineligible") actual.IsAiControlled = false;
+            Assert.Null(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, now, 201.5));
+            Assert.False(old.IsClosed);
+        }
+
+        [Fact]
+        public void EachRoleGetsOnlyOneCorrectionAndHealthySideRemainsIndependent()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var actual = DriftedRole(state, driver.GuardTask);
+            var correction = driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 205.0, 201.5);
+            Assert.NotNull(correction);
+            correction.WrittenAt = 207.0;
+            correction.Feedback = TaskFeedbackState.Effective;
+            correction.SetTarget(actual.ActiveCenterX, actual.ActiveCenterY, actual.PosX, actual.PosY);
+            correction.SetOrderTarget(actual.PosX, actual.PosY);
+            Assert.Null(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 209.0, 207.0));
+            var support = DriftedRole(state, driver.SupportTask);
+            Assert.NotNull(driver.TryCreateRoleCorrection(plan, FormationRole.Support, support, 209.0, 207.0));
+        }
+
+        [Fact]
+        public void PendingCorrectionStillExpiresAtOriginalRelationshipDeadline()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var actual = DriftedRole(state, driver.GuardTask);
+            Assert.NotNull(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 205.0, 201.5));
+            Assert.Equal(220.0, driver.GuardDeadline());
+            Assert.False(driver.GuardExpired(plan, 219.999));
+            Assert.True(driver.GuardExpired(plan, 220.0));
+        }
+
+        [Fact]
+        public void CorrectedCommandCanReleaseAdvanceWithoutExtendingDeadline()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var actual = DriftedRole(state, driver.GuardTask);
+            var correction = driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 205.0, 201.5);
+            Assert.NotNull(correction);
+            double ax = FormationTask.AnchoredRequest(correction.CanonicalX, actual.PosX, actual.ActiveCenterX);
+            double ay = FormationTask.AnchoredRequest(correction.CanonicalY, actual.PosY, actual.ActiveCenterY);
+            correction.SetTarget(actual.ActiveCenterX, actual.ActiveCenterY, ax, ay);
+            correction.SetOrderTarget(ax, ay);
+            correction.WrittenAt = 207.0;
+            correction.Feedback = TaskFeedbackState.Effective;
+            Assert.Equal(220.0, driver.GuardDeadline());
+            var g = plan.Geometry;
+            var guard = At(g, correction, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(208.0, guard, support);
+            Assert.True(driver.Observe(209.0, guard, support).MainAdvanceAllowed);
+            Assert.NotNull(driver.CreateAdvanceTask(plan, 209.0));
+            Assert.Equal(CoordinationPhase.MainAdvancing, driver.Phase);
+        }
+
+        [Fact]
+        public void CorrectionWriteGateRejectsSelectionAtOriginalDeadline()
+        {
+            var facts = new DeliveryFacts
+            {
+                HasPlan = true, Now = 220.0, PlanCreatedAt = 200.0,
+                AssignedAt = 205.0, LastWriteAt = 210.0, RelationshipDeadlineAt = 220.0,
+            };
+            Assert.Equal("relationship_deadline", TaskDelivery.TimingDeferral(facts));
+            facts.Now = 219.999;
+            Assert.Equal("", TaskDelivery.TimingDeferral(facts));
+        }
+
+        [Fact]
+        public void FailedCoordinationDoesNotRecreateOnTimeOrPositionJitter()
+        {
+            var state = SceneA(); var ledger = new PlanLedger();
+            var plan = ledger.CreateCoordination(state, 200.0);
+            ledger.RememberFailedCoordination(state);
+            ledger.Invalidate(PlanInvalidReason.NotEffective, "relationship_not_established", 225.0);
+            state.SampledAt = 230.0; state.PlanInputId = "another-input";
+            foreach (var r in state.MyFormations) { r.PosX += 0.02; r.ActiveCenterX += 0.02; }
+            Assert.Null(ledger.CreateCoordination(state, 230.0));
+            Assert.Same(plan, ledger.Current);
+            Assert.Equal(1, ledger.PlanCount);
+            state.MyFormations[0].MemberDigest += "-new-member";
+            Assert.NotNull(ledger.CreateCoordination(state, 233.0));
+            ledger.ClearMission();
+            Assert.NotNull(ledger.CreateCoordination(state, 0.0));
+        }
+
         // ---- Mission 清理 ----
 
         [Fact]

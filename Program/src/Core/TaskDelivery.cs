@@ -15,6 +15,7 @@ namespace CombatBrain2.Core
         internal double PlanCreatedAt = -1.0;
         internal bool PredecessorPending;
         internal double LastWriteAt = -1.0;
+        internal double RelationshipDeadlineAt = -1.0;
     }
 
     // 待执行任务的投递判定。评价节奏与投递节奏是两件事：计划仍按既定节奏评价，
@@ -62,6 +63,8 @@ namespace CombatBrain2.Core
             // 普通任务必须属于当前开放计划：已关闭、被替换或无当前计划的任务
             // 不得因取数结果 HasPlan=false 反而绕过时序/身份门直接排队（派单 §3.1）。
             if (!f.HasPlan) return "not_in_current_plan";
+            if (f.RelationshipDeadlineAt >= 0.0 && f.Now >= f.RelationshipDeadlineAt)
+                return "relationship_deadline";
 
             // 重分配的普通任务从新分配时刻重新计时（派单 §7 L155）：
             // 沿用计划创建时刻会让替补刚上任就立刻可发令，跳过应有的 1.5 s。

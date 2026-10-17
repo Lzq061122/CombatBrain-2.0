@@ -110,6 +110,8 @@ namespace CombatBrain2.Core
         // 职责分配时的实读人数基线，用于人数继续线（>=6 且 >= 该基线 50%）。
         internal int RoleBaselineUnits;
         internal double RoleAssignedAt = -1.0;
+        // A correction inherits the original absolute relationship deadline, even before it writes.
+        internal double RelationshipDeadlineAt = -1.0;
         // 退出任务专用：它由哪次普通任务关闭产生。
         // 归属判定需要这个身份才能把「这次关闭」与「这条退出任务」关联起来。
         internal string OriginTaskId = "";
