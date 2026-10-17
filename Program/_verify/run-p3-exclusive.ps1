@@ -20,8 +20,6 @@ $collectScript = Join-Path $here 'run-p3.ps1'
 $stageScript = Join-Path $here '_p3-exclusive-stage.ps1'
 
 $observationRoot = 'E:\MBmod\BattleObservation-V1'
-$observationReadme = Join-Path $observationRoot 'README.md'
-$observationHandoff = Join-Path $observationRoot 'coordination\handoff.md'
 $coordination = Join-Path $observationRoot 'coordination\Invoke-ExclusiveGame.ps1'
 
 # Owner must stay ASCII: PS 5.1 reads a BOM-less .ps1 as ANSI, which would corrupt a
@@ -32,8 +30,6 @@ if (-not (Test-Path -LiteralPath $cb2DeployScript)) { throw "CB2 deploy script m
 if (-not (Test-Path -LiteralPath $cbathDeployScript)) { throw "CBATH deploy script missing: $cbathDeployScript" }
 if (-not (Test-Path -LiteralPath $collectScript)) { throw "collect script missing: $collectScript" }
 if (-not (Test-Path -LiteralPath $stageScript)) { throw "stage script missing: $stageScript" }
-if (-not (Test-Path -LiteralPath $observationReadme)) { throw "observation README missing: $observationReadme" }
-if (-not (Test-Path -LiteralPath $observationHandoff)) { throw "handover note missing: $observationHandoff" }
 
 if ($WhatIf) {
     Write-Host "=== run-p3-exclusive whatif ==="
@@ -43,7 +39,7 @@ if ($WhatIf) {
     Write-Host ""
     Write-Host "read-only, outside the lock:"
     Write-Host "  source identity  : $cb2Root and $cbathRepo (git status/HEAD, no write)"
-    Write-Host "  handover notes   : $observationReadme , $observationHandoff"
+    Write-Host "  access policy    : automatic exclusive run; no written handover required"
     Write-Host ""
     Write-Host "All three stages run INSIDE the coordination lock:"
     Write-Host "stage 1 deploy CB2   : $cb2DeployScript"
@@ -59,8 +55,8 @@ if ($WhatIf) {
     exit 0
 }
 
-# ---------- read-only source and handover check, deliberately outside the lock ----------
-# Dispatch 7 item 1: verify the sources and the handover before claiming the shared game.
+# ---------- read-only source check, deliberately outside the lock ----------
+# Written handover is no longer a prerequisite; active processes and the coordinator still guard execution.
 # Nothing here writes, builds or switches anything.
 Write-Host "=== read-only source check (outside the lock) ==="
 
@@ -80,9 +76,7 @@ function Show-GitIdentity([string]$root) {
 Show-GitIdentity $cb2Root
 Show-GitIdentity $cbathRepo
 
-Write-Host "--- handover notes ---"
-Get-Content -LiteralPath $observationReadme -TotalCount 6 | ForEach-Object { Write-Host "  readme: $_" }
-Get-Content -LiteralPath $observationHandoff -TotalCount 4 | ForEach-Object { Write-Host "  handoff: $_" }
+Write-Host "resource policy: no written handover approval required; active-process and lock guards remain"
 
 $runner = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match 'bannerlord' }
 if ($runner) { throw "Bannerlord already running (pid $(($runner | ForEach-Object { $_.Id }) -join ',')); refusing to claim the shared game" }

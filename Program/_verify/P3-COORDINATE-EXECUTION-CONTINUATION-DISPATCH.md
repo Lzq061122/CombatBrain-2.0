@@ -1,6 +1,6 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 P3 Coordinate and Execution Continuation Dispatch
-Version: 1.2
+Version: 1.3
 Author Role: CombatBrain 2.0 Development Dispatcher and Reviewer
 Model: GPT-6
 Created: 2026-10-16
@@ -10,9 +10,9 @@ Scope: CombatBrain 2.0 / P3 coordinate semantics and execution continuation
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.3 2026-10-18 02:14 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-resource-policy-20261018 | note=取消人工交回前置，按现场空闲与实际互斥准入执行；其余战术及安全判据不变
 v1.2 2026-10-18 01:24 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-bounded-correction-20261018 | note=落实用户批准的每职责一次纠偏、原绝对截止和同状态失败抑制，不降低到位/安全/评价门槛
 v1.1 2026-10-18 01:14 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-course-correction-20261018 | note=按用户纠偏将设计复核并入当前定位，区分瞬时换算与到位保证，保留数值和命令策略裁定边界
-v1.0 2026-10-16 11:46 | role=CombatBrain 2.0 Development Dispatcher and Reviewer | model=GPT-6 | editor=codex-cb2-p3-coordinate-restart-20261016 | note=接续旧会话未提交成果，落实已裁定的质心与锚点修复、投递时序和剩余验收，不改变三门或数值合同
 -->
 
 # P3 坐标口径与执行接续整改派单
@@ -38,7 +38,7 @@ NotEffective失败后，同一Mission、相同目标条件区间及对象/成员
 - 已证实的方案局限：plan-8在285.101秒锚点已到请求点，但Guard质心距G*约15.95m，Support质心距S*约9.46m；写令时的偏移不能保证队形变化后的实际到位。Effective代表位移进度，readiness代表职责关系；reads=0不等于没有采样。先复算两者，不预设Observe漏调用。
 - 当前计划关闭后仅凭占比/兵力条件再次创建，未消费空间关系建立失败的原因。由此出现相近计划重复等待、重建和反馈窗口断裂；只减少重建日志或把失败计划永久禁用，都不等于恢复闭环。
 - 常规取数、接线和同范围修复直接完成。本节以上批准的一次纠偏与失败抑制可直接实施；超出该边界或调整职责几何/半径、等待期限时，仍先提交证据与最小规则，由用户裁定。不得按tick追写、把原生歼灭记作本方成果或把缺读数算作通过。
-- 开发场必须能区分方案原因：核对实际偏移/到位与计划存续、CB2实际写令和评价的因果时间链；不要求随机触发lostRole分支，不以“动作已下发”或工具无失败代替行为。取得正式交回后经既有独占入口跑一场；行为稳定才进入P/N/C。
+- 开发场必须能区分方案原因：核对实际偏移/到位与计划存续、CB2实际写令和评价的因果时间链；不要求随机触发lostRole分支，不以“动作已下发”或工具无失败代替行为。现场空闲时直接经既有独占入口持锁跑一场，不再申请人工交回窗口；行为稳定才进入P/N/C。
 - 每项工作在现有交回材料内简短写清改善的战术行为、已确认事实/设计假设、真实新增证据与缺口。评审既查合同符合性，也查方案是否仍服务Charter，不新增审批、模板或长报告。
 
 ## 1. 接手基线：先保全，再续接
@@ -156,7 +156,7 @@ NotEffective失败后，同一Mission、相同目标条件区间及对象/成员
 
 先定位并修复可区分原因，再选择具备真实局部价值和执行空间的最小场景；不靠反复扩大悬殊、刷次数或微调人数求偶发通过。优先同一受审构建用于P/C；需重建则保留当时完整源码/依赖及行为等价依据，mtime/长度/当前git干净不充分。
 
-**共享资源仍是实机阻塞。**本单编写时没有Bannerlord进程；handoff仍是2026-10-12旧记录，未确认本轮正式交回。旧锁JSON不是占用证明，也不是空闲交接证明。本单不取得锁测试、不改开关、不部署、不结束进程。新会话先核实正式交回，内容含当前方、来源/两DLL身份、配置开关、场次和是否释放；无需为离线工作等交接。取得后，完整部署→CBATH启动/采集→归档→正常/异常清理都经`E:\MBmod\BattleObservation-V1\coordination\Invoke-ExclusiveGame.ps1`，Owner=`主线组`，复用本组`run-p3-exclusive.ps1`等入口，不锁外操作、不手动UI、不forceTakeover。
+**资源准入按2026-10-18用户最新指令执行。** 历史“正式交回窗口”不再是运行前置条件，旧handoff仅供追溯。已授权任务在无活跃游戏且协调入口实际取得锁后即可实测，无需用户或观测方再次批准。完整部署→CBATH启动/采集→归档→正常/异常清理仍经`E:\MBmod\BattleObservation-V1\coordination\Invoke-ExclusiveGame.ps1`，Owner=`主线组`，复用本组`run-p3-exclusive.ps1`。实际占用时不抢连接、不强杀、不手改或删除锁元数据。
 
 对改动影响到的P1/P2决策/反馈/依赖/重分配/竞争/退出路径，以新受审产物补必要回归；未影响部分可说明diff后继承历史证据。不把本次发现倒写成P2旧验收当时已覆盖，也不重新展开已关闭的P2历史整改。
 
@@ -166,7 +166,7 @@ NotEffective失败后，同一Mission、相同目标条件区间及对象/成员
 
 CBATH若确需最小取证增量，只在`E:\MBmod\CBATH-P2`本组文件接续，按0005归属精准本地提交；现有证据已有current_position、active_center、订单/目标，先利用，不默认新增观测框架。禁止修改/构建/切换/提交`E:\MBmod\BattleObservation-V1\CB2`、`CBATH`、`TCL`及其integration目录，不合入未验收观测V1，不改`ObservationAdapter.cs`约定接口/事件位置，不改`sources/`与历史失败原始场。
 
-按本单顺序保全→关键红测试→生产修复→必要全量测试/宿主重建→工具反例与失败替身→完整入口WhatIf→有交接后实机。测试工程保持net8.0，不为引用Host迁成net472或加载游戏依赖；必要最小纯判定必须由Host实际调用，不能把纯Core覆盖宣称整条Host已执行。核对真实DLL时间/身份、唯一执行日志后再分析实机逻辑，同一证据分析两次仍不能分辨原因就补新的区分手段。
+按本单顺序保全→关键红测试→生产修复→必要全量测试/宿主重建→工具反例与失败替身→完整入口WhatIf→现场空闲时持锁实机。测试工程保持net8.0，不为引用Host迁成net472或加载游戏依赖；必要最小纯判定必须由Host实际调用，不能把纯Core覆盖宣称整条Host已执行。核对真实DLL时间/身份、唯一执行日志后再分析实机逻辑，同一证据分析两次仍不能分辨原因就补新的区分手段。
 
 收纳现有及此次本组实现时先逐路径/分块核归属，再精准暂存提交CB2/CBATH；禁止`git add -A`/`commit -a`、reset/clean、回滚已有dirty。无关治理、自动身份、bin/obj、scratch和共享配置不混入。仅本地提交，不push、不建PR。当前文档是派单/审查材料，常驻文档只改确有影响的现行说明，不把未确认偏差写成新规范。
 
@@ -175,7 +175,7 @@ CBATH若确需最小取证增量，只在`E:\MBmod\CBATH-P2`本组文件接续�
 1. 本单接续基线、最终CB2/CBATH提交、dirty及精确diff；实际来源→构建→部署→运行身份链，区分源码摘要、DLL摘要和加载路径文件摘要。
 2. 位置语义、正确符号、真实写令基线、调度/R1/R4/R5各项验证；关键反例与篡改/缺证据敏感性，命令目标与质心进度分别核算。
 3. 三门逐门结论与原始P/N/C索引，独立伤亡/订单/质心复算和逐对象转换时序；必要P1/P2回归或继承依据；失败/未覆盖明确列出。
-4. 完整入口、WhatIf、复算工具的实际可运行用法，资源交接与清理实读。锁外没有正式交回就明确实机未验证，不能包装完成；其他可推进工作继续做完。
+4. 完整入口、WhatIf、复算工具的实际可运行用法，资源交接与清理实读。实际占用或运行故障导致未完成时如实记录未验证；不再以缺正式交回记录阻塞实机。
 
 已授权范围连续完成，只在重大歧义、新增授权或真实外部阻塞时打断；不因换会话、压缩或日常实现选择逐次确认。开发交付只声明“限定自检完成，待独立验收”，P3阶段结论由另起的独立审核落定。
 

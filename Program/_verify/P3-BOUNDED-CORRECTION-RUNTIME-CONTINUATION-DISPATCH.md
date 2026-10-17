@@ -1,6 +1,6 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 P3 Bounded Correction Runtime Continuation Dispatch
-Version: 1.0
+Version: 1.1
 Author Role: CombatBrain 2.0 Development Dispatcher and Reviewer
 Model: GPT-6
 Created: 2026-10-18
@@ -10,6 +10,7 @@ Scope: CombatBrain 2.0 / P3 startup recovery and bounded correction runtime evid
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.1 2026-10-18 02:14 | role=Project Governance Maintainer | model=GPT-6 | editor=codex-cb2-resource-policy-20261018 | note=按用户要求取消正式新窗口审批，空闲自动持锁实测；已验证修复先按路径本地提交
 v1.0 2026-10-18 01:43 | role=CombatBrain 2.0 Development Dispatcher and Reviewer | model=GPT-6 | editor=codex-cb2-p3-runtime-dispatch-20261018 | note=从已实现的有限纠偏续接，纠正旧汇报判据，定位战斗前启动异常并取得一次有效开发场
 -->
 
@@ -62,19 +63,19 @@ v1.0 2026-10-18 01:43 | role=CombatBrain 2.0 Development Dispatcher and Reviewer
 - 允许精准修本组现有启动/采集脚本，或本组CBATH必要的就绪/异常处理接线。复用当前GABS/CBATH入口，不自建启动器、UI模拟、通用重试框架或吞掉错误。若确需修改第三方桥实现/版本或扩大命令域，提交明确位置、触发证据和最小方案再裁定；无法本组修复时给出具体外部阻塞，完成其余离线工作，不盲目重启刷场。
 - 该场原`end-state.json`的safely_exited=0失败必须保留；后续恢复见`post-crash-recovery.json`。不得把修复配置后的读回倒写成原运行正常收尾。
 
-## 5. 验证与共享资源窗口
+## 5. 验证与自动实测准入
 
 相关离线验证优先调用现有生产入口：偏移未变且职责已满足不纠偏；锚点到而真实质心仍越界才考虑纠偏；健康职责不重发；新身份/次数预算；未获选或未写出仍受原截止；纠偏后正常Observe→主力推进路径；失败状态不因抖动重建、相关事实变化后可重评。已覆盖且未受改动影响的用例可继承，不重造数学模型或无关边界。脚本改动跑受影响PS5.1语法/定向反例与WhatIf；不机械重跑未变的C#全量。
 
-上次窗口已于`coordination/handoff.md`的2026-10-18 01:29条目交回观测方。**01:19旧同意不能再次使用**；接手读取最新交接，取得正式新窗口后执行一次有界开发场。锁FREE、无人进程或无人回复均不等于交回。
+按2026-10-18用户最新指令，取消每轮人工交回/书面窗口批准。上次01:19/01:29记录仅供追溯，不再需要判定旧窗口是否还能使用，也不需观测方新增交回条目。相关离线验证通过后，已授权任务在现场无活跃游戏且协调入口实际取得锁时直接执行一次有界开发场，不再请示资源许可。实际有运行或互斥锁占用仍须停止，不凭旧锁元数据判断。
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "E:\MBmod\CombatBrain 2.0\Program\_verify\run-p3-exclusive.ps1" -Scenario P -CombatHoldSec 420
 ```
 
-整个部署CB2→部署本组CBATH→启动/采集→结束清理由既有`Invoke-ExclusiveGame.ps1`持锁，Owner=`主线组`。保持死战不退，核对真实get_fight_to_death的status/patches_installed/enabled以及样本归档。不得锁外改配置、部署，或强杀未知归属进程。未获交回时仅离线工作；通知/协调延续已有用户授权，不自动建新会话。
+整个部署CB2→部署本组CBATH→启动/采集→结束清理由既有`Invoke-ExclusiveGame.ps1`持锁，Owner=`主线组`。保持死战不退，核对真实get_fight_to_death的status/patches_installed/enabled以及样本归档。不得锁外改配置、部署，或强杀未知归属进程。实际被占用时仅做离线工作，不抢占；不再向其他会话索要例行窗口，不自动建新会话。
 
-该次启动与验证合为一次尝试，不先开一场探启动再自动开第二场。若再次启动失败，保全证据、清理并交回；不自动刷场。若需要特殊部署或改变开发场景，说明它要区分的原因和原始实测配置，不把其结果冒充正式P/C对照。不得为触发lostRole日志随机改变人数或延时。
+该次启动与验证合为一次尝试，不先开一场探启动再自动开第二场。若再次启动失败，保全证据并清理，释放锁；不自动刷场。若需要特殊部署或改变开发场景，说明它要区分的原因和原始实测配置，不把其结果冒充正式P/C对照。不得为触发lostRole日志随机改变人数或延时。
 
 ### 本次实机必须回答
 
@@ -91,7 +92,7 @@ CB2仅改与本单直接相关的既有Core任务/协调/计划/投递、Host接
 
 不改变5m/1s/20s、1.5s延迟/间隔、3s反馈窗口、评价公式、退出1s安全预算、唯一裁决/主线程、原生获选和已开放兵种×命令类别。不得改用锚点冒充质心到位、逐tick追写、延长计划寿命或扩大已批准纠偏次数。提前触发、另加偏移稳定门或把次数改为全Plan一次均是方案差异，要带证据明确提出，不能偷偷当成“方案A”重做。
 
-本地逐路径提交本组改动，不push、不建PR；自动BuildIdentity和既存scratch/日志/私有启动配置不混入。仅更新现有`P3-IMPLEMENTATION-HANDOVER.md`与实际新增场次的`sessions/INDEX.md`，不要求报告自身哈希另造提交，不建长报告或新审批模板。
+相关离线验证通过即本地逐路径提交本组已授权改动，实机证据随后补记；无需再询问先提交还是后提交。不push、不建PR；自动BuildIdentity和既存scratch/日志/私有启动配置不混入。仅更新现有`P3-IMPLEMENTATION-HANDOVER.md`与实际新增场次的`sessions/INDEX.md`，不要求报告自身哈希另造提交，不建长报告或新审批模板。
 
 交回简短写清：纠正了什么偏移；新增了什么真实行为证据；源码/构建/部署/运行身份及清理；还缺什么。区分离线已验证、实机成立、未触发和外部阻塞。未跑的场次与未证明的分支不得登记通过；P3阶段结论仍独立落定。
 
