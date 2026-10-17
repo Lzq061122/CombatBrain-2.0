@@ -914,6 +914,7 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
     - **未改**：到位半径、稳定窗口、评价公式、退出规则、计划失效条件均未动。
     - **测试**：`Program/tests/CoordinationDriverTests.cs` 新增 4 个 `[Fact]` —— `GuardWindowBreakWithNoPremiseFailureIsReportedAsGuard`、`SupportWindowBreakWithNoPremiseFailureIsReportedAsSupport`、`GuardCommandOverrideIsReportedAsCommandInvalid`、`PremiseFailureOutranksWindowAndCommandLoss`。红态（把 `LostRoleOf` 换回旧规则）3 失败 / 36 通过，其中 `GuardWindowBreakWithNoPremiseFailureIsReportedAsGuard` 报 `Expected: Guard / Actual: Support`；恢复后 39/39，全量 **313/313**。
     - **仍未验证**：实机行为。本轮只做离线证明，`role=`/`loss=` 是否在真实场上正确归类，需观测方交回后跑一场开发实测核对。
+    - **第三场核对口径（已修正）**：归因修正**不预期让计划多活一段**。相同读数、没有替补时，计划仍然关闭是完全可能且可能就是正确的结果——本次改的是「报表与替补候选指向哪一侧」，不是依赖判据本身。第三场只核对三件事：①实际失效侧与 `role=/loss=/task=` 三者一致（`loss=NotReady` 对应到位窗口断、`loss=CommandInvalid` 对应命令被改写、`loss=PremiseFailure` 对应前提失效）；②健康职责没有被选成替换对象（`replacement=` 与 `task=` 不得是同一侧的对手方）；③接敌与伤亡是否发生在**有效计划存续期间**，即 `ACTION_FEEDBACK_FROZEN` 所在计划的有效窗口与 `terminal` 时间窗是否重叠。
 
 **未触发的自然边界**（保留为未验证，不登记为通过）：获选超时、写令截止后才首次获选、`FLIGHT`/`STOP_LOSS` 触发的继任、P1/P2 相关回归——本轮 §2 改动了 `TaskFeedback`/`CoordinationPlan`/`TestDriver` 的位置语义判断，已用 309 项单测覆盖，但**未在任何实机窗口回归**。P1 锚点语义由 `AnchorDefinedTaskKeepsAnchorSemantics` 与 `TaskSelectionDeadlineTests.MoveRequiresClosingDistance` 锁定。
 
