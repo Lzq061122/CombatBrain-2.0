@@ -169,6 +169,8 @@ CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:0
 
 **首场实机后的第六轮改动提交 `2a8de3b`** "fix(p3): correct aim-point selection and lock read-back after the first real run"（3 files, +89/−13；相对 `d04c65b` 逐路径实测：`Program/_verify/run-p3.ps1` +21/−4 `Find-OurMain` 兵种兜底与 `Assert-CleanEndState` 锁读取、`../P3-IMPLEMENTATION-HANDOVER.md` +61/−5、本文件 +7/−4）；**未改 C# 源码**，故未重跑 `dotnet test`。
 
+**第七轮改动（定向复核 `E:\Agent\codex\2026-10-17\p3-review-2a8de3b\REVIEW.md`，尚未提交）**：第六轮的兜底让控制动作得以下发，但它选的是「我方人数最多的编队」，不是冻结事件指明的 Main——本场拿到 `030dd50e@Formation` Ranged 175 @ (906.361,959.823)，而 `ACTION_FEEDBACK_FROZEN plan=plan-4 task=plan-4-task-4-g1 main=1/0 t0=52.033` 指向的是 `00bec9c9@Formation` **Cavalry 52** @ (911.057,978.689)，相距 **19.442 m**。整改只动 `Program/_verify/run-p3.ps1`：删除按人数猜的 `Find-OurMain`，新增 `Find-MainByKey`（按 `main=<team>/<slot>` 取对象，键畸形/队伍或槽位不存在/坐标不可读一律不返回对象）与 `Get-FrozenMainKey`（取日志中最后一条冻结行的键），触发时重读一次键并同时记录「武装时的键」与「实际使用的键」，实际瞄准的对象写入 `opponent-target.json`；瞄不到即 `{"status":"frozen_main_not_found"}` 如实失败，不再有「最大编队冒充 Main」。**本轮未改 C# 源码，未重跑 `dotnet test`（沿用 309/309）。这项改动不承诺任何门通过，也不改变门的判据；攻击远程编队本身可以是有效反制，但那种场景必须把目标记成远程编队。**
+
 第二轮整补针对独立复核退回的三个 P1 缺陷与一个文档问题：①提案身份/竞争误差/写前复核统一使用战术目标语义（判定链提到 `ProposalWiring`）；②门2 改为三值判定，「没发现矛盾」不再等于「已看到停止」；③进程收尾按实际归属证据限定、归属不明不强杀、`end_mission` 只在确有本场连接时执行；④更正 handover/INDEX 中「依赖环互锁」与「超出授权」的说法。
 
 第三轮整改针对第二轮复核（`P3-ROUND2-REVIEW-5ac034b-20261016.md`）退回的两处边界：①**新增进程数不是所有权**——`games_start` 只有自身声明 `processStarted=true` 时，唯一新增同名 PID 才可进结束名单，否则与多个未知 PID 一样登记 unresolved 并保留运行（新增 `foreignonly` 隔离模式复现复核反例）；②**门2 后续归属**——停止时刻之后的读数，若该对象在此之前已有合法后继普通写令（非旧 plan、非 `-exit`），归后继，不再仅因坐标与旧角色点相等就判旧动作未停；缺证据仍 unverified、矛盾仍 fail。
@@ -197,7 +199,7 @@ CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:0
 | `p3-C-20261015-220738` | b20261015-220735-18fd6c08 | 7D5E848C0C4AAD8E | unverified | unverified | 对照 | 门3 对照；离散事实与 P-220249 相同，几何不同 → 维持 unverified |
 | `p3-P-20261015-221833` | b20261015-221826-977cb576 | DB58CBE71973F790 | unverified | **pass** | unverified | 门2 正例：必需对象**三个**（Main `030dd50e@Infantry` 134.036 / Support `038572bf@Ranged` 134.086 / Guard `008c0c1e@HorseArcher` 134.182，最后一者实际兵种 Cavalry），全在 `deadline=134.844` 前写出，`waited=0.344`，`taken_over_before_confirmation=0` |
 | `p3-P-20261015-222821` | b20261015-222818-c9f62071 | 1E980EB3ACD51410 | unverified | unverified | unverified | `ACTION_FEEDBACK_FROZEN=0`，P3 未武装，不可用于任何门 |
-| **`p3-P-20261017-104721`** | **b20261017-104710-f41051eb** | **51A113C6A0F57478** | unverified | unverified | unverified | **首个本轮源码实机场**（2026-10-17 10:47，经独占入口，196096 B）。`RESULT: FAILURES (2)`、`failed stage: collect`；三门全 unverified（无 reinforce、无止损/撤出决定、无对照会话）。两处失败均在主线采集脚本、非产品代码，见 `../P3-IMPLEMENTATION-HANDOVER.md` §4 的「首个本轮源码实机场」；**不可作为任何门的证据** |
+| **`p3-P-20261017-104721`** | **b20261017-104710-f41051eb** | **51A113C6A0F57478** | unverified | unverified | unverified | **首个本轮源码实机场**（2026-10-17 10:47，经独占入口，196096 B）。`RESULT: FAILURES (2)`、`failed stage: collect`；三门全 unverified（无 reinforce、无止损/撤出决定、无对照会话）。两处失败均在主线采集脚本、非产品代码，见 `../P3-IMPLEMENTATION-HANDOVER.md` §4 的「首个本轮源码实机场」；**不可作为任何门的证据**。本场还暴露：反制目标取「我方人数最多」的 Ranged 175，而冻结的 `main=1/0` 是 Cavalry 52，相距 19.442 m |
 
 未取得 pass 的两门与根因：门1 — 旧构建下场观测到继任协同计划未完成保护/辅助落位与主力推进，直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不存在依赖环**：`BattleAssessment.cs:212/214` 的 `DependsOnTaskId` 指向 `:199` 的 Hold 等待任务，推进任务另行创建，依赖链 `main-hold → guard/support → advance` 无环；门3 — P/C 实际开局部署质心相差数百米且无地形深度产物，场景等价既未证明也未否定。**除最后一行外，全部实机场次早于本轮提交，不能为当前产物给出任何门的结论。** 详见 `../P3-IMPLEMENTATION-HANDOVER.md` §4、§7。
 
@@ -231,4 +233,15 @@ CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:0
 | `fighttodeathoff` | True | False | 死战不退未开启 → `pre_mission` 即阻断，不进入 mission |
 
 **十三例都必须按上表取值**（其中六例是场次副本：前四行 + `new_order_*` 两行；另七例是定向探针场景）。原始场 `p3-P-20261015-221833` 未被清洗改写。门2 现为三值判定：`ChecksOk` 失败 → fail；缺少独立可解释读数 → unverified；全满足 → pass。探针位于 `../../_gate2probe/run-probe.ps1`（切出检查器同一段生产代码，只替换写入记录与独立样本，不读写任何场次目录）。进程归属的隔离反例见下表。
+
+**反制目标定位的离线复算（第七轮，非实机场次）**
+
+| 检查 | 结果 |
+|---|---|
+| 本场冻结键解析 | `1/0`（取最后一条 `ACTION_FEEDBACK_FROZEN ... main=<t>/<s>`） |
+| 按键命中 | `team=1 slot=0 identity=00bec9c9@Formation class=Cavalry units=52 @ (911.057,978.689)` |
+| 与第六轮兜底（我方人数最多）之差 | `030dd50e@Formation` Ranged 175 @ (906.361,959.823)，相距 **19.442 m** |
+| 键指向别槽位 `1/1` | 返回 `Ranged 030dd50e@Formation`（按槽位取，不按人数取） |
+| 不存在槽位 `1/9` / 队伍 `9/0` / 空键 / 畸形 `x` | 一律不返回对象，不猜 |
+| 日志无冻结行 / 两条冻结行 | 空串 / 取后者 |
 

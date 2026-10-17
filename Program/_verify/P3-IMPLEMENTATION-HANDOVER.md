@@ -16,6 +16,8 @@
 
 **本轮为新开发会话接续。** 接手时存在未提交的 P3 成果（14 项已跟踪 dirty + 未跟踪生产源码 `TaskDelivery.cs`），按派单 §5 逐路径精准暂存提交，未 `git add -A` / `commit -a`、未 reset/clean、未回滚任何既有 dirty。
 
+**第七轮（定向复核确认第六轮的兜底仍不是 Main）**：定向复核 `E:\Agent\codex\2026-10-17\p3-review-2a8de3b\REVIEW.md`（受审 `2a8de3b` / `4e170b8`）确认锁读取修复与十模式隔离可接受、死战模式实机成立，但指出第六轮的兜底选错了对象：它取「我方人数最多的编队」，本场拿到 Ranged 175 @ (906.361,959.823)，而冻结事件 `ACTION_FEEDBACK_FROZEN main=1/0` 指向的是 **Cavalry 52** @ (911.057,978.689)，两者相距 **19.442 m**。本轮只动采集脚本：按冻结行的 `main=<team>/<slot>` 键定位对象，并把实际瞄准的队伍/槽位/身份/兵种/人数/坐标写入 `opponent-target.json`；拿不到键或键找不到对象时如实失败，不再退化成「最大编队」冒充 Main。**第七轮结论未经过独立复核，不改产品代码、不改变任何门的判据。**
+
 ---
 
 ## 1. 来源、构建、部署与运行身份
@@ -38,6 +40,7 @@
 | 第五轮整改提交 | `573f098` "fix(p3): bind process ownership to this run's own launch context"（master，本地，未 push / 未建 PR，3 files, +127 / −82；父提交 `76713ef`） |
 | 首场实机（本轮源码） | `p3-P-20261017-104721`，2026-10-17 10:47，经 `run-p3-exclusive.ps1 -Scenario P`；CB2 `b20261017-104710-f41051eb`、CBATH `b20261017-104719-6f4500f2`；`RESULT: FAILURES (2)`、三门全 unverified，见 §4 的「首个本轮源码实机场」 |
 | 第六轮整改提交 | `2a8de3b` "fix(p3): correct aim-point selection and lock read-back after the first real run"（master，本地，未 push / 未建 PR，3 files, +89 / −13；父提交 `d04c65b`；只改 `Program/_verify/run-p3.ps1` 与两份文档，未改 C#） |
+| 第七轮整改提交 | 尚未提交；提交后在此补记实际短哈希（届时 `git show --stat` 实测） |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
@@ -136,6 +139,16 @@ Program/_verify/sessions/INDEX.md               （随本批同交）
 ```
 
 这两处不是新增功能，而是**首场实机暴露的采集脚本缺陷**：`Find-OurMain` 只认 Infantry 导致我方无 Infantry 的阵容拿不到主阵、控制动作从未下发；`Assert-CleanEndState` 用 `ReadAllBytes` 读本脚本仍持有的锁文件必然失败。前者让本场控制臂失效、后者让本场误报为清理失败。详见 §4 的「首个本轮源码实机场」。
+
+**第七轮整改逐路径清单**（相对 `4e170b8`，`git diff --numstat` 实测）：
+
+```
+Program/_verify/run-p3.ps1                       +70/-33（删除 Find-OurMain、新增 Find-MainByKey / Get-FrozenMainKey、opponent-target.json、WhatIf 一行）
+Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    （本文件，本批同改，不给自指行数）
+Program/_verify/sessions/INDEX.md               （随本批同交）
+```
+
+本轮同样**未改任何 C# 源码**（`git diff --name-only` 对 `Program/src`、`Program/tests` 只有自动生成的 `BuildIdentity.g.cs`），按入口 §4a 未重跑 `dotnet test`，沿用 309/309。整改细节与离线复算见 §4「首个本轮源码实机场」的第七轮段。
 
 **未动他方材料**：`E:\MBmod\BattleObservation-V1\{CB2,CBATH,TCL}` 未修改、未构建、未切换、未提交（`git worktree list` 复核：观测组两 worktree 仍在 `e2a0e38` / `925c224`）；`ObservationAdapter.cs` 约定接口与事件位置未改；`sources/` 与历史失败原始场未改。
 
@@ -647,6 +660,41 @@ P/C 两场实际开局部署质心相差数百米，属派单 §4 表已点明�
 - 十模式隔离复跑（`Program/_verify/_r5sim/`）：runner SHA256 `BF8F2E4BBC483A7BC97275043B943729B1A642C994C0F1445A36DFDA968FEDF1`，generator SHA256 `79D671263AC90130C42631CDB7BE520DB0B91391DB20D8C1A8FAB61EDEDAE885`，十模式 own/foreign/cleanup/endmission 与第五轮基线完全一致，无回归。
 - PS 5.1 七脚本解析 0 错误；`run-p3-exclusive.ps1 -Scenario P -WhatIf` exit 0、前后 Bannerlord 均 0。
 
+**第七轮：反制目标改按冻结的 Main 键定位（定向复核 `p3-review-2a8de3b`）**
+
+第六轮的兜底让「找不到对象」变成「找到了另一个对象」，但没有让反制指向计划真正冻结的 Main。本场证据：
+
+| 项 | 值 |
+|---|---|
+| 冻结行 | `ACTION_FEEDBACK_FROZEN plan=plan-4 task=plan-4-task-4-g1 main=1/0 t0=52.033 NE=59 NF=280 observe=02229289@Infantry` |
+| `main=1/0` 实际指向 | team1/slot0 = `00bec9c9@Formation` **Cavalry 52** @ (911.057, 978.689) |
+| 第六轮兜底选中 | `030dd50e@Formation` **Ranged 175** @ (906.361, 959.823)，即我方人数最多者 |
+| 两者距离 | **19.442 m** |
+
+整改（只动 `Program/_verify/run-p3.ps1`）：
+
+- `Find-OurMain`（按人数猜）删除，改为 `Find-MainByKey($evidenceObj, $key)`：解析 `<team>/<slot>`，在该队伍内按 `formation_index` 取对象，返回队伍/槽位/`formation_identity`/兵种/人数/坐标；键畸形、队伍或槽位不存在、坐标不可读时返回 `null`，**不退化成任何近似**。
+- 新增 `Get-FrozenMainKey($logText)`：从日志里取**最后一条** `ACTION_FEEDBACK_FROZEN ... main=<t>/<s>`（后一次冻结取代前一次），无该行返回空串。
+- 触发时重新读取一次键（`applyKey`），把「武装时的键」与「实际使用时的键」都写进记录，避免在中途更换计划后仍瞄向已被取代的 Main。
+- 新增 `opponent-target.json`：`{status, frozen_main_key, armed_main_key, team_index, formation_index, identity, class, unit_count, x, y, aimed_by}`。失败时 `opponent-action.json` 记 `{"status":"frozen_main_not_found"}`，不再有 `own_main_not_found` 这种把「我方哪个编队」当成 Main 的写法。
+- WhatIf 增一行：`would aim: the formation named by the ACTION_FEEDBACK_FROZEN main=<team>/<slot> key, recorded in opponent-target.json`。
+
+离线复算（`Program/_verify/_aimcheck/`，用生产函数 AST 提取、喂本场 `p2-evidence-0062.json`）：
+
+| 检查 | 结果 |
+|---|---|
+| 冻结键解析（本场日志） | `1/0` |
+| `Find-MainByKey` 命中 | `team=1 slot=0 identity=00bec9c9@Formation class=Cavalry units=52 @ (911.057,978.689)` |
+| HEAD 版 `Find-OurMain` 同一证据 | `units=175 @ (906.361,959.823)`，距离 **19.442 m**（与复核一致） |
+| 键指向别的槽位 `1/1` | 返回 `Ranged 030dd50e@Formation`（证明按槽位取，不按人数取） |
+| 不存在的槽位 `1/9` / 队伍 `9/0` / 空键 / 畸形键 `x` | 一律 `null`，不猜测 |
+| 日志无冻结行 | 键为空串，不默认任何值 |
+| 两条冻结行（`1/0` 后 `1/1`） | 取后者 `1/1` |
+
+八例全部符合预期（`check-aim-cases.ps1`，exit 0）。改后十模式隔离复跑无回归：runner SHA256 `E813D947BB0015B6CD211A50A9B1011D05BD39A82D6C8A79738B01CFF432633A`，generator SHA256 `79D671263AC90130C42631CDB7BE520DB0B91391DB20D8C1A8FAB61EDEDAE885`，十模式 own/foreign/cleanup/endmission 与第五/六轮基线一致，`batch_kill` 与 `force_takeover` 全为 0。PS 5.1 三脚本解析 0 错误；WhatIf exit 0、前后 Bannerlord 均 0。
+
+**这项改动不承诺任何门通过。** 它只保证下一次实机的反制动作瞄向计划真正冻结的 Main，并且在瞄不到时如实失败。攻击远程编队本身可以是有效反制，但那种场景必须把目标记成远程编队，不能记成 Main。
+
 **CB2 行为观察（参考，不是验收结论）**
 
 - 锚点换算在真实写令中生效，含非零二维偏移。例：`plan-1-task-2` Guard `tactic=(915.280,975.371) anchor=(914.890,968.316) center=(916.005,977.762) requested=(914.165,965.925)`；`plan-4-task-4-g1` Main `tactic=(918.570,959.304) requested=(913.427,967.627)`。
@@ -708,6 +756,9 @@ Program\_verify\_r5sim\r5-isolation-results.json   十模式结论
 Program\_verify\_r5sim\run-isolation.ps1           一次跑完全部模式并写结果 JSON
 Program\_verify\_gate2probe\run-probe.ps1          门2 后续归属判定的定向探针（切出检查器同一段生产代码）
 Program\_verify\_gate2probe\gate2-probe-results.json   七场景结论（含指向 HEAD 版检查器的对照）
+Program\_verify\_aimcheck\check-aim.ps1            反制目标定位的复算（生产函数 AST 提取 + 本场证据）
+Program\_verify\_aimcheck\check-aim-cases.ps1      反制目标定位的八例边界（按槽位取、缺失不猜、后冻结取代前冻结）
+Program\_verify\_aimcheck\aim-result.json          本场复算结果（含与 HEAD 版 19.442 m 的对照）
 Program\_verify\_stagesim\              stage 替身与 stage-results.json
 Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据敏感性）
 ```
@@ -765,16 +816,17 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 ## 7. 失败与未覆盖项
 
-1. **门1 未取得 pass。** 本轮全部实机场次都早于 `732f6df`，它们只能证明历史成功/失败与工具的敏感性，**不能为当前提交给出任何门的结论**。旧场观测到的继任协同计划未完成保护/辅助落位与主力推进，其直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不是依赖环**——`DependsOnTaskId` 指向的是 Hold 等待任务，依赖链无环（详见 §4 门1）。因此不存在需要另行申请的「互锁修复授权」；门1 的后续验证属于派单 §4 原有要求。当前产物三个门**均未实机验证**。
+1. **门1 未取得 pass。** 除 2026-10-17 的首个本轮源码实机场（见第 3 条）外，全部实机场次都早于 `732f6df`，它们只能证明历史成功/失败与工具的敏感性，**不能为当前提交给出任何门的结论**。旧场观测到的继任协同计划未完成保护/辅助落位与主力推进，其直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不是依赖环**——`DependsOnTaskId` 指向的是 Hold 等待任务，依赖链无环（详见 §4 门1）。因此不存在需要另行申请的「互锁修复授权」；门1 的后续验证属于派单 §4 原有要求。当前产物三个门**均未实机验证通过**。
 2. **门3 未取得 pass（unverified）。** P/C 实际部署不可比 + 无地形深度产物；未取匹配对照场次。**未放宽容差凑 pass。**
 3. **首个本轮源码实机场已完成（2026-10-17 10:47），但不能作为任何门的证据。** `p3-P-20261017-104721` 用工作树（含第五轮已提交内容 + 本轮两处未提交 runner 修复）运行，`RESULT: FAILURES (2)`、`failed stage: collect`，三门均 unverified。两处失败已定位为主线采集脚本缺陷并修复（见 §4 的「首个本轮源码实机场」），**不是 CB2 产品代码缺陷**。其余场次（§1.3 前 16 行）都早于本轮提交。`732f6df` 及第二至第五轮整补的 C# 改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四、五轮未改 C#，沿用该读数）+ 首场实机运行；脚本侧另有 PS 5.1 语法、WhatIf、R5 十模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照。**P3 三门仍未取得任何 pass。**
 4. **R5 隔离模拟是替身证据，不能替代实机收尾。** 它证明控制流按预期收尾（helper 关闭、只杀本场启动上下文所确认的 PID、归属不明时保留并登记、stage 分列）。第五轮新增的 `foreignidentity` 与 `startedthenexited` 仍只是桩级复现。**实机已部分回答**：`p3-P-20261017-104721` 的 `own game pids: 35948 basis=launch_context_pid_matched_new_process` 与 `ping ok (runtime pid=35948)` 同时成立，证明启动上下文路径在真实 GABS 上可用、且与游戏自报一致；清理实读为 Bannerlord 0 / gabs 0 / 锁 FREE / `safely_exited=1`。但「他方 CBATH 同时写身份文件」「本场进程退出仅剩他方同名进程」两类竞争条件在实机中未出现，仍只有桩级证据。若实机发现本场启动上下文在收尾时不可读，正确结果是登记 unresolved 保留进程，**不是**退回共享身份文件或候选数当归属。
 
 5. **`Get-LaunchContextPids` 的实机风险已基本排除，但仍需每场核对 basis。** 它读 `runtime.json` 的 `gamePid` 与 `launch.log` 里的 `pid=`。首场实机证明：`runtime.json` 由 GABS 在 claim/spawn 时写入、clean stop 后删除，因此只存在于运行期间（这也解释了为何静态检查 `gabs-config\` 时看不到它）。若字段改名，归属会退回 `launch_candidate_pending_runtime_identity`／`new_process_without_launch_result`——登记 unresolved 保留进程，不会误杀，但正常场次的 PID 也停不掉。**每场仍须核对 `own game pids:` 一行的 basis 取值。**
-4b. **死战不退前置已取得实机读回。** `p3-P-20261017-104721` 的 `pre_mission` 与 `post_deployment` 两次均为 `status=ok patches_installed=True enabled=True policy=fight_to_death_v1`，panicked=0 fleeing=0；`get_last_run` 根 `enabled=true`、`samples=181 / enabled_true=181 / enabled_false=0`。三份归档齐备。这一项从「只接线」升级为「一轮实机成立」，但仍只有单场、单一场景（P）。
-5. **晚场的独占入口证据不完整**（沿用上批结论）。只有 `p3-P-20261015-203136`、`p3-N-20261015-211938`、`p3-N-20261015-213231` 三场留存完整 stage record（`_lastrun-p3-exclusive-*.txt`）。`p3-P-20261015-214532`、`-215314`、`-220249`、`p3-C-20261015-214157`、`-220738`、`p3-P-20261015-221833`、`-222821` 未留存 stage-record 日志，**不作为「经 `Invoke-ExclusiveGame.ps1` 独占执行」的证据**；其运行身份（§1.3）与产物仍有效，但启动通道归属未证实。
-6. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。
-7. **`_tamper4` 目录内含被修改过的 `CombatBrain2.log`（mtime 2026-10-16 1:34）**，用于门2 缺证据敏感性；原始场 `_verify\sessions\p3-P-20261015-221833` 未被清洗改写。审查副本位于 `E:\Agent\codex\2026-10-14\p3\work\review-20261016\`。
+6. **死战不退前置已取得实机读回。** `p3-P-20261017-104721` 的 `pre_mission` 与 `post_deployment` 两次均为 `status=ok patches_installed=True enabled=True policy=fight_to_death_v1`，panicked=0 fleeing=0；`get_last_run` 根 `enabled=true`、`samples=181 / enabled_true=181 / enabled_false=0`。三份归档齐备。这一项从「只接线」升级为「一轮实机成立」，但仍只有单场、单一场景（P）；本场未覆盖士气溃逃的压力边界。
+7. **反制目标的定位已改为按冻结键，但仍未经实机验证。** 首场实机因 `Find-OurMain` 缺陷从未下发反制动作，第六轮的兜底又选错对象（Ranged 175 vs 冻结的 Cavalry 52，相距 19.442 m）；第七轮改为按 `ACTION_FEEDBACK_FROZEN main=<team>/<slot>` 定位。离线复算八例全部符合预期，但**下一次实机才是它第一次真正跑在场上**，须核对 `opponent-target.json` 的 `frozen_main_key`/`identity`/`class`/`unit_count` 与实际战场一致，并确认反制真的产生接敌与反馈。
+8. **晚场的独占入口证据不完整**（沿用上批结论）。只有 `p3-P-20261015-203136`、`p3-N-20261015-211938`、`p3-N-20261015-213231` 三场留存完整 stage record（`_lastrun-p3-exclusive-*.txt`）。`p3-P-20261015-214532`、`-215314`、`-220249`、`p3-C-20261015-214157`、`-220738`、`p3-P-20261015-221833`、`-222821` 未留存 stage-record 日志，**不作为「经 `Invoke-ExclusiveGame.ps1` 独占执行」的证据**；其运行身份（§1.3）与产物仍有效，但启动通道归属未证实。
+9. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。
+10. **`_tamper4` 目录内含被修改过的 `CombatBrain2.log`（mtime 2026-10-16 1:34）**，用于门2 缺证据敏感性；原始场 `_verify\sessions\p3-P-20261015-221833` 未被清洗改写。审查副本位于 `E:\Agent\codex\2026-10-14\p3\work\review-20261016\`。
 
 **未触发的自然边界**（保留为未验证，不登记为通过）：获选超时、写令截止后才首次获选、`FLIGHT`/`STOP_LOSS` 触发的继任、P1/P2 相关回归——本轮 §2 改动了 `TaskFeedback`/`CoordinationPlan`/`TestDriver` 的位置语义判断，已用 309 项单测覆盖，但**未在任何实机窗口回归**。P1 锚点语义由 `AnchorDefinedTaskKeepsAnchorSemantics` 与 `TaskSelectionDeadlineTests.MoveRequiresClosingDistance` 锁定。
 

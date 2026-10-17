@@ -245,6 +245,7 @@ if ($WhatIf) {
     Write-Host "=== whatif ==="
     Write-Host "scenario $Scenario : own army=$ownArmySize comp=$ownComp | enemy army=$enemyArmySize comp=$enemyComp"
     Write-Host "opponent counter-action: $opponentControl (delay ${OpponentDelaySec}s after the action freezes)"
+    Write-Host "would aim: the formation named by the ACTION_FEEDBACK_FROZEN main=<team>/<slot> key, recorded in opponent-target.json"
     Write-Host "would clear: $cb2Log"
     Write-Host "would clear: $cbathOut"
     Write-Host "would run: h3_provider_start -> h3_start_from_screen -> auto_finish_deployment -> delegate_team_to_ai"
@@ -390,37 +391,43 @@ function Find-OpponentInfantry($evidenceObj) {
     return $null
 }
 
-# Our own main formation (the side CB2 controls), read from the same engine evidence.
-# Used only to aim the one opponent counter-action at the real line instead of a guess.
-# An Infantry formation is preferred, but the composition is not ours to choose: a battle card
-# can field an army with no Infantry at all on our side, and then the aim point must still come
-# from the real line rather than aborting the control action.
-function Find-OurMain($evidenceObj) {
+# The formation CB2 actually froze as Main, located by the key the freeze line itself carries.
+# main=<teamIndex>/<formationIndex> is a formation slot, not a size class: the largest formation
+# on our side can be a ranged line the plan never froze, and aiming at that would look like a
+# counter-action while pointing somewhere the plan was never attacking. Anything other than the
+# keyed formation is a different target, so it must not be reported as Main.
+function Find-MainByKey($evidenceObj, [string]$key) {
     if ($null -eq $evidenceObj -or $null -eq $evidenceObj.teams) { return $null }
-    $best = $null
-    $bestUnits = -1
-    $bestAny = $null
-    $bestAnyUnits = -1
+    if ($key -notmatch '^(\d+)/(\d+)$') { return $null }
+    $ti = [int]$Matches[1]
+    $fi = [int]$Matches[2]
     foreach ($team in $evidenceObj.teams) {
-        if ($team.is_player_team) { continue }
+        if ([int]$team.team_index -ne $ti) { continue }
         foreach ($f in $team.formations) {
-            $u = [int]$f.engine_unit_count
-            if ($u -gt $bestAnyUnits) { $bestAnyUnits = $u; $bestAny = $f }
-            $cls = [string]$f.formation_class
-            if ($cls -notmatch 'Infantry') { continue }
-            if ($cls -match 'Ranged') { continue }
-            if ($u -gt $bestUnits) { $bestUnits = $u; $best = $f }
+            if ([int]$f.formation_index -ne $fi) { continue }
+            $pt = Get-FormationPoint $f
+            if ($null -eq $pt) { return $null }
+            return [pscustomobject]@{
+                team_index      = $ti
+                formation_index = $fi
+                identity        = [string]$f.formation_identity
+                class           = [string]$f.formation_class
+                unit_count      = [int]$f.engine_unit_count
+                x               = $pt.x
+                y               = $pt.y
+            }
         }
     }
-    if ($null -eq $best -and $null -ne $bestAny) { $best = $bestAny; $bestUnits = $bestAnyUnits }
-    if ($null -eq $best) { return $null }
-    $pt = Get-FormationPoint $best
-    if ($null -eq $pt) { return $null }
-    return [pscustomobject]@{
-        unit_count = $bestUnits
-        x          = $pt.x
-        y          = $pt.y
-    }
+    return $null
+}
+
+# Latest main key in the log. A later freeze supersedes an earlier one, and only the key on the
+# freeze line ties the aim point to the plan that is actually being measured.
+function Get-FrozenMainKey([string]$logText) {
+    $hits = [regex]::Matches($logText, 'ACTION_FEEDBACK_FROZEN[^\r\n]*\bmain=(\d+)/(\d+)')
+    if ($hits.Count -eq 0) { return '' }
+    $last = $hits[$hits.Count - 1]
+    return $last.Groups[1].Value + '/' + $last.Groups[2].Value
 }
 
 # ---------- preflight ----------
@@ -807,6 +814,7 @@ try {
     Write-Host "=== combat window: $CombatHoldSec s (~1 Hz independent sampling) ==="
     $opponentDone = $false
     $opponentArmedAt = $null
+    $frozenMainKey = ''
     $end = (Get-Date).AddSeconds($CombatHoldSec)
     $tick = 0
     while ((Get-Date) -lt $end) {
@@ -830,7 +838,8 @@ try {
                 try { $tail = [System.IO.File]::ReadAllText($cb2Log) } catch { }
                 if ($tail -match 'ACTION_FEEDBACK_FROZEN') {
                     $opponentArmedAt = Get-Date
-                    Write-Host "  opponent counter-action armed at $($opponentArmedAt.ToString('HH:mm:ss')) (action t0 frozen)"
+                    $frozenMainKey = Get-FrozenMainKey $tail
+                    Write-Host "  opponent counter-action armed at $($opponentArmedAt.ToString('HH:mm:ss')) (action t0 frozen, main=$frozenMainKey)"
                 }
             } elseif (((Get-Date) - $opponentArmedAt).TotalSeconds -ge $OpponentDelaySec) {
                 $opponentDone = $true
@@ -840,17 +849,45 @@ try {
                     [System.IO.File]::WriteAllText((Join-Path $OutDir 'opponent-action.json'),
                         '{"status":"formation_not_found"}')
                 } else {
-                    # Push the opponent's main body onto our own main line. A plain Move to a
-                    # world point is an ordinary order; the aim is the real line read from the
-                    # same engine evidence, so the counter-action actually reaches contact.
-                    $ours = Find-OurMain $e
+                    # Push the opponent's main body onto the formation CB2 actually froze as
+                    # Main. A plain Move to a world point is an ordinary order; the aim is the
+                    # keyed formation read from the same engine evidence, so the counter-action
+                    # reaches the line the plan is really measured on. Without the key there is
+                    # no Main to aim at - guessing one would silently record a different target.
+                    $ours = $null
+                    # The freeze that armed this action is not necessarily still the latest one
+                    # when it fires, so re-read the key: aiming at a superseded Main would record
+                    # a target the plan is no longer measured on.
+                    $applyKey = $frozenMainKey
+                    $applyTail = ''
+                    try { $applyTail = [System.IO.File]::ReadAllText($cb2Log) } catch { }
+                    $latestKey = Get-FrozenMainKey $applyTail
+                    if ($latestKey.Length -gt 0) { $applyKey = $latestKey }
+                    if ($applyKey.Length -gt 0) { $ours = Find-MainByKey $e $applyKey }
                     if ($null -eq $ours) {
-                        Fail 'our own main formation not found in engine evidence; counter-action not applied'
+                        Fail "frozen main formation $applyKey not found in engine evidence; counter-action not applied"
                         [System.IO.File]::WriteAllText((Join-Path $OutDir 'opponent-action.json'),
-                            '{"status":"own_main_not_found"}')
+                            '{"status":"frozen_main_not_found"}')
                     } else {
                         $tx = [math]::Round($ours.x, 3)
                         $ty = [math]::Round($ours.y, 3)
+                        $target = [pscustomobject]@{
+                            status           = 'aimed'
+                            frozen_main_key  = $applyKey
+                            armed_main_key   = $frozenMainKey
+                            team_index       = $ours.team_index
+                            formation_index  = $ours.formation_index
+                            identity         = $ours.identity
+                            class            = $ours.class
+                            unit_count       = $ours.unit_count
+                            x                = $tx
+                            y                = $ty
+                            aimed_by         = 'action_feedback_frozen_main_key'
+                        }
+                        [System.IO.File]::WriteAllText((Join-Path $OutDir 'opponent-target.json'),
+                            ($target | ConvertTo-Json -Compress))
+                        Write-Host ("  opponent counter-action aims at frozen Main {0} = {1} {2} units {3} @ ({4},{5})" -f `
+                            $applyKey, $ours.identity, $ours.class, $ours.unit_count, $tx, $ty)
                         $oa = Invoke-Tool 'cbath/p3_opponent_move' 30 @{
                             teamIndex      = $op.team_index
                             formationIndex = $op.formation_index
