@@ -152,10 +152,20 @@ function Assert-CleanEndState {
     }
     if ($safelyExited -ne '1') { $script:CleanupFailures += "end-state: safely_exited=$safelyExited, expected 1" }
 
-    # The coordination lock is held by the exclusive wrapper, not by this script; report the
-    # file's current content instead of claiming anything about acquisition.
+    # The coordination lock is held by the exclusive wrapper, not by this script, and the wrapper
+    # opens it FileShare.None. Reading it here therefore fails for as long as this run is still
+    # inside the lock, so an unreadable lock is reported as "held", never as a cleanup failure:
+    # the wrapper releases it after this script returns.
     $lockPath = 'E:\MBmod\BattleObservation-V1\coordination\shared-game-session.lock'
-    $lockText = if (Test-Path -LiteralPath $lockPath) { ([System.IO.File]::ReadAllBytes($lockPath) | ForEach-Object { $_.ToString('x2') }) -join '' } else { '<absent>' }
+    $lockText = '<absent>'
+    if (Test-Path -LiteralPath $lockPath) {
+        try {
+            $lockBytes = [System.IO.File]::ReadAllBytes($lockPath)
+            $lockText = ($lockBytes | ForEach-Object { $_.ToString('x2') }) -join ''
+        } catch {
+            $lockText = '<held by the exclusive wrapper>'
+        }
+    }
 
     $rec = [ordered]@{
         own_game_pids        = $script:OwnGamePids
@@ -382,20 +392,27 @@ function Find-OpponentInfantry($evidenceObj) {
 
 # Our own main formation (the side CB2 controls), read from the same engine evidence.
 # Used only to aim the one opponent counter-action at the real line instead of a guess.
+# An Infantry formation is preferred, but the composition is not ours to choose: a battle card
+# can field an army with no Infantry at all on our side, and then the aim point must still come
+# from the real line rather than aborting the control action.
 function Find-OurMain($evidenceObj) {
     if ($null -eq $evidenceObj -or $null -eq $evidenceObj.teams) { return $null }
     $best = $null
     $bestUnits = -1
+    $bestAny = $null
+    $bestAnyUnits = -1
     foreach ($team in $evidenceObj.teams) {
         if ($team.is_player_team) { continue }
         foreach ($f in $team.formations) {
+            $u = [int]$f.engine_unit_count
+            if ($u -gt $bestAnyUnits) { $bestAnyUnits = $u; $bestAny = $f }
             $cls = [string]$f.formation_class
             if ($cls -notmatch 'Infantry') { continue }
             if ($cls -match 'Ranged') { continue }
-            $u = [int]$f.engine_unit_count
             if ($u -gt $bestUnits) { $bestUnits = $u; $best = $f }
         }
     }
+    if ($null -eq $best -and $null -ne $bestAny) { $best = $bestAny; $bestUnits = $bestAnyUnits }
     if ($null -eq $best) { return $null }
     $pt = Get-FormationPoint $best
     if ($null -eq $pt) { return $null }

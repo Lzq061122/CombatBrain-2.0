@@ -136,9 +136,9 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 ## 未提交内容说明
 
 - `sessions/` 下全部场次材料：外置归档，仓库只留本索引。
-- `gabs-config/bannerlord148-cb2/`：GABS 运行时状态（`bridge.json` / `runtime.json` / `history.json` / `launch.log`），非交付物。配置本体 `gabs-config/config.json` 已提交。
+- `gabs-config/bannerlord148-cb2/`：GABS 运行时状态（`bridge.json` / `runtime.json` / `history.json` / `launch.log`），非交付物。配置本体 `gabs-config/config.json` 已提交。**`runtime.json` 只在游戏运行期间存在**——GABS 在 claim/spawn 时写入、clean stop 后删除；静态检查该目录时看不到它属正常，`launch.log` 是每次启动 `O_TRUNC` 重写的。
 - `Program/_scratch/`：构建期反射探针与反编译产物（临时工具，非交付物），磁盘保留、不入库。
-- `Program/_verify/_r5sim/`、`_gate2probe/`、`_stagesim/`、`_tamper4/`：第四、五轮离线取证脚手架（隔离模式生成器与结果 JSON、门2 定向探针、stage 替身、审查副本），非交付物，磁盘保留、不入库。用法见 `../P3-IMPLEMENTATION-HANDOVER.md` §5.4。
+- `Program/_verify/_r5sim/`、`_gate2probe/`、`_stagesim/`、`_tamper4/`：第四、五轮及首场实机后的离线取证脚手架（隔离模式生成器与结果 JSON、门2 定向探针、stage 替身、审查副本），非交付物，磁盘保留、不入库。用法见 `../P3-IMPLEMENTATION-HANDOVER.md` §5.4。
 - `_verify/_lastrun*.txt`：实机脚本控制台输出副本，非交付物。
 
 ## 第三轮 P1 复验（2026-10-12，两处缺口修复后）
@@ -167,6 +167,8 @@ Codex 2026-10-11 已按限定范围验收第一批最小命令通路：run 7 的
 
 CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:00）→ 接续提交 `732f6df` "fix(p3): close coordinate, delivery, R1/R4/R5 continuation items"（master，19 files, +1467/−164）→ 交回文档提交 `5bbdeeb`（2 files, +352/−142）→ 独立复核退回后第二轮整补 `5ac034b` "fix(p3): close review round-2 coordinate wiring, gate-2 evidence and process ownership"（11 files, +475/−146，含新建 `Program/src/Core/ProposalWiring.cs`）→ 第二轮复核退回后**第三轮整改提交 `85e2171`** "fix(p3): attribute round-2 process ownership and gate-2 successor orders"（4 files, +120/−30）+ 文档提交 `badd8d3` → 第三轮复核退回后**第四轮整改提交 `1e7b088`** "fix(p3): bind gate-2 successor readings to live orders and PID ownership to runtime identity"（相对 `badd8d3`：`Program/_verify/check-p3-feedback.ps1` +95/−18、`Program/_verify/run-p3.ps1` +173/−21、本文件 +21/−4、`../P3-IMPLEMENTATION-HANDOVER.md` 随批同交；**未改 C# 源码**），其文档哈希提交 `3ecfa2c`。第五轮定向复核退回一处防误杀后**本轮整改提交 `573f098`** "fix(p3): bind process ownership to this run's own launch context"（3 files, +127/−82；相对 `76713ef` 逐路径：`Program/_verify/run-p3.ps1` +69/−54 归属改绑本场启动上下文、`../P3-IMPLEMENTATION-HANDOVER.md` +48/−21、本文件 +10/−7），**同样未改 C# 源码**。CBATH 实现提交 `5a2275de434e953802d8de8498b3f09ca1a4fbb6`（`codex/cb20-p2-evidence`，未变）。第四、五轮后均未重跑 `dotnet test`（两轮无 C# 改动，沿用 309/309）。全部提交为本地提交，未 push、未建 PR。
 
+**首场实机后的第六轮改动**（相对 `d04c65b`，`git diff --numstat` 实测）：`Program/_verify/run-p3.ps1` +21/−4（`Find-OurMain` 兵种兜底、`Assert-CleanEndState` 锁读取），`../P3-IMPLEMENTATION-HANDOVER.md` 与本文件随批同交；**未改 C# 源码**，故未重跑 `dotnet test`。
+
 第二轮整补针对独立复核退回的三个 P1 缺陷与一个文档问题：①提案身份/竞争误差/写前复核统一使用战术目标语义（判定链提到 `ProposalWiring`）；②门2 改为三值判定，「没发现矛盾」不再等于「已看到停止」；③进程收尾按实际归属证据限定、归属不明不强杀、`end_mission` 只在确有本场连接时执行；④更正 handover/INDEX 中「依赖环互锁」与「超出授权」的说法。
 
 第三轮整改针对第二轮复核（`P3-ROUND2-REVIEW-5ac034b-20261016.md`）退回的两处边界：①**新增进程数不是所有权**——`games_start` 只有自身声明 `processStarted=true` 时，唯一新增同名 PID 才可进结束名单，否则与多个未知 PID 一样登记 unresolved 并保留运行（新增 `foreignonly` 隔离模式复现复核反例）；②**门2 后续归属**——停止时刻之后的读数，若该对象在此之前已有合法后继普通写令（非旧 plan、非 `-exit`），归后继，不再仅因坐标与旧角色点相等就判旧动作未停；缺证据仍 unverified、矛盾仍 fail。
@@ -177,7 +179,7 @@ CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:0
 
 门状态以 `../check-p3-feedback.ps1` 逐门单列为准；退出码 0 只表示工具跑完。`-SessionDir` 必须传**绝对路径**。第四轮已对 `sessions/` 下全部 41 个场次目录 + 复核证据目录下 8 个反例副本（共 49 个目录）用工作树与 HEAD 两版检查器比对，**只有复核点名的那两个副本改变取值**（均由第三轮的误判 pass 变为 fail / unverified），其余 47 个逐门取值完全一致；非 `unverified` 的仍只有下表四行（`P-221833` 门2 pass、`N-005621` 门2 fail、`P-220249`/`P-004350` 门1 fail），无回归。
 
-**下表的全部场次都产生于第二轮整补之前**（源码 mtime 20:16–20:25）。四轮提交的结论只经过离线验证，未在任何实机运行过——接手时无正式资源交回，按派单 §4/§5 只做离线工作。
+**下表的绝大多数场次产生于第二轮整补之前**（源码 mtime 20:16–20:25）。第五轮及之前的整改结论只经过离线验证，未在任何实机运行过——接手时无正式资源交回，按派单 §4/§5 只做离线工作。**表末 `p3-P-20261017-104721` 是唯一一个用本轮源码实机跑过的场次**（第五轮内容已提交 + 本轮两处未提交 runner 修复），但它 `RESULT: FAILURES (2)`、三门全 unverified，同样不构成任何门的证据。
 
 | 场次 | build_id | 部署 SHA 前 16 | 门1 | 门2 | 门3 | 说明 |
 |---|---|---|---|---|---|---|
@@ -195,8 +197,9 @@ CB2 实现提交 `ced0a1895929524d8d3f5a628e112370422f265c`（2026-10-16 00:10:0
 | `p3-C-20261015-220738` | b20261015-220735-18fd6c08 | 7D5E848C0C4AAD8E | unverified | unverified | 对照 | 门3 对照；离散事实与 P-220249 相同，几何不同 → 维持 unverified |
 | `p3-P-20261015-221833` | b20261015-221826-977cb576 | DB58CBE71973F790 | unverified | **pass** | unverified | 门2 正例：必需对象**三个**（Main `030dd50e@Infantry` 134.036 / Support `038572bf@Ranged` 134.086 / Guard `008c0c1e@HorseArcher` 134.182，最后一者实际兵种 Cavalry），全在 `deadline=134.844` 前写出，`waited=0.344`，`taken_over_before_confirmation=0` |
 | `p3-P-20261015-222821` | b20261015-222818-c9f62071 | 1E980EB3ACD51410 | unverified | unverified | unverified | `ACTION_FEEDBACK_FROZEN=0`，P3 未武装，不可用于任何门 |
+| **`p3-P-20261017-104721`** | **b20261017-104710-f41051eb** | **51A113C6A0F57478** | unverified | unverified | unverified | **首个本轮源码实机场**（2026-10-17 10:47，经独占入口，196096 B）。`RESULT: FAILURES (2)`、`failed stage: collect`；三门全 unverified（无 reinforce、无止损/撤出决定、无对照会话）。两处失败均在主线采集脚本、非产品代码，见 `../P3-IMPLEMENTATION-HANDOVER.md` §4 的「首个本轮源码实机场」；**不可作为任何门的证据** |
 
-未取得 pass 的两门与根因：门1 — 旧构建下场观测到继任协同计划未完成保护/辅助落位与主力推进，直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不存在依赖环**：`BattleAssessment.cs:212/214` 的 `DependsOnTaskId` 指向 `:199` 的 Hold 等待任务，推进任务另行创建，依赖链 `main-hold → guard/support → advance` 无环；门3 — P/C 实际开局部署质心相差数百米且无地形深度产物，场景等价既未证明也未否定。**全部实机场次早于本轮提交，不能为当前产物给出任何门的结论。** 详见 `../P3-IMPLEMENTATION-HANDOVER.md` §4、§7。
+未取得 pass 的两门与根因：门1 — 旧构建下场观测到继任协同计划未完成保护/辅助落位与主力推进，直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不存在依赖环**：`BattleAssessment.cs:212/214` 的 `DependsOnTaskId` 指向 `:199` 的 Hold 等待任务，推进任务另行创建，依赖链 `main-hold → guard/support → advance` 无环；门3 — P/C 实际开局部署质心相差数百米且无地形深度产物，场景等价既未证明也未否定。**除最后一行外，全部实机场次早于本轮提交，不能为当前产物给出任何门的结论。** 详见 `../P3-IMPLEMENTATION-HANDOVER.md` §4、§7。
 
 **整改反例（非实机场次，保留为工具敏感性证据）**
 

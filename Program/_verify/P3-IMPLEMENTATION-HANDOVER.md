@@ -12,6 +12,8 @@
 
 **第五轮（定向复核只退回一处防误杀）**：定向复核 `P3-FOCUSED-REVIEW-1e7b088-20261017.md`（受审实现 `1e7b088`，现场 HEAD `76713ef`）确认门2 上轮两条反例与死战不退前置接线均已通过、不必重做，仅剩一处：**「身份文件证明它是谁，仍不能证明由本场启动」**——另一组加载 CBATH 时也会把自己的 PID 身份文件写进共享的 `Documents\CommandBrainATH`，在原 `foreignonly` 反例上加入这一正常行为后，入口仍认领并结束了他方假 PID `777999`。本轮整改：§3.4 第 5d 条改为**归属只认本场自己的启动上下文**（本场 GABS 的 `runtime.json` / `launch.log`），共享身份目录在归属判定中完全弃用，`cbath/ping` 降格为只给已点名 PID 补活性；隔离模拟新增 `foreignidentity` 模式并取 HEAD 红态对照。**第五轮整改结论未经过独立复核。**
 
+**首场实机与第六轮（采集脚本缺陷修复）**：2026-10-17 10:47 经独占入口跑完首个用本轮源码的实机场 `p3-P-20261017-104721`（详见 §4 的「首个本轮源码实机场」）。它**同时验证了三件此前只有离线证据的事**：①部署与运行身份一致（source = deployed = `51A113C6…6400EE`，196096 B，pid=35948）；②§3.4 第 5d 条的归属判定在真实 GABS 上成立（`own game pids: 35948 basis=launch_context_pid_matched_new_process`，且 `cbath/ping` 报同一 pid）；③§3.5 死战不退前置在 `pre_mission` 与 `post_deployment` 两次实机读回均为 `status=ok patches_installed=True enabled=True`，`get_last_run` 的 181 个 1 Hz 采样全部 `enabled=true`。但本场 `RESULT: FAILURES (2)`、`failed stage: collect`，三门全 unverified，**不能作为任何门的证据**。两处失败都定位在主线自己的采集脚本 `Program/_verify/run-p3.ps1`（`Find-OurMain` 只认 Infantry 导致无 Infantry 阵容拿不到主阵、控制动作从未下发；`Assert-CleanEndState` 用 `ReadAllBytes` 读本脚本自己仍持有的锁文件必然失败），已修复并做红绿对照与十模式隔离复跑，**未改 C# 源码**。第六轮不改产品行为，只让下一次实机能真正跑出可判读的对照臂与干净的收尾读数。
+
 **本轮为新开发会话接续。** 接手时存在未提交的 P3 成果（14 项已跟踪 dirty + 未跟踪生产源码 `TaskDelivery.cs`），按派单 §5 逐路径精准暂存提交，未 `git add -A` / `commit -a`、未 reset/clean、未回滚任何既有 dirty。
 
 ---
@@ -34,6 +36,8 @@
 | 第三轮交回文档提交 | `badd8d3` "docs(p3): record the round-3 commit hash in the handover and session index"（2 files, +3 / −2） |
 | 第四轮整改提交 | `1e7b088` "fix(p3): bind gate-2 successor readings to live orders and PID ownership to runtime identity"（master，本地，未 push / 未建 PR，4 files, +401 / −83；父提交 `badd8d3`） |
 | 第五轮整改提交 | `573f098` "fix(p3): bind process ownership to this run's own launch context"（master，本地，未 push / 未建 PR，3 files, +127 / −82；父提交 `76713ef`） |
+| 首场实机（本轮源码） | `p3-P-20261017-104721`，2026-10-17 10:47，经 `run-p3-exclusive.ps1 -Scenario P`；CB2 `b20261017-104710-f41051eb`、CBATH `b20261017-104719-6f4500f2`；`RESULT: FAILURES (2)`、三门全 unverified，见 §4 的「首个本轮源码实机场」 |
+| 第六轮整改提交 | 待提交（只改 `Program/_verify/run-p3.ps1` 与两份文档，未改 C#）；提交后在此补记实际短哈希 |
 
 `f1f01a1` 只含派单与审查材料（7 files, +870），**未含实现**；派单 §1.1 表列的 `ced0a18` 是上批实现提交，工作树已在其之上。故本轮接续基线取工作树 HEAD `f1f01a1`，「未提交成果」即上批 `ced0a18` 之后的追加改动加本轮新写。
 
@@ -123,6 +127,16 @@ Program/_verify/sessions/INDEX.md               +10/-7（随本批同交）
 
 守则一处提示：这次退回的根因正是「用了共享目录里的文件当本场归属证据」。`Documents\CommandBrainATH` 是**共享**目录，任何 CBATH 实例都会写自己的身份文件；本场归属只能取自本场自己的 GABS 启动上下文。
 
+**首场实机后的第六轮改动**（相对 `d04c65b`，`git diff --numstat` 实测）：
+
+```
+Program/_verify/run-p3.ps1                       +21/-4（Find-OurMain 兜底、Assert-CleanEndState 锁读取）
+Program/_verify/P3-IMPLEMENTATION-HANDOVER.md    （本文件，本批同改，不给自指行数）
+Program/_verify/sessions/INDEX.md               （随本批同交）
+```
+
+这两处不是新增功能，而是**首场实机暴露的采集脚本缺陷**：`Find-OurMain` 只认 Infantry 导致我方无 Infantry 的阵容拿不到主阵、控制动作从未下发；`Assert-CleanEndState` 用 `ReadAllBytes` 读本脚本仍持有的锁文件必然失败。前者让本场控制臂失效、后者让本场误报为清理失败。详见 §4 的「首个本轮源码实机场」。
+
 **未动他方材料**：`E:\MBmod\BattleObservation-V1\{CB2,CBATH,TCL}` 未修改、未构建、未切换、未提交（`git worktree list` 复核：观测组两 worktree 仍在 `e2a0e38` / `925c224`）；`ObservationAdapter.cs` 约定接口与事件位置未改；`sources/` 与历史失败原始场未改。
 
 ### 1.2 构建与测试（提交后重跑）
@@ -150,6 +164,8 @@ dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过
 ```
 
 第四、五轮整改后**未重跑**（两轮都只改 `Program/_verify/` 下的脚本与文档，`git diff --name-only` 对 `Program/src`、`Program/tests` 为空，唯一命中的 `.cs` 是自动生成的 `BuildIdentity.g.cs`），按入口 §4a 沿用上表 309/309 作为未回归证据。第五轮实际执行的离线验证见 §3.4 / §5.4 / §5.5。
+
+**首场实机（2026-10-17 10:47）后的第六轮改动**同样只动 `Program/_verify/run-p3.ps1`（`Find-OurMain` 兜底、`Assert-CleanEndState` 锁读取），未改 C#，故仍未重跑 `dotnet test`。这一轮有了一次真实构建与运行：`deploy.ps1` 重新生成了 `BuildIdentity.g.cs`（`build_id=b20261017-104710-f41051eb`），部署到游戏的是 `51A113C6A0F574781C2F6F96C1DD3B4E1A6AA85CF1FD402DF5B3B3B8246400EE`（196096 B）。本地产物哈希随 `BuildIdentity.g.cs` 每次构建变化，不与提交绑定。
 
 本地产物（提交后重建）：
 
@@ -192,8 +208,11 @@ dotnet test  tests\CombatBrain2.Tests.csproj -c Debug --nologo        → 通过
 | p3-C-20261015-220738 | b20261015-220735-18fd6c08 | 6380 | 7d5e848c0c4aad8e | 191488 | 7D5E848C0C4AAD8E |
 | p3-P-20261015-221833 | b20261015-221826-977cb576 | 46552 | db58cbe71973f790 | 191488 | DB58CBE71973F790 |
 | p3-P-20261015-222821 | b20261015-222818-c9f62071 | 24920 | 1e980eb3acd51410 | 191488 | 1E980EB3ACD51410 |
+| **p3-P-20261017-104721** | **b20261017-104710-f41051eb** | **35948** | 51a113c6a0f57478 | **196096** | 51A113C6A0F57478 |
 
-证据来源：各场 `CombatBrain2.log` 的 `RUNTIME_IDENTITY`（`assembly_file_sha256` / `pid` / `Location`）与 `deployed-module.json`（`path` / `size` / `sha256` / `last_write`）。182784 = 基线旧构建；190976 / 191488 = 上批新构建。
+证据来源：各场 `CombatBrain2.log` 的 `RUNTIME_IDENTITY`（`assembly_file_sha256` / `pid` / `Location`）与 `deployed-module.json`（`path` / `size` / `sha256` / `last_write`）。182784 = 基线旧构建；190976 / 191488 = 上批新构建；196096 = 本轮新构建。
+
+最后一行的 `p3-P-20261017-104721` 是**首个用本轮源码实机运行的场次**（2026-10-17 10:47，经独占入口 `run-p3-exclusive.ps1 -Scenario P`）。它取自工作树（含第五轮已提交内容 + 本轮两处未提交的 runner 修复），因此**不能作为本仓库任何提交的产物证据**；其 `RESULT: FAILURES (2)` 与三门全 unverified 见 §4 的「首个本轮源码实机场」。
 
 `p3-P-20261015-221833` CBATH 身份（`build-identity.json`）：`build_id=b20261015-221831-76da5cbd`、`assembly_sha256=be477d94514ff700770c6939d833a01933daeebe57e72661f9b0ba9279374b8c`、`mvid=6c443e22-98c3-4463-9da1-23f63ec73d88`、`pid=46552`、`game_version=v1.4.8.119303`，`active_modules` 含 `CombatBrain2` 与 `CombatBrainAutonomousTestHarness`。
 
@@ -599,6 +618,43 @@ game stage returned ok: <Boolean>
 P/C 两场实际开局部署质心相差数百米，属派单 §4 表已点明的证据缺口。**位置不同本身不能否定等价，但也不能当等价证明**——按派单「不擅自定新数值容差凑 PASS」的要求，维持 unverified。
 另：`cbath-timeline.json`、`p2-evidence-*.json`、`formations-early.json` 三份产物**均不含 height/slope 字段**（正则扫描无命中），故地形关系无法证明，已独立记 Note。
 
+### 首个本轮源码实机场（2026-10-17 10:47，P 场景）— **不能作为任何门的证据**
+
+用户裁定「正式资源交回后先跑一个最小开发实测」。2026-10-17 09:53 的窗口确认（`coordination\handoff.md:22`）后，观测方确认未占用、同意主线先跑一场再书面交回。本场是**第一次用本轮源码在真实游戏里运行**，也是第一次由 `run-p3-exclusive.ps1` 走完「部署 CB2 → 部署 CBATH → CBATH 启动/采集 → 结束清理」全链。
+
+**已通过（一手读数）**
+
+- 构建与部署：CB2 `build_id=b20261017-104710-f41051eb`，`source_sha256` = `deployed_sha256` = `51A113C6A0F574781C2F6F96C1DD3B4E1A6AA85CF1FD402DF5B3B3B8246400EE`（196096 B）；CBATH `build_id=b20261017-104719-6f4500f2`，SHA256 `b58ba53840f333c83f1f06c71a09a3572a4183816a9ddadb5a9404a7597e13aa`。`build_identity` 回执确认运行中的进程 pid=35948、`game_version=v1.4.8.119303`、`active_modules` 含 `CombatBrain2` 与 `CombatBrainAutonomousTestHarness`。
+- **§3.4 第 5d 条（第五轮进程归属）首次实机成立**：`own game pids: 35948 basis=launch_context_pid_matched_new_process`，`ping ok (runtime pid=35948)`，`game ownership resolved: pids=35948 basis=launch_context_pid_matched_new_process`。即本场 GABS 的 `runtime.json`/`launch.log` 确实能解析出 workload PID，且与游戏自报一致；共享 `Documents\CommandBrainATH` 身份文件未参与判定。**§7 第 5 条担心的「本组 config 目录里没有 runtime.json 样本」在真实启动后不再成立**——文件由 GABS 在 claim/spawn 时写入，clean stop 后删除，故只存在于运行期间。
+- **§3.5 死战不退前置首次实机成立**：`fight_to_death[pre_mission]: status=ok patches_installed=True enabled=True policy=fight_to_death_v1 mission_active=False panicked=0 fleeing=0`；`post_deployment` 同（`mission_active=True`）；`get_last_run` 根 `enabled=true`、`samples=181 / enabled_true=181 / enabled_false=0 / max_observed_panicked=0 / max_observed_fleeing=0`。三份归档齐备。
+- 清理：`end_mission sent`、`games_stop sent`、`mcp helper closed`、无新 crash 目录、`sentinel switches cleared: p1=0 p2=0 p3=0 probes empty`；事后复核 Bannerlord 0、gabs/gabp/mcp-http 0、锁 FREE、`safely_exited = 1`、两探针空。
+- 采集量：`CombatBrain2.log` 259618 B / 1369 行，独立采样 184 点，`cbath-timeline.json` 750190 B，`p2-evidence-*.json` 184 份，场次目录 207 个文件。
+
+**未通过：`RESULT: FAILURES (2)`，`failed stage: collect`**
+
+门检查器在本场给出 `gate1_positive=unverified gate2_negative=unverified gate3_control=unverified`（窗口内 `no reinforce decision` / `no stop-loss or disengage decision` / `no control session supplied`）。**因此本场不能作为三门中任何一门的证据，也不构成 P3 阶段通过的依据。**
+
+两处失败都定位在**主线自己的采集脚本 `Program/_verify/run-p3.ps1`**，不在 CB2 产品代码：
+
+1. `our own main formation not found in engine evidence; counter-action not applied`。根因：`Find-OurMain` 只匹配 `formation_class -match 'Infantry'` 且排除 `Ranged`；本场我方（`is_player_team=$false`）三编队为 Cavalry 52 / Ranged 175 / Cavalry 53，**没有任何 Infantry**（Infantry 59 在敌方 team[0]），故返回 null，`opponent-action.json` 写成 `{"status":"own_main_not_found"}`，控制臂的反制动作从未下发。已改为「优先 Infantry，找不到时用人数最多的任意编队」兜底。
+2. `cleanup: end-state read-back: ... shared-game-session.lock ... because it is being used by another process`。根因：`Assert-CleanEndState` 用 `File.ReadAllBytes` 读锁文件，而该锁正由 `Invoke-ExclusiveGame.ps1` 以 `FileShare.None` 持有（本脚本仍在锁内），必然抛 `IOException`。已改为读不到即记 `<held by the exclusive wrapper>`。这是**长期存在、此前从未暴露**的缺陷：历史 `_lastrun-p3-exclusive-*.txt` 均为 `RESULT: OK`，因为此前没有一场真正走到「锁内做 end-state 读回」这条路径。
+   两处失败同源：它们都只在「我方无 Infantry 且本场真的跑完」这一组合下才会同时触发。
+
+**红绿验证**（均为离线、用本场真实证据）
+
+- 缺陷 1：用 AST 精确提取生产函数（`[Parser]::ParseFile` + `FindAll(FunctionDefinitionAst)`），喂本场 `p2-evidence-0062.json`。修复版 → `our main: 175 units at (906.361,959.823)`；HEAD 版 `Find-OurMain` → `<null> -> own_main_not_found`。
+- 缺陷 2：用 `File.Open(...,'Open','ReadWrite','None')` 按入口同样方式真实持锁后对比。旧行为抛 `Exception calling "ReadAllBytes" ... because it is being used by another process`（与本场失败原文一致）；新行为 `lockText = '<held by the exclusive wrapper>'`，无清理失败；释放后 `lockText = '<file present>'`、锁 FREE。
+- 十模式隔离复跑（`Program/_verify/_r5sim/`）：runner SHA256 `BF8F2E4BBC483A7BC97275043B943729B1A642C994C0F1445A36DFDA968FEDF1`，generator SHA256 `79D671263AC90130C42631CDB7BE520DB0B91391DB20D8C1A8FAB61EDEDAE885`，十模式 own/foreign/cleanup/endmission 与第五轮基线完全一致，无回归。
+- PS 5.1 七脚本解析 0 错误；`run-p3-exclusive.ps1 -Scenario P -WhatIf` exit 0、前后 Bannerlord 均 0。
+
+**CB2 行为观察（参考，不是验收结论）**
+
+- 锚点换算在真实写令中生效，含非零二维偏移。例：`plan-1-task-2` Guard `tactic=(915.280,975.371) anchor=(914.890,968.316) center=(916.005,977.762) requested=(914.165,965.925)`；`plan-4-task-4-g1` Main `tactic=(918.570,959.304) requested=(913.427,967.627)`。
+- 全场 4 个 plan、4 次 `PLAN_INVALIDATED`、7 次 `EXIT_STOP_DONE`（8.533/8.583/8.633，全部 `order_after=StandYourGround`）、2 次 `EXIT_STOP_SUPERSEDED`（`object_taken_over_by_new_assignment`）。
+- `ACTION_FEEDBACK` 52.553→178.571 共 43 条，全程 `LE=0.000 LF=0.000 U=0.500 decision=Continue`，`exception=0`；`STOP`/`Disengage` 从未触发。早期为 `window_not_mature`，64.556 起为 `no_local_gain`、`rf=0.000`。
+- 日志无按帧刷屏：`WRITE_DELAYED` 29 条、`REAL_SELECTION_NOT_SUBMITTED` 64 条。
+- **未覆盖**：本场 `RESULT: FAILURES (2)` 意味着控制臂反制动作未下发，故本场**不构成对照臂**，门3 无从评价。
+
 ---
 
 ## 5. 入口、WhatIf 与复算工具用法
@@ -711,11 +767,11 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 1. **门1 未取得 pass。** 本轮全部实机场次都早于 `732f6df`，它们只能证明历史成功/失败与工具的敏感性，**不能为当前提交给出任何门的结论**。旧场观测到的继任协同计划未完成保护/辅助落位与主力推进，其直接机制是**投递节奏 + 继任计划寿命**（3 s 决策网格使首个候选迟至公布后 2.511 s 提交，Main Hold 写出后 0.5 s 即被原生改目标），**不是依赖环**——`DependsOnTaskId` 指向的是 Hold 等待任务，依赖链无环（详见 §4 门1）。因此不存在需要另行申请的「互锁修复授权」；门1 的后续验证属于派单 §4 原有要求。当前产物三个门**均未实机验证**。
 2. **门3 未取得 pass（unverified）。** P/C 实际部署不可比 + 无地形深度产物；未取匹配对照场次。**未放宽容差凑 pass。**
-3. **本轮提交的源码未在任何实机运行过。** §1.3 全部场次的源码 mtime 为 20:16–20:25、构建早于本次提交。`732f6df` 及第二至第五轮整补的改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四、五轮未改 C#，沿用该读数；另有 PS 5.1 语法、WhatIf、R5 十模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照）。**资源未正式交回，按派单只做离线工作。**
-4. **R5 隔离模拟是替身证据，不是实机证据。** 它证明控制流按预期收尾（helper 关闭、只杀本场启动上下文所确认的 PID、归属不明时保留并登记、stage 分列），但**不能替代一次真实 `Invoke-ExclusiveGame.ps1` 全流程收尾的实读**。尤其第五轮新增的 `foreignidentity` 与 `startedthenexited` 都只是桩级复现：真实环境下「他方 CBATH 实例同时加载并写自己的身份文件」「本场进程退出、仅剩他方同名进程」是否出现、本场 GABS 的 `runtime.json` / `launch.log` 是否总能在收尾前拿到 workload PID，都需要实机确认。若实机发现本场启动上下文在收尾时仍不可读，正确结果是登记 unresolved 保留进程，**不是**退回共享身份文件或候选数当归属。
+3. **首个本轮源码实机场已完成（2026-10-17 10:47），但不能作为任何门的证据。** `p3-P-20261017-104721` 用工作树（含第五轮已提交内容 + 本轮两处未提交 runner 修复）运行，`RESULT: FAILURES (2)`、`failed stage: collect`，三门均 unverified。两处失败已定位为主线采集脚本缺陷并修复（见 §4 的「首个本轮源码实机场」），**不是 CB2 产品代码缺陷**。其余场次（§1.3 前 16 行）都早于本轮提交。`732f6df` 及第二至第五轮整补的 C# 改动只经过离线验证（第二轮 309/309 测试与 Release/Debug 重建 0 警告 0 错误；第三、四、五轮未改 C#，沿用该读数）+ 首场实机运行；脚本侧另有 PS 5.1 语法、WhatIf、R5 十模式隔离模拟、门2 十三例反例/探针、坐标接线红态验证、49 目录门矩阵 HEAD 对照。**P3 三门仍未取得任何 pass。**
+4. **R5 隔离模拟是替身证据，不能替代实机收尾。** 它证明控制流按预期收尾（helper 关闭、只杀本场启动上下文所确认的 PID、归属不明时保留并登记、stage 分列）。第五轮新增的 `foreignidentity` 与 `startedthenexited` 仍只是桩级复现。**实机已部分回答**：`p3-P-20261017-104721` 的 `own game pids: 35948 basis=launch_context_pid_matched_new_process` 与 `ping ok (runtime pid=35948)` 同时成立，证明启动上下文路径在真实 GABS 上可用、且与游戏自报一致；清理实读为 Bannerlord 0 / gabs 0 / 锁 FREE / `safely_exited=1`。但「他方 CBATH 同时写身份文件」「本场进程退出仅剩他方同名进程」两类竞争条件在实机中未出现，仍只有桩级证据。若实机发现本场启动上下文在收尾时不可读，正确结果是登记 unresolved 保留进程，**不是**退回共享身份文件或候选数当归属。
 
-5. **`Get-LaunchContextPids` 依赖本场 GABS 的落盘行为。** 它读 `runtime.json` 的 `gamePid` 与 `launch.log` 里的 `pid=`，两者都是 GABS 内部实现的产物（字段名与 `O_TRUNC` 时机来自源码阅读与一处真实样本 `gabs-config\bannerlord148\runtime.json`，但**本组自己的 config 目录里当前没有 `runtime.json` 样本**）。字段若改名或不再写，归属会退回 `launch_candidate_pending_runtime_identity`／`new_process_without_launch_result`——即登记 unresolved 保留进程，不会误杀，但正常场次的 PID 也停不掉。**这一风险只能由实机首发场次暴露，须在实机后立即核对 `own game pids:` 一行的 basis 取值。**
-4b. **死战不退前置只做到接线，未取得任何实机读回。** `Assert-FightToDeath` 在 `pre_mission` 与 `post_deployment` 两个检查点调用 `cbath/get_fight_to_death`，判据为 `status=ok` + `patches_installed=true` + `enabled=true`，不符即 `Fail` 并抛 `fight_to_death_off`；收尾从 `cbath/get_last_run` 逐 1 Hz 采样核对 `fight_to_death` 并归档。上述行为只在 `fighttodeathoff` 隔离模式（桩）验证过，**本轮没有任何实机 `get_fight_to_death` 读数**。
+5. **`Get-LaunchContextPids` 的实机风险已基本排除，但仍需每场核对 basis。** 它读 `runtime.json` 的 `gamePid` 与 `launch.log` 里的 `pid=`。首场实机证明：`runtime.json` 由 GABS 在 claim/spawn 时写入、clean stop 后删除，因此只存在于运行期间（这也解释了为何静态检查 `gabs-config\` 时看不到它）。若字段改名，归属会退回 `launch_candidate_pending_runtime_identity`／`new_process_without_launch_result`——登记 unresolved 保留进程，不会误杀，但正常场次的 PID 也停不掉。**每场仍须核对 `own game pids:` 一行的 basis 取值。**
+4b. **死战不退前置已取得实机读回。** `p3-P-20261017-104721` 的 `pre_mission` 与 `post_deployment` 两次均为 `status=ok patches_installed=True enabled=True policy=fight_to_death_v1`，panicked=0 fleeing=0；`get_last_run` 根 `enabled=true`、`samples=181 / enabled_true=181 / enabled_false=0`。三份归档齐备。这一项从「只接线」升级为「一轮实机成立」，但仍只有单场、单一场景（P）。
 5. **晚场的独占入口证据不完整**（沿用上批结论）。只有 `p3-P-20261015-203136`、`p3-N-20261015-211938`、`p3-N-20261015-213231` 三场留存完整 stage record（`_lastrun-p3-exclusive-*.txt`）。`p3-P-20261015-214532`、`-215314`、`-220249`、`p3-C-20261015-214157`、`-220738`、`p3-P-20261015-221833`、`-222821` 未留存 stage-record 日志，**不作为「经 `Invoke-ExclusiveGame.ps1` 独占执行」的证据**；其运行身份（§1.3）与产物仍有效，但启动通道归属未证实。
 6. **`p3-P-20261015-222821` 未冻结**（`ACTION_FEEDBACK_FROZEN=0`，三门 `unverified :: no freeze`）。该场不可用于任何门。
 7. **`_tamper4` 目录内含被修改过的 `CombatBrain2.log`（mtime 2026-10-16 1:34）**，用于门2 缺证据敏感性；原始场 `_verify\sessions\p3-P-20261015-221833` 未被清洗改写。审查副本位于 `E:\Agent\codex\2026-10-14\p3\work\review-20261016\`。
