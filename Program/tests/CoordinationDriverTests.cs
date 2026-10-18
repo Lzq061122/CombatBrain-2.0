@@ -1047,6 +1047,28 @@ namespace CombatBrain2.Tests
             Assert.False(old.IsClosed);
         }
 
+        // 实机 p3-P-20261018-102648：保护 5.134 秒写令、5.134~8.134 秒反馈窗口内一直是 Pending，
+        // 8.135 秒直接 NotEffective 关闭计划。纠偏若要求"反馈已生效"，窗口内永远不成立，
+        // 而反馈失败的那一刻计划已被关闭——该职责的纠偏在构造上不可达。
+        // 已批准条件是「命令/对象/Plan/Revision 有效」，不是「反馈已生效」。
+        [Fact]
+        public void RoleCorrectionIsReachableWhileTheFeedbackWindowIsStillOpen()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var old = driver.GuardTask;
+            // 写令已落地（读回等于本次请求），但 3 秒反馈窗口还没给出结论。
+            old.Feedback = TaskFeedbackState.Pending;
+            old.FailureReason = PlanInvalidReason.None;
+            var actual = DriftedRole(state, old);
+            Assert.Equal(203.0, old.FeedbackDeadline());
+            var correction = driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 203.0, 201.5);
+            Assert.NotNull(correction);
+            Assert.True(old.IsClosed);
+            Assert.Equal(-1.0, correction.WrittenAt);
+        }
+
         [Fact]
         public void EachRoleGetsOnlyOneCorrectionAndHealthySideRemainsIndependent()
         {

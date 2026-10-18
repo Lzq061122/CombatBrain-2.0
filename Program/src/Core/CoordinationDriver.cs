@@ -224,7 +224,7 @@ namespace CombatBrain2.Core
             if (role != FormationRole.Guard && role != FormationRole.Support) return null;
             var old = role == FormationRole.Guard ? GuardTask : SupportTask;
             bool guard = role == FormationRole.Guard;
-            if (!DependencyReadiness.CommandStillValid(plan, old, guard) || actual == null) return null;
+            if (!DependencyReadiness.CommandStillApplicable(plan, old, guard) || actual == null) return null;
             if (actual.Key() != old.FormationKey || actual.ObjectIdentity != old.ObjectIdentity ||
                 actual.MissionKey != plan.MissionKey || !actual.HasActiveCenter ||
                 !actual.IsAiControlled || actual.IsPlayerControlled || actual.IsPlayerTeam ||

@@ -121,12 +121,24 @@ namespace CombatBrain2.Core
         // 释放条件与失效归因必须走同一份判定，否则两处会各说各话。
         internal static bool CommandStillValid(BattlePlan plan, FormationTask task, bool isGuard)
         {
+            if (!CommandStillApplicable(plan, task, isGuard)) return false;
+            return task.Feedback == TaskFeedbackState.Effective;
+        }
+
+        // 纠偏可写性：命令已写入、属于本职责与本版本、读回未偏离本次请求。
+        // 与 CommandStillValid 只差一条——不要求三秒反馈已经给出 Effective。
+        // 已批准纠偏条件是「原锚点到达请求且实际质心不满足职责关系，命令/对象/Plan/Revision
+        // 有效」，它必须在反馈窗口内可判定；要求 Effective 会把纠偏推到窗口结束之后，
+        // 而窗口结束的同一次反馈又会直接关闭整个计划，纠偏因此构造上不可达
+        // （实机 p3-P-20261018-102648：保护 5.134 秒写令，8.135 秒 NotEffective）。
+        // 主力推进释放不走这里，仍按 CommandStillValid 要求 Effective。
+        internal static bool CommandStillApplicable(BattlePlan plan, FormationTask task, bool isGuard)
+        {
             if (plan == null || plan.IsClosed) return false;
             if (task == null || task.IsClosed) return false;
             if (task.Role != (isGuard ? FormationRole.Guard : FormationRole.Support)) return false;
             if (task.WrittenAt < 0.0) return false;
             if (task.Revision != plan.Revision) return false;
-            if (task.Feedback != TaskFeedbackState.Effective) return false;
             return CommandTargetStillValid(plan, task, isGuard);
         }
 
