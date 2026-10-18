@@ -6,7 +6,7 @@
 - 最新核对场 `p3-P-20261018-102648`（旧）：Guard在8.135秒NotEffective关闭；随后137次同状态失败抑制，推进、纠偏、冻结及战果评价均为0。
 - 行动恢复场 `p3-P-20261018-210338`：纠偏、重试、Main推进、冻结与战果评价全部首次出现，同状态失败抑制为0；但接敌期无有效计划窗。
 - 裁定①实施后的两个开发场 `p3-P-20261018-224524` / `p3-P-20261018-225324`：前者未触发①（Guard 全程 reads=0），后者**触发①并让 Guard 命令计入生效**；两场均因无 Main 写令被采集器判 `opponent counter-action never applied`，`RESULT: FAILURES (1)`，**不作为任何门的证据**。见下方「2026-10-18 裁定①（职责要求已满足计入生效）」。
-- 当前未闭合：Support（Ranged 175）在 20 秒关系截止内到不了 S*，是 ① 之后的下一处阻断；20 秒预算与 S* 12 m 侧移均属冻结数值，需裁定。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。
+- 当前未闭合：`plan-2` 的 Guard 依赖在 148.092 失效且无替补（`replacement=<none>`），而接敌始于 148.589——有效计划窗在接敌前 0.5 秒结束；交战期 plan-3..8 各自 3 秒内失败或选择超时。**20 秒预算与 12 m 侧移已复算证明可执行（`210338` plan-2 两侧真实到位并维持 135 秒），本段不请求改动，也未改任何生产数值**；先前「Support 20 秒走不完」的记录是窗口起点错误，已在下节更正。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。
 - 实机不再要求人工交回窗口；现场空闲时由现有完整入口自动取锁，保留实际占用、连接和进程归属保护。非必要不回复，已授权工作连续推进至集中交回。
 
 ### 2026-10-18 裁定①（职责要求已满足计入生效）
@@ -26,7 +26,42 @@
 
 **开发场二 `p3-P-20261018-225324`**（CB2 `b20261018-225321-2c3dc283`，`1b711f06…`，202752 B，pid 53500；CBATH `b20261018-225323-8b84c467`，`efff6a52…`）：**①首次实机成立**——`plan-1-task-2` 在 5.606 记 `state=effective detail=role_requirement_already_satisfied was=closed_distance=-3.82 (<3.0) distance=4.25 from=0.43`，即质心本来就在职责区内、命令生效不再要求再走 3 m；同一计划 5.686 因质心已出区触发一次 Guard 纠偏（`deadline=25.136`），纠偏命令 3 秒后仍失败（`closed_distance=-6.91 distance=24.93`），plan-1 于 10.637 关闭。plan-2 里 Guard 从 21.534 起 `guard_ready=1 guard_loss=None`（①路径持续让它保持生效），但 **Support 的 Ranged 175 全程 `reads=0`**，39.088 以 `relationship_not_established guard_deadline=37.134 support_deadline=39.084` 到期关闭。`RESULT: FAILURES (1)` 同为反制未武装。
 
-**下一处阻断（需裁定，未擅自改）**：Support 写入的请求点 `(1137.607,830.626)` 距 S* `(1139.341,831.817)` 仅约 2 m，目标本身没错；但 175 人 Ranged 编队 19.084 写令、到 37.5 秒质心才从 `(1147.5,870.5)` 走到 `(1134.1,845.8)`，仍距 S* 约 14.9 m，实际速度约 1.4 m/s，20 秒关系截止内不可能走完约 40 m。要动的都是冻结项：20 秒关系截止、S* 12 m 侧移或支援编队选择。两场均无冻结/推进，故两场都不能当正式 P 对照样本，也不追加同类 420 s 刷场。
+**下一处阻断：Support 在本场到不了 S\*；但「20 秒 / 12 m 不可执行」的先前记录已推翻**
+
+本文件先前据 `p3-P-20261018-225324` 记过「Support 20 秒内走不完约 40 m、需改冻结数值」。该结论的**窗口口径错误**：它从计划创建时刻起算，而生产口径见 `Program/src/Core/CoordinationDriver.cs:434-440`：
+
+```
+if (task == null) return -1.0;
+if (task.RelationshipDeadlineAt >= 0.0) return task.RelationshipDeadlineAt;
+return task.WrittenAt < 0.0 ? -1.0
+    : task.WrittenAt + TestParameters.CoordinationRelationshipDeadlineSeconds;
+```
+
+即预算从**写令时刻**起算（日志 `support_deadline=39.084` = 写令 19.084 + 20）。本场 Support 首令延迟 5.550 秒，按创建时刻算等于白扣掉 5.5 秒预算。
+
+重算工具（只读、纯 ASCII，避免 PowerShell 5.1 按 ANSI 读脚本失败）：`Program/_verify/_recompute_reachable.ps1` —— 按写令起算窗口，且只取该编队**在本窗口内真实处于 `Move`** 的样本测速；窗口内无 `Move` 者报 UNMEASURABLE，不判「慢」。
+
+**实测结果（`need` = 写令时真实质心到 G\*/S\* 距离，`left` = 窗口末剩余距离，到位半径 5 m）**
+
+`p3-P-20261018-210338`：
+
+| 计划 | Guard | Support | 判读 |
+|---|---|---|---|
+| plan-2 | 20.1 m @1.02 → left 1.6 m | 36.2 m @1.86 → left 0.3 m | **两侧均到位**；32.548 起 `guard_ready=1 support_ready=1 advance_allowed=1`，维持到 148.092 |
+| plan-3 | 8.5 m @0.48 → left 4.0 m | 33.8 m @1.17 → left 12.7 m | Support 到不了 |
+| plan-4 | 6.2 m @0.35 → left 3.4 m | 25.1 m @0.92 → left 11.0 m | Support 到不了 |
+| plan-5 | 1.7 m @0.21 → left 2.9 m | 16.9 m @0.82 → left 7.0 m | Support 到不了 |
+| plan-6 | 1.5 m @0.37 → left 5.8 m | 12.6 m @0.87 → left 6.4 m | Support 到不了 |
+| plan-7 | 5.1 m @1.10 → 仅 2.8 s 窗口 | 本窗口内无 Move | UNMEASURABLE |
+| plan-1 | 写令时仅差 6.1 m，但 19.3 s 内**反向拉开 24.7 m**（`closed=-24.7`） | — | 非路程不足，是真实漂移 |
+
+`p3-P-20261018-225324`：plan-1 Support 需 34.5 m、plan-2 Support 需 39.5 m（实测 1.48 m/s，18.9 s 走 24.5 m，left 14.9 m）。
+
+**换分配能否可行**（`Program/_verify/_recompute_swap.ps1`，**反事实估算，非实测**：对调后的命令从未真正下发）：对每个计划把 Guard/Support 对调后重算，**没有任何一个计划能让两侧同时落在 20 秒内**——对调后总是「Ranged 去 G\* 需 48.7–55.1 m」或「Cavalry 改去 S\* 需 12.0 m @ 0.35–1.05 m/s 仍超时」。原因是几何本身：G\*、S\* 分别落在主力前后两侧各 12 m，Ranged 起手距两者都在 35–55 m，Cavalry 虽近，改去 S\* 后同样超出预算。
+
+**结论（不写成「整套方案不可执行」）**：`210338` 的 plan-2 已实测**两侧在各自 20 秒窗口内真实到位**并维持 135 秒（13.5–148.1），证明「20 秒 + 12 m 侧移」在敌我距离较大（本场写令时约 35 m）时**确实可执行**；到不了只发生在敌方贴到十几米、S\* 相对支援编队反而变远的后期计划（plan-3..6，`need` 12.6–33.8 m、观测 0.82–1.17 m/s）。因此**不满足**用户「若无可行组合则判定当前部署不可执行」的触发条件，**本段不请求改 20 s / 12 m，也未改动任何生产数值**。
+
+真实剩余阻断改为：`plan-2` 在 148.092 记 `COORDINATION_DEPENDENCY_LOST role=Guard loss=NotReady failure=None replacement=<none>` → 关闭，而 `BATTLE_STATE` 首次损失在 148.589。即**有效计划窗在接敌前 0.5 秒结束**；交战期 plan-3..8 各自 3 秒内失败或选择超时。下一步应查「依赖失效时为何没有替补」与「交战期为何建不出可用计划」，而不是继续调 20 s / 12 m。两场均无冻结/推进，故仍不能当正式 P 对照样本。
 
 
 
