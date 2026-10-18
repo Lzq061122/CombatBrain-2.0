@@ -6,7 +6,7 @@
 - 最新核对场 `p3-P-20261018-102648`（旧）：Guard在8.135秒NotEffective关闭；随后137次同状态失败抑制，推进、纠偏、冻结及战果评价均为0。
 - 行动恢复场 `p3-P-20261018-210338`：纠偏、重试、Main推进、冻结与战果评价全部首次出现，同状态失败抑制为0；但接敌期无有效计划窗。
 - 裁定①实施后的两个开发场 `p3-P-20261018-224524` / `p3-P-20261018-225324`：前者未触发①（Guard 全程 reads=0），后者**触发①并让 Guard 命令计入生效**；两场均因无 Main 写令被采集器判 `opponent counter-action never applied`，`RESULT: FAILURES (1)`，**不作为任何门的证据**。见下方「2026-10-18 裁定①（职责要求已满足计入生效）」。
-- 当前未闭合（三项均已定位到机制，需裁定是否改规则，见下节）：(a) **三编队编制下任一职责失效都无法重分配**——`BuildReassignments` 排除主力与被失效键后只剩正在担任另一职责的那一支，为其找替补时可用键已耗尽，必然 `replacement=<none>`；(b) **交战期新计划的 Guard/Support 进不了冻结包络**，plan 以约 9 秒周期重建、每次 3 秒内失败；(c) `225324` 的 Ranged Support **命令有效、目标读回未变却在中途停滞**（1.79→0.35 m/s）。**20 秒预算与 12 m 侧移已复算证明可执行（`210338` plan-2 两侧真实到位并维持 135 秒），本段不请求改动，也未改任何生产数值**；先前「Support 20 秒走不完」的记录是窗口起点错误，已在下节更正。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。**(d) 已闭合的机制核查：推进期依赖失效没有原地恢复入口**，`210338` plan-2 的 148.092 同时被两个门挡住——阶段门（`CoordinationDriver.cs:222-223` 仅等待期）与已耗尽的时间预算（写令 17.136 + 20 = 37.136，失效时 148.092 已超期约 111 秒）。按用户裁定：**不新增推进期恢复入口**，该限制记为**当前实现限制，不宣称已满足持续指挥目标**；等待期纠偏失败也不能推断推进期必然无效。交战期 plan-3/plan-7 的失败在现行判定下仍然正确。见下方「裁定两项的闭合」。
+- 当前未闭合（三项实质阻断均已定位到机制，需裁定是否改规则，见下节）：(a) **三编队编制下任一职责失效都无法重分配**——`BuildReassignments` 排除主力与被失效键后只剩正在担任另一职责的那一支，为其找替补时可用键已耗尽，必然 `replacement=<none>`；(b) **交战期新计划的 Guard/Support 进不了冻结包络**，plan 以约 9 秒周期重建、每次 3 秒内失败；(c) **原生战术每 tick 清零我方行为权重**（`TacticCharge` 的 `ResetBehaviorWeights()` + 我方 8.0 vs `BehaviorCharge` 10000 f），`plan-8` 因此三个任务全部错失 `REAL_SELECTION`。原记为 (c) 的「`225324` Support 中途停滞」**已用派单 §3.1 残差公式推翻**：锚点已到达请求点（0.139 m），差额来自锚点—质心偏移变化，不再构成阻断。**20 秒预算与 12 m 侧移已复算证明可执行（`210338` plan-2 两侧真实到位并维持 135 秒），本段不请求改动，也未改任何生产数值**；先前「Support 20 秒走不完」的记录是窗口起点错误，已在下节更正。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。**(d) 已闭合的机制核查：推进期依赖失效没有原地恢复入口**，`210338` plan-2 的 148.092 同时被两个门挡住——阶段门（`CoordinationDriver.cs:222-223` 仅等待期）与已耗尽的时间预算（写令 17.136 + 20 = 37.136，失效时 148.092 已超期约 111 秒）。按用户裁定：**不新增推进期恢复入口**，该限制记为**当前实现限制，不宣称已满足持续指挥目标**；等待期纠偏失败也不能推断推进期必然无效。交战期 plan-3/plan-7 的失败在现行判定下仍然正确。见下方「裁定两项的闭合」。
 - 实机不再要求人工交回窗口；现场空闲时由现有完整入口自动取锁，保留实际占用、连接和进程归属保护。非必要不回复，已授权工作连续推进至集中交回。
 
 ### 2026-10-18 裁定①（职责要求已满足计入生效）
@@ -55,7 +55,7 @@ return task.WrittenAt < 0.0 ? -1.0
 | plan-7 | 5.1 m @1.10 → 仅 2.8 s 窗口 | 本窗口内无 Move | UNMEASURABLE |
 | plan-1 | 写令时仅差 6.1 m，但 19.3 s 内**反向拉开 24.7 m**（`closed=-24.7`） | — | 非路程不足，是真实漂移 |
 
-`p3-P-20261018-225324`：plan-1 Support 需 34.5 m、plan-2 Support 需 39.5 m（实测 1.48 m/s，18.9 s 走 24.5 m，left 14.9 m）。
+`p3-P-20261018-225324`：按**质心**口径 plan-1 Support 需 34.5 m、plan-2 Support 需 39.5 m（18.9 s 走 24.5 m，left 14.9 m）。但同一窗口按**锚点**口径是 `(1145.718,869.299) → (1137.657,830.756)`，移动 39.0 m 且**到达**请求点（0.139 m）。两个口径分岔的原因见下文第 6、7 条（锚点—质心偏移由 2.10 m 变为 15.42 m）。因此这组数字说明的是「质心没到」，不是「编队走不动」。
 
 **换分配能否可行**（`Program/_verify/_recompute_swap.ps1`，**反事实估算，非实测**：对调后的命令从未真正下发）：对每个计划把 Guard/Support 对调后重算，**没有任何一个计划能让两侧同时落在 20 秒内**——对调后总是「Ranged 去 G\* 需 48.7–55.1 m」或「Cavalry 改去 S\* 需 12.0 m @ 0.35–1.05 m/s 仍超时」。原因是几何本身：G\*、S\* 分别落在主力前后两侧各 12 m，Ranged 起手距两者都在 35–55 m，Cavalry 虽近，改去 S\* 后同样超出预算。
 
@@ -75,9 +75,33 @@ return task.WrittenAt < 0.0 ? -1.0
 
 **5. `p3-P-20261018-225324` 的 Support 确实写出了命令，此前"从未写令"的判断是错的。** plan-2-task-3 @19.084 `WRITE_EXECUTED ... role=Support requested=(1137.607,830.626) order_target=(1137.607,830.626) readback_error=0.000 first_command_delay=5.550`；引擎 `move_target=(1137.607,830.626)` 保持到 40 s 不变、`order=Move`。
 
-**6. 但该编队在后半段停滞，不是匀速慢行。** 自己的 20 秒窗口（19.084–39.084）内质心 (1147.5,870.5)→(1134.1,845.7)，`need=39.5 m`、`left=14.9 m`。分段看：19.34–31.69 走 22.1 m（1.79 m/s），31.69–39.20 只走 2.6 m（**0.35 m/s**）。命令仍在、目标读回未变、编队却停住；同刻 `1/2` Cavalry 停在目标延长线外侧约 15 m 处，是否为阻挡**尚未验证**。这是"命令有效但质量中心不再前进"的候选缺陷，**不能用"20 秒预算不够"解释，也不能据此改预算**。
+**6.（已更正）该编队不是"后半段停滞"：锚点其实到达了请求点，差额来自锚点与质心之间的偏移发生了变化。** 用派单 §3.1 已给的残差公式 `C' − T = O0 − O1 + e`（`O = A − C`、`e = A' − R`）复算 plan-2-task-3：
 
-**结论**：本段不请求改 20 s / 12 m / 3 s / 5-15-5 包络，也未改任何生产数值。剩余阻断按优先级为：(a) 三编队下职责失效无法重分配（结构）；(b) 交战期新计划的 Guard/Support 3 秒内进不了职责包络，导致约 9 秒周期的重建循环；(c) `225324` 的 Ranged Support 在命令有效、目标未变时停滞。三项都超出"接线修复"，需裁定是否改规则。
+- 写令时 `O0 = (−1.734, −1.191)`、`|O0| = 2.104`（`WRITE_EXECUTED` 的 `anchor=(1145.718,869.299) center=(1147.452,870.490)`）；
+- 窗口末 `O1 = (3.600, −14.990)`、`|O1| = 15.416`（`SNAPSHOT_FORMATION` 的 `pos=(1137.657,830.756) active_center=(1134.057,845.746)`）；
+- `e = A' − R = (0.050, 0.130)`、`|e| = 0.139`。
+
+代入得 `C' − T = (−5.284, 13.929)`，预测质心 `(1134.057, 845.746)`，与实测 `active_center` **逐位一致**。即：锚点**已到达**请求点（0.139 m，远在 0.5 m 容差内），质心距 S\* 的 14.898 m 几乎全部由 `|O0 − O1| = 14.794` 承担。此前"19.34–31.69 走 22.1 m、31.69–39.20 只走 2.6 m（0.35 m/s）、命令有效却停住"的读法**作废**——那一段是锚点到位后单位仍在收拢/重排，不是编队没有执行命令；"`1/2` Cavalry 阻挡"属未验证推测，一并撤回。
+
+同一机制在 `210338` plan-2 的 Guard 上表现为另一面：31.5–121.6 s 期间 `|pos − requested|` 稳定在 0.22–0.31 m、`|C − G*|` 稳定在 1.55–1.62 m（偏移 9.93 m 恒定，两侧同时成立）；151.591 才出现 `|pos − requested| = 11.32` 而 `|pos − G*| = 1.78`、`|C − G*| = 8.51`，即锚点与质心朝相反方向分开。
+
+**7. 由此得到的判据边界：写令换算 `R = T + (A − C)` 只在偏移 `A − C` 于移动期间稳定时才等价于"把质心送到 T"。** 实测该偏移并不恒定（`225324` 的 `1/1` 由 2.10 m 变到 15.42 m；`210338` 的 `1/2` 在 31.5–121.6 s 恒为 9.93 m，151.591 之后才变）。因此：
+
+- 命令"是否写出、是否到达请求点"按锚点与实际读回的订单目标判定（本项两场均满足）；
+- 职责关系是否成立仍按质心对冻结 `G*`/`S*` 判定（`GuardInPosition`/`SupportInPosition`，未改动）；
+- 两者不一致时，**不能**用"命令有效但编队停滞"或"预算不足"解释，更不能据此改 20 s / 12 m。本段未改任何数值。
+
+**8. `plan-8` 的 `SelectionTimeout` 由原生战术清零我方行为权重导致（新机制，本段未修复）。** 读数链：
+
+- `195.110` `BEHAVIOR_REGISTERED task=plan-8-task-1 ... weight=8.000 active_behavior=CbHoldBehavior`，同刻 `TASK_CANDIDATE_SUBMITTED ... first_submitted_at=195.110 selection_deadline=205.110`；`task-2`/`task-3` 同刻 `WRITE_DELAYED reason=predecessor_not_written`，此后从未提交、也未注册行为（`Program/src/Core/TaskDelivery.cs:78-81` 的前序写令门）。
+- `195.130 / 195.530 / 195.580` 三条 `ACTIVE_BEHAVIOR_CHANGED ... active_behavior=BehaviorCharge ours=0`（key 依次 `1/2`、`1/0`、`1/1`）。
+- `205.112` `TASK_SELECTION_TIMEOUT task=plan-8-task-1 ... waited=10.002 limit=10.000`；三条 `BEHAVIOR_DISARMED reason=SelectionTimeout ... weight_before=0.000`；`206.112` 三条退出任务 `BEHAVIOR_DISARMED reason=ExitNotApplied ... weight_before=0.000`——即 205.112 退出任务经 `ArmBehavior` 重新写入 8.0 之后，**1 秒内又被清回 0**。
+
+反编译对照（`Program/_scratch/decomp/`）：`BehaviorComponent.ResetBehavior()` 只做 `WeightFactor = 0f`；`FormationAI.ResetBehaviorWeights()` 对 `_behaviors` 全量调用它；`FormationAI.FindBestBehavior()` 在 `if (!(behavior.WeightFactor > 1E-07f)) continue;` 处**直接跳过被清零的行为，连 `GetAIWeight()` 都不调**；`TacticCharge.TickOccasionally()` 对每支有人的编队执行 `ResetBehaviorWeights()` → `SetDefaultBehaviorWeights(item)`（给 `BehaviorCharge/PullBack/Stop/Reserve` 各 1 f）→ `SetBehaviorWeight<BehaviorCharge>(10000f)`。我方 `ArmBehavior`（`Program/src/Host/TestDriver.cs:2605`）只写一次 `SetBehaviorWeight<CbHoldBehavior>(8.0)`（`Program/src/Core/TestParameters.cs:15`），全工程无第二处重设（`SetBehaviorWeight` 仅出现于 `2605` 与撤权时 `2680`）。因此一旦原生进入该战术，我方权重被清零且**不会自动恢复**；且 8.0 相对 10000 f 本来就差三个数量级。
+
+**证据强度与边界**：`weight_before=0.000` 是直接读数；"当前正是 `TacticCharge`"是强推断——其它战术给 `BehaviorCharge` 只设 1 f，我方 8.0 本应胜出，但**日志未记录战术类名**。同机制在历史场次普遍存在（`BEHAVIOR_DISARMED weight_before=0.000` 占比）：`p3-P-20261015-022606` 24/24、`p3-P-20261015-193423` 6/6、`p2-A-20261014-022054` 3/3、`p2-A-20261013-111118` 3/3、`p3-P-20261018-210338` 6/28、`p3-P-20261018-001730` 9/60；另有 `p3-P-20261018-225324`、`-224524`、`-102648` 等 8 场为 0。**属 P2 起既有问题，不是 P3 新增。** 派单 §4 明列"不增权重、不关AI"，是否处理需裁定；本段未改动任何权重、注册或战术逻辑。
+
+**结论**：本段不请求改 20 s / 12 m / 3 s / 5-15-5 包络，也未改任何生产数值。剩余阻断按优先级为：(a) 三编队下职责失效无法重分配（结构）；(b) 交战期新计划的 Guard/Support 3 秒内进不了职责包络，导致约 9 秒周期的重建循环；(c) **已更正**——`225324` 的 Ranged Support 不是停滞，锚点已到达请求点，差额来自偏移变化，**不再构成阻断**；(d) **新定位**——原生战术每 tick 清零我方 `WeightFactor` 并把 `BehaviorCharge` 置 10000 f，我方 8.0 既赢不了也不会自动恢复，导致 `plan-8` 三个任务全部错失 `REAL_SELECTION`。三项实质阻断都超出"接线修复"，需裁定是否改规则。
 
 本段新增只读分析脚本（纯 ASCII，不参与构建）：`Program/_verify/_recompute_reachable.ps1`、`_recompute_swap.ps1`、`_check_digest_stability.ps1`、`_check_guard_loss.ps1`、`_check_guard_zone.ps1`、`_check_plan_guard_envelope.ps1`、`_trace_formation_to_target.ps1`、`_check_orders_at_plan.ps1`、`_check_side_consistency.ps1`、`_check_side_cost.ps1`、`_check_support_travel.ps1`、`_recompute_feasible.ps1`、`_recompute_assignment.ps1`。
 
