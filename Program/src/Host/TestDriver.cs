@@ -2165,6 +2165,17 @@ namespace CombatBrain2.Host
                     enemyY = enemyState.EnemyCenterY;
                 }
                 var result = TaskFeedback.Evaluate(task, rec, now, enemyX, enemyY);
+
+                // 已批准裁定①：协同计划的保护/辅助命令，若实际质心已满足完整职责关系
+                // 并建立连续 1 秒有效读数、命令本身仍有效，则按「职责要求已满足」计入生效，
+                // 不再要求已经到位的编队为证明生效再走 3 m。未满足时保留原位移判据与 3 秒截止。
+                // detail 保留原判据读数，使「目标本来已满足」与「本命令产生了位移」可区分。
+                if (_coordination && result.State != TaskFeedbackState.Effective && !task.IsClosed &&
+                    _coordinationDriver.RoleRequirementSatisfied(_plans.Current, task))
+                {
+                    TaskFeedback.PromoteToSatisfiedRoleRequirement(result);
+                }
+
                 var previous = task.Feedback;
                 task.Feedback = result.State;
                 task.FailureReason = result.Reason;

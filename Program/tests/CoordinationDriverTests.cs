@@ -1170,6 +1170,94 @@ namespace CombatBrain2.Tests
             Assert.NotNull(ledger.CreateCoordination(state, TestParameters.P2Now + 9.0));
         }
 
+        // 裁定①（2026-10-18）：当前协同计划的 Guard/Support Reposition，在真实质心已满足
+        // 完整职责关系并建立连续 1 秒有效读数、且命令本身仍有效时，按「职责要求已满足」计生效。
+        // 本场证据：plan-5 在 171.601/172.601 已 guard_ready=1，仍在 173.086 因
+        // closed_distance=-0.03 被判 NotEffective。
+        [Fact]
+        public void RoleRequirementSatisfiedNeedsTheFullRelationAndOneSecondWindow()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, 200.0);
+            // 命令仍是 Pending，但质心已满足完整职责关系：单次读数不放行。
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(200.0, guard, support);
+            Assert.False(driver.RoleRequirementSatisfied(plan, driver.GuardTask));
+            // 连续读数满 1 秒后成立。
+            driver.Observe(201.0, guard, support);
+            Assert.True(driver.RoleRequirementSatisfied(plan, driver.GuardTask));
+            Assert.True(driver.RoleRequirementSatisfied(plan, driver.SupportTask));
+            // 只有距职责点近、前向/侧向关系不成立时不算：横向偏出 G* 的允许区间。
+            var strayed = At(g, driver.GuardTask, g.GuardX + 9.0 * g.LateralX, g.GuardY + 9.0 * g.LateralY, true);
+            driver.Observe(202.0, strayed, support);
+            Assert.False(driver.RoleRequirementSatisfied(plan, driver.GuardTask));
+        }
+
+        // 命令被覆盖、目标不可读或还没写出时，不能借「人刚好在那里」判生效。
+        [Fact]
+        public void RoleRequirementSatisfiedRejectsUnwrittenOrOverriddenCommand()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, 200.0);
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(200.0, guard, support);
+            driver.Observe(201.0, guard, support);
+            Assert.True(driver.RoleRequirementSatisfied(plan, driver.GuardTask));
+
+            driver.GuardTask.ClearOrderTarget();
+            Assert.False(driver.RoleRequirementSatisfied(plan, driver.GuardTask));
+            driver.GuardTask.SetOrderTarget(g.GuardX + 30.0, g.GuardY);
+            Assert.False(driver.RoleRequirementSatisfied(plan, driver.GuardTask));
+            driver.GuardTask.SetOrderTarget(g.GuardX, g.GuardY);
+            driver.GuardTask.WrittenAt = -1.0;
+            Assert.False(driver.RoleRequirementSatisfied(plan, driver.GuardTask));
+        }
+
+        // 只适用于当前协同计划的 Guard/Support Reposition：Main 推进、别的计划都不走这条路径。
+        [Fact]
+        public void RoleRequirementSatisfiedIsLimitedToCurrentCoordinationRoles()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            var g = plan.Geometry;
+            CommandsInEffect(plan, driver, 200.0);
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(200.0, guard, support);
+            driver.Observe(201.0, guard, support);
+            Assert.True(driver.RoleRequirementSatisfied(plan, driver.GuardTask));
+
+            var advance = driver.CreateAdvanceTask(plan, 202.0);
+            Assert.NotNull(advance);
+            Assert.Equal(FormationRole.Main, advance.Role);
+            Assert.False(driver.RoleRequirementSatisfied(plan, advance));
+
+            var other = new BattlePlan { PlanId = "plan-other" };
+            Assert.False(driver.RoleRequirementSatisfied(other, driver.GuardTask));
+        }
+
+        // 判定并入反馈时必须保留口径区别：这不是「本命令造成了位移」。
+        [Fact]
+        public void SatisfiedRoleRequirementKeepsItsOwnDetail()
+        {
+            var result = new TaskFeedback.Result
+            {
+                State = TaskFeedbackState.Pending,
+                Detail = "closed_distance=-0.03 distance=1.75 from=1.73",
+            };
+            TaskFeedback.PromoteToSatisfiedRoleRequirement(result);
+            Assert.Equal(TaskFeedbackState.Effective, result.State);
+            Assert.Equal(PlanInvalidReason.None, result.Reason);
+            Assert.Contains("role_requirement_already_satisfied", result.Detail);
+            Assert.Contains("closed_distance=-0.03", result.Detail);
+        }
+
         [Fact]
         public void EachRoleGetsOnlyOneCorrectionAndHealthySideRemainsIndependent()
         {

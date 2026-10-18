@@ -223,6 +223,17 @@ namespace CombatBrain2.Core
             return result;
         }
 
+        // 已批准裁定①：职责关系已成立时，把「要求已满足」并入反馈结论。
+        // 只改结论与口径记录，不改位移判据本身；调用方必须先用
+        // CoordinationDriver.RoleRequirementSatisfied 证明关系成立。
+        internal static void PromoteToSatisfiedRoleRequirement(Result result)
+        {
+            if (result == null || result.State == TaskFeedbackState.Effective) return;
+            result.State = TaskFeedbackState.Effective;
+            result.Reason = PlanInvalidReason.None;
+            result.Detail = "role_requirement_already_satisfied was=" + (result.Detail ?? "");
+        }
+
         // 命令族比较：同名或同族视为仍是本任务写入的那条命令。
         private static bool SameOrderFamily(string a, string b)
         {

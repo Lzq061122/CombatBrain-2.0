@@ -288,6 +288,32 @@ namespace CombatBrain2.Core
             return dx * dirX + dy * dirY > 0.0;
         }
 
+        // 已批准裁定①（2026-10-18）：当前协同计划的 Guard/Support Reposition 任务，
+        // 在实际质心已满足完整职责关系并建立连续 1 秒有效读数、且命令本身仍有效时，
+        // 按「职责要求已满足」计入生效。这是识别目标已经达成，不是宣称本次命令造成了此前的到位。
+        // 只认当前职责身份与当前读数：换了对象/版本、命令被覆盖或目标不可读都不算。
+        // 到位判定复用的是 Observe 里同一份 GuardInPosition/SupportInPosition 与连续读数窗口，
+        // 不是「距 G*/S* 小于 5 m」这种更宽的近似。
+        internal bool RoleRequirementSatisfied(BattlePlan plan, FormationTask task)
+        {
+            if (plan == null || plan != _plan || plan.IsClosed) return false;
+            if (_phase != CoordinationPhase.AwaitingDependencies &&
+                _phase != CoordinationPhase.MainAdvancing) return false;
+            if (task == null || task.IsClosed) return false;
+            if (task.Kind != TaskKind.Reposition) return false;
+            bool guard;
+            if (task.Role == FormationRole.Guard) guard = true;
+            else if (task.Role == FormationRole.Support) guard = false;
+            else return false;
+            // 必须是本计划当前这一侧的职责身份：换对象或换版本后旧任务不得借新读数生效。
+            var current = guard ? GuardTask : SupportTask;
+            if (current == null || !string.Equals(current.TaskId, task.TaskId, StringComparison.Ordinal)) return false;
+            // 命令被覆盖、目标不可读、未写出或已越版时，"人刚好在那里"不构成命令生效。
+            if (!DependencyReadiness.CommandStillApplicable(plan, current, guard)) return false;
+            var readiness = guard ? _guardReadiness : _supportReadiness;
+            return readiness != null && readiness.Ready;
+        }
+
         internal static RoleDependencyLoss LostRoleOf(DependencyOutcome outcome, out FormationRole role)
         {
             role = FormationRole.None;
