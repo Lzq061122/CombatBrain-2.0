@@ -1,6 +1,6 @@
 <!-- PROMPT META
 Name: CombatBrain 2.0 P3 Action Loop Recovery Dispatch
-Version: 1.0
+Version: 1.1
 Author Role: CombatBrain 2.0 Development Dispatcher and Reviewer
 Model: GPT-6
 Created: 2026-10-18
@@ -10,6 +10,7 @@ Scope: CombatBrain 2.0 / P3 action execution, bounded correction and failure rec
 -->
 
 <!-- CHANGE LOG (newest first, keep last 3)
+v1.1 2026-10-18 22:40 | role=CombatBrain 2.0 Development Dispatcher and Reviewer | model=GPT-6 | editor=codex-cb2-p3-role-satisfied-20261018 | note=并入三项已裁定策略（纠偏越界判据、一次重试预算、职责要求已满足计入生效）及两处场次事实更正，避免换会话重复争论
 v1.0 2026-10-18 18:11 | role=CombatBrain 2.0 Development Dispatcher and Reviewer | model=GPT-6 | editor=codex-cb2-p3-action-loop-dispatch-20261018 | note=接续真实Guard早期失败与整场失败抑制，合并有效约束并登记旧执行单归档，要求连续推进至可判定的行为证据
 -->
 
@@ -78,6 +79,38 @@ P3尚未通过。本单不批准P4，不更改原三门、评价公式、命令�
 - 保留1.5s首令延迟/编队间隔、3s任务反馈、现有评价公式与三门、退出1s安全预算、唯一裁决、资格、原生真实获选及主线程写令。不增权重、不关AI、不扩大命令域。
 - 已批准纠偏为同Plan **Guard、Support各最多一次**，健康职责不重发；原锚点到达请求且实际质心不满足职责关系，命令/对象/Plan/Revision有效，剩余原预算可容纳等待及反馈才可指定。新任务身份/新写令额度，写前重新取同批A/C/T，不逐tick追写、不延寿、不另加未经批准的偏移稳定门。
 - CB2仅改当前问题所需Core任务/协调/计划/投递、Host实际调用、相关测试、既有P3脚本与交回材料；CBATH仅在本组路径做有证据必要的最小改动。不动观测组`E:\MBmod\BattleObservation-V1\CB2`、`CBATH`、`TCL`及其integration候选，不改观测接口或拷贝旧整文件覆盖。
+
+## 4a. 已裁定策略变更（2026-10-18 用户裁定，v1.1）
+
+以下三项是**明确的策略调整**，不得再写成“只是接线修复、语义未变”。除这三项外，本单 §4 的冻结数值与边界不变。
+
+### 4a.1 有限纠偏的“到达请求”扩为“到达或沿请求方向越过”
+
+- 判据：`(当前锚点 − R) · (R − 写令时锚点) > 0`。方向必须取自**本次真实写令时的固定读数**，不能每帧重算，否则编队继续前进会把“越过”重新抹成“未到”。
+- 实现取 `R − A_write = T − C = Canonical − Origin`，均为任务已保存字段，不新增字段。
+- **内积用 `>0` 而非裁定文字的 `>=0`**（已声明）：恰为 0 表示锚点沿垂直于请求方向移动，既不是到达也不是越过，按未到达处理；既有反例 `RoleCorrectionRejectsUnprovedOrUnbudgetedChange/anchor_not_arrived` 要求它仍被拒绝。方向为零时同样退回原 0.5 m 到达判据，不让零向量通过。
+- 越过只说明可以**尝试一次**纠偏，不说明惯性结束，也不放行主力推进；每职责一次、原 20 s 截止、剩余预算须容纳等待+3 s 反馈等约束不变。
+
+### 4a.2 同一失败分配最多一次重新执行（一次重试预算）
+
+- 首次 `NotEffective` 关闭旧计划后，同一失败分配可消耗**一次**重试额度建立新计划；额度只在计划**真正建成**时消耗，构建失败不占预算。
+- 同一 Mission、同一失败分配再次失败即保持抑制。时间、输入编号、坐标抖动、轮询次数与新 Plan ID 都不能刷新额度。
+- 相关前提真正变化（对象、资格、兵力、成员身份）自然换键，按既定重评重开；对象或资格失效仍直接拒绝，不等重试。
+- 仍只对 `NotEffective` 记忆，不扩大其他失败类别的处理范围。不新增冷却秒数、K 次封盘或周期清空。
+
+### 4a.3 完整职责关系已成立时计入该职责命令生效（选①）
+
+- 适用范围**仅限当前协同计划的 Guard/Support Reposition**；不全局改普通 Reposition、Main 推进或 Engage。
+- 生效前提：命令实际写出、对象/Mission/Plan/Revision/资格与实际订单目标仍有效；命令被覆盖或目标不可读**不得**借“人刚好在那里”判生效。
+- 到位判定复用 `Observe` 里同一份 `GuardInPosition`/`SupportInPosition`（完整前向/侧向关系）与**连续 1 秒有效读数**，不是“距 G\*/S\* 小于 5 m”这种更宽的近似，也不借用旧身份或旧版本窗口。
+- 满足时走“职责要求已满足”的生效路径；未满足时保留原位移进度判据与 3 秒截止。
+- 主力释放门不变：仍须两侧命令有效、职责关系成立。不改 20 秒预算、纠偏次数、重试额度与评价公式。
+- 语义是**识别目标已经满足**，不是宣称这次命令造成了此前的到位；日志与 `detail` 必须保留这一区别（`role_requirement_already_satisfied was=…` 原判据读数照留）。
+
+### 4a.4 场次事实更正（用于避免重复争论）
+
+- `p3-P-20261018-210338`：**32.228 秒是推进任务建立**（`COORDINATION_ADVANCE`），**33.728 提交候选、34.028 真实获选、34.033 才真正写令并建立冻结 t0**，不能混记为“32.228 写令”。
+- 该场已有一次推进成立，因此问题**不是“释放全局永远不可达”**，而是后续若干“接近职责点”的职责任务被 3 秒位移判据错误判死（`plan-5` 在 171.601/172.601 已 `guard_ready=1`，仍在 173.086 以 `closed_distance=-0.03` 判 `NotEffective`）。
 
 ## 5. 验证、一个可判定开发场与交回
 

@@ -2,11 +2,33 @@
 
 **当前状态：P3 未通过，实际行动—评价闭环尚未恢复。** 当前开发依据为 `CB2-PROMPT-0008`（`P3-ACTION-LOOP-RECOVERY-DISPATCH.md`）；0004仅保留原始验收合同作用。0002/0003及0005/0006/0007已在 `prompts/registry.json` 归档，保留原路径与原文字节，不按历史派单重新实施。此前各段是历史交接证据，不覆盖现行登记、后续用户裁定及本段当前状态。
 
-- 接续现场：CB2 `2460fd8`（本段改动前 `d9af815`），CBATH `f5a8916`；接手仍须核对实际HEAD和dirty，保留自动身份与既有scratch。
+- 接续现场：CB2 `95316fd`（本段改动前 `d9af815`），CBATH `f5a8916`；接手仍须核对实际HEAD和dirty，保留自动身份与既有scratch。
 - 最新核对场 `p3-P-20261018-102648`（旧）：Guard在8.135秒NotEffective关闭；随后137次同状态失败抑制，推进、纠偏、冻结及战果评价均为0。
-- 最新开发场 `p3-P-20261018-210338`（本段）：纠偏、重试、Main推进、冻结与战果评价全部首次出现，同状态失败抑制为0。见下方「2026-10-18 行动恢复修复与开发场」。
-- 当前未闭合：Guard职责命令在“已接近职责点”时无法产生3秒位移，主推进仍被3秒反馈抢先关闭计划；无交战，故战果链仍不成立。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。
+- 行动恢复场 `p3-P-20261018-210338`：纠偏、重试、Main推进、冻结与战果评价全部首次出现，同状态失败抑制为0；但接敌期无有效计划窗。
+- 裁定①实施后的两个开发场 `p3-P-20261018-224524` / `p3-P-20261018-225324`：前者未触发①（Guard 全程 reads=0），后者**触发①并让 Guard 命令计入生效**；两场均因无 Main 写令被采集器判 `opponent counter-action never applied`，`RESULT: FAILURES (1)`，**不作为任何门的证据**。见下方「2026-10-18 裁定①（职责要求已满足计入生效）」。
+- 当前未闭合：Support（Ranged 175）在 20 秒关系截止内到不了 S*，是 ① 之后的下一处阻断；20 秒预算与 S* 12 m 侧移均属冻结数值，需裁定。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。
 - 实机不再要求人工交回窗口；现场空闲时由现有完整入口自动取锁，保留实际占用、连接和进程归属保护。非必要不回复，已授权工作连续推进至集中交回。
+
+### 2026-10-18 裁定①（职责要求已满足计入生效）
+
+**用户裁定**：选①——完整职责关系已成立时计入该职责命令生效；保留现有推进释放门，不选②绕开它。A1 的严格 `>0` 保留。三项裁定与两处事实更正已写入 `P3-ACTION-LOOP-RECOVERY-DISPATCH.md` §4a（v1.1）并同步 `prompts/registry.json`。
+
+**改了什么**（`95316fd`，4 files）
+
+1. `CoordinationDriver.RoleRequirementSatisfied`：仅当前协同计划的 Guard/Support Reposition，且必须是本计划当前该侧的任务身份；命令走 `CommandStillApplicable`（已写入/同职责/同 Revision/读回未偏离）仍有效；到位复用 `Observe` 同一份 `GuardInPosition`/`SupportInPosition` 与连续 1 秒读数（`readiness.Ready`）。Main 推进与普通 Reposition 不走这条路径。
+2. `TaskFeedback.PromoteToSatisfiedRoleRequirement`：把结论并入生效，`detail` 写 `role_requirement_already_satisfied was=<原判据读数>`，保留“目标本来已满足”与“本命令产生位移”的区别。
+3. `TestDriver.FeedbackTick`：在 `Evaluate` 之后、写反馈状态之前调用，未满足时保留原位移判据与 3 秒截止。
+4. 未改：20 秒预算、纠偏次数、重试额度、评价公式、三门、Main 释放门。
+
+**验证**：新增 4 例（完整关系+1 秒窗口才成立、横向出区不成立、命令未写/被覆盖/目标不可读不算、只限当前协同职责、口径 detail 保留），红态 4/4 失败先于实现；全量 **339/339**；net472 Release `-t:Rebuild` 0 警告 0 错误。
+
+**开发场一 `p3-P-20261018-224524`**（CB2 `b20261018-224517-0abbaf8a`，`f00e2868…`，202752 B，pid 54372；CBATH `b20261018-224522-59fcd619`，`256792d8…`）：①**未触发**。plan-1/plan-2 的 Guard 全程 `reads=0`（质心 10.66→7.73 m 且曾后退 `closed_distance=-2.58`），是真实漂移而非“已到位”；plan-2 于 17.135 失败后重试额度用尽，余下 `unchanged_failed_coordination=89`。`RESULT: FAILURES (1)`：`opponent counter-action never applied`（无 Main 写令 → 无冻结 → 反制无法武装）。
+
+**开发场二 `p3-P-20261018-225324`**（CB2 `b20261018-225321-2c3dc283`，`1b711f06…`，202752 B，pid 53500；CBATH `b20261018-225323-8b84c467`，`efff6a52…`）：**①首次实机成立**——`plan-1-task-2` 在 5.606 记 `state=effective detail=role_requirement_already_satisfied was=closed_distance=-3.82 (<3.0) distance=4.25 from=0.43`，即质心本来就在职责区内、命令生效不再要求再走 3 m；同一计划 5.686 因质心已出区触发一次 Guard 纠偏（`deadline=25.136`），纠偏命令 3 秒后仍失败（`closed_distance=-6.91 distance=24.93`），plan-1 于 10.637 关闭。plan-2 里 Guard 从 21.534 起 `guard_ready=1 guard_loss=None`（①路径持续让它保持生效），但 **Support 的 Ranged 175 全程 `reads=0`**，39.088 以 `relationship_not_established guard_deadline=37.134 support_deadline=39.084` 到期关闭。`RESULT: FAILURES (1)` 同为反制未武装。
+
+**下一处阻断（需裁定，未擅自改）**：Support 写入的请求点 `(1137.607,830.626)` 距 S* `(1139.341,831.817)` 仅约 2 m，目标本身没错；但 175 人 Ranged 编队 19.084 写令、到 37.5 秒质心才从 `(1147.5,870.5)` 走到 `(1134.1,845.8)`，仍距 S* 约 14.9 m，实际速度约 1.4 m/s，20 秒关系截止内不可能走完约 40 m。要动的都是冻结项：20 秒关系截止、S* 12 m 侧移或支援编队选择。两场均无冻结/推进，故两场都不能当正式 P 对照样本，也不追加同类 420 s 刷场。
+
+
 
 ### 2026-10-18 行动恢复修复与开发场（CB2-PROMPT-0008 §3.1/§3.2）
 
@@ -37,7 +59,7 @@
 
 **关键读数**：纠偏写令 `tactic=(1306.809,851.183) anchor=(1297.302,836.030) center=(1302.093,844.305) requested=(1302.018,842.908)`，`T+(A−C)` 复算一致。plan-2 在推进116秒后于148.092记 `COORDINATION_DEPENDENCY_LOST role=Guard loss=NotReady failure=None`，替补为空 → 关闭，属推进期依赖失效的正常归因路径。
 
-**仍缺 / 下一处共同原因（需裁定，未擅自改）**：plan-3..7 均在同一形态上关闭——Guard 的 Reposition 在3秒内无法产生3m位移，而质心距 G* 已达 1.75/1.66m（plan-5/6）。即“角色关系其实已满足”与“3秒反馈要求3m位移”直接冲突：`MainAdvanceAllowed` 又要求两侧 `Effective`，于是释放被3秒反馈抢先关闭计划，形成每约8秒重建一次的循环。
+**仍缺 / 下一处共同原因（已由裁定①解决，保留作对照）**：plan-3..7 均在同一形态上关闭——Guard 的 Reposition 在3秒内无法产生3m位移，而质心距 G* 已达 1.75/1.66m（plan-5/6）。该冲突已按 2026-10-18 裁定①修复（见上方「裁定①」），修复后 Guard 不再因此被判死；现场阻断已前移到 Support 的 20 秒关系截止。
 
 **本场交战与窗口不重叠（必须如实记录，勿写成“未交战”）**：`BATTLE_STATE` 首次出现损失在 148.589（我方 280 / 敌方 59→58），恰是 plan-2 于 148.092 失效之后；敌方 59→1 于 193.609，298.680 起 `enemy_team_not_found`（敌方队伍已不存在），我方 280→249。因此 plan-2 的 13.540–148.092 是零接触窗口，42 次 `Continue`（NE=59 NF=280、LE=LF=0）全部产生在接触之前，**不构成战果**；真正交战（148.6–194 s）期间 plan-3..8 各自在 3 秒内或选择超时中关闭，CB2 无有效计划窗，歼灭由原生完成，**不能归为 CB2 指挥收益**。
 
