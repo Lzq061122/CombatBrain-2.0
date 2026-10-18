@@ -318,6 +318,17 @@ namespace CombatBrain2.Host
                 return;
             }
 
+            // 同一失败分配的重试额度只有一次：日志必须能区分「新机会」与「消耗重试」，
+            // 否则事后无法判断这条计划是前提变化带来的，还是一次执行失败的重新执行。
+            if (_plans.CoordinationRetryConsumed)
+            {
+                Cb2Log.Line("COORDINATION_RETRY",
+                    "plan=" + plan.PlanId +
+                    " source=previous_execution_failure" +
+                    " budget=consumed" +
+                    " at=" + Cb2Log.F(now));
+            }
+
             Cb2Log.Line("PLAN_CREATED",
                 plan.Describe() +
                 " " + plan.Conditions.Describe() +

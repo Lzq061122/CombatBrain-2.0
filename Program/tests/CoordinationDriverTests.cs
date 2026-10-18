@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CombatBrain2.Core;
 using Xunit;
@@ -1069,6 +1070,106 @@ namespace CombatBrain2.Tests
             Assert.Equal(-1.0, correction.WrittenAt);
         }
 
+        // A1（2026-10-18 裁定，有限试验版）：原锚点沿本次请求方向越过请求点，同样算「到达请求」。
+        // 越过判据 (当前锚点 − R)·(R − 写令时锚点) >= 0，方向取本次真实写令时的固定读数，
+        // 而 R − A_write = T − C = Canonical − 写令质心，因此不需要新增字段。
+        // 实机 p3-P-20261018-102648：保护 5.254s 差 2.14m、6.209s 超调 6.90m，
+        // 而质心到 6.209s 才出职责区，原到达判据与失效判据永不重叠。
+        [Fact]
+        public void RoleCorrectionAcceptsAnchorThatPassedTheRequestAlongTheWriteDirection()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var old = driver.GuardTask;
+            old.Feedback = TaskFeedbackState.Pending;
+            var actual = DriftedRole(state, old);
+            Assert.True(PlacePast(old, actual, 3.5));
+            Assert.NotNull(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 203.0, 201.5));
+        }
+
+        // 反向守护：还在朝请求点接近（尚未到达、也没越过）时不得纠偏，
+        // 否则刚写令就纠偏，等于把转向/惯性阶段当成命令已落地。
+        [Fact]
+        public void RoleCorrectionStillRejectsAnchorThatHasNotReachedTheRequest()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var old = driver.GuardTask;
+            old.Feedback = TaskFeedbackState.Pending;
+            var actual = DriftedRole(state, old);
+            Assert.True(PlacePast(old, actual, -3.5));
+            Assert.Null(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 203.0, 201.5));
+        }
+
+        // 方向为零（写令时质心已在战术目标点）时退回原到达判据，不让零向量自动判定通过。
+        [Fact]
+        public void RoleCorrectionDoesNotTreatZeroWriteDirectionAsPassed()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var old = driver.GuardTask;
+            var g = plan.Geometry;
+            old.Feedback = TaskFeedbackState.Pending;
+            old.SetCanonicalTarget(g.GuardX, g.GuardY);
+            // 写令质心与战术目标重合：越过方向为零；请求点仍远离锚点。
+            old.SetTarget(g.GuardX, g.GuardY, g.GuardX + 40.0, g.GuardY);
+            old.SetOrderTarget(g.GuardX + 40.0, g.GuardY);
+            var actual = DriftedRole(state, old);
+            actual.PosX = old.RequestedX + 3.0;
+            actual.PosY = old.RequestedY;
+            Assert.Null(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 203.0, 201.5));
+        }
+
+        // 沿写令方向把锚点放到距请求点 distance 处：正数表示已越过，负数表示尚未到达。
+        private static bool PlacePast(FormationTask task, FormationRecord record, double distance)
+        {
+            double dirX = task.CanonicalX - task.OriginX;
+            double dirY = task.CanonicalY - task.OriginY;
+            double span = Math.Sqrt(dirX * dirX + dirY * dirY);
+            if (span <= 1.0) return false;
+            record.PosX = task.RequestedX + dirX / span * distance;
+            record.PosY = task.RequestedY + dirY / span * distance;
+            return true;
+        }
+
+        // B2（2026-10-18 裁定）：同一失败分配最多允许一次重新执行，不按轮询次数解锁。
+        // 时间、输入编号、坐标抖动与新 Plan ID 都不能刷新额度。
+        [Fact]
+        public void FailedCoordinationAllowsOneRetryThenStaysBlocked()
+        {
+            var state = SceneA();
+            var ledger = new PlanLedger();
+            Assert.NotNull(ledger.CreateCoordination(state, TestParameters.P2Now));
+            ledger.RememberFailedCoordination(state);
+
+            var retry = ledger.CreateCoordination(state, TestParameters.P2Now + 3.0);
+            Assert.NotNull(retry);
+
+            ledger.RememberFailedCoordination(state);
+            Assert.Null(ledger.CreateCoordination(state, TestParameters.P2Now + 300.0));
+            Assert.Null(ledger.CreateCoordination(state, TestParameters.P2Now + 600.0));
+        }
+
+        // 前提真正变化（这里用职责编队有效人数变化）仍按既定规则允许新建，
+        // 不能被上一次失败分配的抑制或无额度状态挡住。
+        [Fact]
+        public void ChangedPremiseStillAllowsANewCoordinationPlan()
+        {
+            var state = SceneA();
+            var ledger = new PlanLedger();
+            Assert.NotNull(ledger.CreateCoordination(state, TestParameters.P2Now));
+            ledger.RememberFailedCoordination(state);
+            Assert.NotNull(ledger.CreateCoordination(state, TestParameters.P2Now + 3.0));
+            ledger.RememberFailedCoordination(state);
+            Assert.Null(ledger.CreateCoordination(state, TestParameters.P2Now + 6.0));
+
+            state.MyFormations[0].ActiveMemberCount -= 1;
+            Assert.NotNull(ledger.CreateCoordination(state, TestParameters.P2Now + 9.0));
+        }
+
         [Fact]
         public void EachRoleGetsOnlyOneCorrectionAndHealthySideRemainsIndependent()
         {
@@ -1166,11 +1267,16 @@ namespace CombatBrain2.Tests
             ledger.Invalidate(PlanInvalidReason.NotEffective, "relationship_not_established", 225.0);
             state.SampledAt = 230.0; state.PlanInputId = "another-input";
             foreach (var r in state.MyFormations) { r.PosX += 0.02; r.ActiveCenterX += 0.02; }
-            Assert.Null(ledger.CreateCoordination(state, 230.0));
-            Assert.Same(plan, ledger.Current);
-            Assert.Equal(1, ledger.PlanCount);
+            // 2026-10-18 裁定：同一失败分配允许一次重新执行，额度在这一次用掉。
+            Assert.NotNull(ledger.CreateCoordination(state, 230.0));
+            Assert.Equal(2, ledger.PlanCount);
+            // 守原有性质：时间、输入编号与坐标抖动都不能刷新额度，也不能复活旧计划。
+            state.SampledAt = 240.0; state.PlanInputId = "yet-another-input";
+            foreach (var r in state.MyFormations) { r.PosX += 0.02; r.ActiveCenterX += 0.02; }
+            Assert.Null(ledger.CreateCoordination(state, 240.0));
+            Assert.Equal(2, ledger.PlanCount);
             state.MyFormations[0].MemberDigest += "-new-member";
-            Assert.NotNull(ledger.CreateCoordination(state, 233.0));
+            Assert.NotNull(ledger.CreateCoordination(state, 243.0));
             ledger.ClearMission();
             Assert.NotNull(ledger.CreateCoordination(state, 0.0));
         }

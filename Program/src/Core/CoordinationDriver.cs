@@ -233,8 +233,7 @@ namespace CombatBrain2.Core
             if (!CoordinationGeometry.IsFinite(actual.PosX) || !CoordinationGeometry.IsFinite(actual.PosY) ||
                 !CoordinationGeometry.IsFinite(actual.ActiveCenterX) ||
                 !CoordinationGeometry.IsFinite(actual.ActiveCenterY)) return null;
-            if (CoordinationGeometry.Distance(actual.PosX, actual.PosY, old.RequestedX, old.RequestedY) >
-                TestParameters.TargetPointToleranceMeters) return null;
+            if (!AnchorReachedOrPassedRequest(old, actual)) return null;
             if (guard ? PlanBuilder.GuardInPosition(plan.Geometry, actual.ActiveCenterX, actual.ActiveCenterY)
                       : PlanBuilder.SupportInPosition(plan.Geometry, actual.ActiveCenterX, actual.ActiveCenterY)) return null;
             double deadline = RelationshipDeadline(old);
@@ -263,6 +262,30 @@ namespace CombatBrain2.Core
             ClearSlotOf(old);
             RebindDependencies(plan);
             return next;
+        }
+
+        // 已批准纠偏前提里的「原锚点到达请求」，含 2026-10-18 裁定的有限试验版越过判据：
+        //   (当前锚点 − R) · (R − 写令时锚点) > 0
+        // 方向必须来自本次真实写令时的固定读数，不能每帧重算，否则编队继续前进会把
+        // 「越过」重新抹成「未到」。R − A_write = T − C，因此方向直接取任务保存的
+        // 战术目标与写令质心（Canonical − Origin），不需要新增字段。
+        // 内积恰为 0 表示锚点沿垂直于请求方向移动，既不是到达也不是越过，按未到达处理；
+        // 方向为零（写令时质心已在战术目标点）时同样退回原到达判据，不让零向量通过。
+        // 越过只说明可以尝试一次纠偏，不说明惯性结束，也不放行主力推进。
+        private static bool AnchorReachedOrPassedRequest(FormationTask task, FormationRecord actual)
+        {
+            if (task == null || actual == null) return false;
+            if (!task.HasPosition || !task.HasCanonicalTarget) return false;
+            double dx = actual.PosX - task.RequestedX;
+            double dy = actual.PosY - task.RequestedY;
+            if (!CoordinationGeometry.IsFinite(dx) || !CoordinationGeometry.IsFinite(dy)) return false;
+            if (Math.Sqrt(dx * dx + dy * dy) <= TestParameters.TargetPointToleranceMeters) return true;
+
+            double dirX = task.CanonicalX - task.OriginX;
+            double dirY = task.CanonicalY - task.OriginY;
+            if (!CoordinationGeometry.IsFinite(dirX) || !CoordinationGeometry.IsFinite(dirY)) return false;
+            if (Math.Sqrt(dirX * dirX + dirY * dirY) <= 0.0001) return false;
+            return dx * dirX + dy * dirY > 0.0;
         }
 
         internal static RoleDependencyLoss LostRoleOf(DependencyOutcome outcome, out FormationRole role)

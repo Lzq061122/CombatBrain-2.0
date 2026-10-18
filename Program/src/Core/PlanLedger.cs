@@ -14,7 +14,11 @@ namespace CombatBrain2.Core
         private int _planCount;
         private int _invalidations;
         private string _failedCoordinationState = "";
+        // 2026-10-18 裁定：同一失败分配最多允许一次重新执行。额度只在计划真正建成时消耗，
+        // 时间、输入编号、坐标抖动、轮询次数与新 Plan ID 都不能把它刷新回来。
+        private int _failedCoordinationRetries;
         internal bool CoordinationCreationBlocked { get; private set; }
+        internal bool CoordinationRetryConsumed { get; private set; }
         private readonly Dictionary<string, int> _invalidationReasons =
             new Dictionary<string, int>(StringComparer.Ordinal);
 
@@ -51,7 +55,11 @@ namespace CombatBrain2.Core
         internal void RememberFailedCoordination(BattleState state)
         {
             if (!CoordinationDriver.IsCoordinationPlan(_current) || state == null) return;
-            _failedCoordinationState = CoordinationStateKey(state);
+            var key = CoordinationStateKey(state);
+            // 同一失败分配只记一次：已经消耗过额度就不再回填。
+            if (string.Equals(key, _failedCoordinationState, StringComparison.Ordinal)) return;
+            _failedCoordinationState = key;
+            _failedCoordinationRetries = 1;
         }
 
         // Time, coordinates and input IDs must not turn the same failed assignment into a new opportunity.
@@ -80,13 +88,26 @@ namespace CombatBrain2.Core
 
         internal BattlePlan CreateCoordination(BattleState state, double now)
         {
-            CoordinationCreationBlocked = state != null && _failedCoordinationState.Length > 0 &&
+            CoordinationRetryConsumed = false;
+            // 只有失败分配完全相同的状态才受抑制；前提真正变化（对象、资格、兵力或
+            // 成员身份改变）会得到不同的键，按既定重评规则直接允许新建。
+            bool sameFailedAssignment = state != null && _failedCoordinationState.Length > 0 &&
                 string.Equals(_failedCoordinationState, CoordinationStateKey(state), StringComparison.Ordinal);
+            CoordinationCreationBlocked = sameFailedAssignment && _failedCoordinationRetries <= 0;
             if (CoordinationCreationBlocked) return null;
             _planCount++;
             var id = "plan-" + _planCount.ToString(CultureInfo.InvariantCulture);
             var plan = PlanBuilder.BuildCoordination(state, id, now);
-            if (plan != null) _current = plan;
+            if (plan != null)
+            {
+                _current = plan;
+                // 建成才消耗额度：构建失败不占这次重试预算，也不复活旧任务。
+                if (sameFailedAssignment)
+                {
+                    _failedCoordinationRetries--;
+                    CoordinationRetryConsumed = true;
+                }
+            }
             return plan;
         }
 
@@ -131,6 +152,8 @@ namespace CombatBrain2.Core
             _planCount = 0;
             _invalidations = 0;
             _failedCoordinationState = "";
+            _failedCoordinationRetries = 0;
+            CoordinationRetryConsumed = false;
             CoordinationCreationBlocked = false;
             _invalidationReasons.Clear();
         }
