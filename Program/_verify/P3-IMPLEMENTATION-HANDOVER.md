@@ -6,7 +6,7 @@
 - 最新核对场 `p3-P-20261018-102648`（旧）：Guard在8.135秒NotEffective关闭；随后137次同状态失败抑制，推进、纠偏、冻结及战果评价均为0。
 - 行动恢复场 `p3-P-20261018-210338`：纠偏、重试、Main推进、冻结与战果评价全部首次出现，同状态失败抑制为0；但接敌期无有效计划窗。
 - 裁定①实施后的两个开发场 `p3-P-20261018-224524` / `p3-P-20261018-225324`：前者未触发①（Guard 全程 reads=0），后者**触发①并让 Guard 命令计入生效**；两场均因无 Main 写令被采集器判 `opponent counter-action never applied`，`RESULT: FAILURES (1)`，**不作为任何门的证据**。见下方「2026-10-18 裁定①（职责要求已满足计入生效）」。
-- 当前未闭合：`plan-2` 的 Guard 依赖在 148.092 失效且无替补（`replacement=<none>`），而接敌始于 148.589——有效计划窗在接敌前 0.5 秒结束；交战期 plan-3..8 各自 3 秒内失败或选择超时。**20 秒预算与 12 m 侧移已复算证明可执行（`210338` plan-2 两侧真实到位并维持 135 秒），本段不请求改动，也未改任何生产数值**；先前「Support 20 秒走不完」的记录是窗口起点错误，已在下节更正。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。
+- 当前未闭合（三项均已定位到机制，需裁定是否改规则，见下节）：(a) **三编队编制下任一职责失效都无法重分配**——`BuildReassignments` 排除主力与被失效键后只剩正在担任另一职责的那一支，为其找替补时可用键已耗尽，必然 `replacement=<none>`；(b) **交战期新计划的 Guard/Support 进不了冻结包络**，plan 以约 9 秒周期重建、每次 3 秒内失败；(c) `225324` 的 Ranged Support **命令有效、目标读回未变却在中途停滞**（1.79→0.35 m/s）。**20 秒预算与 12 m 侧移已复算证明可执行（`210338` plan-2 两侧真实到位并维持 135 秒），本段不请求改动，也未改任何生产数值**；先前「Support 20 秒走不完」的记录是窗口起点错误，已在下节更正。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。
 - 实机不再要求人工交回窗口；现场空闲时由现有完整入口自动取锁，保留实际占用、连接和进程归属保护。非必要不回复，已授权工作连续推进至集中交回。
 
 ### 2026-10-18 裁定①（职责要求已满足计入生效）
@@ -61,7 +61,25 @@ return task.WrittenAt < 0.0 ? -1.0
 
 **结论（不写成「整套方案不可执行」）**：`210338` 的 plan-2 已实测**两侧在各自 20 秒窗口内真实到位**并维持 135 秒（13.5–148.1），证明「20 秒 + 12 m 侧移」在敌我距离较大（本场写令时约 35 m）时**确实可执行**；到不了只发生在敌方贴到十几米、S\* 相对支援编队反而变远的后期计划（plan-3..6，`need` 12.6–33.8 m、观测 0.82–1.17 m/s）。因此**不满足**用户「若无可行组合则判定当前部署不可执行」的触发条件，**本段不请求改 20 s / 12 m，也未改动任何生产数值**。
 
-真实剩余阻断改为：`plan-2` 在 148.092 记 `COORDINATION_DEPENDENCY_LOST role=Guard loss=NotReady failure=None replacement=<none>` → 关闭，而 `BATTLE_STATE` 首次损失在 148.589。即**有效计划窗在接敌前 0.5 秒结束**；交战期 plan-3..8 各自 3 秒内失败或选择超时。下一步应查「依赖失效时为何没有替补」与「交战期为何建不出可用计划」，而不是继续调 20 s / 12 m。两场均无冻结/推进，故仍不能当正式 P 对照样本。
+真实剩余阻断改为：`plan-2` 在 148.092 记 `COORDINATION_DEPENDENCY_LOST role=Guard loss=NotReady failure=None replacement=<none>` → 关闭，而 `BATTLE_STATE` 首次损失在 148.589。即**有效计划窗在接敌前 0.5 秒结束**；交战期 plan-3..8 各自 3 秒内失败或选择超时。下一步已执行，机制见下节；不继续调 20 s / 12 m。两场均无冻结/推进，故仍不能当正式 P 对照样本。
+
+### 2026-10-18 依赖失效与交战期重建的真实机制（只读定位，未改生产代码）
+
+**1. 148.092 的 `loss=NotReady` 属实，不是读数抖动，也不是 G\*/M\* 变了。** Guard（`1/2` Cavalry 53）质心 147.207 在 (1291.259,822.951)：fwd=13.41、lat=2.81、distG\*=4.42 → `GuardInPosition`=true；148.630 到 (1289.571,821.924)：fwd=15.25（**越过 15 m 上界**）、lat=2.10、distG\*=5.66 → false。1.42 秒内自己前进 1.98 m，越过了冻结的职责关系包络上界。`COORDINATION_STATE` 自 140.594 至 147.602 连续 `guard_ready=1 support_ready=1 advance_allowed=1`，下一 tick 即失效。
+
+**2. `replacement=<none>` 是三编队编制的结构冲突，不是候选排序或阈值问题。** `Program/src/Host/TestDriver.cs:644` 先 `excluded = {lostTask.FormationKey}`；本方只有三支 AI 编队（`1/0` Cavalry 52 主力、`1/1` Ranged 175、`1/2` Cavalry 53 失效方）。`OrderedRoleCandidates`（`TestDriver.cs:588-611`）排除 `IsMainHolder`（`1/0`，见 `:623-632`）与 `excluded`（`1/2`），只剩 `1/1`；而 `1/1` 正是 Support 当前持有者，走 `takesOtherRole` 分支必须再为 Support 找替补（`:653-659`），可用键已全被排除 → `fillers.Count == 0` → `continue` → 返回 `null`。**三编队下任一职责失效都无法重分配。**
+
+**3. 交战期计划以约 9 秒周期重建，每次 3 秒内失败。** `210338` 依次 148.092 / 155.088 / 164.086 / 173.086 / 182.086 / 191.133 / 205.112 失效；plan-3..7 判失败理由全是新 Guard 的 3 秒位移不足（`closed_distance` = 2.82 / 2.20 / −0.03 / −0.18 / 0.13，`distance` = 5.65 / 4.02 / 1.75 / 1.66 / 5.13），plan-8 为 `SelectionTimeout`。裁定① 只在质心**已经**满足完整职责关系时放行；plan-3..6 的质心并不满足（plan-3 自 148.63 起 `distG*=8.44`、`lat=−8.27` 持续越界），因此不会被计入生效。这是①的既有边界，不是回归。
+
+**4. 成员 digest 抖动会重置连续读数。** `1/1` Ranged 在 165.61–176.00 共变化 5 次（f4799c9e→5b8704a9→3905e9b4→a018b46f→53d0bf0b→1b0aa5c7），每次 `DependencyReadiness.Clear()` 归零重计（`Program/src/Core/CoordinationPlan.cs:67-90`）；同时段 `1/2` Cavalry 0 次变化。交战减员使 Ranged 充当 Guard/Support 时很难攒够 1 秒连续窗口。
+
+**5. `p3-P-20261018-225324` 的 Support 确实写出了命令，此前"从未写令"的判断是错的。** plan-2-task-3 @19.084 `WRITE_EXECUTED ... role=Support requested=(1137.607,830.626) order_target=(1137.607,830.626) readback_error=0.000 first_command_delay=5.550`；引擎 `move_target=(1137.607,830.626)` 保持到 40 s 不变、`order=Move`。
+
+**6. 但该编队在后半段停滞，不是匀速慢行。** 自己的 20 秒窗口（19.084–39.084）内质心 (1147.5,870.5)→(1134.1,845.7)，`need=39.5 m`、`left=14.9 m`。分段看：19.34–31.69 走 22.1 m（1.79 m/s），31.69–39.20 只走 2.6 m（**0.35 m/s**）。命令仍在、目标读回未变、编队却停住；同刻 `1/2` Cavalry 停在目标延长线外侧约 15 m 处，是否为阻挡**尚未验证**。这是"命令有效但质量中心不再前进"的候选缺陷，**不能用"20 秒预算不够"解释，也不能据此改预算**。
+
+**结论**：本段不请求改 20 s / 12 m / 3 s / 5-15-5 包络，也未改任何生产数值。剩余阻断按优先级为：(a) 三编队下职责失效无法重分配（结构）；(b) 交战期新计划的 Guard/Support 3 秒内进不了职责包络，导致约 9 秒周期的重建循环；(c) `225324` 的 Ranged Support 在命令有效、目标未变时停滞。三项都超出"接线修复"，需裁定是否改规则。
+
+本段新增只读分析脚本（纯 ASCII，不参与构建）：`Program/_verify/_recompute_reachable.ps1`、`_recompute_swap.ps1`、`_check_digest_stability.ps1`、`_check_guard_loss.ps1`、`_check_guard_zone.ps1`、`_check_plan_guard_envelope.ps1`、`_trace_formation_to_target.ps1`、`_check_orders_at_plan.ps1`、`_check_side_consistency.ps1`、`_check_side_cost.ps1`、`_check_support_travel.ps1`、`_recompute_feasible.ps1`、`_recompute_assignment.ps1`。
 
 
 
