@@ -24,13 +24,13 @@
       "kind": "development-dispatch",
       "root": "repo",
       "path": "Program/_verify/P2-MULTI-FORMATION-DISPATCH.md",
-      "status": "ACTIVE",
+      "status": "ARCHIVED",
       "created_at": "2026-10-12",
-      "updated_at": "2026-10-12",
+      "updated_at": "2026-10-18",
       "owner": "project-maintainer",
       "content_sha256": "3471ff7ba6a46a8387a5f1054732d1a3f83d1165e362485a21049f3e2ce5d77e",
       "auto_archive": false,
-      "notes": "用户要求由 CB2 仓库维护 P2 正式派单；v1.1 从 TCL f73857f 迁入，范围及验收判据不变。登记不代表已实现或阶段通过。"
+      "notes": "2026-10-18人工归档：P2已按Program/_verify/P2-STAGE-EXIT-ACCEPTANCE.md于2026-10-14限定通过。本单原文及摘要保留作历史合同引用，不再作为开发执行入口；不改变既有验收结论。"
     },
     {
       "prompt_id": "CB2-PROMPT-0003",
@@ -39,13 +39,13 @@
       "kind": "development-dispatch",
       "root": "repo",
       "path": "Program/_verify/P2-RESTART-REMEDIATION-DISPATCH.md",
-      "status": "ACTIVE",
+      "status": "ARCHIVED",
       "created_at": "2026-10-13",
-      "updated_at": "2026-10-13",
+      "updated_at": "2026-10-18",
       "owner": "project-maintainer",
       "content_sha256": "648065c3a2905277c78dfb54580dc185c0d150151c9fbf1dd6c7ba4b284396dc",
       "auto_archive": false,
-      "notes": "用户要求更换开发会话前先复核并派单；接续未提交的P2修复，限定整改和集中实机交回。CB2-PROMPT-0002继续作为验收合同；本登记不代表阶段通过。"
+      "notes": "2026-10-18人工归档：P2接续整改随限定阶段验收闭合，不重新执行旧整改；保留原路径、原文和摘要。"
     },
     {
       "prompt_id": "CB2-PROMPT-0004",
@@ -56,11 +56,11 @@
       "path": "Program/_verify/P3-FEEDBACK-REPLANNING-DISPATCH.md",
       "status": "ACTIVE",
       "created_at": "2026-10-14",
-      "updated_at": "2026-10-14",
+      "updated_at": "2026-10-18",
       "owner": "project-maintainer",
       "content_sha256": "064f524a77f356df3b9352c473416367b7b9e7e0bd669cd7e461667d4bcec879",
       "auto_archive": false,
-      "notes": "P2限定独立验收通过后编制的P3正式派单v1.0；限定真实战果与代价评价、一次有限追加、止损及旧新Plan收尾，含三门实机对照和完整独占验证脚本合同。登记表示派单可用，不自动授权实施，不代表P3实现或通过；实施待用户下发。"
+      "notes": "保留为P3原始验收合同引用：原三门、评价公式和验收尺度继续有效，阶段尚未通过。当前开发执行入口为CB2-PROMPT-0008，不重新从零实施本合同；用户后续批准的有限纠偏及资源准入由0001/0008承接。"
     },
     {
       "prompt_id": "CB2-PROMPT-0005",
@@ -69,13 +69,13 @@
       "kind": "development-dispatch",
       "root": "repo",
       "path": "Program/_verify/P3-RESTART-REMEDIATION-DISPATCH.md",
-      "status": "ACTIVE",
+      "status": "ARCHIVED",
       "created_at": "2026-10-15",
-      "updated_at": "2026-10-15",
+      "updated_at": "2026-10-18",
       "owner": "project-maintainer",
       "content_sha256": "dc2da0e46bd80b4bb1c75929a82d58cb8f0a4bfa12243f0167c2907eafcbc60c",
       "auto_archive": false,
-      "notes": "根据2026-10-15进展独立复核接续未提交P3，限定五项整改及实机补证；0004继续作为原验收合同，三门、公式阈值和命令域不降级。登记表示本单可用；开发收到用户下发后执行，不自动授权编写会话实施，不代表P3阶段通过。"
+      "notes": "2026-10-18人工归档：P3旧五项整改执行单由CB2-PROMPT-0008接续；相关已闭合接线保留，未闭合工作及后续用户裁定已归并新单。归档不代表P3通过；原路径、原文与摘要不变。"
     },
     {
       "prompt_id": "CB2-PROMPT-0006",
@@ -84,13 +84,13 @@
       "kind": "development-dispatch",
       "root": "repo",
       "path": "Program/_verify/P3-COORDINATE-EXECUTION-CONTINUATION-DISPATCH.md",
-      "status": "ACTIVE",
+      "status": "ARCHIVED",
       "created_at": "2026-10-16",
       "updated_at": "2026-10-18",
       "owner": "project-maintainer",
       "content_sha256": "992b6183dee7e170f771ff0e76d79f6ab8453ede27f4116428155d893d57e28b",
       "auto_archive": false,
-      "notes": "接续派单v1.3：保留已批准的每职责一次纠偏、原20s绝对截止与同状态失败抑制；按用户最新指令取消人工交回前置，空闲自动持锁实测；三门/数值/命令域及实际占用保护不变。"
+      "notes": "2026-10-18人工归档：P3坐标与执行接续单由CB2-PROMPT-0008替代为当前执行入口；正确换算、每职责一次纠偏、原截止及用户后续裁定已并入新单。保留原文及摘要，不重做已有实现。"
     },
     {
       "prompt_id": "CB2-PROMPT-0007",
@@ -99,13 +99,28 @@
       "kind": "development-dispatch",
       "root": "repo",
       "path": "Program/_verify/P3-BOUNDED-CORRECTION-RUNTIME-CONTINUATION-DISPATCH.md",
-      "status": "ACTIVE",
+      "status": "ARCHIVED",
       "created_at": "2026-10-18",
       "updated_at": "2026-10-18",
       "owner": "project-maintainer",
       "content_sha256": "c1872af8cd91ee2616b32b0e4ada23484b3fafa48fe0d85035cfe8089ed1b158",
       "auto_archive": false,
-      "notes": "运行接续派单v1.1：接续现有纠偏与启动定位；取消正式新窗口审批，现场无活跃游戏并实际取锁即可执行一次有界开发场；相关验证通过先精准本地提交，无需再问提交时机；不放宽三门、战术数值或进程归属保护。"
+      "notes": "2026-10-18人工归档：运行接续已前进到CBATH f5a8916与102648开发场，当前转交CB2-PROMPT-0008处理Guard早期失败及整场失败抑制。原文及摘要保留，启动历史不再作当前主任务。"
+    },
+    {
+      "prompt_id": "CB2-PROMPT-0008",
+      "series_id": "p3-feedback-replanning",
+      "title": "CombatBrain 2.0 P3 Action Loop Recovery Dispatch",
+      "kind": "development-dispatch",
+      "root": "repo",
+      "path": "Program/_verify/P3-ACTION-LOOP-RECOVERY-DISPATCH.md",
+      "status": "ACTIVE",
+      "created_at": "2026-10-18",
+      "updated_at": "2026-10-18",
+      "owner": "project-maintainer",
+      "content_sha256": "c725bed02495cc45c3f54ed874251d1bfac7815e2d11574b14c4b744c7c7ac39",
+      "auto_archive": false,
+      "notes": "当前开发接续入口v1.0：合并旧整改、坐标及运行接续的有效约束；接续d9af815/f5a8916，定位Guard在纠偏前NotEffective与整场失败抑制。保留正确T+(A-C)、原三门和数值；非必要不回复，连续完成必要验证和一个可判定开发场。0002/0003/0005/0006/0007原文就地归档，0004仅保留原验收合同作用。"
     }
   ]
 }
