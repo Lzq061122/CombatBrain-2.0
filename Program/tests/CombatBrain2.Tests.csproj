@@ -28,6 +28,7 @@
     <Compile Include="EligibilityTriggerTests.cs" />
     <Compile Include="ActionFeedbackTests.cs" />
     <Compile Include="CoordinateSemanticsTests.cs" />
+    <Compile Include="CoordinationEnvelopeReplayTests.cs" />
     <Compile Include="..\src\Core\TestParameters.cs" Link="Core\TestParameters.cs" />
     <Compile Include="..\src\Core\FormationSnapshot.cs" Link="Core\FormationSnapshot.cs" />
     <Compile Include="..\src\Core\TargetSelector.cs" Link="Core\TargetSelector.cs" />

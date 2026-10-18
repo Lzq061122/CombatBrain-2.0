@@ -1123,6 +1123,36 @@ namespace CombatBrain2.Tests
             Assert.Null(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 203.0, 201.5));
         }
 
+        // 实机 p3-P-20261018-210338：plan-2 的保护在 148.092 判 NotReady 时，
+        // 阶段已是 MainAdvancing（推进任务 34.033 写出）。纠偏只在 AwaitingDependencies
+        // 阶段被调用（TestDriver.cs:439），因此推进期依赖失效没有任何纠偏路径——
+        // 该职责的纠偏额度（plan-2 全场 0 次）其实没被消耗。
+        // 这一条固定「现有策略边界」：不是缺陷复现，而是把边界写死，避免日后误判为回归。
+        [Fact]
+        public void RoleCorrectionIsNotReachableOnceTheMainIsAdvancing()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 200.0);
+            var g = plan.Geometry;
+            var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
+            var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
+            driver.Observe(TestParameters.P2Now, guard, support);
+            driver.Observe(TestParameters.P2Now + 1.0, guard, support);
+            Assert.NotNull(driver.CreateAdvanceTask(plan, TestParameters.P2Now + 1.0));
+            Assert.Equal(CoordinationPhase.MainAdvancing, driver.Phase);
+
+            var old = driver.GuardTask;
+            var actual = DriftedRole(state, old);
+            // 纠偏本身的判据全部成立（命令仍适用、锚点已越过请求、未到位区、预算未耗尽），
+            // 唯一挡住它的是阶段门。
+            Assert.True(DependencyReadiness.CommandStillApplicable(plan, old, true));
+            Assert.True(PlacePast(old, actual, 3.5));
+            Assert.Null(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual,
+                TestParameters.P2Now + 20.0, TestParameters.P2Now + 1.0));
+            Assert.False(old.IsClosed);
+        }
+
         // 沿写令方向把锚点放到距请求点 distance 处：正数表示已越过，负数表示尚未到达。
         private static bool PlacePast(FormationTask task, FormationRecord record, double distance)
         {

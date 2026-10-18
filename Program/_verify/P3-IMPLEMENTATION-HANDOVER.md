@@ -6,7 +6,7 @@
 - 最新核对场 `p3-P-20261018-102648`（旧）：Guard在8.135秒NotEffective关闭；随后137次同状态失败抑制，推进、纠偏、冻结及战果评价均为0。
 - 行动恢复场 `p3-P-20261018-210338`：纠偏、重试、Main推进、冻结与战果评价全部首次出现，同状态失败抑制为0；但接敌期无有效计划窗。
 - 裁定①实施后的两个开发场 `p3-P-20261018-224524` / `p3-P-20261018-225324`：前者未触发①（Guard 全程 reads=0），后者**触发①并让 Guard 命令计入生效**；两场均因无 Main 写令被采集器判 `opponent counter-action never applied`，`RESULT: FAILURES (1)`，**不作为任何门的证据**。见下方「2026-10-18 裁定①（职责要求已满足计入生效）」。
-- 当前未闭合（三项均已定位到机制，需裁定是否改规则，见下节）：(a) **三编队编制下任一职责失效都无法重分配**——`BuildReassignments` 排除主力与被失效键后只剩正在担任另一职责的那一支，为其找替补时可用键已耗尽，必然 `replacement=<none>`；(b) **交战期新计划的 Guard/Support 进不了冻结包络**，plan 以约 9 秒周期重建、每次 3 秒内失败；(c) `225324` 的 Ranged Support **命令有效、目标读回未变却在中途停滞**（1.79→0.35 m/s）。**20 秒预算与 12 m 侧移已复算证明可执行（`210338` plan-2 两侧真实到位并维持 135 秒），本段不请求改动，也未改任何生产数值**；先前「Support 20 秒走不完」的记录是窗口起点错误，已在下节更正。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。
+- 当前未闭合（三项均已定位到机制，需裁定是否改规则，见下节）：(a) **三编队编制下任一职责失效都无法重分配**——`BuildReassignments` 排除主力与被失效键后只剩正在担任另一职责的那一支，为其找替补时可用键已耗尽，必然 `replacement=<none>`；(b) **交战期新计划的 Guard/Support 进不了冻结包络**，plan 以约 9 秒周期重建、每次 3 秒内失败；(c) `225324` 的 Ranged Support **命令有效、目标读回未变却在中途停滞**（1.79→0.35 m/s）。**20 秒预算与 12 m 侧移已复算证明可执行（`210338` plan-2 两侧真实到位并维持 135 秒），本段不请求改动，也未改任何生产数值**；先前「Support 20 秒走不完」的记录是窗口起点错误，已在下节更正。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。**(d) 已闭合的机制核查：主力推进后该计划内任何职责发生 `NotReady` 都没有纠偏入口**（`CoordinationDriver.cs:222-223` 的 `_phase` 门），`210338` plan-2 的 148.092 正落在此处；交战期 plan-3/plan-7 的失败在现行判定下仍然正确。见下方「裁定两项的闭合」。
 - 实机不再要求人工交回窗口；现场空闲时由现有完整入口自动取锁，保留实际占用、连接和进程归属保护。非必要不回复，已授权工作连续推进至集中交回。
 
 ### 2026-10-18 裁定①（职责要求已满足计入生效）
@@ -82,6 +82,41 @@ return task.WrittenAt < 0.0 ? -1.0
 本段新增只读分析脚本（纯 ASCII，不参与构建）：`Program/_verify/_recompute_reachable.ps1`、`_recompute_swap.ps1`、`_check_digest_stability.ps1`、`_check_guard_loss.ps1`、`_check_guard_zone.ps1`、`_check_plan_guard_envelope.ps1`、`_trace_formation_to_target.ps1`、`_check_orders_at_plan.ps1`、`_check_side_consistency.ps1`、`_check_side_cost.ps1`、`_check_support_travel.ps1`、`_recompute_feasible.ps1`、`_recompute_assignment.ps1`。
 
 
+
+### 2026-10-18 裁定两项的闭合：交战期失败重放，与推进期 NotReady 的恢复路径核查
+
+用户当日裁定要求：①用每张计划自己的几何、任务身份和实际读数调用**当前生产判定**重放交战期失败，分清哪些已被裁定①修复、哪些仍不满足完整关系；②对本场 `NotReady` 核对原对象资格、剩余恢复预算与实际命令，明确是恢复接线遗漏还是现有策略已无合法恢复路径。两项均已完成，**只新增测试，未改任何生产代码、未发起新实机场。**
+
+#### 项①：重放（`Program/tests/CoordinationEnvelopeReplayTests.cs`，6 例，已注册进 csproj）
+
+用各计划 `COORDINATION_BOUND` 的冻结 `M*/G*/u/v` 直接构造 `CoordinationGeometry`，再调生产 `PlanBuilder.GuardInPosition`，喂该计划最后一条 `COORDINATION_STATE` 的 Guard 实际质心：
+
+| 计划 | 质心 | fwd | lat | distG\* | GuardInPosition | 处置 |
+|---|---|---|---|---|---|---|
+| plan-3 | (1289.3,840.2) | 12.29 | −5.68 | 6.13 | **false** | 失败正确（lat 与 dist 双越界） |
+| plan-4 | (1293.0,841.1) | 11.84 | −4.07 | 4.46 | **true** | 包络内但 `reads=69`、ready=0 → 1 秒连续窗口未建立，裁定①不成立 |
+| plan-5 | (1296.6,842.2) | 9.01 | −1.39 | 1.71 | **true**（ready=1） | 现行代码会判生效；本场判失败是 `95316fd` 之前的行为 |
+| plan-6 | (1297.7,843.2) | 8.50 | −0.61 | 1.62 | **true**（ready=1） | 同上 |
+| plan-7 | (1302.2,853.0) | 4.88 | −1.04 | 5.22 | **false** | 失败正确（fwd 低于下界 5、dist 越界） |
+| plan-8 | (1275.8,824.2) | −43.26 | 16.21 | 55.67 | false | 不构成包络样本：该任务从未写出命令，失败原因是 `SelectionTimeout` |
+
+结论：交战期 8 张计划里，plan-3、plan-7 的失败在现行判定下**仍然正确**（质心确实不在冻结包络内）；plan-5、plan-6 属裁定①已修复的历史行为（本场建于 `2460fd8`，早于 `95316fd`）；plan-4 差的是连续 1 秒读数而非位置；plan-8 是选择超时。全量测试 **346/346 通过**。
+
+#### 项②：推进期 `NotReady` 时**没有任何纠偏路径**（现有策略边界，非接线遗漏）
+
+plan-2 在 148.092 判 `COORDINATION_DEPENDENCY_LOST role=Guard loss=NotReady failure=None` 时，逐项核对结果：
+
+- **对象资格成立**：`TASK_CLOSED ... reason=NotEffective written=1 feedback=Effective qualified_now=1`。
+- **命令一直有效**：`plan-2-task-2` 的 `POST_OBSERVE` 共 65 条，19.016 至 147.062 全程 `order=Move`、`feedback=Effective`。
+- **纠偏额度没被消耗**：全场 `COORDINATION_ROLE_CORRECTION` 仅 1 条（plan-1 Guard @6.593），plan-2 为 0 次。
+- **纠偏自身的判据全部成立**：锚点已越过请求、质心出区、字段有限、`CommandStillApplicable` 为真。
+- **唯一挡住它的是阶段门**：`Program/src/Core/CoordinationDriver.cs:222-223` 要求 `_phase == CoordinationPhase.AwaitingDependencies`，而 148.092 时 `phase=MainAdvancing`（推进任务 `plan-2-task-4-g1` 已于 34.033 写出）。调用侧同样只在等待期尝试：`Program/src/Host/TestDriver.cs:439-441`。
+
+即：**主力一旦释放推进，该计划内任何职责再发生 `NotReady`，都不存在纠偏入口；能走到的只有 `HandleAdvanceDependencyLost` → `BuildReassignments`，而三编队下它必然返回 `replacement=<none>`。** 已固化为测试 `RoleCorrectionIsNotReachableOnceTheMainIsAdvancing`（`Program/tests/CoordinationDriverTests.cs`）：先断言 `CommandStillApplicable` 为真、锚点已越过请求（纠偏判据齐备），再断言 `TryCreateRoleCorrection` 返回 null 且旧任务未关闭。
+
+`RelationshipExpired` 不解释该失效：`CoordinationDriver.cs:434-440` 的关系截止为 `WrittenAt + 20` = 37.136 秒，但 `:411-421` 在 `readiness.Ready && CommandStillValid` 时直接 `return false`，所以计划可以活到 148.092，这与既有测试 `RelationshipDeadlineDoesNotExpireAfterRelease` 一致。
+
+**这是需要裁定的策略边界**：是否允许在 `MainAdvancing` 阶段对失效职责做一次纠偏，或明确接受「推进开始后依赖失效即结束计划」。
 
 ### 2026-10-18 行动恢复修复与开发场（CB2-PROMPT-0008 §3.1/§3.2）
 
