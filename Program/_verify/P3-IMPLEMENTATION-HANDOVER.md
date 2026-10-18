@@ -6,7 +6,7 @@
 - 最新核对场 `p3-P-20261018-102648`（旧）：Guard在8.135秒NotEffective关闭；随后137次同状态失败抑制，推进、纠偏、冻结及战果评价均为0。
 - 行动恢复场 `p3-P-20261018-210338`：纠偏、重试、Main推进、冻结与战果评价全部首次出现，同状态失败抑制为0；但接敌期无有效计划窗。
 - 裁定①实施后的两个开发场 `p3-P-20261018-224524` / `p3-P-20261018-225324`：前者未触发①（Guard 全程 reads=0），后者**触发①并让 Guard 命令计入生效**；两场均因无 Main 写令被采集器判 `opponent counter-action never applied`，`RESULT: FAILURES (1)`，**不作为任何门的证据**。见下方「2026-10-18 裁定①（职责要求已满足计入生效）」。
-- 当前未闭合（三项均已定位到机制，需裁定是否改规则，见下节）：(a) **三编队编制下任一职责失效都无法重分配**——`BuildReassignments` 排除主力与被失效键后只剩正在担任另一职责的那一支，为其找替补时可用键已耗尽，必然 `replacement=<none>`；(b) **交战期新计划的 Guard/Support 进不了冻结包络**，plan 以约 9 秒周期重建、每次 3 秒内失败；(c) `225324` 的 Ranged Support **命令有效、目标读回未变却在中途停滞**（1.79→0.35 m/s）。**20 秒预算与 12 m 侧移已复算证明可执行（`210338` plan-2 两侧真实到位并维持 135 秒），本段不请求改动，也未改任何生产数值**；先前「Support 20 秒走不完」的记录是窗口起点错误，已在下节更正。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。**(d) 已闭合的机制核查：主力推进后该计划内任何职责发生 `NotReady` 都没有纠偏入口**（`CoordinationDriver.cs:222-223` 的 `_phase` 门），`210338` plan-2 的 148.092 正落在此处；交战期 plan-3/plan-7 的失败在现行判定下仍然正确。见下方「裁定两项的闭合」。
+- 当前未闭合（三项均已定位到机制，需裁定是否改规则，见下节）：(a) **三编队编制下任一职责失效都无法重分配**——`BuildReassignments` 排除主力与被失效键后只剩正在担任另一职责的那一支，为其找替补时可用键已耗尽，必然 `replacement=<none>`；(b) **交战期新计划的 Guard/Support 进不了冻结包络**，plan 以约 9 秒周期重建、每次 3 秒内失败；(c) `225324` 的 Ranged Support **命令有效、目标读回未变却在中途停滞**（1.79→0.35 m/s）。**20 秒预算与 12 m 侧移已复算证明可执行（`210338` plan-2 两侧真实到位并维持 135 秒），本段不请求改动，也未改任何生产数值**；先前「Support 20 秒走不完」的记录是窗口起点错误，已在下节更正。不改正确的 `T+(A-C)` 符号，不以工具/启动成功代替战术闭环或阶段通过。**(d) 已闭合的机制核查：推进期依赖失效没有原地恢复入口**，`210338` plan-2 的 148.092 同时被两个门挡住——阶段门（`CoordinationDriver.cs:222-223` 仅等待期）与已耗尽的时间预算（写令 17.136 + 20 = 37.136，失效时 148.092 已超期约 111 秒）。按用户裁定：**不新增推进期恢复入口**，该限制记为**当前实现限制，不宣称已满足持续指挥目标**；等待期纠偏失败也不能推断推进期必然无效。交战期 plan-3/plan-7 的失败在现行判定下仍然正确。见下方「裁定两项的闭合」。
 - 实机不再要求人工交回窗口；现场空闲时由现有完整入口自动取锁，保留实际占用、连接和进程归属保护。非必要不回复，已授权工作连续推进至集中交回。
 
 ### 2026-10-18 裁定①（职责要求已满足计入生效）
@@ -102,21 +102,29 @@ return task.WrittenAt < 0.0 ? -1.0
 
 结论：交战期 8 张计划里，plan-3、plan-7 的失败在现行判定下**仍然正确**（质心确实不在冻结包络内）；plan-5、plan-6 属裁定①已修复的历史行为（本场建于 `2460fd8`，早于 `95316fd`）；plan-4 差的是连续 1 秒读数而非位置；plan-8 是选择超时。全量测试 **346/346 通过**。
 
-#### 项②：推进期 `NotReady` 时**没有任何纠偏路径**（现有策略边界，非接线遗漏）
+#### 项②：本场 `NotReady` 时纠偏**同时**被阶段门和已耗尽的预算挡住（此前"唯一挡住它的是阶段门"是错的）
 
 plan-2 在 148.092 判 `COORDINATION_DEPENDENCY_LOST role=Guard loss=NotReady failure=None` 时，逐项核对结果：
 
 - **对象资格成立**：`TASK_CLOSED ... reason=NotEffective written=1 feedback=Effective qualified_now=1`。
 - **命令一直有效**：`plan-2-task-2` 的 `POST_OBSERVE` 共 65 条，19.016 至 147.062 全程 `order=Move`、`feedback=Effective`。
-- **纠偏额度没被消耗**：全场 `COORDINATION_ROLE_CORRECTION` 仅 1 条（plan-1 Guard @6.593），plan-2 为 0 次。
-- **纠偏自身的判据全部成立**：锚点已越过请求、质心出区、字段有限、`CommandStillApplicable` 为真。
-- **唯一挡住它的是阶段门**：`Program/src/Core/CoordinationDriver.cs:222-223` 要求 `_phase == CoordinationPhase.AwaitingDependencies`，而 148.092 时 `phase=MainAdvancing`（推进任务 `plan-2-task-4-g1` 已于 34.033 写出）。调用侧同样只在等待期尝试：`Program/src/Host/TestDriver.cs:439-441`。
+- **纠偏次数额度没被消耗**：全场 `COORDINATION_ROLE_CORRECTION` 仅 1 条（plan-1 Guard @6.593），plan-2 为 0 次。
+- **但时间预算早已用尽**：该任务写令 17.136，`RelationshipDeadline` = `WrittenAt + 20` = **37.136**；148.092 时已超期约 111 秒。`CoordinationDriver.cs:243` 的 `earliest + FeedbackWindowSeconds > deadline` 即便在阶段门不存在时也会拒绝。**次数没用过，不代表时间预算还能用。**
+- **阶段门是第二个阻断**：`CoordinationDriver.cs:222-223` 要求 `_phase == CoordinationPhase.AwaitingDependencies`，而 148.092 时 `phase=MainAdvancing`（推进任务 `plan-2-task-4-g1` 已于 34.033 写出）。调用侧同样只在等待期尝试：`TestDriver.cs:439-441`。
 
-即：**主力一旦释放推进，该计划内任何职责再发生 `NotReady`，都不存在纠偏入口；能走到的只有 `HandleAdvanceDependencyLost` → `BuildReassignments`，而三编队下它必然返回 `replacement=<none>`。** 已固化为测试 `RoleCorrectionIsNotReachableOnceTheMainIsAdvancing`（`Program/tests/CoordinationDriverTests.cs`）：先断言 `CommandStillApplicable` 为真、锚点已越过请求（纠偏判据齐备），再断言 `TryCreateRoleCorrection` 返回 null 且旧任务未关闭。
+**测试已按此更正**（`Program/tests/CoordinationDriverTests.cs`）。先前那条 `RoleCorrectionIsNotReachableOnceTheMainIsAdvancing` 把写令设在 200.0、调用设在 220.0，恰好用光了 20 秒预算，返回 null 分不清是哪个门，已废弃。现为三条同组输入（写令 200.0、调用 201.5、截止 220.0、`earliest` 203.0、加 3 秒反馈仍需 206.0 ≤ 220.0）的事实：
 
-`RelationshipExpired` 不解释该失效：`CoordinationDriver.cs:434-440` 的关系截止为 `WrittenAt + 20` = 37.136 秒，但 `:411-421` 在 `readiness.Ready && CommandStillValid` 时直接 `return false`，所以计划可以活到 148.092，这与既有测试 `RelationshipDeadlineDoesNotExpireAfterRelease` 一致。
+1. `RoleCorrectionIsCreatedInTheWaitingPhaseWhileTheBudgetRemains` — 等待期、预算充足 → 纠偏**真的建出来**（`Assert.NotNull` 且旧任务关闭）。没有这条，第 2 条的 null 无法归因。
+2. `RoleCorrectionIsBlockedOnlyByTheAdvancePhaseUnderTheSameBudget` — 与第 1 条同时间同几何，只把阶段换成 `MainAdvancing` → 返回 null 且旧任务未关闭；同时断言 `CommandStillApplicable`、锚点已越过请求、`GuardInPosition` 为假。**这才把这一处 null 归因到阶段门。**
+3. `RoleCorrectionIsRefusedOnceTheRelationshipBudgetIsSpent` — 用本场真实时序（写令 17.136、截止 37.136、调用 148.092）→ 返回 null，固定"预算耗尽即不可纠偏"，防止把次数没用过当成预算还能用。
 
-**这是需要裁定的策略边界**：是否允许在 `MainAdvancing` 阶段对失效职责做一次纠偏，或明确接受「推进开始后依赖失效即结束计划」。
+**结论与当前处理**（用户 2026-10-18 裁定）：
+
+- **不新增推进期恢复入口**；推进期依赖失效继续走安全结束与已批准的一次重试重规划路径，不增加恢复额度、不重置截止、不通过退回等待期取得新预算。
+- 「推进期无原地恢复入口」记为**当前实现限制**，**不宣称它已满足持续指挥目标**。
+- 等待期一次纠偏失败（`225324` plan-1：纠偏写令后 3 秒仍 `closed_distance=-6.91`、距离 24.93 m）**不能推断**推进期纠偏必然无效；反之也不能推断它必然有效。要判断得靠一次独立实验，本段不为此开场。
+
+`RelationshipExpired` 不解释 148.092 的失效：`CoordinationDriver.cs:434-440` 的关系截止是 37.136 秒，但 `:411-421` 在 `readiness.Ready && CommandStillValid` 时直接 `return false`，所以关系仍成立时计划可以活过截止，这与既有测试 `RelationshipDeadlineDoesNotExpireAfterRelease` 一致。**该"超期仍存活"与"超期后不可纠偏"并存**：存活判定只要求关系已建立且命令有效，纠偏判定还要求能把 1.5 秒延迟加 3 秒反馈放进原截止内。
 
 ### 2026-10-18 行动恢复修复与开发场（CB2-PROMPT-0008 §3.1/§3.2）
 

@@ -1123,17 +1123,40 @@ namespace CombatBrain2.Tests
             Assert.Null(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual, 203.0, 201.5));
         }
 
-        // 实机 p3-P-20261018-210338：plan-2 的保护在 148.092 判 NotReady 时，
-        // 阶段已是 MainAdvancing（推进任务 34.033 写出）。纠偏只在 AwaitingDependencies
-        // 阶段被调用（TestDriver.cs:439），因此推进期依赖失效没有任何纠偏路径——
-        // 该职责的纠偏额度（plan-2 全场 0 次）其实没被消耗。
-        // 这一条固定「现有策略边界」：不是缺陷复现，而是把边界写死，避免日后误判为回归。
+        // 下面三条用同一组输入（写令 200.0、调用 201.5，截止 220.0，earliest 203.0，
+        // 加 3 秒反馈仍需 206.0 <= 220.0，预算充足）分别隔离三个条件，避免把
+        // "预算已耗尽"误当成"阶段门拦住"。
+        private const double FixtureWrittenAt = 200.0;
+        private const double FixtureCorrectionAt = 201.5;
+
+        // 正例：等待期、预算充足时纠偏必须真的建出来。没有这一条，下一条的 null
+        // 就不能归因到阶段门。
         [Fact]
-        public void RoleCorrectionIsNotReachableOnceTheMainIsAdvancing()
+        public void RoleCorrectionIsCreatedInTheWaitingPhaseWhileTheBudgetRemains()
         {
             BattlePlan plan; BattleState state;
             var driver = BoundDriver(out plan, out state);
-            CommandsInEffect(plan, driver, 200.0);
+            CommandsInEffect(plan, driver, FixtureWrittenAt);
+            var old = driver.GuardTask;
+            var actual = DriftedRole(state, old);
+            Assert.True(PlacePast(old, actual, 3.5));
+            Assert.Equal(CoordinationPhase.AwaitingDependencies, driver.Phase);
+            var correction = driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual,
+                FixtureCorrectionAt, FixtureWrittenAt);
+            Assert.NotNull(correction);
+            Assert.True(old.IsClosed);
+        }
+
+        // 与上一条完全相同的时间与几何，只把阶段换成推进期：返回 null 且旧任务未关闭，
+        // 因此这一处 null 只能由阶段门造成，不能由预算或几何造成。
+        // 实机 p3-P-20261018-210338 的 plan-2 正落在这个形态上（推进任务 34.033 写出，
+        // 148.092 才记 NotReady），但它同时已超期，单看现场读数分不开这两个原因。
+        [Fact]
+        public void RoleCorrectionIsBlockedOnlyByTheAdvancePhaseUnderTheSameBudget()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, FixtureWrittenAt);
             var g = plan.Geometry;
             var guard = At(g, driver.GuardTask, g.GuardX, g.GuardY, true);
             var support = At(g, driver.SupportTask, g.SupportX, g.SupportY, false);
@@ -1144,12 +1167,30 @@ namespace CombatBrain2.Tests
 
             var old = driver.GuardTask;
             var actual = DriftedRole(state, old);
-            // 纠偏本身的判据全部成立（命令仍适用、锚点已越过请求、未到位区、预算未耗尽），
-            // 唯一挡住它的是阶段门。
             Assert.True(DependencyReadiness.CommandStillApplicable(plan, old, true));
             Assert.True(PlacePast(old, actual, 3.5));
+            Assert.False(PlanBuilder.GuardInPosition(plan.Geometry, actual.ActiveCenterX, actual.ActiveCenterY));
             Assert.Null(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual,
-                TestParameters.P2Now + 20.0, TestParameters.P2Now + 1.0));
+                FixtureCorrectionAt, FixtureWrittenAt));
+            Assert.False(old.IsClosed);
+        }
+
+        // 实机 p3-P-20261018-210338 的真实时序：Guard 写令 17.136、关系截止 37.136，
+        // 到 148.092 判 NotReady 时已超期约 111 秒。即使移除阶段门，这条也仍会被预算拒绝。
+        // 保留它，防止把"次数没用过"当成"时间预算还能用"。
+        [Fact]
+        public void RoleCorrectionIsRefusedOnceTheRelationshipBudgetIsSpent()
+        {
+            BattlePlan plan; BattleState state;
+            var driver = BoundDriver(out plan, out state);
+            CommandsInEffect(plan, driver, 17.136);
+            var old = driver.GuardTask;
+            var actual = DriftedRole(state, old);
+            Assert.True(PlacePast(old, actual, 3.5));
+            Assert.Equal(37.136, CoordinationDriver.RelationshipDeadline(old), 3);
+            Assert.True(148.092 > CoordinationDriver.RelationshipDeadline(old));
+            Assert.Null(driver.TryCreateRoleCorrection(plan, FormationRole.Guard, actual,
+                148.092, 17.136));
             Assert.False(old.IsClosed);
         }
 
