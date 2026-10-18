@@ -28,15 +28,18 @@
 | 重试额度消耗 | — | **2**（plan-2 @13.540、plan-8 @193.609，两个不同失败分配） |
 | Main 推进 | 0 | **1**（plan-2-task-4-g1 @32.228） |
 | 战果冻结 | 0 | **1**（t0=34.033，NE=59 NF=280） |
-| 结果评价 | 0 | **42**（均 `decision=Continue`：window_not_mature → no_local_gain） |
+| 战果评价 | 0 | **42**（均 `decision=Continue`：window_not_mature → no_local_gain，且全部在接触之前） |
 | 同状态失败抑制 | 137 | **0** |
 | 计划 | 1 | 8 |
+| 交战 | 无（敌方 59 全程未损） | **有**：148.589 起，敌方 59→1（193.609）、298.680 起敌方队伍不存在；我方 280→249。交战期 CB2 无有效计划窗 |
 
 身份：CB2 `b20261018-210334-093993ff`，source=deployed=运行读回 `901ed2bf…`（201728 B），pid 54264，`active_modules` 中 Harmony/ButterLib/UIExtenderEx/MBOptionSetting 均在 Native 之前。CBATH `b20261018-210337-0a5be7aa`，`1cf8a96b…`，主线程 `ticks=3 enqueued=1 completed=1`。`end-state`: `safely_exited=1`、`residual_own=[]`、`cleanup_failures=[]`；死战两处前置 `status=ok patches_installed=True`，last-run 421/421 `enabled=true`。
 
 **关键读数**：纠偏写令 `tactic=(1306.809,851.183) anchor=(1297.302,836.030) center=(1302.093,844.305) requested=(1302.018,842.908)`，`T+(A−C)` 复算一致。plan-2 在推进116秒后于148.092记 `COORDINATION_DEPENDENCY_LOST role=Guard loss=NotReady failure=None`，替补为空 → 关闭，属推进期依赖失效的正常归因路径。
 
-**仍缺 / 下一处共同原因（需裁定，未擅自改）**：plan-3..7 均在同一形态上关闭——Guard 的 Reposition 在3秒内无法产生3m位移，而质心距 G* 已达 1.75/1.66m（plan-5/6）。即“角色关系其实已满足”与“3秒反馈要求3m位移”直接冲突：`MainAdvanceAllowed` 又要求两侧 `Effective`，于是释放被3秒反馈抢先关闭计划，形成每8秒重建一次的循环。这属于修改3秒位移判据或释放条件，按 §3.1/§4 必须先裁定；本场无交战（NE=59 未损、LE=0），战果链不成立，不把 42 次 Continue 当作战术收益。
+**仍缺 / 下一处共同原因（需裁定，未擅自改）**：plan-3..7 均在同一形态上关闭——Guard 的 Reposition 在3秒内无法产生3m位移，而质心距 G* 已达 1.75/1.66m（plan-5/6）。即“角色关系其实已满足”与“3秒反馈要求3m位移”直接冲突：`MainAdvanceAllowed` 又要求两侧 `Effective`，于是释放被3秒反馈抢先关闭计划，形成每约8秒重建一次的循环。
+
+**本场交战与窗口不重叠（必须如实记录，勿写成“未交战”）**：`BATTLE_STATE` 首次出现损失在 148.589（我方 280 / 敌方 59→58），恰是 plan-2 于 148.092 失效之后；敌方 59→1 于 193.609，298.680 起 `enemy_team_not_found`（敌方队伍已不存在），我方 280→249。因此 plan-2 的 13.540–148.092 是零接触窗口，42 次 `Continue`（NE=59 NF=280、LE=LF=0）全部产生在接触之前，**不构成战果**；真正交战（148.6–194 s）期间 plan-3..8 各自在 3 秒内或选择超时中关闭，CB2 无有效计划窗，歼灭由原生完成，**不能归为 CB2 指挥收益**。
 
 
 ### 当前纠偏（2026-10-18）
