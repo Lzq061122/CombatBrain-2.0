@@ -25,6 +25,7 @@
     <Compile Include="CoordinationDriverTests.cs" />
     <Compile Include="ExitStopLedgerTests.cs" />
     <Compile Include="ExitStopObservationTests.cs" />
+    <Compile Include="TacticLayerContractTests.cs" />
     <Compile Include="..\src\Core\ExitStopObservation.cs" Link="Core\ExitStopObservation.cs" />
     <Compile Include="CoordinationIntegrationTests.cs" />
     <Compile Include="EligibilityTriggerTests.cs" />

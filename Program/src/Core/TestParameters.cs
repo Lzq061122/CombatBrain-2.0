@@ -74,6 +74,10 @@ namespace CombatBrain2.Core
         internal const int RoleUnitFloor = 6;
         internal const double RoleUnitRatioFloor = 0.50;
 
+        // P3 战术层接入（CB2-TACTIC-TEAM-EXPORT v1）：原生战术在双方编队前沿间距
+        // 小于该值后开始干预编队行为；本战术点位的判定沿用同一间距口径。
+        internal const double TacticEffectivenessDistance = 50.0;
+
         // A5 竞争注入：挑战者相对规范目标点的侧向偏移量（派单 §9.2 场景 A 第 2 条）。
         // 偏移后仍须落在本任务的到位区域内，否则它就不是「同级合法」候选。
         internal const double P2CompetitionLateralMeters = 2.0;

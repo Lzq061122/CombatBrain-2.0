@@ -1,4 +1,4 @@
-﻿# P3 接续整改 — 实现交接
+# P3 接续整改 — 实现交接
 
 **当前状态：P3 未通过，实际行动—评价闭环尚未恢复。** 当前执行依据为 `CB2-PROMPT-0009` v2.0（`P3-TACTIC-EXECUTION-REVIEW-DISPATCH.md`），执行接入核查、必要离线验证及当前行为的最小实测与配套部署均已授权；候选控制方案尚未批准，不阻止为定位问题取得实机证据。0004保留验收合同作用；0008及更早执行单就地归档，已批准策略及未闭合项不清零。以下历史段落和多稿勘误不覆盖当前登记及后续裁定。
 
@@ -1822,7 +1822,7 @@ TickOccasionally(dt)                                   FormationAI:240
 | 候选 | 是否解决"反复丢失" | 触碰范围 | 结论 |
 |---|---|---|---|
 | 提高本方权重（W2） | 可能，但需盖过 10000 | 行为权重 | **未批准**，且 W1 只证否"恢复到 8"，未证否"提高"，不作推荐 |
-| 战术层接管（自定义 `TacticComponent` + `AddTacticOption`） | 能，覆盖整队 | 整队战术、所有编队 | **超出最小范围**：`MakeDecision` 按 `GetTacticWeight` 选整队战术，接管即影响全队；且 `CurrentTactic` 为 protected，只能靠"自己注册的战术被选中"间接获得，不是可控入口。本单不推荐 |
+| 战术层接管（自定义 `TacticComponent` + `AddTacticOption`） | 能，覆盖整队 | 整队战术、所有编队 | **§9.8 的判断已被用户 2026-10-19 的 D3 裁定取代**：授权提出并评审"CB2 参与整队战术分配"的必要契约变化。方案与证据见 §10。D3 不构成实施批准 |
 | H2 / `SetControlledByAI(false)` | 能独占，但 TCL 已证 `FormationAI.Tick` 整体停摆（连行为选择一起停） | 编队 AI 控制 | **TCL 已不选作常态默认**；本单不重开 |
 | ~~本方案（Stop-Precedence）~~ | **已撤回**：与现状 setter 调用次数完全相同（9.4.3），不产生新执行效果 | — | **不推荐** |
 
@@ -1833,3 +1833,75 @@ TickOccasionally(dt)                                   FormationAI:240
 3. 命中 `TacticCharge` 以外的战术（如 `TacticFullScaleAttack`，只在状态切换时重设权重）时本方权重与订单的命运未知。
 4. `submitted=0` 的 81 条退出令为何在 1 s 预算内没投递出去，未定位；属独立缺陷候选。
 5. `p3-P-20261019-124205` 3.531 秒那次接敌前的获选（`ACTIVE_BEHAVIOR_CHANGED ones=1`）与模型"8.0 恒输"并不矛盾但也不吻合：该时刻的实际权重与原生候选集未知，本轮未取到能对齐的时刻级读数。
+
+---
+
+## 10. 战术层接入推荐方案（CB2-PROMPT-0009 §5，2026-10-19 用户 D3 裁定后）
+
+**本节的授权性质**：用户 2026-10-19 裁定 D3，授权提出并评审"CB2 参与整队战术分配"的必要契约变化，不再要求方案同时满足"完全不碰战术层"。**D3 不是实施批准**，也不是允许换个位置抬高权重。本节交付的是方案与离线证据，未部署、未启游戏、未接线生产。
+
+### 10.1 真实入口与职责分工
+
+方案让 CB2 注册一个**自己的 `TacticComponent`** 进入原生候选池，由引擎按既有规则选为 `CurrentTactic`，然后在该战术的 `TickOccasionally` 中按编队设置行为权重。
+
+| 环节 | 引擎接口（真实签名，读自运行程序集） | 本方案的位置 |
+|---|---|---|
+| 注册 | `Team.AddTacticOption(TacticComponent)`（public 门面，内部 `if (HasTeamAi) TeamAI.AddTacticOption(...)`） | CB2 注册**新增**一个候选，不删除、不替换原生候选 |
+| 选择 | `TeamAIComponent.MakeDecision()`（private），`Extensions.MaxBy(availableTactics, to => to.GetTacticWeight() * (to == _currentTactic ? 1.5f : 1f))`，每 5 s（`Tick`） | 只提供 `GetTacticWeight()` 参与竞争；不改选择规则 |
+| 独占 | `CurrentTactic` 属性（protected）；`TacticComponent.GetTacticWeight()` / `ResetTacticalPositions()` 均为 `protected internal`，外部程序集无法调用 | **必须靠"自己被选中"间接获得**，这是唯一入口，不是可控开关 |
+| 持续职责 | `TeamAIComponent.TickOccasionally()` → `CurrentTactic?.TickOccasionally()`（每 `_occasionalTickTime`） | 与 `TacticCharge` 同周期执行，权重每轮重设 |
+| 编队行为 | `TacticComponent.SetDefaultBehaviorWeights(Formation)` + `Formation.AI.ResetBehaviorWeights()` / `SetBehaviorWeight<T>(float)` | 与原生战术同一手法：先整表清空再设默认再改权重 |
+| 交出 | `MakeDecision` 在换将前调用 `CurrentTactic.ResetTacticalPositions()`；返回 false（基类默认）即**允许被直接替换** | 方案**不重写**它，沿用基类 false，退出路径与 `TacticCharge` 一致 |
+
+**关键推论**：一旦 CB2 战术被选中，本方就进入了原本次序中 `TacticCharge` 的位置——`TeamAIComponent.TickOccasionally` 只驱动一个当前战术，所以原生 `TacticCharge` 每轮对本方各编队的 `ResetBehaviorWeights + SetBehaviorWeight<BehaviorCharge>(10000f)` 不再对本方执行。这正是 9.4.2 情况二"保持活动期间原生一个 setter 都不写"的来源，也是本方案能解决"反复丢失"的原因。
+
+### 10.2 关键证据与替身边界
+
+**已核对事实（本轮从运行程序集现场反编译，`Program/_scratch/d3/full-mnb.cs` 为全量导出，143188 行）**：
+1. `Team.AddTacticOption` 公开门面 + `TeamAIComponent.AddTacticOption` 内部实现，`_availableTactics` 是 `List<TacticComponent>`。
+2. 野战的候选池由战役任务注册（`case Mission.MissionTeamAITypeEnum.FieldBattle:` 的第二处），`TacticCharge` 恒在；`num = BattleCombatants.Where(...).Max(GetTacticsSkillAmount())`，`num >= 20f` 追加 `TacticFullScaleAttack` 等，`num >= 50f` 再追加 `TacticFrontalCavalryCharge` 等。**候选池规模随技能变化，不是固定集合。**
+3. `MakeDecision` 的替换条件：`CurrentTactic == null`，或 `!CurrentTactic.ResetTacticalPositions()`（基类 false），或挑战者 `GetTacticWeight() > 现任 × 1.5f`。
+4. `TacticCharge.TickOccasionally` 逐编队 `CountOfUnits > 0` 则整表清空 → 设默认 → `SetBehaviorWeight<BehaviorCharge>(10000f)`。
+
+**离线反例**（`Program/tests/TacticLayerContractTests.cs`，5 个 Fact，全绿）：把上述 1–4 条与"候选类不得被接线进生产"写成断言，防的是方案依据被悄悄改掉。
+
+**替身边界（必须说清）**：
+- 断言的对象是**反编译文本**，不是运行中的引擎行为。它证明"引擎有这个结构"，不证明"CB2 战术会被选中"或"被选中后行为符合预期"。
+- `Cb2Tactic.GetTacticWeight()` 的具体数值**未经任何场景验证**；9.2 的 `chain` 离线模型没有覆盖战术层评分，本轮也未新增该模型。
+- 9.5 提到"宿主订单在无写令者介入时不会自行改变"仍是**引擎语义推断**，方案依赖它，本方案未改变这一点，实施前仍需按 9.6 的最小场景直接验证。
+
+### 10.3 所需最小契约差异
+
+| 原约定 | 变化 | 为什么必须变 |
+|---|---|---|
+| "C 路线：只用普通 Behavior 竞争，不碰战术层" | 允许注册一个自有 `TacticComponent` | `GetTacticWeight`/`ResetTacticalPositions` 是 `protected internal`，行为层权重 8.0 对 `10000 × GetAIWeight` 无望（9.4 已证 0/80 tick） |
+| "原生行为权重分配方式不变" | 仅在**本战术被选中期间**，由 CB2 战术按 10.4 的规则改写本方编队权重；未被选中时完全不变 | 战术层是整队独占的，被选中即接管；不接管就仍是"参赛者" |
+| "CB2 不增减原生候选" | 新增一个候选，**不删除任何原生候选**，不改 `MakeDecision` | 保留原生在 CB2 战术落选时的一切行为 |
+
+**仍然不变的约束**：写令仍走 `CoordinationWriteBlock` 与 `_gate.RequestWrite` 两道门；退出 Stop 链、死战不退前置、共享资源准入均不因本方案改变。
+
+### 10.4 必要改动范围
+
+已有（未接线，`EnableDefaultCompileItems=false` 已加入 csproj，仅参与离线反例）：
+- `Program/src/Host/Cb2Tactic.cs`：`TickOccasionally` 中取 `Team.TeamAI`，`GetIsFirstTacticChosen` 为真后对 `IsAIControlled && CountOfUnits > 0` 的编队调 `ChooseBehavior`；`ChooseBehavior` 按 `f.CurrentPosition` 与 `TacticalPositions[0].Position.AsVec2` 的平面距离决定权重——小于 `TacticEffectivenessDistance`（50 m）给 `BehaviorCharge 1000f` + `BehaviorSkirmish 1f`，否则 `BehaviorAdvance 1f`。
+- `Program/src/Host/Cb2TacticProbe.cs`：构造函数钩子，用于确认测的是生产 `TacticComponent` 构造路径。
+- `Program/src/Core/TestParameters.cs:77-79`：`TacticEffectivenessDistance = 50.0`。
+
+接入生产还需（本单未做）：
+1. 注册时机：战役任务注册原生候选之后调用 `Team.AddTacticOption(new Cb2Tactic(team))`，且只在 `HasTeamAi` 时。
+2. `GetTacticWeight()` 的取值策略——**这是唯一真正需要裁定的设计决定**，且必须有落选兜底（落选时 CB2 行为回到 9.4 的现状，不产生新风险）。
+3. 观测：`ManageCalls`、选中/落选时刻、每轮改写的编队数与权重，接入现有事件体系。
+
+### 10.5 实际执行了什么、区分了什么
+
+- 执行：从运行 DLL 现场反编译 `TeamAIComponent`/`TacticComponent`/`TacticCharge`/`Team` 门面/战役任务注册段；新建 3 个文件加入 csproj；Debug 构建 0 警告 0 错误，产物 `bin/Debug/CombatBrain2.dll` 207360 B，SHA256 `0197B58F8AACAC57F5A5E7201716D93EE2B74CA40EDEDDB1FDDD1FFAB5C54ED3B`（字符串扫描确认 `Cb2Tactic`/`Cb2TacticProbe`/`TacticEffectivenessDistance` 在产物内）；新增 5 个 Fact，全量 **360/360** 通过。
+- **区分了**："引擎存在该结构"（已证）与"CB2 战术会被选中、选中后行为合理"（**未证**）。后者需实机。
+- **未做**：部署、启游戏、接线生产、`GetTacticWeight` 建模、性能与联机影响评估。
+
+### 10.6 尚未解决
+
+1. `Cb2Tactic.GetTacticWeight()` 未定值，也未建模；不知道在什么兵力/技能条件下会被选中。
+2. 被选中后与 CB2 有效任务的交互未验证：战术层的 `TickOccasionally` 与本方 `_gate` 写令是否会互相覆盖，需实机读数。
+3. `TacticFullScaleAttack` 等"只在状态切换时重设权重"的战术若成为现任，CB2 战术的竞争条件与 9.9 第 3 条同源，未变。
+4. 9.9 的 1、2、4、5 条不因本方案改变：原生清零归因、逐字节对齐、81 条未投递退出令、3.531 秒获选，均仍开放。
+5. 本方案对"退出停令"零贡献（9.7），81 条 `submitted=0` 需要独立定位。

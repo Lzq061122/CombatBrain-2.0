@@ -42,6 +42,9 @@
     <Compile Include="src\Host\BuildIdentity.Cb2.g.cs"
              Condition="Exists('src\Host\BuildIdentity.Cb2.g.cs')" />
     <Compile Include="src\Host\CbHoldBehavior.cs" />
+    <Compile Include="src\Host\Cb2TacticProbe.cs" />
+    <!-- P3 战术层接入的推荐方案，仅参与离线反例；接生产前必须由契约修订放行。 -->
+    <Compile Include="src\Host\Cb2Tactic.cs" />
     <Compile Include="src\Host\FormationSampler.cs" />
     <Compile Include="src\Host\IndependentObservation.cs" />
     <Compile Include="src\Host\TestDriver.cs" />
