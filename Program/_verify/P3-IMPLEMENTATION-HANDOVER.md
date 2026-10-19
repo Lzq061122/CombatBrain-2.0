@@ -1263,7 +1263,7 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 | # | TCL 原结论及证据边界 | CB2 对应设计/合同 | 生产实现 | 已有验证 | 当前缺口 | 类别 |
 |---|---|---|---|---|---|---|
 | a | C 路线「出 Intent、原生决定执行」，失败模式为**意图不落地**（07 §2.1）；"现有权重不足以证明能够交付，亦不足以断言永远不能交付"（P12 §4.1） | `CbHoldBehavior` 作为普通 `BehaviorComponent` 参选；P3 门 2 要求"停止旧 Plan 不再适用的命令" | `CbHoldBehavior.cs:38-52`：`TickOccasionally` 仅在原生选中时回调，未选中时候选权重静默存在 | **取得执行机会：成立且有证据**。`p3-P-20261018-001730` 369.529 `REAL_SELECTION` → 369.540 `WRITE_EXECUTED` | 无缺口——**这一项 TCL 结论被正确落实**（C 路线 + 原生选中即执行） | 无（落实正确） |
-| b | "Completed+OrderApplied 但后续被替换：本次传导成功，**持续职责另判**"（P12 §8.3）；`ActiveBehavior` 加成 `lerp(1.2,2,…)` 可被原生清零 | 需持续履责 | 无持续履责判定；`TASK_FEEDBACK effective` 只在写后 3 秒窗口内评估（`ActionFeedback`） | `001730`：369.545 `state=effective` → 370.538 即被 `CommandOverridden`（相隔 0.998 s）。全库 `BEHAVIOR_DISARMED` 大量出现 | **持续职责从未被判据认定过**：一次 `effective` 不等于持续，CB2 也没有独立于单次写令的持续判定。W1 只证明"恢复 8.0 无效"，未证明"所有相位必败"，也**未被批准** | 验证缺口 |
+| b | "Completed+OrderApplied 但后续被替换：本次传导成功，**持续职责另判**"（P12 §8.3）；`ActiveBehavior` 加成 `lerp(1.2,2,…)` 可被原生清零 | 需持续履责 | 有持续反馈检查（`ActionFeedback` 在写后 3 秒窗口内持续比对），**不是没有持续反馈** | `001730`：369.545 `state=effective` → 370.538 即被 `CommandOverridden`（相隔 0.998 s）。全库 `BEHAVIOR_DISARMED` 大量出现 | **尚未取得满足当前合同的持续履职证据**（不是"没有持续反馈检查"）。W1 只证明"恢复 8.0 无效"，未证明"所有相位必败"，也**未被批准** | 验证缺口 |
 | c | 失败必须回报产生它的任务来源：未选择/落地失败/被替换/资格取消/恢复失败，携带原任务版本与对象身份（P12 §3.3） | P3 门 2/门 3；`PlanLedger.RememberFailedCoordination` 做失败抑制 | **反馈链是完整的，失败确实进入上层**：获选超时 → `SweepExpiredSelections`（`TestDriver.cs:2555-2575`）→ `InvalidatePlan(SelectionTimeout)`（`2571`）；执行反馈失败 → `TestDriver.cs:2220` `InvalidatePlan(result.Reason, …, task.PlanId)`；写令被拒 → `1123`/`1672` `InvalidatePlan(WriteFailed)`；资格丢失 → `1115`/`2284` | `001730` 370.538 `state=failed reason=CommandOverridden` 直接导致 `PLAN_INVALIDATED plan-18`；382.217 `TASK_SELECTION_TIMEOUT` 直接导致 `PLAN_INVALIDATED plan-19` | **无"失败无消费者"缺口**。真正开放的是：这些已进入上层的失败，**是否应改变下一次重建策略**——`TestDriver.cs:2316` 只在 `reason == NotEffective` 时写入失败记忆，`CommandOverridden` / `SelectionTimeout` 虽使计划失效却**不影响下一轮的创建许可**。**失败反馈与失败抑制是两件事**，第一稿把二者混为一谈 | 无缺口（第一稿判断有误，见 §7f） |
 | d | 退出必须停止旧动作；Exit/Restore 日志、`restoreFailures=0` **都不足以单独认证**（P12 §4.3） | **原合同已写明独立判据**：`P3-FEEDBACK-REPLANNING-DISPATCH.md` §5.3 第 3 条——"撤权、清槽与'士兵已停止旧动作'分开。负例必须有独立实际订单/位移证明旧攻势停止；若退出未应用且仍执行旧推进，该项未通过，不能仅凭零旧 WRITE 宣称通过" | **检查器已实现该判据**：`check-p3-feedback.ps1:1194` `gate2_stopped_objects_not_still_executing_old_order`；缺读数走 `unverified`（`1196-1200`），不当作通过 | `001730` 371.542 / 383.218 各 3 条 `EXIT_STOP_NOT_APPLIED`，`selected=0`。跨 96 场 `NOT_APPLIED` **129/656**。`124205` 9 条退出全部 `DONE`，`EXIT_STOP_OBSERVED` 284 条（`stopped=11` / `superseded=273`） | **判据与读数都存在，缺的是归因**：`POST_OBSERVE` 已记录退出后订单，但挂在原计划任务名下、不含归属（§7d.2），同一对象 `13.016 stopped` → `33.021 Move`（被后继任务接管）在数据上无法区分"旧攻势复发"与"合法接管"。129 条是**历史混合场次**（跨 P1/P2/P3、跨多个构建）的累计事件数，**不能读作当前版本"近五分之一停令失败"**。`NOT_APPLIED` 也**不等于**仍在执行旧攻势：129 条中 `ownership=own` **104 条**、`ownership=taken_over` 11 条（见 §7c）。`EXIT_STOP_OBSERVED` 的冲突反例实机**未触发** | 验证缺口（非合同缺口、非实现缺陷；本轮已补身份关联读数） |
 | e | Release 只清 Target/恢复权重，**已存在的 Behavior 对象仍挂在 FormationAI，`ActiveBehavior`/`CurrentOrder` 不由该 Release 清除**（P12 §4.3）；"能夺取"与"能安全交还"必须同时验收（07 §2.2） | `OnMissionEnd` 清理链 | `TestDriver.cs:2928-2971`：关计划、关任务、`_gate.ClearMission`、`_ledger.ClearMission`、`_tasks.ClearMission`、`DisarmAllBehaviors`（`2661-2694`：`b.Disarm()` + `SetBehaviorWeight<CbHoldBehavior>(0f)`，**不写 MovementOrder**） | `001730` 420.5 `MISSION_CLEANUP plan_task_and_object_state_cleared` 为最后一行 | **交还只撤权、不撤动作**，与 TCL §4.3 的描述一致。但该场 Mission 结束时战场已无接敌（`team=0 units=0`），**这一场不能证明交还后部队仍在执行旧攻势，也不能证明已停止**。此项**保持未验证**，不因日志末尾出现 `MISSION_CLEANUP` 就算通过 | 验证缺口 |
@@ -1530,6 +1530,14 @@ BEHAVIOR_WEIGHT_ZEROED key=... before=... after=... dup=<0 非零变零 / 1 本�
   2. H1/H2/H3/H4/B：全部**未实施、未批准**。
   3. **本方案不增强停令能力**：`EXIT_STOP_NOT_APPLIED` 的修复仍未被本单覆盖；"能否停住"仍只有外部独立采样支持。
   4. 三门仍全部 `unverified`，**P3 未通过**。
+
+- **收口限定（2026-10-19 用户裁定，本单按取证范围结束）**：
+  1. 本单接受的仅是**退出任务身份关联采样已实现**，以及**正常停令（`stopped`）与后继接管（`superseded`）两类实机接线已验证**。冲突分支只有离线证据，**不得扩大为"退出可靠"**。
+  2. `EXIT_STOP_OBSERVED` **不接入门 2 的通过判定**。生产自报不得替代独立采样；原本缺证据的门不得因新事件变成通过。本轮**不扩检查器**。
+  3. `stopped` 的准确含义是"**该时刻**同对象、归属仍匹配、读到静止订单"，**不单独证明**该停令由这次退出命令造成，也不证明此后持续停止。`superseded` 只证明**内部归属已变**，后继实际命令仍须另行核对（本场 key=1/0 在 31.537 被写成 `Move`，即属此类）。
+  4. 历史 129 条 `NOT_APPLIED` **不作为批量整改任务**。须用当前版本、相关任务与时间窗口复现具体阻塞后，再决定修实现、调策略或讨论控制权。
+  5. 后续回到 P3 实际行动与反馈闭环，**不再围绕这条日志扩工具**。
+
 - **本单改动的代码**（均不改行为）：
   1. `CbHoldBehavior.ResetBehavior()` 重写 + `TestDriver.OnBehaviorResetWeight`：原生权重归零探针（提交 `fac4c97`）。
   2. `Program/src/Core/ExitStopObservation.cs`（新增）、`TestDriver.ObserveExitStops`、两个 csproj 编译项、`ExitStopObservationTests.cs`（7 Fact）：退出任务身份关联读数。
