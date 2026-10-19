@@ -2658,6 +2658,51 @@ namespace CombatBrain2.Host
             DisarmBehavior(key, reason, now);
         }
 
+        // 取证探针：CbHoldBehavior.ResetBehavior 被调用时记录归因。
+        // 引擎只有两处写 WeightFactor——SetBehaviorWeight<T>（CB2 撤权）与本方法（清零），
+        // 所以这里每出现一次都必然来自原生清零。调用者从栈上取，不用当前战术推定。
+        // 必须穿透 FormationAI 这类只做转发的公共方法，否则所有战术都会塌缩成同一个调用者；
+        // 同时保留完整的转发链，避免把中转当来源。
+        internal void OnBehaviorResetWeight(Formation f, float weightBefore, float weightAfter)
+        {
+            string key = FormationSampler.FormationKeyOf(f);
+            string caller = "<unknown>";
+            string chain = "<none>";
+            try
+            {
+                var trace = new System.Diagnostics.StackTrace(2, false);
+                var hops = new List<string>();
+                for (int i = 0; i < trace.FrameCount; i++)
+                {
+                    var m = trace.GetFrame(i).GetMethod();
+                    if (m == null) continue;
+                    var t = m.DeclaringType;
+                    if (t == null) continue;
+                    string full = t.Name + "." + m.Name;
+                    if (hops.Count < 4) hops.Add(full);
+                    // 中转层：本行为的调用方与 FormationAI 的权重公共入口都不作为来源。
+                    if (t.Name == "CbHoldBehavior" || t.Name == "TestDriver") continue;
+                    if (t.Name == "FormationAI" && (m.Name == "ResetBehaviorWeights" || m.Name == "SetBehaviorWeight")) continue;
+                    caller = full;
+                    break;
+                }
+                if (hops.Count > 0) chain = string.Join(">", hops.ToArray());
+            }
+            catch (Exception) { }
+
+            // dup=1 表示本次清零没有剥夺任何东西（清零前已是 0，同一 tick 反复触发）；
+            // dup=0 才是"非零变零"，即一次真实的执行机会剥夺。
+            bool wasArmed = weightBefore > 0f;
+            Cb2Log.Line("BEHAVIOR_WEIGHT_ZEROED",
+                "key=" + key +
+                " before=" + Cb2Log.F(weightBefore) +
+                " after=" + Cb2Log.F(weightAfter) +
+                " dup=" + (wasArmed ? "0" : "1") +
+                " caller=" + caller +
+                " chain=" + chain +
+                " at=" + Cb2Log.F(SafeTime(Mission.Current)));
+        }
+
         private void DisarmBehavior(string key, string reason, double now)
         {
             CbHoldBehavior b;

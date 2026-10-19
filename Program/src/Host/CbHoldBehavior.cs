@@ -46,6 +46,17 @@ namespace CombatBrain2.Host
             base.CurrentOrder = MovementOrder.MovementOrderStop;
         }
 
+        // 取证探针：本类之外能改写本行为权重的入口只有 SetBehaviorWeight<T>（写任意值，
+        // 调用方即 CB2 撤权路径）和这里（写 0）。重写本方法即覆盖全部原生清零路径。
+        // 记录清零前的权重，使"非零变零"（一次真实的剥夺）与"本来就已为零的重复清零"
+        // （同一战术 tick 反复触发）可区分，后者不代表再次失去执行机会。
+        public override void ResetBehavior()
+        {
+            float weightBefore = WeightFactor;
+            base.ResetBehavior();
+            TestDriver.Instance.OnBehaviorResetWeight(Formation, weightBefore, WeightFactor);
+        }
+
         protected override float GetAiWeight()
         {
             return _armed ? 1f : 0f;
