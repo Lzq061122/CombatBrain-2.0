@@ -1204,6 +1204,16 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 13. **260 s后协同关系未建立：已缩小原因，有限策略已获批准，实机效果待验证。** 现有读数证明plan-8锚点到达而质心未到位；`reads=0`统计连续满足到位关系的读数，不能与任务`POST_OBSERVE Effective`等同。生产复算及共同原因、设计假设失效与候选重选修复见本文“当前纠偏”。没有新增标记或实机场。
 
+14. **W1 有界验证的结论：恢复权重不能让本方行为获选，该方案不成立（2026-10-19）。** 用户裁定 W1 只作有界验证、W2 不批准、W3 只记限制；本次只做离线验证，未改任何生产代码与数值。
+
+    - **验证手段（离线、可复跑）**：`Program/_scratch/r9/` 下把反编译的 `FormationAI`（`FindBestBehavior` 选择链本体）、`TacticComponent`/`TacticCharge`（`TickOccasionally` 的清零+`BehaviorCharge=10000f`）、`BehaviorCharge`（`GetAiWeight`/`CalculateAIWeight` 评分本体）原文编译，配最小引擎语义 stub（`EngineStubs.cs`）与**逐字复制的** `CbHoldBehavior`（`CbHoldBehavior.Probe.cs`，仅把 `TestDriver.Instance.OnBehaviorTick` 换成计数桩）。运行：`Program/_scratch/r9/probe` → `dotnet run`。
+    - **读数（`Program/_scratch/r9/probe-output.txt`）**：
+      - [A] `weight_before_zero=8.000 → weight_after_zero=0.0000`、`charge_weight=10000.000`、`active_after_find=Charge`、`our_tick=0` —— 权重被原生清零后本方行为**完全不参选**（`FindBestBehavior` 的 `WeightFactor > 1E-07f` 门）。
+      - [B] 清零后立刻恢复 `SetBehaviorWeight<CbHoldBehavior>(8f)`（`restored=8.000`），在 20/30/45/60 m 四个距离全部 `active=Charge`、`our_tick=0`。原生 Charge 侧 `GetAIWeight()×WeightFactor` 为 `8222.223`（20 m）/`1000.000`（30–60 m），本方为 `8.000`。
+    - **结论**：`ours/charge = 8.0/8222.223 ≈ 0.001`（20 m）与 `8.0/1000.0 = 0.008`（30–60 m），**差距来自 `GetAiWeight()` 本体（Charge 的评分量级在 1e2–1e3，本方恒为 1），不是权重数量级**。按用户裁定「若恢复 8.0 仍不能获选则停止该方案、不开实机」——**W1 判定为方案不成立，未落生产接线，未开实机场**。
+    - **该结论覆盖不到的边界**（如实记录，不当作已解决）：①探针只模拟单编队、无援军、无城堡/攻城分支；②只测了「清零后立即恢复」这一种时序，未穷举 `TacticCharge` 每约 1 s 清零与恢复交错的其他相位；③`BehaviorCharge` 的 `num10`（地形斜率项）在探针里恒为 1f，实机若地形项 >1 只会进一步拉大差距，不改变方向。
+    - **对既有判断的影响**：`c170476` 记录的「权重被清零导致本方失去参选资格」这一**机制**成立且被本条独立复现；但据此提出的**对策**（恢复 8.0 权重）经本验证被否决。该条不改变其它未闭合项（三编队不可重分配、交战期进不了冻结包络、Support 偏移）的状态，也不作为任何门的证据。
+
 ---
 
 ## 8. 本轮新增概念清单

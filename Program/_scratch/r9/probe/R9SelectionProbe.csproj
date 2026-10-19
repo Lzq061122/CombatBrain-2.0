@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>R9SelectionProbe</AssemblyName>
+    <NoWarn>$(NoWarn);CS0169;CS0414;CS0649;CS0108;CS0618</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\EngineStubs.cs" />
+    <Compile Include="..\FormationAI.Probe.cs" />
+    <Compile Include="..\TacticProbe.cs" />
+    <Compile Include="..\CbHoldBehavior.Probe.cs" />
+    <Compile Include="..\SelectionProbe.cs" />
+  </ItemGroup>
+</Project>
