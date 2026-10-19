@@ -1905,3 +1905,48 @@ TickOccasionally(dt)                                   FormationAI:240
 3. `TacticFullScaleAttack` 等"只在状态切换时重设权重"的战术若成为现任，CB2 战术的竞争条件与 9.9 第 3 条同源，未变。
 4. 9.9 的 1、2、4、5 条不因本方案改变：原生清零归因、逐字节对齐、81 条未投递退出令、3.531 秒获选，均仍开放。
 5. 本方案对"退出停令"零贡献（9.7），81 条 `submitted=0` 需要独立定位。
+
+## 11. 按 2026-10-19 退回意见重做：任务接入（提交 `c2a24b6`）
+
+退回意见（用户逐条）：候选未接 CB2 任务、`GetTacticWeight` 为 0、依赖 `TacticalPositions[0]`、每轮清零全队行为权重并自行写 Charge/Skirmish/Advance、50 m 分界无依据；"这实际上是另写了一套冲锋/推进战术"。
+
+### 11.1 本次改动
+
+- 新增 `Cb2TacticTarget.TrySelect(TaskLedger, PlanLedger, out FormationTask)`：**唯一的参与判据**。成立条件是——存在开放计划；任务属于该计划；任务 `Revision == plan.Revision`；任务未关闭；任务 `Feedback != Failed`。不成立即"无任务"，战术层不参与。
+- `Cb2Tactic.GetTacticWeight()` 返回 `TestParameters.TacticTaskPriority`（50000）或 **0**。不沿用 TacticCharge 的战果公式，不按兵力比浮动。
+- `Cb2Tactic.TickOccasionally()` **不再改写任何编队行为权重**，只计数并转 `base.TickOccasionally()`；删除了 `TacticalPositions[0]` 依赖、`ResetBehaviorWeights`/`SetBehaviorWeight`/`SetDefaultBehaviorWeights` 调用与 50 m 分界（常量 `TacticEffectivenessDistance` 已删除）。编队命令仍只经 `CbHoldBehavior` → `TestDriver` 写令门产生，战术层不写令。
+- `OnCancel()`：原生 `CurrentTactic` setter 换将前先调被换下战术的 `OnCancel`，此处逐个编队调用交还委托（`Func<Formation,bool>`）；**本轮未接线真实委托，`_handBack` 为 null 时什么也不做**。
+- 50000 的取值依据：原生 `TacticCharge` = `GetAIWeight()`(~0.822/0.1) × `WeightFactor`(10000) ≈ 8222.2；现任在 `MaxBy` 中另带 1.5 倍；野战池最强者 `TacticFrontalCavalryCharge` 为 30000。50000 越过最强者挑战门槛（45000），属于"有限优先级"，不保证在任何态势稳赢。
+
+### 11.2 非受控编队与交还原生（未接线，行为已定）
+
+- 候选**不遍历、不触摸任何编队**，因此不再存在"扫全队清零、连无关编队一起影响"的问题——因为它不再写权重。
+- 未受控（`IsAIControlled == false`）编队：候选不干预；交还委托是否处理它们由接线时的委托决定，本轮未定。
+- 交还原生的准确语义**尚待确认**：`OnCancel` 只拿到"换将"这一刻，不知道换成谁；若换成另一个原生战术，该战术自己的 `TickOccasionally` 会重设权重，CB2 只需解除本方 `CbHoldBehavior` 武装；若换成**不再有任何战术**（`CurrentTactic == null`），没有任何一方重设权重，编队可能停留在 CB2 武装期的状态。本轮不猜，留作接线时的最小裁定点。
+
+### 11.3 贯穿反例（`Program/tests/TacticTaskBindingTests.cs`，7 个 Fact）
+
+测试工程新增 `<Compile Include="..\src\Host\Cb2Tactic.cs" Link="Host\Cb2Tactic.cs" />` 与 `Bannerlord.ReferenceAssemblies 1.4.8.119303`，**直接链接生产源文件并调用 `Cb2TacticTarget.TrySelect`**，不是另造模型、也不只是断言源码字符串。覆盖：
+
+1. 台账/计划缺失、有任务但无开放计划 → 不参与；
+2. 当前计划的开放任务 → 成为目标；
+3. 旧 `Revision` 的普通任务 → 不参与；
+4. `Feedback == Failed` 的任务及其关闭后 → 不参与；
+5. 关闭任务（取消）与计划失效（失资格）→ 都退回不参与；
+6. 退出任务按 `BattlePlan.IsExitTask` 既有口径参与，关闭后退回；
+7. `Current` 换成新计划后旧计划任务失效，新计划任务接管。
+
+同时把 `TacticLayerContractTests.CandidateTactic_UsesSameWeightsAndSameResetAsNativeCharge`（断言"候选与 TacticCharge 同样写权重"，与本轮方向相反）替换为 `CandidateTacticDoesNotWriteFormationBehaviorWeights`：先确认对照物 `TacticCharge.cs` 里确有那些写法，再断言候选**不含** `SetBehaviorWeight`/`ResetBehaviorWeights`/`SetDefaultBehaviorWeights`/`SetMovementOrder`/`BehaviorCharge`/`BehaviorAdvance`/`BehaviorSkirmish`。
+
+### 11.4 实际执行与区分
+
+- 红态验证：抽掉 `Feedback != Failed` 判据 → 1 个 Fact 变红；抽掉 `PlanId` 绑定 → 1 个 Fact 变红；恢复后全绿（文件 SHA256 已核对回到 `3775B2B2…DF30D`）。
+- 全量 `dotnet test` = **367/367** 通过（原 360 + 新增 7）。Debug 构建 0 警告 0 错误，`bin/Debug/CombatBrain2.dll` 207360 B，SHA256 `64CB4AA4E4D7E9760FD8440CF728C11DA4726F91C25F30403ECEAE2B5666E956`（字符串扫描：含 `TacticTaskPriority`/`Cb2TacticTarget`，不含 `TacticEffectivenessDistance`）。
+- **未做**：部署、启游戏、接线生产（`hosts` 侧仍无 `new Cb2Tactic(`）、交还委托的真实实现、`GetTacticWeight` 实机选中验证。
+
+### 11.5 尚未解决
+
+1. 交还原生在"换成 null 战术"分支的语义（11.2）。
+2. 50000 只按静态候选评分推算，未在实机确认落入 `_availableTactics` 后每 5 s 的选择结果。
+3. 候选获选后 `TeamAIComponent.Tick` 的 `_nextTacticChooseTime` 仍每 5 s 重算：若某轮没有可执行任务，权重为 0，原生会立即换人——这正是设计意图，但换人后 `OnCancel` 的落点需实机读数。
+4. 9.9 的 1、2、4、5 条与 10.6 的第 3–5 条不因本次改动改变。
