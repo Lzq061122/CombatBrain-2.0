@@ -1210,9 +1210,45 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
     - **读数（`Program/_scratch/r9/probe-output.txt`）**：
       - [A] `weight_before_zero=8.000 → weight_after_zero=0.0000`、`charge_weight=10000.000`、`active_after_find=Charge`、`our_tick=0` —— 权重被原生清零后本方行为**完全不参选**（`FindBestBehavior` 的 `WeightFactor > 1E-07f` 门）。
       - [B] 清零后立刻恢复 `SetBehaviorWeight<CbHoldBehavior>(8f)`（`restored=8.000`），在 20/30/45/60 m 四个距离全部 `active=Charge`、`our_tick=0`。原生 Charge 侧 `GetAIWeight()×WeightFactor` 为 `8222.223`（20 m）/`1000.000`（30–60 m），本方为 `8.000`。
-    - **结论**：`ours/charge = 8.0/8222.223 ≈ 0.001`（20 m）与 `8.0/1000.0 = 0.008`（30–60 m），**差距来自 `GetAiWeight()` 本体（Charge 的评分量级在 1e2–1e3，本方恒为 1），不是权重数量级**。按用户裁定「若恢复 8.0 仍不能获选则停止该方案、不开实机」——**W1 判定为方案不成立，未落生产接线，未开实机场**。
-    - **该结论覆盖不到的边界**（如实记录，不当作已解决）：①探针只模拟单编队、无援军、无城堡/攻城分支；②只测了「清零后立即恢复」这一种时序，未穷举 `TacticCharge` 每约 1 s 清零与恢复交错的其他相位；③`BehaviorCharge` 的 `num10`（地形斜率项）在探针里恒为 1f，实机若地形项 >1 只会进一步拉大差距，不改变方向。
+    - **得分拆解（更正 2026-10-19）**：原稿把差距写成「`GetAiWeight()` 本体量级 1e2–1e3、本方恒为 1」，这是错的。按上面读数拆开：
+
+      | 项目 | `GetAIWeight()` | `WeightFactor` | 最终得分 |
+      |---|---:|---:|---:|
+      | Charge，20 m | 0.8222 | 10000 | 8222.223 |
+      | Charge，30–60 m | 0.1 | 10000 | 1000 |
+      | CbHoldBehavior（恢复 8.0） | 1 | 8 | 8 |
+
+      **差距主要来自原生战术设置的 10000 倍权重**，不是 Charge 基础评分高。「调权重改变不了方向」这一说法**没有被本验证证明**，本验证只能支持「在这些条件下恢复 8.0 无效」；是否靠增权重解决属于方案裁决，当前**不批准**。
+    - **结论**：W1 判定为方案不成立，未落生产接线，未开实机场。
+    - **该结论覆盖不到的边界**（如实记录，不当作已解决）：①探针只模拟单编队、无援军、无城堡/攻城分支；②只测了「清零后立即恢复」这一种时序，没有穷举其它相位——这是**未测**，据此不能断言其它相位同样失败，但也不因此构成任何门的证据；③`BehaviorCharge` 的 `num10`（地形斜率项）在探针里恒为 1f；④整体是复刻代码 + 引擎替身，**足以支持「W1 在这些条件下无效、停止投入」，不能扩大成所有实机场景的完整证明**。
     - **对既有判断的影响**：`c170476` 记录的「权重被清零导致本方失去参选资格」这一**机制**成立且被本条独立复现；但据此提出的**对策**（恢复 8.0 权重）经本验证被否决。该条不改变其它未闭合项（三编队不可重分配、交战期进不了冻结包络、Support 偏移）的状态，也不作为任何门的证据。
+
+15. **执行接入的前提不成立：CB2 只能以普通行为参与竞争（2026-10-19，设计复核，未改生产代码、未开实机场）。** W1 停止后，按用户裁定转向「执行接入」的设计复核。核对的现场事实如下（全部来自反编译原文与已装配程序集的元数据字符串，**未实机验证**）：
+
+    - **原生战术层没有按编队的分配入口。** `TeamAIComponent` 只有整体 `TacticComponent`：`AddTacticOption/RemoveTacticOption(GetType())/ClearTacticOptions`、`ResetTactic(bool keepCurrentTactic = true)`（内部 `MakeDecision()` + `TickOccasionally()`）、`TickOccasionally()`→`CurrentTactic?.TickOccasionally()`。`CurrentTactic` 是 protected。`_availableTactics` 是 private（`TeamAIComponent.cs:36`），无公开读接口。`MakeDecision()`（`:254`）每 5 s 用最高 `GetTacticWeight()` 决定整支队伍用哪个战术，并调用选定战术的 `OnApply()` + `TickOccasionally()`。因此任何「经原生战术层指定某一编队去做某事」的路径，实际都是让整个团队换战术，或改写某战术对象的行为。
+    - **`TacticComponent` 的实际可继承点有限。** 公开/受保护的虚方法是 `OnCancel()`、`OnApply()`、`TickOccasionally()`、`GetTacticWeight()`、`ResetTacticalPositions()`、`ManageFormationCounts()`、`CheckAndSetAvailableFormationsChanged()`、`StopUsingAllMachines()`。`Team` 是 `protected set` (`:40`)，`CurrentTactic` 是 private set。**继承 `TacticComponent` 造一个 CB2 战术**在类型层面可行（`TacticOption` 已暴露 `Lazy<TacticComponent>` 形态，说明系统预期存在自定义战术），但那改变的是**整支队伍的战术选择**，不是「某编队的任务归属」。
+    - **对「谁在写这个编队的指令」的影响力，全部落在 `FormationAI` 这一层，而且都在选择之后。** 原生唯一的风暴点是 `FormationAI.FindBestBehavior()`（`FormationAI.cs:169`）。它遍历 `_behaviors`，`WeightFactor <= 1E-07f` 直接跳过；否则按 `GetAIWeight() × WeightFactor`，活跃行为再乘 `Lerp(1.2,2.0, (PreserveExpireTime - now)/5)` 再除以/乘 `NavmeshlessTargetPositionPenalty` 排序。选中即 `ActiveBehavior = x`，并把 `x` 移到 `_behaviors[0]`。
+    - **`ActiveBehavior` 的 getter 是公开的（已装配程序集里有 `get_ActiveBehavior` 字符串），setter 是 private。** 因此「强设活动行为」不是政策上禁止，而是**类型上无入口**；要求「不直接强设活动行为」在当前工程里本来也做不到，无需额外约束。
+    - **原生的清零不是广播式。** `TacticCharge.TickOccasionally()` 对 `FormationsIncludingEmpty` 里每个 `CountOfUnits > 0` 的编队执行 `ResetBehaviorWeights()` + `SetDefaultBehaviorWeights` + `SetBehaviorWeight<BehaviorCharge>(10000f)`。同一时段全量 grep 到的其它权重写入（`TacticFullScaleAttack`、`TacticDefensiveLine`、`TacticHoldChokePoint` 等）都只在各自 `TickOccasionally` 或 `OnApply` 里、按 `FormationAI.BehaviorSide`/`IsMainFormation` 分派，**没有「所有编队都必须能被核心战术随意改写」的普适机制**。
+    - **实际阻挡的两件事，后果不同**：①**撤销参选资格**（`WeightFactor → 0`），本方行为连 `GetAIWeight()` 都不会被调用，直接出局；②**指定另一种行动**（`BehaviorCharge = 10000f`），本方即使保持 8.0 也会输。W1 只回答了「恢复 8.0 不够」，没有回答「能不能合法地不参与这场竞争」。
+
+    **结论**：CB2 目前只能以普通 `BehaviorComponent` 的候选身份参与竞争，原生战术既能撤销其资格也能改写其命令。对「任务期间由谁负责该编队」这个问题，类型层唯一可行的落点是 `FormationAI` 的候选集合与选择链本身，**不是** `TeamAIComponent` 的战术选择。
+
+    **所有候选方案共同要面对的裁定点**（在当前契约下均属改动，**须先修订契约再实施**）：
+
+    | 方案 | 改动内容 | 改变了「普通 Behavior 竞争」路线的哪一条约束 | 需修订的契约 |
+    |---|---|---|---|
+    | H1 钩住 `FormationAI.FindBestBehavior()`，在 CB2 持有该编队合法任务时把本方行为作为唯一候选 | 选择链对所有原生战术一致生效，不区分 `TacticCharge` 或其它 | 「任务期间本编队的战术分配由 CB2 负责」，与该编队当前受哪个战术指挥无关 | 新增控制归属约定；`TestDriver` 写令前置与 `ProposalArbiter` 需按新归属复核 |
+    | H2 只对 `TacticCharge` 生效的同类钩子 | 同上，但其它战术（`TacticDefensiveLine` 等）仍按原生竞争 | 只在确已观测到冲突的战术内生效，覆盖面窄 | 同上，但需补充其它战术下行为未变的证据 |
+    | H3 打桩 `TacticCharge.TickOccasionally()` 中的 `SetBehaviorWeight<BehaviorCharge>(10000f)` / `ResetBehaviorWeights()` | 直接改原生的内部赋值 | 放宽了「不清零原生行为、不压低 Charge、不改选择评分」三条硬约束，**属政策变更，不是接线** | 须用户明确批准 |
+    | H4 把 CbHoldBehavior 虚造成「更弱的 Charge」以提高 `GetAIWeight()` | 改评分 | 仍是同一场权重竞争，且改评分被明令禁止 | 不批准 |
+
+    **未确认项**（在给出一个最小接入方案之前必须补的，不能靠推断）：
+    - `FindBestBehavior()` 确实是唯一可能改 `ActiveBehavior` 的路径：`FormationAI.TickOccasionally(float)`（`FormationAI.cs:240`）在 `FindBestBehavior()` 返回真时调 `ActiveBehavior.TickOccasionally()`，返回假时走 `PreprocessBehaviors()` + 特殊行为 + `SetMovementOrder`，全文没有第三处写 `_activeBehavior`。`BehaviorComponent.OnBehaviorActivated()` 是 `internal`（`BehaviorComponent.cs:103`），外部模块调不到，**不构成额外撤销入口**。以上是源码静态结论，**仍须在实机侧核对**：`ACTIVE_BEHAVIOR_CHANGED` 的每一次出现都应能归到一次 `FindBestBehavior` 语义的 formation tick。
+    - 选 `H1` 还是 `H2` 需要在实机回答一个问题：**除了 `TacticCharge` 之外，本工程会被派入的其它原生战术是否也会把本方行为清零**。`p3-P-20261018-210338` 的 `BEHAVIOR_DISARMED weight_before=0.000` 有 6/28 属此类，但日志里没有「该编队当时归哪个战术」的字段，**现有证据不足以区分**。
+    - 钩子的返回值语义：`FindBestBehavior()` 的返回值决定后续走「选中并 Tick」还是「预处理 + 特殊行为 + 停用」。若钩子把返回值改成「选中本方」，则 `ActiveBehavior.TickOccasionally()` 会执行本方任务；若不改返回值，本方行为不会被 Tick，**任务本身不会被执行**。所以接入点必须同时决定「谁被选中」和「谁被 Tick」，不能只改一侧。
+
+    **本项不改变**：三职责、几何与持续指挥缺口（含 Support 偏移、交战期进不了冻结包络、三编队不可重分配）。**选出新入口不等于这些缺口被解决**，本项也不作为任何门的证据。
 
 ---
 
