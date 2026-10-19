@@ -56,11 +56,11 @@
       "path": "Program/_verify/P3-FEEDBACK-REPLANNING-DISPATCH.md",
       "status": "ACTIVE",
       "created_at": "2026-10-14",
-      "updated_at": "2026-10-18",
+      "updated_at": "2026-10-19",
       "owner": "project-maintainer",
       "content_sha256": "064f524a77f356df3b9352c473416367b7b9e7e0bd669cd7e461667d4bcec879",
       "auto_archive": false,
-      "notes": "保留为P3原始验收合同引用：原三门、评价公式和验收尺度继续有效，阶段尚未通过。当前开发执行入口为CB2-PROMPT-0008，不重新从零实施本合同；用户后续批准的有限纠偏及资源准入由0001/0008承接。"
+      "notes": "保留为P3原始验收合同引用，阶段未通过。当前执行入口为CB2-PROMPT-0009，只核查原生战术分配与执行接入，不重新实施全合同；0008已批准策略及未闭合项保留，资源准入遵从0001 v2.4，不因新单降低三门。"
     },
     {
       "prompt_id": "CB2-PROMPT-0005",
@@ -114,13 +114,28 @@
       "kind": "development-dispatch",
       "root": "repo",
       "path": "Program/_verify/P3-ACTION-LOOP-RECOVERY-DISPATCH.md",
-      "status": "ACTIVE",
+      "status": "ARCHIVED",
       "created_at": "2026-10-18",
-      "updated_at": "2026-10-18",
+      "updated_at": "2026-10-19",
       "owner": "project-maintainer",
       "content_sha256": "aca1b137c36df1a33f33a6bed3015a21a4599ac4c496607b66eeb439153bbfb5",
       "auto_archive": false,
-      "notes": "当前开发接续入口v1.1：新增§4a记录三项已裁定策略（4a.1纠偏“到达或沿请求方向越过”，内积用>0并在文中声明与裁定文字的差异；4a.2同一失败分配一次重试预算，只在计划建成时消耗；4a.3完整职责关系已成立计入Guard/Support命令生效，只限当前协同计划、复用完整前向/侧向关系与连续1s读数、命令须仍有效）及§4a.4两处场次事实更正（32.228为推进任务建立，34.033才写令冻结；本场已有一次推进，故不是释放全局不可达）。0002/0003/0005/0006/0007原文就地归档，0004仅保留原验收合同作用。P3仍未通过。"
+      "notes": "2026-10-19人工归档：执行优先转为CB2-PROMPT-0009原生战术分配与执行接入核查。已批准的A1/B2/职责满足策略及未闭合项保留，不代表完成、不重做既有实现。当前暂停站位/替补/重试生产补丁，新的控制方式须明确契约差异后再实施；原路径、原文和摘要不变。"
+    },
+    {
+      "prompt_id": "CB2-PROMPT-0009",
+      "series_id": "p3-feedback-replanning",
+      "title": "CombatBrain 2.0 P3 Native Tactic Execution Review Dispatch",
+      "kind": "development-dispatch",
+      "root": "repo",
+      "path": "Program/_verify/P3-TACTIC-EXECUTION-REVIEW-DISPATCH.md",
+      "status": "ACTIVE",
+      "created_at": "2026-10-19",
+      "updated_at": "2026-10-19",
+      "owner": "project-maintainer",
+      "content_sha256": "a1a28043b63e3726ca022e405922a781a2e2e1690ea7568693a4b6947326fe1d",
+      "auto_archive": false,
+      "notes": "当前执行入口v1.0：从0f54efa接续原生战术分配与Formation执行能力核查，纠正W1评分量纲；连续完成真实入口核对、必要离线反例和一个最小推荐方案。本单不授权生产控制切换、增权重、部署或实机；0008原文就地归档，安全与未闭合项保留。"
     }
   ]
 }
