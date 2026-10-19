@@ -24,6 +24,8 @@
     <Compile Include="DependencyReadinessTests.cs" />
     <Compile Include="CoordinationDriverTests.cs" />
     <Compile Include="ExitStopLedgerTests.cs" />
+    <Compile Include="ExitStopObservationTests.cs" />
+    <Compile Include="..\src\Core\ExitStopObservation.cs" Link="Core\ExitStopObservation.cs" />
     <Compile Include="CoordinationIntegrationTests.cs" />
     <Compile Include="EligibilityTriggerTests.cs" />
     <Compile Include="ActionFeedbackTests.cs" />

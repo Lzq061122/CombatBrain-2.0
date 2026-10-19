@@ -1265,7 +1265,7 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 | a | C 路线「出 Intent、原生决定执行」，失败模式为**意图不落地**（07 §2.1）；"现有权重不足以证明能够交付，亦不足以断言永远不能交付"（P12 §4.1） | `CbHoldBehavior` 作为普通 `BehaviorComponent` 参选；P3 门 2 要求"停止旧 Plan 不再适用的命令" | `CbHoldBehavior.cs:38-52`：`TickOccasionally` 仅在原生选中时回调，未选中时候选权重静默存在 | **取得执行机会：成立且有证据**。`p3-P-20261018-001730` 369.529 `REAL_SELECTION` → 369.540 `WRITE_EXECUTED` | 无缺口——**这一项 TCL 结论被正确落实**（C 路线 + 原生选中即执行） | 无（落实正确） |
 | b | "Completed+OrderApplied 但后续被替换：本次传导成功，**持续职责另判**"（P12 §8.3）；`ActiveBehavior` 加成 `lerp(1.2,2,…)` 可被原生清零 | 需持续履责 | 无持续履责判定；`TASK_FEEDBACK effective` 只在写后 3 秒窗口内评估（`ActionFeedback`） | `001730`：369.545 `state=effective` → 370.538 即被 `CommandOverridden`（相隔 0.998 s）。全库 `BEHAVIOR_DISARMED` 大量出现 | **持续职责从未被判据认定过**：一次 `effective` 不等于持续，CB2 也没有独立于单次写令的持续判定。W1 只证明"恢复 8.0 无效"，未证明"所有相位必败"，也**未被批准** | 验证缺口 |
 | c | 失败必须回报产生它的任务来源：未选择/落地失败/被替换/资格取消/恢复失败，携带原任务版本与对象身份（P12 §3.3） | P3 门 2/门 3；`PlanLedger.RememberFailedCoordination` 做失败抑制 | **反馈链是完整的，失败确实进入上层**：获选超时 → `SweepExpiredSelections`（`TestDriver.cs:2555-2575`）→ `InvalidatePlan(SelectionTimeout)`（`2571`）；执行反馈失败 → `TestDriver.cs:2220` `InvalidatePlan(result.Reason, …, task.PlanId)`；写令被拒 → `1123`/`1672` `InvalidatePlan(WriteFailed)`；资格丢失 → `1115`/`2284` | `001730` 370.538 `state=failed reason=CommandOverridden` 直接导致 `PLAN_INVALIDATED plan-18`；382.217 `TASK_SELECTION_TIMEOUT` 直接导致 `PLAN_INVALIDATED plan-19` | **无"失败无消费者"缺口**。真正开放的是：这些已进入上层的失败，**是否应改变下一次重建策略**——`TestDriver.cs:2316` 只在 `reason == NotEffective` 时写入失败记忆，`CommandOverridden` / `SelectionTimeout` 虽使计划失效却**不影响下一轮的创建许可**。**失败反馈与失败抑制是两件事**，第一稿把二者混为一谈 | 无缺口（第一稿判断有误，见 §7f） |
-| d | 退出必须停止旧动作；Exit/Restore 日志、`restoreFailures=0` **都不足以单独认证**（P12 §4.3） | **原合同已写明独立判据**：`P3-FEEDBACK-REPLANNING-DISPATCH.md` §5.3 第 3 条——"撤权、清槽与'士兵已停止旧动作'分开。负例必须有独立实际订单/位移证明旧攻势停止；若退出未应用且仍执行旧推进，该项未通过，不能仅凭零旧 WRITE 宣称通过" | **检查器已实现该判据**：`check-p3-feedback.ps1:1194` `gate2_stopped_objects_not_still_executing_old_order`；缺读数走 `unverified`（`1196-1200`），不当作通过 | `001730` 371.542 / 383.218 各 3 条 `EXIT_STOP_NOT_APPLIED`，`selected=0`。跨 96 场 `NOT_APPLIED` **129/656** | **判据存在，缺的是被这个判据检验过的场次**。129 条是**历史混合场次**（跨 P1/P2/P3、跨多个构建）的累计事件数，**不能读作当前版本"近五分之一停令失败"**——第一稿的换算有误。`NOT_APPLIED` 也**不等于**仍在执行旧攻势：129 条中 `ownership=own` **104 条**（对象仍归该退出任务）、`ownership=taken_over` 11 条，二者语义不同（见 §7c） | 验证缺口（非合同缺口、非实现缺陷） |
+| d | 退出必须停止旧动作；Exit/Restore 日志、`restoreFailures=0` **都不足以单独认证**（P12 §4.3） | **原合同已写明独立判据**：`P3-FEEDBACK-REPLANNING-DISPATCH.md` §5.3 第 3 条——"撤权、清槽与'士兵已停止旧动作'分开。负例必须有独立实际订单/位移证明旧攻势停止；若退出未应用且仍执行旧推进，该项未通过，不能仅凭零旧 WRITE 宣称通过" | **检查器已实现该判据**：`check-p3-feedback.ps1:1194` `gate2_stopped_objects_not_still_executing_old_order`；缺读数走 `unverified`（`1196-1200`），不当作通过 | `001730` 371.542 / 383.218 各 3 条 `EXIT_STOP_NOT_APPLIED`，`selected=0`。跨 96 场 `NOT_APPLIED` **129/656**。`124205` 9 条退出全部 `DONE`，`EXIT_STOP_OBSERVED` 284 条（`stopped=11` / `superseded=273`） | **判据与读数都存在，缺的是归因**：`POST_OBSERVE` 已记录退出后订单，但挂在原计划任务名下、不含归属（§7d.2），同一对象 `13.016 stopped` → `33.021 Move`（被后继任务接管）在数据上无法区分"旧攻势复发"与"合法接管"。129 条是**历史混合场次**（跨 P1/P2/P3、跨多个构建）的累计事件数，**不能读作当前版本"近五分之一停令失败"**。`NOT_APPLIED` 也**不等于**仍在执行旧攻势：129 条中 `ownership=own` **104 条**、`ownership=taken_over` 11 条（见 §7c）。`EXIT_STOP_OBSERVED` 的冲突反例实机**未触发** | 验证缺口（非合同缺口、非实现缺陷；本轮已补身份关联读数） |
 | e | Release 只清 Target/恢复权重，**已存在的 Behavior 对象仍挂在 FormationAI，`ActiveBehavior`/`CurrentOrder` 不由该 Release 清除**（P12 §4.3）；"能夺取"与"能安全交还"必须同时验收（07 §2.2） | `OnMissionEnd` 清理链 | `TestDriver.cs:2928-2971`：关计划、关任务、`_gate.ClearMission`、`_ledger.ClearMission`、`_tasks.ClearMission`、`DisarmAllBehaviors`（`2661-2694`：`b.Disarm()` + `SetBehaviorWeight<CbHoldBehavior>(0f)`，**不写 MovementOrder**） | `001730` 420.5 `MISSION_CLEANUP plan_task_and_object_state_cleared` 为最后一行 | **交还只撤权、不撤动作**，与 TCL §4.3 的描述一致。但该场 Mission 结束时战场已无接敌（`team=0 units=0`），**这一场不能证明交还后部队仍在执行旧攻势，也不能证明已停止**。此项**保持未验证**，不因日志末尾出现 `MISSION_CLEANUP` 就算通过 | 验证缺口 |
 
 **可证实的落实中断位置**（只列有文件/证据支撑的）：
@@ -1309,6 +1309,10 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 ## 7c. 本轮新增验证及其边界
 
+本节按时间分为三步，**后面的步骤推翻或修正了前面的结论**，引用时须按最新一步。
+
+### 7c.1 静态复核（第二稿，未开新场）
+
 本轮**未改任何生产代码、未开实机场、未新增日志字段**。全部为对既有原始场次与既有源码的静态/日志复核。
 
 **读数（全部来自既有 `Program/_verify/sessions/*/CombatBrain2.log`，未采集新场）**
@@ -1340,9 +1344,50 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 4. 未获得任何"增权能让行为持续履责"的正证据；W1 的限定结论未扩大。
 5. **三门状态不变：全部 unverified。P3 未通过。**
 
----
+### 7c.2 权重归零归因探针（提交 `fac4c97`，本场未触发）
 
-## 7d. 推荐方案（第三稿，2026-10-19 取证后重写）
+重写 `Program/src/Host/CbHoldBehavior.cs` 的 `ResetBehavior()`，先存 `float weightBefore = WeightFactor;`，再 `base.ResetBehavior();`，再调 `TestDriver.Instance.OnBehaviorResetWeight(Formation, weightBefore, WeightFactor)`。`Program/src/Host/TestDriver.cs` 的实现用 `StackTrace(2,false)` 逐帧取 `类.方法`，排除 `CbHoldBehavior`/`TestDriver` 以及 `FormationAI.ResetBehaviorWeights`/`SetBehaviorWeight` 两个中转帧，`chain` 保留最多 4 跳，写：
+
+```
+BEHAVIOR_WEIGHT_ZEROED key=... before=... after=... dup=<0 非零变零 / 1 本来已零> caller=... chain=... at=...
+```
+
+依据：反编译全库只有 `SetBehaviorWeight<T>`（`:25254`）与 `ResetBehavior()`（`:20408`）两处写 `WeightFactor`，所有 override 都走 `base.ResetBehavior()`，故重写这一处即可覆盖全部原生清零路径。
+
+**结果：`p3-P-20261019-112920` 与 `p3-P-20261019-124205` 两场均为 0 条。** `BEHAVIOR_DISARMED` 全部来自 CB2 自己的 `SetBehaviorWeight(0)`。→ **原生权重清零的实际调用来源未验证**，只能说"这两场未记录到该事件"，不得升级为任何归因结论。
+
+### 7c.3 退出任务身份关联读数（本轮实施，已实机验证）
+
+实施内容见 §7d.4「涉及生产位置」。新增 `Program/src/Core/ExitStopObservation.cs`（纯判定）、`TestDriver.ObserveExitStops`、`Program/tests/ExitStopObservationTests.cs`（7 Fact），并在两个 csproj 补 `<Compile Include>`（两处均 `EnableDefaultCompileItems=false`，漏加即静默不编译）。
+
+**离线**：`dotnet build` 0 警告 0 错误；`dotnet test` **355/355**。覆盖 `stopped` / `not_stopped` / `superseded` / `object_replaced` / `target_gone` / 关闭后仍判 / 未写入不产出。
+
+**实机** `p3-P-20261019-124205`（`run-p3-exclusive.ps1 -Scenario P -CombatHoldSec 180`，RESULT: OK）：
+
+| 项 | 读数 |
+|---|---|
+| 运行身份 | `build_id=b20261019-124159-f10a04a3` sha256 `17779420969120dbf166ddbc71a052e7b17b050c252805e639261ee99728f9b2`，pid=52672，mission `battle_terrain_biome_096#63772346` |
+| `EXIT_STOP_OBSERVED` | **284**，覆盖全部 9 条退出任务 |
+| `verdict` 分布 | `stopped=11` / `superseded=273`；`not_stopped`、`object_replaced`、`target_gone` **均为 0（未触发）** |
+| 退出链 | `QUEUED 9` / `DONE 9` / `NOT_APPLIED 0` / `SUPERSEDED 0` / `EXPIRED 0` |
+| `BEHAVIOR_WEIGHT_ZEROED` | 0（未触发） |
+| 检查器 | `CHECK RESULT: no failures`；三门 `unverified`；`gate2_stopped_objects_not_still_executing_old_order` **整块未求值** |
+
+**该场给出的三件事**（均为实机原始日志）：
+
+1. **读数归因可用**：`at=13.016` 三条退出任务的读数带 `exit_task` / `origin_task` / `owner` / `same_object=1` / `closed=1` / `verdict=stopped`，订单 `StandYourGround` 与 `order_after_exit` 一致。
+2. **计划切换后照常产出**：`at=175.061` 的批次里，`plan-1`/`plan-2`/`plan-3` 三代的退出任务同批输出，旧代记 `superseded`、新代记 `stopped`——证明读数不依赖 `_plans.Current` 仍是旧计划。
+3. **"当时停住"不等于"此后一直停住"**：key=1/0 在 `13.016` 为 `stopped`，`31.537` 被后继 `plan-2-task-4-g1`（Reposition，`order_before=StandYourGround order_after=Move`）写成 `Move`，`33.021` 复查为 `Move` 且 `owner=plan-2-task-4-g1`。**只看订单值会把"合法接管"误读成"旧攻势未停"。**
+
+**边界（明确不覆盖）**
+
+1. 冲突反例（`not_stopped` / `object_replaced` / `target_gone`）两场均未出现，**只有离线覆盖，实机未验证**。
+2. 采样周期仍为 2 s（`SamplingBehavior.cs:200`），退出写令在 1 s 预算内完成，读数最早在写令后约 2 s 出现；**精确到亚秒的停住时刻仍只有外部独立采样能提供**。
+3. 本方案**不增强停令能力**：`EXIT_STOP_NOT_APPLIED` 未被本单处理，历史 129 条的成因分析维持原样。
+4. 原生权重清零归因、H1/H2/H3/H4/B：**全部未验证或未实施**。
+5. **三门状态不变：全部 unverified。P3 未通过。**
+
+## 7d. 推荐方案（第四稿，2026-10-19 用户核对后重写）
 
 ### 7d.1 第二稿的阻塞判断已被推翻
 
@@ -1354,43 +1399,83 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 3. **H2 的前提在已测场景中未出现，H1/H2 之争还没有进入可以裁决的状态**——不是"缺读数无法裁决"，而是"本场根本没有需要裁决的现象"。把它写成"阻塞"会误导为"多跑几场就能定"，实际上单靠加场次也可能永远是 0。
 
-### 7d.2 本轮找到的真正结构缺口（有源码依据、可关闭）
+### 7d.2 真正的缺口：退出后读数存在，缺的是退出任务身份关联
 
-第二稿把缺口定位在观测字段，**错过了真正的实现层缺口**：
+第三稿曾断言"生产侧对退出动作没有任何订单复读"、属`实现缺陷`。**该断言错误**，本节据源码与原始场次更正。
 
-**退出任务从不进入 `BattlePlan.Tasks`，因此 `ObservePostState` 永远看不到它，生产侧对退出动作没有任何订单复读。**
+生产侧**确实已有退出后订单读数**。`p3-P-20261019-112920` 日志 L204–L207（`at=13.022`）的 `POST_OBSERVE` 已记录三支编队为 `StandYourGround`；`p3-P-20261019-124205` 的 `at=175.061` 同样记录到 `StandYourGround`。
 
-证据链：
+真正缺的是**身份关联**。证据链：
 
 | 环节 | 位置 | 事实 |
 |---|---|---|
 | 退出任务登记 | `TestDriver.cs:2436` | `_tasks.Add(exit)` |
 | `TaskLedger.Add` | `TaskLedger.cs:33-37` | 只写 `_tasks[task.TaskId] = task`，**不回填 plan** |
-| 全库 `plan.Tasks.Add` | 13 处，见 `BattleAnalysis.cs` / `CoordinationDriver.cs` / `TestDriver.cs:451` / `TestDriver.ActionFeedback.cs:853` | **没有一处来自 `TryQueueExitStop`** |
-| 复读入口 | `TestDriver.cs:3089` | `ObservePostState` 遍历 `_plans.Current.Tasks` |
-| 退出任务收尾 | `TestDriver.cs:1817-1819` | 写完一次即 `CloseTask` + `EXIT_STOP_DONE` |
-| `ObservePostState` 过滤 | `TestDriver.cs:3091` | `if (task.WrittenAt < 0.0) continue;` |
+| 全库 `plan.Tasks.Add` | 13 处 | **没有一处来自 `TryQueueExitStop`** |
+| 复读入口 | `TestDriver.cs:3089` | `ObservePostState` 遍历 `_plans.Current.Tasks`，退出任务不在其中 |
+| 采样节流 | `SamplingBehavior.cs:200` | `now >= _lastObserveAt + 2.0` |
+| 已关闭任务仍可枚举 | `TaskLedger.cs:91-96, 106-111` | `AllTasksSorted()` 取 `_tasks.Values`；`ClearMission()` 才清空 |
 
-**后果**：`EXIT_STOP_DONE` 只证明"写完了一次"，不证明"队列真的停住了"。这一点 TCL P12 §4.3 与合同 §5.3 第 3 条**都已经明确要求区分**，检查器 `check-p3-feedback.ps1:1194` 也**已经实现**判据（读独立采样而非 `EXIT_STOP_DONE`），但**生产侧没有提供任何可复读的退出后值**，只能依赖约 1 Hz 的外部独立采样。
+**后果（分三层，不得混为一谈）**：
 
-**这一缺口属于`实现缺陷`，不是`验证缺口`**：设计（合同 + 检查器）要求复读退出后值，实现却让退出任务在写完瞬间从所有复读路径中消失。
+1. **`POST_OBSERVE` 的读数挂在原计划任务名下**，看不出哪一条读数是某个退出任务的后果，也就无法把"停住"归因到那次退出写令——这是**验证缺口**（身份关联缺失）。
+2. **采样每 2 s 一次**，而退出写令在 1 s 预算内完成，因此读数最早也要到写令后约 2 s 才出现。这是既有时间预算的后果，不是缺陷。
+3. **该读数在结构上无法区分"停住"与"被后继任务合法接管"**。`p3-P-20261019-124205` 的 key=1/0 编队：`at=13.016` 三类退出读数均为 `StandYourGround`（`stopped`），`at=31.537` 却被后继 `plan-2-task-4-g1`（Reposition）写成 `Move`，`at=33.021` 复查已是 `Move`。**只看某一时刻的订单值，会把"已被新任务合法接管"误读成"旧攻势未停"，也会把"当时停住"误当成"此后一直停住"。**
+
+因此缺口的准确表述是：**退出动作缺少"归属 + 时间窗口"维度的身份关联读数**，不是"没有任何读数"。按派单分类属**验证缺口**；`CloseTask` 时机、退出任务不入 `plan.Tasks` 本身是既有设计选择，本单不判其为缺陷。
 
 ### 7d.3 该缺口在成功场与失败场都能观察到
 
-**成功场** `p3-P-20261019-112920`（`NOT_APPLIED=0`）：三条退出 Stop 写入于 11.032 / 11.082 / 11.132，外部独立采样在 11.79 读到三条编队全部 `StandYourGround`（`reason=order_not_move`）。**停住是真的**，但这靠的是外部 1 Hz 采样，不是生产侧复读。11.022 的 `POST_OBSERVE` 只有三条原计划任务，**没有一条退出任务**——与本缺口完全一致。
+**成功场** `p3-P-20261019-112920`（`NOT_APPLIED=0`）：三条退出 Stop 写入于 11.032 / 11.082 / 11.132，外部独立采样在 11.79 读到三条编队全部 `StandYourGround`（`reason=order_not_move`）。**停住是真的**。13.022 的 `POST_OBSERVE` 也读到 `StandYourGround`，但挂在 `plan-1-task-1/2/3` 名下，**无法判定它是哪条退出写令的后果**。
 
-**失败场** `p3-P-20261018-001730`：371.542 / 383.218 各三条 `EXIT_STOP_NOT_APPLIED`（`selected=0`，`waited≈1.0`），`ownership=taken_over` 与 `ownership=own` 两种都发生。这些场次里"退出未应用时队列实际在做什么"**无从由生产日志回答**，只能靠外部采样，而外部采样在这些历史场次中恰好处在 1 Hz 粒度上。
+**失败场** `p3-P-20261018-001730`：371.542 / 383.218 各三条 `EXIT_STOP_NOT_APPLIED`（`selected=0`，`waited≈1.0`），`ownership=taken_over` 与 `ownership=own` 两种都发生。该场无 `POST_OBSERVE` 退出后读数与该窗口对齐，只能靠外部约 1 Hz 采样近似。
 
-### 7d.4 推荐方案：补退出任务的退出后复读（不改控制归属、不改选择规则、不改权重）
+**接线场** `p3-P-20261019-124205`（本轮新增，见 §7c）：`EXIT_STOP_OBSERVED` 284 条，覆盖全部 9 条退出任务；`verdict` 分布 `stopped=11` / `superseded=273`，无 `not_stopped` / `object_replaced` / `target_gone`。该场同时暴露了 7d.2 第 3 层：key=1/0 在 13.016 `stopped`，31.537 被后继 `plan-2-task-4-g1` 写成 `Move`，33.021 复查为 `Move`——**同一对象先停后动，只能靠"归属 + 时间窗口"区分**。
 
-**它改善的具体战术行为**：让"本方已撤权"与"士兵真的停了"在**生产证据**上分开。这是退出链唯一当前无法自证的环节，也是 P3 门 2 负例的必需输入。
+### 7d.4 推荐方案：补退出任务的身份关联读数（不改任何行为）
+
+**它改善的具体战术行为**：让"本方已撤权"与"士兵真的停了"在生产证据上分开，并且**只在退出任务仍然拥有该对象的窗口内**才把读数算作该次退出的证据。这是 P3 门 2 负例的必需输入。
+
+**它不改善什么（必须明说）**：本方案**不增强停令能力**，不提高退出 Stop 被原生选中的概率，不减少 `EXIT_STOP_NOT_APPLIED`，也不构成 P3 通过。它只解决"能不能据实判断"，不解决"能不能停住"。
 
 **为什么现有通路不足、为什么该方案更合适**：
 
-- 现有通路（`ObservePostState` → `plan.Tasks`）在结构上不可能看到退出任务（7d.2 证据链），补日志字段、补反编译分析都无法绕过这一点。
-- 它**不触碰**控制归属、原生选择规则、权重、命令域、关闭 AI、任何既定阈值——全部落在派单已授权的"不改变行为的最小取证接线"范围内。
-- 它比 H1/H2 风险低一个量级：H1 改原生选择规则，H2 只在特定战术下有效且前提尚未观察到。
-- 它不可被替代：即使将来选 H1/H2，退出链仍然需要这个复读才能自证"停住"。
+- 现有 `POST_OBSERVE` 挂在 `plan.Tasks` 名下，结构上看不到退出任务（7d.2 证据链），因此读数无法归因到具体的退出写令。
+- 现有读数**没有归属与时间窗口维度**，13.016 `stopped` 与 33.021 `Move` 在数据上无法区分"旧攻势复发"与"新任务合法接管"。
+- 它**不触碰**控制归属、原生选择规则、权重、命令域、关闭 AI、任何既定阈值，也不改 `CloseTask` 时机、不把退出任务加入 `plan.Tasks`——全部落在派单已授权的"不改变行为的最小取证接线"范围内。
+- 它比 H1/H2 风险低一个量级，且不可被替代：即使将来选 H1/H2，退出链仍然需要这份读数才能自证。
+
+**任务期间谁负责该编队、原生何时可介入**：**不变**。C 路线维持现状——CB2 只出 Intent，`GetAiWeight()` 决定参选强度，原生 `FindBestBehavior` 决定选中与否，原生在任何时刻都可以拒绝或替换，与 TCL 07 §2.2「默认 C」一致。
+
+**五种情形分别如何处理**（本方案**不改变**任何一种的既有处理，只增加归属关联的读数）：
+
+| 情形 | 现有处理 | 本方案读数如何判 |
+|---|---|---|
+| 未执行（未获选） | `EXIT_STOP_NOT_APPLIED` 后收尾，不重试 | 无退出写令 → 不出该退出任务的读数，只保留对象当前订单作为背景 |
+| 被替换（`taken_over`） | 归属保护生效，退出任务让位 | `owner != exit_task` → `superseded`，**不计为停住证据** |
+| 终止（Plan 失效） | 三条 `EXIT_STOP_QUEUED` → `SUBMITTED` → 逐条收尾 | 每次采样都记，只看 `owner == exit_task` 的窗口 |
+| 资格丢失 | `EligibleForControl` 判否即不做退出尝试 | 同上，无退出任务即无读数 |
+| Mission 结束 | `OnMissionEnd` 清全部状态 + `DisarmAllBehaviors`（不写 MovementOrder） | `ClearMission` 前最后一轮采样给出终态读数；**仍不写 MovementOrder** |
+
+**涉及生产位置**（本轮**已实施**，均为只读取证）：
+
+1. 新增 `Program/src/Core/ExitStopObservation.cs`：纯判定，`Judge(exitTaskId, exitObjectIdentity, ownerTaskId, found, observedObjectIdentity, movementOrder)` → `stopped` / `not_stopped` / `superseded` / `object_replaced` / `target_gone`；`CountsAsStopEvidence` 只承认 `stopped`。
+2. `Program/src/Host/TestDriver.cs` `ObservePostState`：在取 `_plans.Current` **之前**调用新增的 `ObserveExitStops(snapshot)`，遍历 `_tasks.AllTasksSorted()` 中已写入的退出任务，写 `EXIT_STOP_OBSERVED`（含 `exit_task` / `origin_task` / `plan` / `obj` / `obj_now` / `same_object` / `owned_now` / `owner` / `order` / `order_after_exit` / `closed` / `verdict`）。
+3. `Program/CombatBrain2.csproj` 与 `Program/tests/CombatBrain2.Tests.csproj` 增补编译项（两处均 `EnableDefaultCompileItems=false`，漏加即静默不编译）。
+
+**未改动**：`CloseTask` 时机、退出任务归属转移、写令次数、安全预算、`plan.Tasks` 组成、`_plans.Current` 依赖（新读数在计划切换或清空后照常产生）。**原合同要求的独立采样继续保留**，生产读数只作补充证据。
+
+**契约差异**：**无。** 合同 §5.3 第 3 条与检查器 `check-p3-feedback.ps1:1194` 均已要求并已实现该判据；本方案只是让生产侧产出可归因的读数，不放宽任何阈值、不改任何门。
+
+**必要验证（已完成）**：
+- 离线：`ExitStopObservationTests.cs` 7 个 Fact 覆盖 `stopped` / `not_stopped` / `superseded` / `object_replaced` / `target_gone` / 关闭后仍判 / 未写入不产出；`dotnet test` **355/355**。
+- 实机：`p3-P-20261019-124205` 确认 `EXIT_STOP_OBSERVED=284`，构建身份 `b20261019-124159-f10a04a3` sha256 `17779420969120dbf166ddbc71a052e7b17b050c252805e639261ee99728f9b2`。
+
+**最小验收场景**：
+- **最小正例**：退出 Stop 落地、`owner == exit_task` 且订单为 `StandYourGround`/`Hold` → `verdict=stopped`（本场 13.016、165.055、175.061、177.064 共 11 条）。
+- **冲突反例**：`EXIT_STOP_DONE` 已记，但同一窗口内 `owner == exit_task` 且订单仍为 `Move`/`Charge` → `not_stopped`，**判"写完不等于停住"，该负例不通过**（这是判据的正确行为，不是判据失败）。本轮两场均未触发，**该分支记未验证**。
+- **退出条件**：该对象被新任务合法接管时，`owner != exit_task` → `superseded`，不计为停住证据，也不计为失败（本场 273 条）。
+- **交还条件**：本方案不改变交还语义；Mission 结束仍只撤权、不写 MovementOrder，"交还后是否仍在执行旧动作"**保持未验证**，不因本方案通过而升级。
 
 **任务期间谁负责该编队、原生何时可介入**：**不变**。C 路线维持现状——CB2 只出 Intent，`.GetAiWeight()` 决定参选强度，原生 `FindBestBehavior` 决定选中与否。本方案不新增任何强制写令，原生在任何时刻都可以拒绝或替换，与 TCL 07 §2.2 "默认 C" 一致。
 
@@ -1421,29 +1506,34 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 ### 7d.5 候选方案裁决（不按名称预定赢家）
 
-| 候选 | 能否解决"退出链无法自证停住" | 结论 |
+| 候选 | 能否解决本单已证实的缺口 | 结论 |
 |---|---|---|
-| **本方案（退出后复读）** | **能直接解决**，且是所有后续方案的前置 | **推荐** |
-| H1（钩 `FindBestBehavior`，任务期间本方为唯一候选） | 不能。改选择规则不产生退出后读数 | 不推荐；须契约裁定，且**本单无证据支持** |
-| H2（只对 `TacticCharge` 生效） | 不能。且本场原生清零为 0，前提未观察到 | 不推荐；适用面尚未证实 |
+| **本方案（退出任务身份关联读数）** | **能直接解决归因层**，且是退出链自证的**前置**；**不解决停令能力** | **推荐**（取证层） |
+| H1（钩 `FindBestBehavior`，任务期间本方为唯一候选） | 改善"取得执行机会"，但不产生退出归因读数 | 独立议题；改原生选择规则，须契约裁定，**本单无证据支持** |
+| H2（只对 `TacticCharge` 生效） | 同上；且本场原生清零 `BEHAVIOR_WEIGHT_ZEROED=0`，前提未观察到 | 独立议题；适用面尚未证实 |
 | H3 / H4（打桩原生清零 / 虚造更强 Charge） | 不能 | 已明确禁止 |
 | 全队接管（B 路线） | 不能。W1 失败不构成升级理由（07 §2.3、P12 §1） | 不推荐 |
 | A 类（`CommandOverridden`/`SelectionTimeout` 进入失败记忆） | 不能。只减少重复失败 | 保留为独立小改动，不与本单捆绑 |
 
+**裁决口径**：本方案解决的是"据实判决"，H1/H2 解决的是"提高取得执行机会的概率"，两者不在同一层级，**不构成互斥选择**。本单只交付前者，后者仍待独立裁定。
+
 ---
 
-## 7e. 本单闭环状态（第三稿）
+## 7e. 本单闭环状态（第四稿）
 
-- **缺口在哪里**：是。五项逐条有文件与原始日志（§7a）。**本轮新增定位到一处`实现缺陷`**：退出任务不进 `BattlePlan.Tasks`，`ObservePostState` 永远看不到它，生产侧对退出动作没有订单复读（§7d.2）。
-- **现有路线为何不足**：C 路线"只有影响力"本身不是缺陷。不足在于**退出链的生产证据链断了**——`EXIT_STOP_DONE` 只证明写了一次，而合同与检查器要求证明真的停了，生产侧却没有任何复读路径，只能依赖外部 1 Hz 采样。
-- **推荐怎样修**：§7d.4 的退出后复读接线。不触碰控制归属、选择规则、权重、命令域、阈值。
-- **如何证明有效**：§7d.4「最小验收场景」的正例/冲突反例/退出/交还四项，加实机一场确认 `POST_OBSERVE task=...-exit` 出现且与独立采样一致。
+- **缺口在哪里**：是。五项逐条有文件与原始日志（§7a）。**本轮更正并细化了一处缺口**：退出后订单读数**存在**（`POST_OBSERVE`），缺的是**退出任务身份关联、归属与时间窗口**（§7d.2），分类为**验证缺口**——不是第三稿所称的"生产侧没有任何复读"的`实现缺陷`。
+- **现有路线为何不足**：C 路线"只有影响力"本身不是缺陷。不足在于**退出链的读数无法归因**——`EXIT_STOP_DONE` 只证明写了一次，`POST_OBSERVE` 挂在原计划任务名下且不含归属，同一对象先 `stopped` 后 `superseded`（13.016 → 33.021）在数据上无法区分"旧攻势复发"与"新任务合法接管"。
+- **推荐怎样修**：§7d.4 的 `EXIT_STOP_OBSERVED` 身份关联读数。**已按派单授权实施并验证**，不触碰控制归属、选择规则、权重、命令域、阈值、`CloseTask` 时机与 `plan.Tasks` 组成。
+- **如何证明有效**：§7d.4「最小验收场景」四项。正例与退出条件已在 `p3-P-20261019-124205` 落地（`stopped=11`、`superseded=273`）；**冲突反例（`not_stopped` / `object_replaced` / `target_gone`）两场均未触发，记未验证**，仅由离线测试覆盖。
 - **未验证边界（不得据此升级）**：
-  1. `tactic` 字段：**不是**阻塞，也不需要（§7d.1）。原生清零归因**本场未触发，记未验证**。
+  1. `tactic` 字段：**不是**阻塞，也不需要（§7d.1）。原生清零归因两场 `BEHAVIOR_WEIGHT_ZEROED=0`，**未触发，记未验证**。
   2. H1/H2/H3/H4/B：全部**未实施、未批准**。
-  3. 退出后复读接线：**本轮未实施**，属下一步待裁定项。
+  3. **本方案不增强停令能力**：`EXIT_STOP_NOT_APPLIED` 的修复仍未被本单覆盖；"能否停住"仍只有外部独立采样支持。
   4. 三门仍全部 `unverified`，**P3 未通过**。
-- **本单改动的代码**：仅 `CbHoldBehavior.ResetBehavior()` 重写与 `TestDriver.OnBehaviorResetWeight` 探针（+56 行，不改行为），构建 0 警告 0 错误，测试 348/348。
+- **本单改动的代码**（均不改行为）：
+  1. `CbHoldBehavior.ResetBehavior()` 重写 + `TestDriver.OnBehaviorResetWeight`：原生权重归零探针（提交 `fac4c97`）。
+  2. `Program/src/Core/ExitStopObservation.cs`（新增）、`TestDriver.ObserveExitStops`、两个 csproj 编译项、`ExitStopObservationTests.cs`（7 Fact）：退出任务身份关联读数。
+  3. 构建 0 警告 0 错误；`dotnet test` **355/355**；实机 `p3-P-20261019-124205` 构建身份已核对。
 
 ---
 
@@ -1478,6 +1568,19 @@ Program\_verify\_tamper4\               审查副本（38.8 MB，门2 缺证据�
 
 - `move_target.readable=false` **不等于**"读不到订单"，也**不等于**"仍有攻势"。本场 `reason=order_not_move` 恰是停住的正常读数（`check-p3-feedback.ps1:1171-1175` 已按此处理：非 `Move|Advance` 的静止订单本身就是"真实停住"的样子）。
 - 检查器 `CHECK RESULT: no failures` **不等于门通过**。本场三门全部 `unverified`，`gate2_stopped_objects_not_still_executing_old_order` 因"本窗口无止损/脱离决定"而**整块未求值**。未触发不得记通过，也不得记为失败。
+
+### 7f.4 第三稿的错误结论（2026-10-19 用户核对后推翻）
+
+第三稿 §7d.2 / §7d.4 已被第四稿替换。以下四条**不得再被引用**：
+
+| # | 第三稿的错误结论 | 错在哪里 | 正确表述 |
+|---|---|---|---|
+| 8 | "**生产侧对退出动作没有任何订单复读**" | 同一份 `p3-P-20261019-112920` 日志 L204–L207（`at=13.022`）的 `POST_OBSERVE` 就记录了三支编队为 `StandYourGround`。`POST_OBSERVE` 只在 `WrittenAt >= 0` 时输出，退出任务写完后才 `CloseTask`，因此在下一个采样周期仍可被读到一次 | 读数**存在**，缺的是**退出任务身份关联、归属与时间窗口** |
+| 9 | 把该缺口定为`实现缺陷` | 契约与检查器**从未要求**生产侧在退出后复读，它们要求的是独立采样（`check-p3-feedback.ps1:1110-1179` 读 `p2-evidence-*.json`）。"退出任务不入 `plan.Tasks`"与"写完即 `CloseTask`"都是既有设计选择 | 属**验证缺口**：生产读数无法归因到具体的退出写令 |
+| 10 | 方案改法：①把退出任务加入所属 plan 的任务列表；②`CloseTask` 前保留一个复读周期或之后单独复读；③让 `ObservePostState` 遍历已关闭任务 | ①②分别改变**开放任务生命周期**与 `plan.Tasks` 组成，会出现"取样即已失效"的竞态，**都不能称不改变行为**；③本身可行但必须**不依赖 `_plans.Current`** 才能覆盖计划切换与清空 | 用 `_tasks.AllTasksSorted()`（`TaskLedger.cs:91`，`ClearMission` 前一直保留）做只读遍历，`CloseTask` 时机、归属转移、写令次数、安全预算**全部不动** |
+| 11 | "该方案能解决退出链无法自证停住"，并在 §7d.5 据此压低其他候选 | 它只解决**归因**，不提高退出 Stop 被选中的概率，不减少 `EXIT_STOP_NOT_APPLIED`，**不增强停令能力** | 本方案与 H1/H2 不在同一层级，不构成互斥选择；本单只交付取证层 |
+
+**另一处必须记住的读法**（由 `p3-P-20261019-124205` 直接给出）：同一编队 key=1/0 在 `at=13.016` 为 `stopped`，`at=31.537` 被后继 `plan-2-task-4-g1`（Reposition）写成 `Move`，`at=33.021` 复查为 `Move`。**"当时停住"不等于"此后一直停住"，"后来在动"也不等于"旧攻势没停"**——只有带归属的读数能区分。
 
 ---
 ## 8. 本轮新增概念清单

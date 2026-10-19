@@ -3079,10 +3079,15 @@ namespace CombatBrain2.Host
         }
 
         // 独立读取实际 MovementOrder，供反馈窗口外的交叉核对。
+        // 退出任务的读数独立于当前计划：退出任务从不进入 BattlePlan.Tasks（它们写完即关闭，
+        // 且计划失效后仍要走完退出窗口），若挂在这里就会随计划切换一起消失。
+        // 台账在 Mission 结束前保留已关闭任务，因此这是唯一能在计划切换后仍读到退出后值的路径。
         internal void ObservePostState(Mission mission)
         {
             if (mission == null) return;
             var snapshot = FormationSampler.Sample(mission, SafeTime(mission));
+            ObserveExitStops(snapshot);
+
             var plan = _plans.Current;
             if (plan == null) return;
 
@@ -3103,6 +3108,42 @@ namespace CombatBrain2.Host
                     " same_object=" + (sameObject ? 1 : 0) +
                     " obj_now=" + rec.ObjectIdentity +
                     " feedback=" + task.Feedback +
+                    " at=" + Cb2Log.F(snapshot.SampledAt));
+            }
+        }
+
+        // 退出任务的退出后读数（只读取证，不产生写令、不改变归属、不影响关闭时机）。
+        // 归属已不是该退出任务时，对象上的订单来自后继分配，不能算作本次退出成功。
+        private void ObserveExitStops(FormationSnapshot snapshot)
+        {
+            foreach (var task in _tasks.AllTasksSorted())
+            {
+                if (task == null || !BattlePlan.IsExitTask(task)) continue;
+                if (task.WrittenAt < 0.0) continue;
+
+                var rec = snapshot.FindByKey(task.FormationKey);
+                string owner = _exits.OwnerOf(task.ObjectIdentity);
+                bool stillOwns = string.Equals(owner, task.TaskId, StringComparison.Ordinal);
+                bool sameObject = rec != null
+                    && string.Equals(rec.ObjectIdentity, task.ObjectIdentity, StringComparison.Ordinal);
+                string verdict = ExitStopObservation.Judge(
+                    task.TaskId, task.ObjectIdentity, owner,
+                    rec != null, rec != null ? rec.ObjectIdentity : "", rec != null ? rec.MovementOrder : "");
+
+                Cb2Log.Line("EXIT_STOP_OBSERVED",
+                    "exit_task=" + task.TaskId +
+                    " origin_task=" + task.OriginTaskId +
+                    " plan=" + task.PlanId +
+                    " key=" + task.FormationKey +
+                    " obj=" + task.ObjectIdentity +
+                    " obj_now=" + (rec != null ? rec.ObjectIdentity : "") +
+                    " same_object=" + (sameObject ? 1 : 0) +
+                    " owned_now=" + (stillOwns ? 1 : 0) +
+                    " owner=" + owner +
+                    " order=" + (rec != null ? rec.MovementOrder : "") +
+                    " order_after_exit=" + task.OrderAfter +
+                    " closed=" + (task.IsClosed ? 1 : 0) +
+                    " verdict=" + verdict +
                     " at=" + Cb2Log.F(snapshot.SampledAt));
             }
         }
