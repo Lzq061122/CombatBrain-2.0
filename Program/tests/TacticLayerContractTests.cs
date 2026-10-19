@@ -82,24 +82,28 @@ namespace CombatBrain2.Tests
             Assert.Contains("num >= 50f", field);
         }
 
+        // 候选只做任务接入：不得在战术层自行改写编队行为权重。
+        // 原生 TacticCharge 每轮 ResetBehaviorWeights 后写 BehaviorCharge=10000，
+        // 候选若照抄就变成"另写一套冲锋战术"，编队命令必须仍由 CB2 写令门产生。
         [Fact]
-        public void CandidateTactic_UsesSameWeightsAndSameResetAsNativeCharge()
+        public void CandidateTacticDoesNotWriteFormationBehaviorWeights()
         {
             var source = ReadHostSource("Cb2Tactic.cs");
             var native = ReadScratch("TacticCharge.cs");
 
-            Assert.Contains("SetBehaviorWeight<BehaviorCharge>", source);
+            // 先确认这条判据在原生对照物上确实成立，否则"不含"可能只是写法没被认出来。
             Assert.Contains("SetBehaviorWeight<BehaviorCharge>", native);
-
-            // 两者都必须先清空再重设默认权重，不能只追加一条高权重；
-            // 否则上一轮写入的权重会跨轮残留，另一方指挥者仍可能改写同一编队。
-            Assert.Contains("ResetBehaviorWeights()", source);
             Assert.Contains("ResetBehaviorWeights()", native);
-            Assert.Contains("SetDefaultBehaviorWeights(f)", source);
-            Assert.Contains("SetDefaultBehaviorWeights(item)", native);
 
-            // 与 TeamAIComponent.Tick 的逐个覆盖不同：本类不得直接写 BodyGuardFormation 相关行为。
+            Assert.DoesNotContain("SetBehaviorWeight", source);
+            Assert.DoesNotContain("ResetBehaviorWeights", source);
+            Assert.DoesNotContain("SetDefaultBehaviorWeights", source);
             Assert.DoesNotContain("BodyGuardFormation", source);
+            // 战术层不得自己写令：写令只经 CbHoldBehavior -> TestDriver 判决这条既有路径。
+            Assert.DoesNotContain("SetMovementOrder", source);
+            Assert.DoesNotContain("BehaviorCharge", source);
+            Assert.DoesNotContain("BehaviorAdvance", source);
+            Assert.DoesNotContain("BehaviorSkirmish", source);
         }
 
         [Fact]

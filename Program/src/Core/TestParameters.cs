@@ -14,6 +14,11 @@ namespace CombatBrain2.Core
         // 不在每 tick 反复加压。这是本批测试参数，不是战术参数。
         internal const double HoldBehaviorWeight = 8.0;
 
+        // CB2 获选 TacticComponent 时的 GetTacticWeight 返回值。
+        // 原生 TacticCharge 权重 = GetAIWeight()(~0.822/0.1) × WeightFactor(10000) ≈ 8222.2；
+        // 挑战还要超过现任的 1.5 倍。这里取有限优先级，不沿用战果公式、不按兵力比浮动。
+        internal const double TacticTaskPriority = 50000.0;
+
         internal const double Now = 0.0;
 
         // P1 最小指挥闭环参数。评价周期与计划稳定时间不参与资格安全时限：
@@ -73,10 +78,6 @@ namespace CombatBrain2.Core
         // 职责人数继续线：剩余有效人数不少于 6 且不少于该职责分配时基线的 50%。相等允许继续。
         internal const int RoleUnitFloor = 6;
         internal const double RoleUnitRatioFloor = 0.50;
-
-        // P3 战术层接入（CB2-TACTIC-TEAM-EXPORT v1）：原生战术在双方编队前沿间距
-        // 小于该值后开始干预编队行为；本战术点位的判定沿用同一间距口径。
-        internal const double TacticEffectivenessDistance = 50.0;
 
         // A5 竞争注入：挑战者相对规范目标点的侧向偏移量（派单 §9.2 场景 A 第 2 条）。
         // 偏移后仍须落在本任务的到位区域内，否则它就不是「同级合法」候选。
