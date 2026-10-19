@@ -1,4 +1,4 @@
-# P3 接续整改 — 实现交接
+﻿# P3 接续整改 — 实现交接
 
 **当前状态：P3 未通过，实际行动—评价闭环尚未恢复。** 当前执行依据为 `CB2-PROMPT-0009`（`P3-TACTIC-EXECUTION-REVIEW-DISPATCH.md`），只做执行接入核查及必要离线验证，不部署或开场。0004保留验收合同作用；0008及更早执行单就地归档，已批准策略及未闭合项不清零。以下历史段落和多稿勘误不覆盖当前登记及后续裁定。
 
@@ -1642,17 +1642,90 @@ BEHAVIOR_WEIGHT_ZEROED key=... before=... after=... dup=<0 非零变零 / 1 本�
 | 要求 | 能否支持 | 依据 |
 |---|---|---|
 | 接敌前/游离期按任务指令停下 | **能** | 222821 全部 51 条退出令落地；124205 3.531 获选并写出 Stop（该次获选的原因未解释，见 9.2(3)） |
-| 一次写令后保持（Hold） | **能证明到"宿主没被换令"为止** | 引擎无 `RemoveAiBehavior`，行为对象留在 `_behaviors`；`TacticCharge` 只改权重不换 `ActiveBehavior`；124205 key=1/0 单次写令后三次 `POST_OBSERVE` 均 `StandYourGround`。**战术层随时可用自己的行为写令，此条不等于"控制住了"** |
+| 一次写令后保持（Hold） | **能证明到"宿主没被换令"为止** | 引擎无 `RemoveAiBehavior`，行为对象留在 `_behaviors`；`TacticCharge` 只改权重不换 `ActiveBehavior`；124205 key=1/0 单次写令后三次 `POST_OBSERVE` 均 `StandYourGround`。**这三条只证明所列时刻的订单值与对象仍在列表里**，不能推出"命令一直保持"：后续原生选择、其他行为回调、其他写令者都可能改单 |
 | 原生覆盖时让上层知道 | **能** | 33 次 `CommandOverridden` 反馈都走了 `InvalidatePlan` |
 | 接敌后仍能靠权重稳住 | **不能，且已离线证否** | 正确模型下原生 `10000 × GetAIWeight`＝1000～8222，本方 `1 × 8`＝8，`0/80` tick 获选；战术 tick 跳过清零也救不回来 |
 | 停止命令总能在 1 s 内落地 | **不能证明** | `submitted=0` 的 81 条预算内没投递出去；`taken_over` 属归属被后继接管，与"停令被拒"不同 |
 | 停令落地后士兵一定停住 | **不能证明** | 停令与"士兵真停"之间隔着引擎订单执行；现有唯一证据是 ~1 Hz 独立采样 |
 
-### 9.4 推荐方案（已撤回）
+### 9.4 推荐方案：编队级 Stop-Precedence 行为（第三稿，2026-10-19，取代前两稿）
 
-本节第一稿把「在 `GetAiWeight`/`TickOccasionally` 内恢复权重」推荐为最小方案，并把「战术 tick 跳过对本行为的清零」当作可直接交付的候选。**两者都撤回**，理由与修正后的读数见 9.6；本节保留原标题仅为便于对照交回历史，不再作为方案。
+**一、它改善哪一项具体战术行为**
 
-### 9.6 第二稿更正：上一稿的三处错误与修正后的读数（2026-10-19 晚，取代 9.4 原推荐）
+任务有效期内，被指派编队**确实按任务命令执行并保持**——具体是"停止/守住"这一族命令（Hold、退出 Stop、撤回终点 Hold）。不解决推进类命令（Move/Reposition/Advance）的落地，那部分维持现状。
+
+**二、为什么现有通路不足**
+
+三点，均为本节已核实事实：①`CbHoldBehavior` 是普通参选行为，原生 `TacticCharge` 每 `TickOccasionally` 整表 `ResetBehaviorWeights()`，本方权重归 0；②即使保权重，`10000 × GetAiWeight`（1000～8222）对 `1 × 8` 相差三个数量级（`chain-output.txt`，0/80 tick）；③原生该次 `FindBestBehavior` 不选本方时，本次不再执行本方 `TickOccasionally`，**本方没有独立的写令时机**。三条合起来意味着：靠普通竞争，"任务有效期内的命令能否保持"由原生当次的评分决定，不由 CB2 决定。
+
+**三、方案：把"谁当选中标"改成"谁写什么订单"**
+
+不改竞争、不改权重、不清空其他行为、不强设 `ActiveBehavior`、不关 AI、不碰战术层。改的是**同一个行为被选中或保持后会继续发生什么**：
+
+1. `CbHoldBehavior` 增加"任务有效期"语义（现在只有 `_armed` 布尔）：过期时间、任务身份（`taskId`/`planId`/`revision`）、当前目标订单。
+2. 重写 `CalculateCurrentOrder()`：仍在有效期内就**重新赋** `CurrentOrder = MovementOrderStop`。`BehaviorComponent.CurrentOrder` 的 protected setter（反编译 `:20318`）每次赋值都会置 `IsCurrentOrderChanged = true`。
+3. `FormationAI.TickOccasionally` 尾段的写令条件是"换了 `ActiveBehavior`"**或** `InternalIsCurrentOrderChanged`。故只要本行为仍是 `ActiveBehavior`，下一次 FormationAI 节拍就会执行 `SetMovementOrder(Stop)`。
+4. 反向保护：本行为**不再**返回"我永远是 ActiveBehavior 且无需重写"的形态，只要有效期结束或任务取消，就不再刷新 `CurrentOrder`，让原生下一次写令正常发生。
+
+**这不是"第二条执行腿"**：不新增写令点，用的是引擎原有的 `ActiveBehavior.CurrentOrder` 通路；真正落地的 `SetMovementOrder` 仍只有原生那个。CB2 现有的写令继续走 `CoordinationWriteBlock` + `_gate.RequestWrite`（`Program/src/Host/TestDriver.cs:926`/`:1615`），本方案**不新增任何绕过这两道门的写令**。
+
+**四、影响范围：单编队任务，不接管整队**
+
+本行为挂在哪一个 `Formation` 上，只影响那一个编队；`AddAiBehavior` 的调用面是 `ArmBehavior`（`Program/src/Host/TestDriver.cs:2589-2632`），入口只有任务投递与退出 Stop 两处。整队战术（`MakeDecision`/`GetTacticWeight`/`_availableTactics`）完全不碰，其他编队的原生行为不碰。
+
+**五、任务期间谁负责该编队，原生何时可介入**
+
+- CB2 负责：任务有效期内的**目标订单值**（只有 Stop 族），及任务身份与过期时间的维护。
+- 原生仍负责：战术节拍、行为竞争、`ActiveBehavior` 归属、移动路径求解、编队拆分合并、个体执行、其余 24 支行为的一切。
+- 原生可介入的时机**不变**：`FindBestBehavior` 每次都能换 `ActiveBehavior`；换了就不再是本行为刷新订单。CB2 不阻止、不拉回、不重抢。**本方案只改"没换的时候会发生什么"，不改"能不能换"。**
+
+**六、五种结局分别怎么处理**
+
+| 情形 | 本方案下的实际行为 | 上层如何得知 |
+|---|---|---|
+| 未执行（未获选） | `CurrentOrder` 刷新不发生——`TickOccasionally` 根本没跑 | 维持现状：`SelectionWaitSeconds=10.0` 到期 → `InvalidatePlan(SelectionTimeout)` → `TestDriver.cs:2571` |
+| 被替换（换 `ActiveBehavior`） | 新 `ActiveBehavior` 自己的 `CalculateCurrentOrder` 决定订单；本行为不再参与 | 维持现状：反馈判 `CommandOverridden` → `InvalidatePlan`（`TestDriver.cs:2220`） |
+| 终止/失效/超时 | `Disarm()` + `SetBehaviorWeight<CbHoldBehavior>(0f)` 后，本行为不再刷新订单；退出 Stop 仍走现有 `TryQueueExitStop`（`TestDriver.cs:2400-2444`） | 维持现状：`EXIT_STOP_QUEUED/SUBMITTED/DONE/NOT_APPLIED` + `EXIT_STOP_OBSERVED`（只作取证） |
+| 资格丢失 | 现有资格链先行关闭任务，本行为随之失效 | 维持现状：`FormationEligibilityLost`/`AiControlLost` |
+| Mission 结束 | `OnMissionEnd`（`TestDriver.cs:2928-2971`）清计划、清任务、`DisarmAllBehaviors` | 维持现状：`MISSION_CLEANUP` |
+
+**七、契约差异（逐条）**
+
+| # | 现行条款 | 建议改成 | 性质 |
+|---|---|---|---|
+| 1 | "不得设活动行为"（0009 §4 原文：不强设 `ActiveBehavior`） | 保持不设。本方案只改 `CurrentOrder` 的刷新时机 | **无需修改**，但要写明"刷新 `CurrentOrder` 不属于强设活动行为" |
+| 2 | "不得提高权重" | 保持 `HoldBehaviorWeight = 8.0` 不动 | 无需修改 |
+| 3 | "不得降低原生权重" | 不动原生权重 | 无需修改 |
+| 4 | "不得清空其他行为" | 不调用 `ResetBehaviorWeights` | 无需修改 |
+| 5 | P3 合同 `P3-FEEDBACK-REPLANNING-DISPATCH.md:194`："原生持续覆盖致合法通路无法获选/执行：真实缺陷先修，不以提高权重、放宽截止、关掉安全门或强制评分绕过" | 本方案不提高权重、不放宽截止、不关安全门、不强制评分（`GetAiWeight` 保持 `_armed?1:0`）。但它**扩大了"被选中之后"的效应范围**，属该条未列举的新形态，需要合同显式认可或否决 | **真实契约差异，须裁定** |
+| 6 | P3 合同 `:111`："撤权、清槽与'士兵已停止旧动作'分开" | 不变。本方案只影响"未撤权期间订单是否被刷新"，不把撤权当停令 | 无需修改 |
+| 7 | P3 合同 `:95`："关闭/清槽/撤权预算仍≤1s" | 不变。本方案不增加任何预算内动作 | 无需修改 |
+| 8 | TCL `07-final-architecture.md` §2.2 "Reject/Fencing 落在写入口" | 本方案的拒绝点仍在原生选择链，不在写入口 | **与 TCL 的 B 路线不同（见 9.5 候选裁决）**，须与 TCL 的表述对齐 |
+
+**八、必要改动范围**
+
+| 位置 | 改动 | 是否改变行为 |
+|---|---|---|
+| `Program/src/Host/CbHoldBehavior.cs` | `CalculateCurrentOrder()` 在有效期内重赋 `CurrentOrder = Stop`；新增有效期/任务身份字段 | **是**（这正是方案本身） |
+| `Program/src/Host/TestDriver.cs` `ArmBehavior`（`:2589-2632`） | 把 `task.TaskId`/`PlanId`/`Revision` 与到期时间写进行为 | 是 |
+| `Program/src/Host/TestDriver.cs` 撤权路径（`:2706-2720`、`:2650-2694`） | 行为进入"不再刷新"状态 | 是（收束） |
+| `Program/src/Core/TestParameters.cs` | **不新增任何常量**；沿用现有窗口 | 否 |
+
+**九、最小验收场景（三项，缺一不可）**
+
+1. **正例**：单编队 Hold 任务投递 → `REAL_SELECTION source=behavior_tick` → `WRITE_EXECUTED order_after=StandYourGround` → 之后**至少两次独立采样**（不是生产日志）在任务有效期内读到 `StandYourGround`，且期间无 `CommandOverridden`。
+2. **冲突反例**：任务有效期内原生 `FindBestBehavior` 换掉 `ActiveBehavior` → 独立采样读到非 Stop 订单 → 生产日志同步出现 `CommandOverridden` 反馈并 `InvalidatePlan`。**本方案不得把这个反例"修没"**——原生本来就有权换。
+3. **退出与交还**：任务关闭/撤销后，独立采样在 `≤1s` 后读到原生自己的订单回归，且不再出现本行为的写令。
+
+**十、本方案不解决什么（写清楚，防止再被当通过）**
+
+- 不解决**获选**：`0/80` 的结论不变，接敌期（原生 Charge 权重 10000）本方仍可能选不上。本方案的收益只发生在"已经选上、并且原生没换"的窗口里。
+- 不解决**推进类任务**的落地。
+- 不解决退出 Stop 的 `submitted=0` 那 81 条（未投递）。
+- 仍受 1 Hz 独立采样粒度限制：`≤1s` 那条判据在采样上不可证伪，必须靠生产侧写令读数配合。
+- 不构成 P3 通过，也不构成"持续指挥成立"。
+
+### 9.5 第二稿更正：上一稿的三处错误与修正后的读数（2026-10-19 晚，已并入 9.4 第三稿）
 
 上一稿的推荐方案与"候选已成立"的结论**撤回**，原因三处，均由用户核对源码后指出并在本轮复现：
 
@@ -1674,15 +1747,40 @@ BEHAVIOR_WEIGHT_ZEROED key=... before=... after=... dup=<0 非零变零 / 1 本�
 
 **已核实的真实持久效应（与能否获选无关，但仍是有价值的证据）**：`CbHoldBehavior` 一旦成为 `ActiveBehavior`，它的对象会一直留在 `FormationAI._behaviors` 里（引擎全库无 `RemoveAiBehavior`）。`TacticCharge` 的清零与重设只改权重、不换 `ActiveBehavior`，而 `FormationAI.TickOccasionally` 只在"换了 `ActiveBehavior`"或 `IsCurrentOrderChanged` 时写令——所以**本方没有后续触发的命令会一直留在宿主上**，直到下一次合法写令。`p3-P-20261019-124205` 的 key=1/0 单次 `WRITE_EXECUTED order_after=StandYourGround` 后，5.010/7.011/9.011 三次 `POST_OBSERVE` 都读回 `StandYourGround`，与本模型一致。这一条**不能**读成"CB2 维持住了控制"：战术层随时可以用它自己的行为写令。
 
-### 9.7 修正后仍缺的一块证据：解锁写回
+> **本节结论已按用户 2026-10-19 收窄**：`RemoveAiBehavior` 不存在只说明行为对象仍在列表里，**不能推出命令一直保持**。后续原生选择、其他行为回调、其他写令者都可能改单；那三次读回只证明那三个采样时刻订单为 Hold。"宿主订单在无写令者介入时不会自行改变"是本方案依赖的**引擎语义**（`IsCurrentOrderChanged` 驱动写令），不是本场已证实的结论，实施前须由最小验收场景 1 直接验证。
 
-模型里所有"本方未获选"的场景，最后一次写令都是原生自己的订单（`last_order=2`，即 Charge），因此**无法区分"宿主仍留着本方的 Stop"与"原生已经写回了自己的命令"**。要闭合这一环，唯一还需要补的观测是：**战术 tick（清零）或 `ActiveBehavior` 切换发生时，宿主 `MovementOrder` 的实际取值**。现有接线里 `Program/src/Host/TestDriver.cs:1241 OnNativeMovementOrderApplied` 由 `Program/src/Host/SamplingBehavior.cs:339` 调用，写的 `NATIVE_MOVEMENT_APPLIED` 没有时间戳、没有行为名，无法定位到战术节拍。按 0009 §4 本轮不新增实机场、不改生产，故记为**未验证**，不据此下结论。
+### 9.6 关于"解锁写回"读数：本单不单独开场
 
-### 9.8 尚未解决（更正后）
+用户已明确本轮不批准为"解锁写回"单独开场。按该要求先说明它是否影响方案选择：
+
+- 它区分的两个候选是 **(a) 承认原生本次保持本方订单** 与 **(b) 认为原生会用自己的 `CalculateCurrentOrder` 改写同一 `ActiveBehavior` 的订单**。
+- 若 (a) 成立，本方案收益来自"有效期内的再次刷新"；若 (b) 成立，收益几乎为零，因为原生每次节拍都会覆盖。
+- **本方案不需要该读数即可成立判断**：无论是 (a) 还是 (b)，"`CurrentOrder` 在有效期内被刷新"都是必做的事；区别只在于**收益大小**。因此它是验收场景 1 的一部分（独立采样两次读到 `StandYourGround` 即同时证实 (a)），不是本方案的**前置**。
+- 结论：**不为它单开实机场**；随本方案的最小验收场景 1 一并取得。缺口本身的性质仍未验证，不据此下任何结论。
+
+### 9.7 三个层次分别论证（不能用一项替代另外两项）
+
+| 层次 | 本方案的贡献 | 依据与边界 |
+|---|---|---|
+| **获得执行机会** | **不改善**。权重仍是 8.0，`0/80` tick 的证否结论不变；接敌期原生 Charge 仍是 `10000 × GetAIWeight` | `chain-output.txt`；W1 变体已关闭。唯一的获选时刻（124205 3.531）属未解释项，本方案不依赖它 |
+| **持续职责** | **这是本方案唯一的目标**。在"已获选且原生未换 `ActiveBehavior`"的窗口内，订单值在每次 FormationAI 节拍被重新确立，不再依赖"第一次写令恰好没被覆盖" | 依赖引擎语义 `IsCurrentOrderChanged → SetMovementOrder`；须由验收场景 1 直接证实。**不影响**"原生随时可换"这一事实 |
+| **退出停令** | **间接、且有限**。退出 Stop 走的仍是现有 `TryQueueExitStop` + 一次写令；本方案不改变它的获选概率（仍可能 `submitted=0`/未获选），但一旦获选，停令在有效期内不再被"没有后续刷新"抹掉 | 历史 `EXIT_STOP_SUBMITTED=529/DONE=485/NOT_APPLIED=129`（`submitted=0` 81 条未投递）不变；本方案不解决那 81 条 |
+
+**三项互不替代**：获选改善仍是 0；持续职责是新增；退出停令只在其已获选的子集上受益。
+
+### 9.8 候选方案裁决（不按名称预定赢家）
+
+| 候选 | 是否解决"反复丢失" | 触碰范围 | 结论 |
+|---|---|---|---|
+| 提高本方权重（W2） | 可能，但需盖过 10000 | 行为权重 | **未批准**，且 W1 只证否"恢复到 8"，未证否"提高"，不作推荐 |
+| 战术层接管（自定义 `TacticComponent` + `AddTacticOption`） | 能，覆盖整队 | 整队战术、所有编队 | **超出最小范围**：`MakeDecision` 按 `GetTacticWeight` 选整队战术，接管即影响全队；且 `CurrentTactic` 为 protected，只能靠"自己注册的战术被选中"间接获得，不是可控入口。本单不推荐 |
+| H2 / `SetControlledByAI(false)` | 能独占，但 TCL 已证 `FormationAI.Tick` 整体停摆（连行为选择一起停） | 编队 AI 控制 | **TCL 已不选作常态默认**；本单不重开 |
+| **本方案（Stop-Precedence）** | 在被选中的窗口内解决 | 单编队、单行为、无新写令点 | **推荐** |
+
+### 9.9 尚未解决（更正后）
 
 1. 原生战术清零的真实调用来源：探针已接线但两场均未触发（`BEHAVIOR_WEIGHT_ZEROED=0`），**归因未验证**。
-2. 解锁写回时刻的实际订单：缺时间戳与行为名的观测，**未验证**（见 9.7）。
+2. 宿主订单在无本方刷新时是否自行改变：属引擎语义，**未由本场直接证实**，随验收场景 1 一并取得（见 9.7）。
 3. 命中 `TacticCharge` 以外的战术（如 `TacticFullScaleAttack`，只在状态切换时重设权重）时本方权重与订单的命运未知。
 4. `submitted=0` 的 81 条退出令为何在 1 s 预算内没投递出去，未定位；属独立缺陷候选。
-5. `p3-P-20261019-124205` 3.531 秒那次接敌前的获选（`ACTIVE_BEHAVIOR_CHANGED ones=1`）与模型"8.0 恒输"并不矛盾但也不吻合：该时刻的实际权重与原生候选集未知，本轮未取到能对齐的时刻级读数。
 5. `p3-P-20261019-124205` 3.531 秒那次接敌前的获选（`ACTIVE_BEHAVIOR_CHANGED ones=1`）与模型"8.0 恒输"并不矛盾但也不吻合：该时刻的实际权重与原生候选集未知，本轮未取到能对齐的时刻级读数。
