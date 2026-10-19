@@ -1609,9 +1609,9 @@ BEHAVIOR_WEIGHT_ZEROED key=... before=... after=... dup=<0 非零变零 / 1 本�
 | 整队战术 | 引擎 `TeamAIComponent.MakeDecision()`（private），按 `GetTacticWeight()` 在 `_availableTactics` 中取最大值，落后方需超过现任 1.5 倍才切换 | `TeamAIComponent.Tick` → `MakeDecision`（5 s 一次、`TickOccasionally` 另一节拍） | **不参与**。CB2 全库无 `TacticComponent`/`GetTacticWeight`/`AddTacticOption`/`CurrentTactic`/`IsCurrentTactic` 引用；C 路线明确不碰战术层 |
 | 编队行为权重 | 当前战术的 `TickOccasionally`（如 `TacticCharge` 对每个非空编队 `ResetBehaviorWeights()` + `SetDefaultBehaviorWeights()` + `SetBehaviorWeight<BehaviorCharge>(10000f)`） | `TeamAIComponent.TickOccasionally` → `CurrentTactic?.TickOccasionally()` | **被改写方**。`CbHoldBehavior` 是 `AddAiBehavior` 追加的外来行为，不在 `SetDefaultBehaviorWeights` 的默认表内，整表清零后恒为 0 |
 | 编队选哪个行为 | `FormationAI.FindBestBehavior()`（private），0.5 s 一次；`WeightFactor > 1E-7` 才参与，分数 = `GetAIWeight() × WeightFactor`，现任再乘 `Lerp(1.2,2,(Expire-now)/5)` | `FormationAI.Tick` → `TickOccasionally` → `FindBestBehavior` | **参赛者**。只能靠 `ArmBehavior` 在提交时写 1 次 `SetBehaviorWeight<CbHoldBehavior>(8.0)` 把权重置回 |
-| 谁写 MovementOrder | `FormationAI.TickOccasionally` 尾段：换了 `ActiveBehavior` 或 `IsCurrentOrderChanged` 时 `SetMovementOrder(ActiveBehavior.CurrentOrder)` | 同上 | **两条腿**：①投标腿 = 被选为 `ActiveBehavior` 后由本行为自己的 `TickOccasionally` 回调触发 CB2 写 `Stop`/目标点；②直接腿 = `TestDriver.cs:1734` 直接 `f.SetMovementOrder(order)`，这条腿不经过任何裁决，也不被 `FindBestBehavior` 约束 |
+| 谁写 MovementOrder | `FormationAI.TickOccasionally` 尾段：换了 `ActiveBehavior` 或 `IsCurrentOrderChanged` 时 `SetMovementOrder(ActiveBehavior.CurrentOrder)` | 同上 | **被选为 `ActiveBehavior` 之后才写**：本行为自己的 `TickOccasionally` 回调触发 CB2 的候选投递，再经 `CoordinationWriteBlock` 与 `_gate.RequestWrite` 两道门，最后在 `TestDriver.cs:1734` 直接调引擎接口 `f.SetMovementOrder(order)`。**直接调引擎接口不等于绕过裁决**，本章第一稿"两条执行腿"的说法作废 |
 
-**结论：CB2 在编队层是"参赛者 + 直接写令者"两重身份，在战术层是零。所谓"C 路线"实际是"用行为权重参与原生选行为，同时用直接写令兑现任务"，不是"接管编队战术分配"。**
+**结论：CB2 在编队层是"参赛者"，在战术层是零。所谓"C 路线"实际是"用行为权重参与原生选行为，拿到执行机会后再按现有裁决链写令兑现任务"，不是"接管编队战术分配"。**
 
 ### 9.2 关键证据与替身边界
 
@@ -1625,7 +1625,7 @@ BEHAVIOR_WEIGHT_ZEROED key=... before=... after=... dup=<0 非零变零 / 1 本�
 - **本期更正**：本模型第一版把 `ResetBehaviorWeights()` 放进了逐行为循环，导致 Charge 权重被反复清零、读数全 0，结论方向错误；已改为整表先 Reset。`yield_honoured` 用例的"任务结束后是否仍被选中"必须用新编队跑，否则读到的是写令尾段留下的 `IsCurrentOrderChanged=false`，把"不再被选中"误当成"不再写令"。
 
 **（3）实机证据**（`Program/_verify/sessions/p3-P-20261019-124205/`，`build_id=b20261019-124159-f10a04a3`）
-- **接敌前 C 能赢并落地**：3.531 `ACTIVE_BEHAVIOR_CHANGED active_behavior=CbHoldBehavior ours=1` → `REAL_SELECTION source=native_callback` → `WRITE_EXECUTED order_before=Charge order_after=StandYourGround`。
+- **接敌前 C 能赢并落地（实机事实，与离线模型的"8.0 恒输"不吻合，属未解释项）**：3.531 `ACTIVE_BEHAVIOR_CHANGED active_behavior=CbHoldBehavior ours=1` → `REAL_SELECTION source=native_callback` → `WRITE_EXECUTED order_before=Charge order_after=StandYourGround`。当时该编队的实际权重与原生候选集没有时刻级读数，本轮未取到能对齐的观测，**记为未验证，不据此推翻模型，也不据此宣称 C 路线可用**。
 - **接敌后会被原生覆盖并当场反映**：plan-1-task-2（Cavalry）5.130 获选并写出 `Move`，6.050 `BEHAVIOR_DISARMED reason=RoleCorrection`，6.131 `ACTIVE_BEHAVIOR_CHANGED active_behavior=BehaviorTacticalCharge ours=0`，期间 `NATIVE_MOVEMENT_APPLIED key=1/2 order_enum=ChargeToTarget`，7.631 纠偏后重新写出 `Move`。
 - **权重归零的归因仍未验证**：本场 `BEHAVIOR_WEIGHT_ZEROED=0`；10 条 `BEHAVIOR_DISARMED` 全部是 CB2 自己的 `SetBehaviorWeight(0)`。原生 `ResetBehavior` 在本场未被观测到，**只能说"本场未记录到"，不能说"原生没清零"，也不能说"CB2 侧无缺陷"**。
 - **原生编队动作无法定位到具体时刻**：`NATIVE_MOVEMENT_APPLIED`、`ACTIVE_BEHAVIOR_CHANGED_OTHER` 均无时间戳，`NATIVE_MOVEMENT_APPLIED` 也没有行为名。这是验证缺口，不是实现缺陷。
@@ -1641,29 +1641,48 @@ BEHAVIOR_WEIGHT_ZEROED key=... before=... after=... dup=<0 非零变零 / 1 本�
 
 | 要求 | 能否支持 | 依据 |
 |---|---|---|
-| 接敌前/游离期按任务指令停下 | **能** | 124205 3.531；222821 全部 51 条退出令 |
-| 一次写令后保持（Hold） | **能** | `CbHoldBehavior.CurrentOrder` 构造时置 Stop，后续 tick 不刷新；124205 key=1/0 单次写令后 15 s 未动 |
+| 接敌前/游离期按任务指令停下 | **能** | 222821 全部 51 条退出令落地；124205 3.531 获选并写出 Stop（该次获选的原因未解释，见 9.2(3)） |
+| 一次写令后保持（Hold） | **能证明到"宿主没被换令"为止** | 引擎无 `RemoveAiBehavior`，行为对象留在 `_behaviors`；`TacticCharge` 只改权重不换 `ActiveBehavior`；124205 key=1/0 单次写令后三次 `POST_OBSERVE` 均 `StandYourGround`。**战术层随时可用自己的行为写令，此条不等于"控制住了"** |
 | 原生覆盖时让上层知道 | **能** | 33 次 `CommandOverridden` 反馈都走了 `InvalidatePlan` |
-| 接敌后仍能靠权重稳住 | **不能证明** | 战术 tick 清零外来行为权重；本场 8 s 内原生 `ChargeToTarget` 覆盖 |
+| 接敌后仍能靠权重稳住 | **不能，且已离线证否** | 正确模型下原生 `10000 × GetAIWeight`＝1000～8222，本方 `1 × 8`＝8，`0/80` tick 获选；战术 tick 跳过清零也救不回来 |
 | 停止命令总能在 1 s 内落地 | **不能证明** | `submitted=0` 的 81 条预算内没投递出去；`taken_over` 属归属被后继接管，与"停令被拒"不同 |
 | 停令落地后士兵一定停住 | **不能证明** | 停令与"士兵真停"之间隔着引擎订单执行；现有唯一证据是 ~1 Hz 独立采样 |
 
-### 9.4 一个推荐方案（最小契约差异）
+### 9.4 推荐方案（已撤回）
 
-**推荐：给 `CbHoldBehavior` 增加"任务有效期内，原生战术 tick 不得清零/改写本行为权重"的对冲，其余一切不变。**
+本节第一稿把「在 `GetAiWeight`/`TickOccasionally` 内恢复权重」推荐为最小方案，并把「战术 tick 跳过对本行为的清零」当作可直接交付的候选。**两者都撤回**，理由与修正后的读数见 9.6；本节保留原标题仅为便于对照交回历史，不再作为方案。
 
-- **改善的具体战术行为**：接敌后仍能执行已获选的驻足/停止任务，而不是在 5 s 战术节拍被打回 `Charge`。
-- **为什么不走别的路**：整队接管（H2 类）要动 `CurrentTactic`/`GetTacticWeight`，属 0009 明文禁止；提高 `HoldBehaviorWeight` 只是在战术 tick 后重新参赛，战术 tick 之前那 5 s 仍被清零；`AddTacticOption` 加自定义战术需要覆盖整队行为分配，改动面远大于本条。
-- **为什么现有通路不足**：`ArmBehavior` 只在 **提交时**写一次权重（`TestDriver.cs:2605`），`CbHoldBehavior` 全类没有任何周期回调去补充权重；而 `TacticCharge.TickOccasionally` 每个战术节拍都会整表清零。两条时间线不对齐，是本轮唯一被离线模型与实机同时支持的结构缺口。
-- **任务期间谁负责该编队**：仍由 CB2 的任务台账负责（`_armedBehaviors` 记该编队当前归属的任务），原生在①任务未获选②任务已写出并收到指令③任务失效/撤销后这三种情形可以介入，与现行 `ArmBehavior`/`Disarm` 语义一致，不新增归属概念。
-- **五种状态的处理**：未执行 = 权重仍为 0，与现状相同；被替换 = 现有 `CommandOverridden` 反馈链不变；终止 = `Disarm` 清零，不改；资格丢失 = 现有 `EligibilityLost` 链不变；Mission 结束 = `OnMissionEnd` 的 `DisarmAllBehaviors` 不变。
-- **涉及生产位置**：仅 `Program/src/Host/CbHoldBehavior.cs`（在 `TickOccasionally` 或 `GetAiWeight` 前置一次权重自恢复）+ `Program/src/Host/TestDriver.cs` 的 `ArmBehavior`/撤权配对；**不新增阈值、不改 `HoldBehaviorWeight=8.0`、不动 3 s/10 s/1 s 任何预算**。
-- **契约差异**：C 路线原文"意图不落地就如实报告"，本方案**不改变**这条——任务没落地照旧报失败；改变的是"落地之后被原生在下一个战术节拍抹掉"这一情形，由"静默失效"变为"自恢复一次"。若自恢复后仍被清零，仍按现有 3 s 反馈判 `NotEffective`。
-- **最小验收场景**：①正例：接敌期下发 Hold，战术节拍前后 `REAL_SELECTION source=behavior_tick` 连续，独立采样读到 `StandYourGround` 且位移 < 1 m；②冲突反例：同一时刻原生 `ChargeToTarget`，验证本方不被抹掉且不反过来压制原生其它行为；③退出/交还：`Disarm` 后下一次战术节拍权重归 0、原生动作恢复。
-- **未批准**：本条涉及"权重"，按 0009 §4 需用户裁定后方可实施；本轮未改动任何生产代码。
+### 9.6 第二稿更正：上一稿的三处错误与修正后的读数（2026-10-19 晚，取代 9.4 原推荐）
 
-### 9.5 尚未解决
+上一稿的推荐方案与"候选已成立"的结论**撤回**，原因三处，均由用户核对源码后指出并在本轮复现：
+
+1. **对照中的原生 Charge 根本没拿到 10000。** 模型 `Build()` 没有给 `BehaviorCharge` 落在 `SetDefaultBehaviorWeights` 的默认表里，模拟战术又跳过"不在默认表"的行为，Charge 赋权分支从未执行。上一稿 `charge_weight=0.0 charge_native=0.0` 就是症状，80/80 只能说明"赢过零权重候选"。
+2. **上一稿的候选演示成了"每次循环重新 Arm"**，不是"自恢复一次"。模型 `Run` 每 0.5 s 调一次 `armTask`，属未经说明的执行时序变化。
+3. **`SetMovementOrder` 不是绕过裁决的第二条腿。** `Program/src/Host/TestDriver.cs` 最终 setter 之前有当前行为检查、`CoordinationWriteBlock` 与 `_gate.RequestWrite`。直接调引擎接口不等于绕过这些门；"两条腿"的说法作废。
+
+**同时，上一稿推荐的"在 `GetAiWeight`/`TickOccasionally` 内恢复权重"存在循环前提**：权重为零时 `FindBestBehavior` 不会调用 `GetAiWeight`，未获选时 `TickOccasionally` 也不会执行，两者都无法把权重救回来。
+
+修正后的离线模型（`Program/_scratch/r9/chain/`，`chain-output.txt`）：`Build()` 里 24 支原生行为全部建模（反编译 `:45670-45693`），只有 `BehaviorCharge/PullBack/Stop/Reserve` 落在默认表（`TacticComponent.SetDefaultBehaviorWeights` `:38438-38444` 只设这四支各 1f），`TacticCharge.TickOccasionally` 先整表清零再按默认表赋权、最后 Charge=10000；Arm 只在提交时执行一次。
+
+| 场景 | 原生 Charge 权重 | 原生 Charge 分数 | 本方 8.0 能否获选 |
+|---|---|---|---|
+| 接敌前（GetAIWeight≈0.100） | 10000 | 1000.000 | 否，0/15 tick |
+| 接敌中（GetAIWeight≈0.822） | 10000 | 8222.000 | 否，0/15 tick |
+| 候选：战术 tick 跳过对本行为的清零 | 10000（未被降级） | 同上 | **仍然否，0/80 tick** |
+
+→ **8.0 在正确的原生权重下无法获选，W1 的这条变体到此关闭**：既有难度来自 `10000 × GetAIWeight` 与 `1 × 8` 相差三个数量级，不是"权重被清零后没人补"。跳过清零让本方保住 8.0，但 8.0 依然输。**提高权重属于另一条路线，需要单独裁定，本轮不作推荐、不验收。**
+
+**已核实的真实持久效应（与能否获选无关，但仍是有价值的证据）**：`CbHoldBehavior` 一旦成为 `ActiveBehavior`，它的对象会一直留在 `FormationAI._behaviors` 里（引擎全库无 `RemoveAiBehavior`）。`TacticCharge` 的清零与重设只改权重、不换 `ActiveBehavior`，而 `FormationAI.TickOccasionally` 只在"换了 `ActiveBehavior`"或 `IsCurrentOrderChanged` 时写令——所以**本方没有后续触发的命令会一直留在宿主上**，直到下一次合法写令。`p3-P-20261019-124205` 的 key=1/0 单次 `WRITE_EXECUTED order_after=StandYourGround` 后，5.010/7.011/9.011 三次 `POST_OBSERVE` 都读回 `StandYourGround`，与本模型一致。这一条**不能**读成"CB2 维持住了控制"：战术层随时可以用它自己的行为写令。
+
+### 9.7 修正后仍缺的一块证据：解锁写回
+
+模型里所有"本方未获选"的场景，最后一次写令都是原生自己的订单（`last_order=2`，即 Charge），因此**无法区分"宿主仍留着本方的 Stop"与"原生已经写回了自己的命令"**。要闭合这一环，唯一还需要补的观测是：**战术 tick（清零）或 `ActiveBehavior` 切换发生时，宿主 `MovementOrder` 的实际取值**。现有接线里 `Program/src/Host/TestDriver.cs:1241 OnNativeMovementOrderApplied` 由 `Program/src/Host/SamplingBehavior.cs:339` 调用，写的 `NATIVE_MOVEMENT_APPLIED` 没有时间戳、没有行为名，无法定位到战术节拍。按 0009 §4 本轮不新增实机场、不改生产，故记为**未验证**，不据此下结论。
+
+### 9.8 尚未解决（更正后）
 
 1. 原生战术清零的真实调用来源：探针已接线但两场均未触发（`BEHAVIOR_WEIGHT_ZEROED=0`），**归因未验证**。
-2. 命中 `TacticCharge` 以外的战术（如 `TacticFullScaleAttack`）时本方权重的命运未知——只在 `TacticCharge` 路径上有实机读数。
-3. `submitted=0` 的 81 条退出令为何在 1 s 预算内没投递出去，未定位（可能是 `MayActOn` 失败或 `ArmBehavior` 未及执行），属独立缺陷候选，不在本方案范围内。
+2. 解锁写回时刻的实际订单：缺时间戳与行为名的观测，**未验证**（见 9.7）。
+3. 命中 `TacticCharge` 以外的战术（如 `TacticFullScaleAttack`，只在状态切换时重设权重）时本方权重与订单的命运未知。
+4. `submitted=0` 的 81 条退出令为何在 1 s 预算内没投递出去，未定位；属独立缺陷候选。
+5. `p3-P-20261019-124205` 3.531 秒那次接敌前的获选（`ACTIVE_BEHAVIOR_CHANGED ones=1`）与模型"8.0 恒输"并不矛盾但也不吻合：该时刻的实际权重与原生候选集未知，本轮未取到能对齐的时刻级读数。
+5. `p3-P-20261019-124205` 3.531 秒那次接敌前的获选（`ACTIVE_BEHAVIOR_CHANGED ones=1`）与模型"8.0 恒输"并不矛盾但也不吻合：该时刻的实际权重与原生候选集未知，本轮未取到能对齐的时刻级读数。
