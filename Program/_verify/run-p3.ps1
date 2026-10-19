@@ -158,7 +158,9 @@ function Assert-CleanEndState {
     # the wrapper releases it after this script returns.
     $lockPath = 'E:\MBmod\BattleObservation-V1\coordination\shared-game-session.lock'
     $lockText = '<absent>'
-    if (Test-Path -LiteralPath $lockPath) {
+    if (Test-Path -LiteralPath ($lockPath + '.disabled')) {
+        $lockText = '<disabled by user>'
+    } elseif (Test-Path -LiteralPath $lockPath) {
         try {
             $lockBytes = [System.IO.File]::ReadAllBytes($lockPath)
             $lockText = ($lockBytes | ForEach-Object { $_.ToString('x2') }) -join ''

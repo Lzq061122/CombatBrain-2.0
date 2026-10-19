@@ -11,11 +11,11 @@
       "path": "AGENTS.md",
       "status": "ACTIVE",
       "created_at": "2026-10-02",
-      "updated_at": "2026-10-18",
+      "updated_at": "2026-10-19",
       "owner": "project-maintainer",
-      "content_sha256": "7390640dda6db5f16252aa9097c2feacc52edb700818ac3874bcdb4c64fe0317",
+      "content_sha256": "97b579a6b3aa358edb0007df3ab85d77ce41c4257172b3b5cd552f77cc6b4c0a",
       "auto_archive": false,
-      "notes": "入口v2.3：保留战术行为目标、防偏移与运行安全纪律；2026-10-18用户取消人工交回窗口门槛，空闲时可自动持锁实测，实际占用不抢占；离线验证通过的本组修复自主逐路径本地提交，不再逐次确认提交节奏。"
+      "notes": "入口v2.4：2026-10-19用户暂时关闭共享锁，以coordination/shared-game-session.lock.disabled为开关；原完整协调入口及活跃进程、连接归属保护保留。覆盖旧派单的持锁前置要求，不中断已有运行。"
     },
     {
       "prompt_id": "CB2-PROMPT-0002",

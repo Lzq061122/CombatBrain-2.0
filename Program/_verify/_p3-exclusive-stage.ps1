@@ -13,11 +13,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# This script runs INSIDE the coordination lock. Its only job is to run the three stages in
-# order and to report, honestly, how far it got. It never kills a game process, never removes
-# the lock, never resets a shared switch and never deploys outside the lock: the lock and the
-# resources belong to the coordinator, and a partially-run stage is a recorded fact, not
-# something this script is entitled to clean up on its own.
+# The coordinator runs all three stages; its shared-lock switch determines whether they
+# are mutually exclusive. This stage script does not kill processes or change lock state.
+# A partial stage is recorded and its own cleanup remains authoritative.
 #
 # The stage that acquired the game is the one responsible for releasing it. So the stage list
 # is walked in order, and each stage's completion is recorded before the next one starts. If a
@@ -92,7 +90,7 @@ if ($failure) {
     Write-Host "failure:        $failure"
 }
 
-# The coordinator releases the lock and restores MBMOD_SHARED_GAME_PID in its own finally.
+# The coordinator restores MBMOD_SHARED_GAME_PID and releases any acquired lock in finally.
 # A stage that failed before the collect stage never started a game, so there is nothing for
 # this script to end; a failed collect stage is responsible for its own teardown and records
 # it. Either way the exit code stays non-zero so the caller cannot read this as success.

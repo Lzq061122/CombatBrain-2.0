@@ -21,6 +21,7 @@ $stageScript = Join-Path $here '_p3-exclusive-stage.ps1'
 
 $observationRoot = 'E:\MBmod\BattleObservation-V1'
 $coordination = Join-Path $observationRoot 'coordination\Invoke-ExclusiveGame.ps1'
+$lockDisabled = Test-Path -LiteralPath (Join-Path $observationRoot 'coordination\shared-game-session.lock.disabled')
 
 # Owner must stay ASCII: PS 5.1 reads a BOM-less .ps1 as ANSI, which would corrupt a
 # non-ASCII literal and break parsing. The coordinator compares this value as an opaque string.
@@ -37,11 +38,11 @@ if ($WhatIf) {
     Write-Host "coordination:  $coordination"
     Write-Host "owner:         $owner"
     Write-Host ""
-    Write-Host "read-only, outside the lock:"
+    Write-Host "read-only source checks:"
     Write-Host "  source identity  : $cb2Root and $cbathRepo (git status/HEAD, no write)"
-    Write-Host "  access policy    : automatic exclusive run; no written handover required"
+    Write-Host "  shared lock off  : $lockDisabled; active-process and connection ownership checks remain"
     Write-Host ""
-    Write-Host "All three stages run INSIDE the coordination lock:"
+    Write-Host "All three stages run through the coordinator (lock disabled: $lockDisabled):"
     Write-Host "stage 1 deploy CB2   : $cb2DeployScript"
     Write-Host "  regenerates build_id, clean rebuild, deploys DLL, compares SHA256"
     Write-Host "stage 2 deploy CBATH : $cbathDeployScript"
@@ -55,10 +56,10 @@ if ($WhatIf) {
     exit 0
 }
 
-# ---------- read-only source check, deliberately outside the lock ----------
-# Written handover is no longer a prerequisite; active processes and the coordinator still guard execution.
+# ---------- read-only source check before coordinator invocation ----------
+# Written handover is not required; active-process checks remain with either lock mode.
 # Nothing here writes, builds or switches anything.
-Write-Host "=== read-only source check (outside the lock) ==="
+Write-Host "=== read-only source check ==="
 
 function Show-GitIdentity([string]$root) {
     Write-Host "root: $root"
@@ -76,7 +77,7 @@ function Show-GitIdentity([string]$root) {
 Show-GitIdentity $cb2Root
 Show-GitIdentity $cbathRepo
 
-Write-Host "resource policy: no written handover approval required; active-process and lock guards remain"
+Write-Host "resource policy: no written handover approval required; shared lock disabled=$lockDisabled; active-process and connection ownership guards remain"
 
 $runner = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match 'bannerlord' }
 if ($runner) { throw "Bannerlord already running (pid $(($runner | ForEach-Object { $_.Id }) -join ',')); refusing to claim the shared game" }
