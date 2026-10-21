@@ -81,4 +81,4 @@ U10 量化通过阈值及失败回退策略。
 ## 10. 文档维护
 本研究分支与现行文件分离；建议由项目负责人逐项复核后，按 Charter（why/boundary）→ Requirements（what/contract）→ Roadmap（when/gates）回写。不得在无代码/实机证据的情况下把 PROPOSED 标成 IMPLEMENTED/PASS。
 ## 11. 战术可观测性与 CBATH 升级（CONFIRMED-DIRECTION / PROPOSED 实施）
-2026-10-21 讨论确定将 RBM 式战术日志及开发者可视化纳入研究计划，性能允许才交付。必须区分 CB2 的战场输入与任务评估、其旁路遥测和 CBATH 的测试/独立观测；CBATH 不作为正式 Commander 感知或决策的必需运行依赖。扩展当前 ObservationAdapter 的计划/任务/写令事件，以记录任务进展、重评触发、失败经验、候选价值比较和决策变化；同时支持稀疏快照与即时事件，开发者 HUD 只读展示相同数据。默认关闭昂贵诊断；不得高频逐 Agent 采样。详细方案、验收和 OPEN 见 [CBATH 可观测性升级提案 v0.1](CombatBrain-2.0-Observability-CBATH-Upgrade-Proposal-v0.1.md)。新增开放事项 U11：观测能力范围、日志/CBATH/HUD 的分工、开销门槛与发布优先级；现有 P3 不因本提案变更。
+2026-10-21 讨论确定将 RBM 式战术日志及开发者可视化纳入研究计划，性能允许才交付。必须区分 CB2 的战场输入与任务评估、其旁路遥测和 CBATH 的测试/独立观测；CBATH 不作为正式 Commander 感知或决策的必需运行依赖。扩展当前 ObservationAdapter 的计划/任务/写令事件，以记录任务进展、重评触发、失败经验、候选价值比较和决策变化；同时支持稀疏快照与即时事件，开发者 HUD 只读展示相同数据。默认关闭昂贵诊断；不得高频逐 Agent 采样。详细方案、验收和 OPEN 见 [CBATH 可观测性升级提案 v0.1](CombatBrain-2.0-Observability-CBATH-Upgrade-Proposal-v0.1.md)。**已确认优先级（2026-10-21）**：方案 A——先完善 CB2/CBATH 决策事件、独立观测对齐及离线时间线/回放分析，再视性能与实施条件增加游戏内 MCM Developer HUD；实时 HUD 不是前述工作包的交付前置。新增开放事项 U11：观测能力范围、日志/CBATH/HUD 的分工、开销门槛与发布优先级；现有 P3 不因本提案变更。
