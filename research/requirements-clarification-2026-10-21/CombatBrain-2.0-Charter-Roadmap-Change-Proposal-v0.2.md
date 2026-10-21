@@ -45,3 +45,5 @@
 
 ## E. 建议变更流程
 保留现行 `master` 原始资料；研究稿审查通过后单独 PR 提议修订原 Charter、Requirements 与 Roadmap。PR 必须附逐条决策依据、涉及的产品门槛/阶段门影响、尚未确定项清单。提案没有用户最终签收时不得合并为约束性需求。
+## F. 新增可观测性/CBATH 研究工作包（2026-10-21）
+依据 [CBATH 可观测性升级提案 v0.1](CombatBrain-2.0-Observability-CBATH-Upgrade-Proposal-v0.1.md)，建议后续 Charter 明确“决策—行动—战况—任务反馈—重规划可追溯”，Roadmap 增加单列观测工作包并映射现有 P0—P6 的适用阶段。优先复用现行 ObservationAdapter 的结构化事件与 CBATH 独立观察；补任务进度趋势、重新评估原因和切换依据；待观测协议稳定后再实现可选 Developer Mode HUD。所有功能必须保持决策旁路、按需采集、性能受控，不能修改现行 P3 验收门或承诺所有诊断都在首版发布。现阶段为研究提案，非开发授权。
