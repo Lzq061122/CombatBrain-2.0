@@ -1,0 +1,91 @@
+# CombatBrain 2.0 — 意图生成与抗复杂化架构压力测试 v0.1
+
+> 日期 2026-10-21。**研究提案 / 未经项目负责人批准实施 / 现行 P3 任务与门槛保持不变**。已确认决策：Commander 显式维护可更新的全军 Operational Intent；Formation 在上级目标/约束内执行；意图变化采用条件触发并保留必要职责交接。本文件中的模块边界与“生成”算法仍是 PROPOSED，不能冒充已实现。
+
+## 1. 设计中的根本风险
+任务进度、观察窗口、失败尝试记忆、战术价值、全军意图交接和可观测性，若各自拥有修改任务/发令权限，就会形成互相覆盖的决策器。应将它们组织为**每个受控 Team 一条权威决策链**，其余只是事实提供者、候选方案产生器、只读评价器或执行器。
+
+## 2. 意图层级与术语（建议）
+- **Victory Objective**：战胜敌军、合理管理损失/风险；玩家直接命令和可控范围为更高优先约束。不是逐 tick 选择的“战术意图”。
+- **Operational Intent（Commander，唯一版本化的全军作战意图）**：本阶段希望改变的战场状态（例如“削弱敌方远程支援并建立推进机会”）、理由、首要/必须保障的职责、风险限制与改派/失效条件。描述目标状态，不直接包含原生 Move/Charge。
+- **Task Contract（Commander 颁发给 Formation）**：TaskType + Target/Area + Objective + Constraint + AllowedLocalActions + Dependencies + ProgressEvaluator + ExitConditions + Authority + Version。不同任务可合作实现一个 Intent；不能用“已发令”等价“达成战术效果”。
+- **Local Execution Choice（Formation 局部执行选择）**：例如“从右翼绕行并保持楔形”“暂时停止冲击重组”，是满足任务契约的行动方案；不能再设计一个与 Commander 同级的全军意图生成器。Formation 可报告 CandidateOpportunity/Blocked/AtRisk，请求 Commander 改派，但不得私自改写 Task Contract 的目标。
+- **Engine Order**：最终被有权入口合法写入原生引擎的指令，由现行 Arbitration/Execution 控制链处理。
+
+## 3. 意图从何产生（PROPOSED）
+
+```text
+FormationSnapshot + 兵种能力画像 + 任务/计划历史 + 原生授权状态
+                      |
+                 BattleFacts
+                 (带时间与置信度)
+                      |
+            SituationAssessment
+           (威胁、机会、风险、可行性)
+                      |
+          CandidateIntentGeneration
+       (有限目标类型 + 参数化目标/空间/职责)
+                      |
+            Feasibility & Constraints
+                      |
+          GlobalValueComparison + Stability
+                      |
+         Commander OperationalIntent vN
+                      |
+           TaskAllocator / Dependencies
+                      |
+           Formation TaskContract vN
+                      |
+             Formation Local Policy
+    (选路、列阵、接敌、重组、局部脱离)
+                      |
+                ActionProposal
+                      |
+         ProposalArbiter / ExecutionGate
+                      |
+                Native Formation Order
+                      |
+               任务反馈/实战结果
+                 [下一次评估]
+```
+
+**Commander 的候选意图来源**不是凭空“思考”，而是由相同时间基准的事实 + 兵种相克/地形/任务能力 + 威胁机会评估，生成有限类型的参数化目标，先检验执行约束、队伍能力及交接成本，再按已批准的分层价值评价挑选或维持当前意图。全军意图候选例子：降低敌方有效远程压力、建立中央可利用突破、保护己方弓兵、切断敌方某一路调动。**不是**固定文化脚本，也不是对一切可能战术做无界搜索。
+
+**Formation 的候选执行方式**来源：已签收任务的目标/约束 + 自身能力 + 附近敌我 Formation 状态 + 地形、队形、疲劳/受损/弹药等实际可得数据 + 短期失败尝试记录。选择“下一步怎么做”，不选“整场战役应该追求什么”。遇到不可解决的冲突，提交状态/机会报告，由 Commander 重新分配任务；紧急局部脱险的边界须单独批准。
+
+## 4. 一个可检验的完整例子（PROPOSED）
+- Fact：敌方弓兵有效火力强，我军中央遭持续压力，右翼骑兵数量/装备适于机动，敌右翼有步兵拦截；事实的观测来源、时刻和不确定度都可记录。
+- Commander 生成“降低敌军弓兵威胁”等若干候选全军意图；检验行动可行性和全局价值。若采用此意图，则派任务：步兵牵制、弓兵压制、骑兵寻找后排攻击窗口、必要侧翼保护。
+- 骑兵 Formation 发现右翼路径受阻，自行尝试契约内允许的重新选路/临时重组，并上报 TaskProgress+Obstruction。不得自行把“袭击敌弓兵”改成“消耗敌步兵”。
+- Commander 接收到可靠的停滞/代价/新机会证据，比较当前意图与“通过中央消耗再突破”等全军候选；若新意图全局明显更优，先完成关键保护任务的继承/转交，再原子发布新 TaskContract 版本。旧任务不能再次发令。
+- CBATH 只能记录/验证事件，不能向决策器回注“日志描述”作为事实。
+
+## 5. 与当前源码的具体差距（GitHub 主仓现场源码核查）
+已有分层基础：`BattleState.cs` 用同一 Snapshot 信息；`BattlePlan.cs` 中 `FormationTask` 含身份、Revision 和协同依赖；`PlanLedger.cs` 管生命周期与已有失败重试控制；`ProposalArbiter.cs` 支持同一 Formation Movement 域的候选裁决；`TaskFeedback.cs` 验证写令后生效，而非仅检查 setter 返回；`ObservationAdapter.cs` 已有结构化旁路事件。
+**需特别防范**：
+- `BattleAssessment.cs` 同时有 `Read` 与 `Build/BuildCoordination`，在扩大决策类型前需划清事实归纳、候选意图、计划构建的责任。
+- `TestDriver.cs` 已约 3241 行，不宜继续成为全部新机制的宿主；其逐 tick 安全与执行门职责属于必须保留的现有契约，不能贸然重写。
+- `TestParameters.cs` 的 P1/P2/P3 阶段阈值是现有实验合同，不能未经审批替换成某个“万能效用函数”。目前 TaskKind 有 Hold/Engage/Reposition；不能宣称完整战术任务库已实现。
+- `ActionFeedback.cs` 包含 P3 量化读数；现有评分只对有限验证范围负责，不能直接冒充“所有战略目标可统一比较”的模型。
+
+## 6. 防止“屎山”的七项约束（PROPOSED）
+1. **唯一写令入口**：每个 Formation 每个控制域由现有裁决/执行门做最终合法写入；计划器和任务监测器禁止直接改游戏 Order。
+2. **单向依赖**：战场事实只读 → 候选/评分纯函数 → 版本化意图/任务 → 局部执行 → 合法写令。反馈只进入下一次状态评估，不允许跨模块回调修改上游对象。
+3. **一份事实版本**：同轮比较所有候选使用同一已知时间基准的 snapshot；过期/缺失不当作零值。
+4. **一套任务生命周期**：不要为“失败重试”“任务交接”“CBATH 回放”创建几套互相竞争的状态机；任务完成、受阻、取消、违约与预测不确定分别表示。
+5. **显式版本交接**：意图/任务 revision 改变时，旧版本候选不得落地；关键防护职责继承或明确承担风险，避免交接瞬间出现防线空档。
+6. **算法与观测分离**：日志/HUD 只读，默认零昂贵诊断，不能依赖日志系统驱动战术；不进行每帧逐 Agent 深度扫描。
+7. **最小纵切片先行**：先用一套“牵制步兵 + 侧击骑兵 + 掩护编队”从意图生成到反馈/重评/交接验证闭环，然后再增加候选意图、任务类型和 RBM/Vanilla 画像；避免预先建立通用多智能体平台。
+
+## 7. 可自动化架构测试（PROPOSED）
+- 同一 snapshot + 同一战斗历史/随机种子 → 候选和已批准决策可重复；运行顺序不同不应修改安全权限。
+- 单个任务换目标不应隐式改变 Operational Intent；Formation 没权限直接撤销其他 Formation 任务。
+- 同一 Formation 不能同时收到两个并行写令；玩家手动接管阻断后续过期提案。
+- 任务 revision 更换后旧订单必须被拦截；仍需保留的防护职责有明确承接者或经过 Commander 同意接受风险。
+- 任务失败与抗命独立；进展未知不能被记成“完成”。
+- CBATH/HUD 启用与否不能改变决策语义；性能预算和内存分配应在原版及极端人数条件实测。
+
+## 8. 需要负责人继续裁决的问题
+**D-ARCH-01：** 是否接受“只有 Commander 生成全军 Operational Intent，Formation 只在有界 TaskContract 中选择 Local Execution，并可上报改派请求”的严格职责分层？这不否认 Formation 局部独立性，但避免两个同级的自由目标规划器。
+
+其他尚未确定：候选作战意图库范围、评分数据置信度、任务契约的紧急例外、硬约束交接原子性、最终 CPU 预算；禁止因研究提案自动更改 P3 验收或代码。
