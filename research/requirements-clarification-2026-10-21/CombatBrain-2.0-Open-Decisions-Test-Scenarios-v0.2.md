@@ -63,7 +63,8 @@
 ## 5. 下一场讨论建议
 优先针对 U01：确定首版最小、但足以体现协同的战术职责集合；逐类写清 Goal、Constraint、LocalFreedom、Dependency、ObservableEvaluator，再决定是否应拆出新类型。不要直接把上文所有候选任务视为已批准。
 ## 6. U11：CBATH / RBM AI Log 启发的观测功能（新增，未签收）
-- **设计待决**：是否将结构化决策溯源、任务观察窗口、失败尝试与重规划比较统一为旁路事件 schema；游戏内 Developer HUD 是否首版必需；CBATH 深度独立观测/离线时间线工作量与现有观察组职责如何协调。详见 [升级提案](CombatBrain-2.0-Observability-CBATH-Upgrade-Proposal-v0.1.md)。
+- **已确认（2026-10-21）**：采用 A，CBATH 日志与离线回放/分析优先，Developer Mode 实时 HUD 后置；不能把观测层变成指挥决策的必需依赖。性能与故障隔离为必要验收条件；当前 P3 合同不变。
+- **仍待决**：是否将结构化决策溯源、任务观察窗口、失败尝试与重规划比较统一为旁路事件 schema；游戏内 Developer HUD 是否首版必需；CBATH 深度独立观测/离线时间线工作量与现有观察组职责如何协调。详见 [升级提案](CombatBrain-2.0-Observability-CBATH-Upgrade-Proposal-v0.1.md)。
 - **TS13 周期快照/即时事件对齐**：短于采样间隔的多次战术/命令切换仍有事件；快照可复原变化前后的真实状态；事件具战斗、编队、任务和时间身份。
 - **TS14 意图与结果分离**：CB2 称任务已完成但独立 CBATH 未见实际目标变化时，不得报告 PASS；区分自主调整与玩家接管造成的写令结果。
 - **TS15 开销与故障隔离**：关闭/开启 Developer Mode、SUMMARY、DETAILED、CBATH-SESSION 模式分别测量 AI 毫秒和帧时，并检查决策不变性；日志目录不可写、队列满、时间对齐错误均不得造成游戏崩溃或指挥停摆。
