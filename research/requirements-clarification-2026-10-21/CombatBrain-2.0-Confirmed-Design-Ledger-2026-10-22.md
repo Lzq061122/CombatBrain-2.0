@@ -2,7 +2,7 @@
 
 > **性质**：截至 2026-10-22 对话已确认原则的汇编与文档间冲突消解。**研究分支材料；非 PRD 定稿、非生产代码指令、非现行 P3 合同变更、非任何验收 PASS。**
 >
-> **来源**：最初上传的 Charter v0.3（仓库文件名 \`charter/Charter V0.2.md\`）、Requirements Clarification（2026-10-20）、Roadmap v0.2（文件名 v0.1）；2026-10-20～22 的需求澄清对话；本研究分支和另一研究分支 \`research/requirements-reconciliation-2026-10-21\` 已有的需求核对材料、RBM 研究与 CBATH 提案。
+> **来源**：最初上传的 Charter v0.3（仓库文件名 `charter/Charter V0.2.md`）、Requirements Clarification（2026-10-20）、Roadmap v0.2（文件名 v0.1）；2026-10-20～22 的需求澄清对话；本研究分支和另一研究分支 `research/requirements-reconciliation-2026-10-21` 已有的需求核对材料、RBM 研究与 CBATH 提案。
 >
 > 本文按**用户后续明确裁决覆盖旧文的历史 OPEN**原则编纂。标识：**CONFIRMED**＝产品/架构方向已认可；**OPEN**＝实现口径/发布范围/验收未确定；**PROPOSED**＝尚待采纳的具体机制；**DEFERRED**＝明确不作当前首版必要条件；**EVIDENCE**＝有限工程事实，须核最新提交。不要将推荐方案写成用户已确认。
 
@@ -26,7 +26,7 @@
 
 ## B. 权威决策层级、任务契约与协同
 
-1. **CONFIRMED｜唯一战略意图主人**：每个合法受控指挥域由 Commander 负责全局 \`Operational Intent\`，在战场局势变化时维护一个版本化的、可解释的当前作战意图：主要威胁、希望改变的战场状态、胜利路径、关键保护责任、协同依赖、风险和失效/重评条件。不能把每个 Formation 都变成第二个独立战略指挥官；军团的实际指挥域边界 OPEN。
+1. **CONFIRMED｜唯一战略意图主人**：每个合法受控指挥域由 Commander 负责全局 `Operational Intent`，在战场局势变化时维护一个版本化的、可解释的当前作战意图：主要威胁、希望改变的战场状态、胜利路径、关键保护责任、协同依赖、风险和失效/重评条件。不能把每个 Formation 都变成第二个独立战略指挥官；军团的实际指挥域边界 OPEN。
 2. **CONFIRMED｜三层而非“一个大脑直接频繁下令”**：全军 Victory Objective（赢得战斗、合法权限及必要损失）→ Commander Operational Intent（阶段性全局目标）→ Formation Task Contract（可检验的职责与约束）→ Formation Local Execution（选路、队形、接敌、重组和局部应变）→ 合法的 Native Orders。CBATH/日志不拥有写令权。
 3. **CONFIRMED｜有限的、参数化且可验证的任务语义**：任务应该描述目标、作用对象/区域、约束、允许的局部行动、依赖、优先级、成功/失败/中止证据及反馈；可以组合多项形成复杂战术，**不**允许任意自由文本生成“无从验证”的职责。具体首版类型、字段枚举及阈值 OPEN。
 4. **CONFIRMED｜职责功能优先于兵种类别**：牵制、掩护、拦截、占控、支援、突破、战果扩张、脱离等先按战术目标定义，再按实际 Formation 能力选择承担者；这串词是**候选目录不是已批准的全量首版清单**。
@@ -97,7 +97,7 @@
 
 ## H. 冲突、遗漏与档案处理规则
 
-1. 旧 \`charter/CombatBrain-2.0-Requirements-Clarification.md\` §7.4 将多领主军团野战列为 OPEN；**后续已确认首版必需（P04）**。该旧文是截至 2026-10-20 早一刻的历史快照，不可用其旧状态覆盖后续决定。
+1. 旧 `charter/CombatBrain-2.0-Requirements-Clarification.md` §7.4 将多领主军团野战列为 OPEN；**后续已确认首版必需（P04）**。该旧文是截至 2026-10-20 早一刻的历史快照，不可用其旧状态覆盖后续决定。
 2. 本研究分支早期 v0.5 整合稿对**首版动态重组 + MCM**、**预算 C19**、**RBM 兼容 A**、多领主硬范围的明确性不足；本台账予以恢复。另一研究分支的三份 reconciliation 文档补充了对应反例，保留为参考，不要让两条分支变成两个互相冲突的产品真相。
 3. 关于 D-ARCH-02、U01.6、D-OPP-01：专题文件中的较早 OPEN 段落是历史讨论状态；分别已被后来确认的“目标状态驱动生成”“有条件 Intent 交接”“统一关系 + 有界可组合检测”覆盖。**D-EVAL-01 才是当前下一项核心决策**。
 4. 对于“风险偏好 A/B/C”最后一问，**没有形成新签收的 A、B 或 C**；不应在任何文档中捏造“用户选 C”或“用户选 B”。现行唯一有效的是此前 P09 所述原则。
@@ -126,4 +126,4 @@
 
 - **单一暂行研究基线**：本台账 + 同分支 Requirements Integrated / Charter-Roadmap Proposal / Open Decisions & Test Scenarios / Intent Architecture / CBATH Observability；旧文中不一致的历史问题视为已解决或保留 OPEN，以本台账的**明确近期裁决**为准。
 - **下次新对话直接从 D-EVAL-01 继续**，每次只问一项真正独立且重要的选择；对已经确认的原则不反复征询；对尚未确认的阈值、任务目录和阶段授权保持 OPEN。
-- **正式回写**：此研究分支不触及 \`master\`、现行 P3 实施合同和任何已验收报告；只有在产品范围、契约、测试门槛充分明确且经用户确认后，才拟正式 PR 更新 Charter、Requirements 与 Roadmap。
+- **正式回写**：此研究分支不触及 `master`、现行 P3 实施合同和任何已验收报告；只有在产品范围、契约、测试门槛充分明确且经用户确认后，才拟正式 PR 更新 Charter、Requirements 与 Roadmap。
