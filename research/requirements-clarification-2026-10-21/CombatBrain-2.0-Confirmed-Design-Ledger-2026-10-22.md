@@ -197,3 +197,16 @@
 **NEXT OPEN U-AUTH-03**：具体 Harmony/Native 执行链怎样在不并列抢写的情况下实现任务有效落地、必要时有界独占、玩家权限即时切换、CB OFF 原生恢复及所有相关命令域安全交还；默认原生管线集成与有证据的分域独占如何划界。TCL 文档也有其自己的“架构 C=原生管线集成”，**与此次 U-AUTH-02 C=授权来源校验无关，不得混同**。具体 Hook、数值、Lease 参数与实现授权仍 OPEN。
 
 独立记录：[U-AUTH-02 裁决与 TCL 证据](CombatBrain-2.0-U-AUTH-02-Decision-and-TCL-Evidence-2026-10-22.md)。仅研究分支，不更改 `master`、现行 P3 合同或 CBATH。
+
+
+## R. 增量签收（2026-10-22）：U-AUTH-03 原生管线集成与必要时受限独占
+
+**CONFIRMED｜U-AUTH-03 方案 C**：在讨论“**优先原生 Tactic→FormationAI→Behavior→Order 集成，必要时使用有界、可验证、可交还的 Harmony 独占控制**”后，项目负责人明确回复“**认可**”。这确定的是**执行链架构方向**：默认不新增与 Native 长期并列竞争的 Writer；对于关键职责/必须真实落地的 Formation 任务，当已有权限、写入覆盖、保持与可逆 Release 的实证条件成立时，可针对限定 Formation/命令域实施受限独占；不得以反复抢写、静默取消原生行为或未验证的 Full 控制冒充已执行任务。**具体哪些任务需保证、何时申请/升级、失败如何可行降级，仍 OPEN**。
+
+**连贯性要求**：遵守 U-AUTH-01 稳定指挥域与动态授权、U-AUTH-02 双重授权和写前检查、U-SIDE-01 双端 ON/OFF 真正 Native 交还、玩家手动权限优先、合法任务/原生命令执行反馈区分及 C19 预算。Harmony 提供介入手段但不增加战役/玩家赋予的控制权；不越过 Agent 层。CB 总体上须有真实的指挥行为效果，不能满足于“只给 Native 建议”。
+
+**TCL 证据限定**：目标版 v1.4.8.119303 的 TCL run05 H2 仅证实 **T1F0 Movement/HOLD 24.50s、有效窗口 49 次 Native 尝试被拒及局部 hold**；**G3 全场 Oscillating FAIL**、Facing/Arrangement Full 与全域异常/到期恢复未验收。TCL 已登记“先仲裁后权限”、Acquire 回滚/过期/旧请求身份等实现差距；不将研究架构和 Phase11 文档验收写作 CB2 运行时 PASS。
+
+**NEXT OPEN U-AUTH-04**：任务保证级别与独占升级的决策时机——关键 Formation Task 是否应在规划承诺前验证可用的执行保障（并实时重新验证），还是先交由 Native 尝试、不遵守时再升级；要求关键职责与性能约束不被静默削弱。具体阈值、Lease 值和命令域白名单等保留 OPEN。
+
+独立签收及反例：[U-AUTH-03 Decision](CombatBrain-2.0-U-AUTH-03-Decision-2026-10-22.md)。本次仅修改研究分支，不触及 `master`、现行 P3 合同和生产代码。
