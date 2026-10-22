@@ -50,3 +50,10 @@
 1. 本文件仅是 OPEN 清单与覆盖性审查，不批准字段 Schema、阈值、算法、行为清单及测试通过状态。
 2. **只**将用户本轮明确选择的 U-AUTH-06 C 记录为新的 CONFIRMED 决策；`Defilade` 交叉审查建议不进入正式确认设计台账。
 3. 不打断当前依赖链：**下一项先 U-AUTH-06b**，之后回到 Local Safety/Task Feedback 接口收口，再进入相关 U-TAC/U-ARMY/测试。
+
+
+## 6. 进展补录（2026-10-22）：U-AUTH-06b 已裁决，不再列为 OPEN
+
+此份审计 §4 对 `U-AUTH-06b` 的 OPEN 标记为**交叉审查当时的历史状态**。本轮项目负责人随后明确选择 **U-AUTH-06b 方案 C**；已写入 [U-AUTH-06b 正式裁决文件](CombatBrain-2.0-U-AUTH-06b-Decision-2026-10-22.md) 与 [确认台账 §W](CombatBrain-2.0-Confirmed-Design-Ledger-2026-10-22.md)。**该项现为 CONFIRMED**：Commander 的明示牺牲关键职责原则上优先，Formation 只有在已有可观测事实支持实质无法履职、并满足受限紧急例外条件时，才能最小必要地越界报告。
+
+**《Defilade》交叉审查本身尚未使任何接口建议被批准**。本审计仍保持 `IF-FEEDBACK-01`、`IF-FEEDBACK-02`、`IF-EVAL-01`、`IF-SAFE-01`、`IF-TEST-01` 为 OPEN；按依赖顺序，**下一讨论题为 `IF-FEEDBACK-01` 结构化任务健康反馈**。不要由本次状态补录推断字段枚举、具体算法、动态 Tactics 来源、Campaign 链或实施完成。
