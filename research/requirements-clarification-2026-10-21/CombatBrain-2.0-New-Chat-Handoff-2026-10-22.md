@@ -1,12 +1,12 @@
 # CombatBrain 2.0｜新对话接续手册（2026-10-22）
 
-> **2026-10-23导航更新**：本手册保留旧背景，当前讨论进度与研究建议请优先读[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)。D-EVAL-01的旧开场已更新为IF-FEEDBACK-02；没有新增设计签收。
+> **2026-10-23导航更新**：本手册保留旧背景，当前讨论进度与研究建议请优先读[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)。D-EVAL-01的旧开场已更新为IF-FEEDBACK-02；后续用户已确认 AR-01 的分语义信息有效性原则，见[专项记录](CombatBrain-2.0-IF-FEEDBACK-02-AR-01-Decision-2026-10-23.md)。下一题为 AR-02，具体接口仍 OPEN。
 
 > 目标：用户因旧会话过长，转入新会话继续 **系统需求澄清与压力测试**。本文件是“交接索引”，不是 PRD 终稿、不是代码开发授权。确认原则均保存于本研究分支，`master` 与当前 P3 阶段合同未因本次归档而更新。
 
 ## 1. 新对话从哪里开始
 
-**当前下一核心问题：IF-FEEDBACK-02「健康事实/事件的身份、时序与消费合同」；建议从新增AR-01讨论信息的不同有效期。**
+**当前下一核心问题：IF-FEEDBACK-02 / AR-02「可验证派发身份与版本作用域」。AR-01 分语义有效性原则已确认，IF-FEEDBACK-02 整体仍 OPEN。**
 
 D-EVAL-01架构及其后的D-CAP/D-PRED、U-AUTH和IF-FEEDBACK-01已有增量签收；完整进度见[2026-10-23接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)。
 
@@ -65,4 +65,4 @@ D-EVAL-01架构及其后的D-CAP/D-PRED、U-AUTH和IF-FEEDBACK-01已有增量签
 
 ## 6. 新对话可直接发送的开场请求
 
-> 继续CombatBrain 2.0系统需求澄清。先读取本分支`research/requirements-clarification-2026-10-21/CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md`、完整确认台账和其中链接的研究建议卡。Astra两阶段资料仅为证据和建议，尚未整体采纳。当前从IF-FEEDBACK-02及AR-01“任务报告、环境知识与失败记忆的有效性”继续，一次只讨论一个核心问题，先说明反例、取舍和推荐再让我决定；不要重问已签收架构，不修改master、生产代码或现行P3合同。
+> 继续CombatBrain 2.0系统需求澄清。先读取本分支`research/requirements-clarification-2026-10-21/CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md`、完整确认台账和其中链接的研究建议卡。Astra两阶段资料仅为证据和建议，尚未整体采纳。AR-01的分语义信息有效性原则已确认，当前从IF-FEEDBACK-02 / AR-02“可验证派发身份与版本作用域”继续，一次只讨论一个核心问题，先说明反例、取舍和推荐再让我决定；不要重问已签收架构，不修改master、生产代码或现行P3合同。

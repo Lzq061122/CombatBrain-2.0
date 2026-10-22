@@ -1,5 +1,7 @@
 # CombatBrain 2.0｜跨文档完整性审计与冲突修正清单（2026-10-22）
 
+> **2026-10-23后续裁决**：用户已明确“认可” **AR-01 方案 C 的分语义信息有效性原则**，见[专项记录](CombatBrain-2.0-IF-FEEDBACK-02-AR-01-Decision-2026-10-23.md)及确认台账 §Y。仅此范围 CONFIRMED；IF-FEEDBACK-02 尚未收口，下一问题为 **AR-02：派发身份与版本作用域**。下方“研究批注（未采纳）”保留归档时状态，不覆盖本次后续裁决。
+
 > **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-01](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-01)、[AR-02](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-02)、[AR-07](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-07)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
 
 > **范围**：对比当前 GitHub `master` 中三份基础文件（Charter 内版 v0.3、Requirements Clarification、Roadmap 内版 v0.2）、本研究分支原有三份整合研究稿与两份专题提案、另一个 `research/requirements-reconciliation-2026-10-21` 研究分支，以及 2026-10-19～22 已确认的对话决策。审计对象是**设计记录完整性与一致性**，不是代码端到端审计或真实战斗验证。
