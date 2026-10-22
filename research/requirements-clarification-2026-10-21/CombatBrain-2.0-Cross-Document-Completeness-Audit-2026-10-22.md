@@ -1,6 +1,6 @@
 # CombatBrain 2.0｜跨文档完整性审计与冲突修正清单（2026-10-22）
 
-> **2026-10-23后续裁决**：用户已明确“认可” **AR-01 方案 C 的分语义信息有效性原则**，见[专项记录](CombatBrain-2.0-IF-FEEDBACK-02-AR-01-Decision-2026-10-23.md)及确认台账 §Y。仅此范围 CONFIRMED；IF-FEEDBACK-02 尚未收口，下一问题为 **AR-02：派发身份与版本作用域**。下方“研究批注（未采纳）”保留归档时状态，不覆盖本次后续裁决。
+> **2026-10-23后续裁决**：用户已分别明确“认可” **AR-01 分语义信息有效性原则**与 **AR-02 可验证派发身份及局部保留原则**，见确认台账 §Y/§Z。仅两项原则 CONFIRMED；IF-FEEDBACK-02 尚未收口，下一问题为**当前健康快照与重大事件的时序、重复及乱序消费政策**。下方“研究批注（未采纳）”保留归档时状态，不覆盖后续明确裁决。
 
 > **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-01](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-01)、[AR-02](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-02)、[AR-07](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-07)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
 
