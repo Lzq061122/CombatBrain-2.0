@@ -1,0 +1,173 @@
+{
+  "evidence": "SYNTHETIC_CONTRACT_PROBES_NOT_GAME",
+  "files": {
+    "temporal.py": "a06d9b64d817d750563562f529b63fc64b7a654a20e079c086a119592b8b4247",
+    "controller.py": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0"
+  },
+  "temporal": {
+    "duplicate_missing_contributor": {
+      "validation_errors": [
+        "duplicate_or_missing_contributor:strike",
+        "joint_window:strike"
+      ],
+      "observation_exception": null,
+      "safe": true
+    },
+    "implicit_actor_reuse": {
+      "validation_errors": [],
+      "eligible_without_observed_release": [],
+      "safe": true
+    },
+    "cancelled_resource_reuse": {
+      "eligible_after_cancel_before_release": [],
+      "safe": true
+    },
+    "unscoped_release": {
+      "eligible_after_unscoped_bool": [],
+      "safe": true
+    }
+  },
+  "controller": {
+    "new_dependency_same_action": {
+      "orders": [
+        {
+          "actor": "c",
+          "kind": "hold",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "h",
+          "kind": "fix",
+          "generation": 1,
+          "authority": 1,
+          "target": "g"
+        }
+      ],
+      "stored_dependencies": [
+        "h"
+      ],
+      "safe": true
+    },
+    "repurposed_helper": {
+      "first": [
+        {
+          "actor": "c",
+          "kind": "hold",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "h",
+          "kind": "strike",
+          "generation": 1,
+          "authority": 1,
+          "target": "t"
+        }
+      ],
+      "second": [
+        {
+          "actor": "c",
+          "kind": "hold",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "h",
+          "kind": "strike",
+          "generation": 1,
+          "authority": 1,
+          "target": "t"
+        }
+      ],
+      "commitments": {
+        "c": {
+          "order": {
+            "actor": "c",
+            "generation": 1,
+            "authority": 1,
+            "kind": "strike",
+            "target": "t"
+          },
+          "start": 0,
+          "start_hp": 100.0,
+          "start_damage": 0.0,
+          "start_xy": [
+            0,
+            0
+          ],
+          "identity": [
+            1,
+            1
+          ],
+          "depends": [
+            "h"
+          ]
+        },
+        "h": {
+          "order": {
+            "actor": "h",
+            "kind": "strike",
+            "generation": 1,
+            "authority": 1,
+            "target": "t"
+          },
+          "start": 5,
+          "start_hp": 100.0,
+          "start_damage": 0.0,
+          "start_xy": [
+            1,
+            0
+          ],
+          "last_progress": 5,
+          "identity": [
+            1,
+            1
+          ],
+          "depends": [],
+          "dependency_targets": {}
+        }
+      },
+      "safe": true
+    },
+    "negative_budget": {
+      "rejected": "ValueError('budget must be nonnegative')",
+      "safe": true
+    },
+    "stalled_after_initial_progress": {
+      "affected": [
+        "a"
+      ],
+      "still_committed": false,
+      "safe": true
+    },
+    "observed_setup_remaining_cost": {
+      "warm_fire_value": 47.666666666666664,
+      "cold_fire_value": 39.166666666666664,
+      "safe": true
+    },
+    "switch_cost_same_reference": {
+      "orders": [
+        {
+          "actor": "a",
+          "generation": 1,
+          "authority": 1,
+          "kind": "strike",
+          "target": "e"
+        },
+        {
+          "actor": "b",
+          "kind": "strike",
+          "generation": 1,
+          "authority": 1,
+          "target": "e"
+        }
+      ],
+      "raw": 20.0,
+      "global_switches": 1,
+      "global_adjusted": 19.2,
+      "available_both_strike_adjusted": 19.2,
+      "safe": true
+    }
+  }
+}

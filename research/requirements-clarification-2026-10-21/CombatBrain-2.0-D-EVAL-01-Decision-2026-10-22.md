@@ -1,5 +1,7 @@
 # CombatBrain 2.0｜D-EVAL-01 战术价值评估：已签收架构与继续研究的问题（2026-10-22）
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-04](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-04)、[AR-05](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-05)、[AR-06](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-06)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > **性质**：研究分支决策补录，非实现完成声明、非 P3 验收、非生产代码合同变更。只记录产品负责人明确签收的架构原则及相关待验证课题；不触及 `master`。
 
 ## 1. 已签收（CONFIRMED）

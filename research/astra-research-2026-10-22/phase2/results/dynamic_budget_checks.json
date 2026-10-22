@@ -1,0 +1,1307 @@
+[
+  {
+    "n": 3,
+    "budget": 0,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 22.325615991759477
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 11,
+      "constraints": 0,
+      "evaluation": 1,
+      "feedback_units": 6,
+      "current_review": 1,
+      "candidate_bundles": 11,
+      "selection_actors": 3,
+      "total_ms": 0.16095800128823612
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 3,
+    "budget": 1,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 22.325615991759477
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 11,
+      "constraints": 3,
+      "evaluation": 2,
+      "feedback_units": 6,
+      "current_review": 1,
+      "candidate_bundles": 11,
+      "selection_actors": 3,
+      "total_ms": 0.16987500021059532
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 3,
+    "budget": 5,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 22.325615991759477
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 11,
+      "constraints": 15,
+      "evaluation": 6,
+      "feedback_units": 6,
+      "current_review": 1,
+      "candidate_bundles": 11,
+      "selection_actors": 3,
+      "total_ms": 0.2666670006874483
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 3,
+    "budget": 20,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 22.325615991759477
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 11,
+      "constraints": 60,
+      "evaluation": 21,
+      "feedback_units": 6,
+      "current_review": 1,
+      "candidate_bundles": 11,
+      "selection_actors": 3,
+      "total_ms": 0.6025830007274635
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 3,
+    "budget": 80,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 22.325615991759477
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 11,
+      "constraints": 66,
+      "evaluation": 23,
+      "feedback_units": 6,
+      "current_review": 1,
+      "candidate_bundles": 11,
+      "selection_actors": 3,
+      "total_ms": 0.7904590001999168
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 5,
+    "budget": 0,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 3.325615991759478
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 19,
+      "constraints": 0,
+      "evaluation": 1,
+      "feedback_units": 10,
+      "current_review": 1,
+      "candidate_bundles": 23,
+      "selection_actors": 5,
+      "total_ms": 0.2455829999234993
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 5,
+    "budget": 1,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 3.325615991759478
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 19,
+      "constraints": 5,
+      "evaluation": 2,
+      "feedback_units": 10,
+      "current_review": 1,
+      "candidate_bundles": 23,
+      "selection_actors": 5,
+      "total_ms": 0.26820799939741846
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 5,
+    "budget": 5,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 3.325615991759478
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 19,
+      "constraints": 25,
+      "evaluation": 6,
+      "feedback_units": 10,
+      "current_review": 1,
+      "candidate_bundles": 23,
+      "selection_actors": 5,
+      "total_ms": 0.4290000015316764
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 5,
+    "budget": 20,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 3.325615991759478
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 19,
+      "constraints": 100,
+      "evaluation": 21,
+      "feedback_units": 10,
+      "current_review": 1,
+      "candidate_bundles": 23,
+      "selection_actors": 5,
+      "total_ms": 1.0699169997678837
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 5,
+    "budget": 80,
+    "orders": [
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": 3.325615991759478
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 19,
+      "constraints": 210,
+      "evaluation": 43,
+      "feedback_units": 10,
+      "current_review": 1,
+      "candidate_bundles": 23,
+      "selection_actors": 5,
+      "total_ms": 1.8355409993091598
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 8,
+    "budget": 0,
+    "orders": [
+      {
+        "actor": "0_7",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": -25.174384008240523
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_5",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_6",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 34,
+      "constraints": 0,
+      "evaluation": 1,
+      "feedback_units": 16,
+      "current_review": 1,
+      "candidate_bundles": 40,
+      "selection_actors": 8,
+      "total_ms": 0.3652080013125669
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_7",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_5",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_6",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 8,
+    "budget": 1,
+    "orders": [
+      {
+        "actor": "0_7",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": -25.174384008240523
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_5",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_6",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 34,
+      "constraints": 8,
+      "evaluation": 2,
+      "feedback_units": 16,
+      "current_review": 1,
+      "candidate_bundles": 40,
+      "selection_actors": 8,
+      "total_ms": 0.42829199992411304
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_7",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_5",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_6",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 8,
+    "budget": 5,
+    "orders": [
+      {
+        "actor": "0_7",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": -25.174384008240523
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_5",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_6",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 34,
+      "constraints": 40,
+      "evaluation": 6,
+      "feedback_units": 16,
+      "current_review": 1,
+      "candidate_bundles": 40,
+      "selection_actors": 8,
+      "total_ms": 0.70866599889996
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_7",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_5",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_6",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 8,
+    "budget": 20,
+    "orders": [
+      {
+        "actor": "0_7",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": -25.174384008240523
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_5",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_6",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 34,
+      "constraints": 160,
+      "evaluation": 21,
+      "feedback_units": 16,
+      "current_review": 1,
+      "candidate_bundles": 40,
+      "selection_actors": 8,
+      "total_ms": 1.9276250004622852
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_7",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_5",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_6",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  },
+  {
+    "n": 8,
+    "budget": 80,
+    "orders": [
+      {
+        "actor": "0_7",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_1",
+        "kind": "move",
+        "generation": 1,
+        "authority": 1,
+        "x": -46.83308028535646,
+        "y": -25.174384008240523
+      },
+      {
+        "actor": "0_4",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_5",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_6",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_2",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_3",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "0_0",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "work": {
+      "generation": 34,
+      "constraints": 592,
+      "evaluation": 75,
+      "feedback_units": 16,
+      "current_review": 1,
+      "candidate_bundles": 40,
+      "selection_actors": 8,
+      "total_ms": 5.6188749986176845
+    },
+    "receipts": [
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_7",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_accepted",
+        "actor": "0_1",
+        "kind": "move",
+        "delay": 0.0,
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_4",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_5",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_6",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_2",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_3",
+        "kind": "hold"
+      },
+      {
+        "t": 0.0,
+        "type": "order_unchanged",
+        "actor": "0_0",
+        "kind": "hold"
+      }
+    ]
+  }
+]

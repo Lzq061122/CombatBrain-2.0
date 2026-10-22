@@ -1,0 +1,1378 @@
+{
+  "schema_version": 1,
+  "imported_at": "2026-10-23",
+  "repository": "Lzq061122/CombatBrain-2.0",
+  "branch": "research/requirements-clarification-20261021",
+  "design_baseline_commit": "dd28965238a83c29ae824f7225d90e3b2c8bfce4",
+  "status": "RESEARCH_ASSETS_AND_PROPOSALS_ONLY",
+  "note": "Original archives unchanged; readable views omit large raw traces and duplicate historical source snapshots. No new design acceptance or production code.",
+  "records": [
+    {
+      "kind": "original_archive",
+      "path": "research/astra-research-2026-10-22/archives/CombatBrain_Research_2026-10-22.zip",
+      "bytes": 6067947,
+      "sha256": "916b65dc65a58c0753d2e7d3bac331725afc313735abfcc0e14297743e30d6a7",
+      "origin": "CombatBrain_Research_2026-10-22.zip"
+    },
+    {
+      "kind": "original_archive",
+      "path": "research/astra-research-2026-10-22/archives/CombatBrain_Phase2_Research_2026-10-22.zip",
+      "bytes": 5097207,
+      "sha256": "04d9c4bbb59f8b3375e4020831fd7385beb5898e66babc8c8d7b362774d437f2",
+      "origin": "CombatBrain_Phase2_Research_2026-10-22.zip"
+    },
+    {
+      "kind": "original_archive",
+      "path": "research/astra-research-2026-10-22/archives/CombatBrain_Phase2_Independent_Review_2026-10-22.zip",
+      "bytes": 22487,
+      "sha256": "6673c37d54db456eb8f5fa9b9e94c3a64a5b6df494e018fdea403802f638cdc5",
+      "origin": "CombatBrain_Phase2_Independent_Review_2026-10-22.zip"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/README.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "README.md",
+      "original_sha256": "0a4b6b76cbb3cd973c99a6e61c713639651308ba1726ff34d5ea0f1c5cc10c2f",
+      "sha256": "3752b17d93604c79fa7b147f39b7e4f8e7e54f557ffc92c882e3c63d983075a9",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/cb2_identity.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/cb2_identity.json",
+      "original_sha256": "b766e149aa6c3e89ac640afd96f849c4abe6f8645d36ea4efa739cf0c6c61873",
+      "sha256": "b766e149aa6c3e89ac640afd96f849c4abe6f8645d36ea4efa739cf0c6c61873",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/evaluation_protocol.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/evaluation_protocol.md",
+      "original_sha256": "76df1e0844b9d299cb508b21b2d47dcdc88a6822307e121b01f07006674fd81d",
+      "sha256": "d04cf551b21a514088ba06e22c22d7f14e3b365c4a13e8ac89d494b4241b9cfc",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/external_research.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/external_research.md",
+      "original_sha256": "e51aef329ec6d546806d9649ac26f6acd52283a87e684f7028855877c5dab03f",
+      "sha256": "52558146e86c7a4cf43b90c1c9f5a91d95d3faa34984c91880a4eff63d010f11",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/final_report_review.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/final_report_review.md",
+      "original_sha256": "aa37e1d8f3b45db6d3f0c62bfd4461cfbe2561254857fb31bcc03149a21c6bca",
+      "sha256": "cb7fac0236d150dc976f903cf37a2e7751df7a11c4af8fa611f28d491ada7b65",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/integration_spec.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/integration_spec.md",
+      "original_sha256": "d6196401257a905eaa537e37a951134b9444dfc08e414efba5d72cfe4281f6f5",
+      "sha256": "c09d8861020dcdb946657cfa23b2de88c97e94bce051cb561ca8997876c84a1b",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/legacy_audit.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/legacy_audit.md",
+      "original_sha256": "8e6ca8247e3f1ab4f4ef19c2d20348ca8811e5e2c912d51546dba0e3a64d8975",
+      "sha256": "5425f5a3d88f498e37f8befc888ef2e2b42032cece91d83f1b35d5bbc0db6668",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/legacy_source.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/legacy_source.json",
+      "original_sha256": "e617e903d04abe51aebc52d15796776e02d2ea540e87e600c49ebeac16ec15f0",
+      "sha256": "e617e903d04abe51aebc52d15796776e02d2ea540e87e600c49ebeac16ec15f0",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/method_validity_review.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/method_validity_review.md",
+      "original_sha256": "86ac843385ee10318ca8f36b587cc6a5f54afb5cce67c671c3af50f69bdfd0b5",
+      "sha256": "8a7216650efef23ec87a9828ba978700e8556fbf34dc0bda1d1ba9cbb9e12bee",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/native_audit.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/native_audit.md",
+      "original_sha256": "9718c5f73b61fa169ced542d85eb6868a402100b580845183f641a085873617c",
+      "sha256": "dd9557305d799eff75030f02d693088c8a525e0755a57d86040329aabdf427a2",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/prototype_review.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/prototype_review.md",
+      "original_sha256": "84773084494df88dfd289616c699917e15ae4aa870a996a1b8a703d5d80c1c8a",
+      "sha256": "1453b1fe86f3c8e23fdc592eac84d5604b666b47f91cc8c6cff25ac42d273fd0",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/prototype_review_beam_negative.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/prototype_review_beam_negative.json",
+      "original_sha256": "ca34fc56f835459aae4242f5ff83cf8f5bc09ded607578d43e650815ece89bbd",
+      "sha256": "ca34fc56f835459aae4242f5ff83cf8f5bc09ded607578d43e650815ece89bbd",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/prototype_review_final.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/prototype_review_final.txt",
+      "original_sha256": "b4a99a69ecb0ccf471ef4deb0e730fb72e012343e4456328b67f9ed886f8fc82",
+      "sha256": "b4a99a69ecb0ccf471ef4deb0e730fb72e012343e4456328b67f9ed886f8fc82",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/prototype_review_initial.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/prototype_review_initial.txt",
+      "original_sha256": "b62b1d430f29fc3b04df207bd94fd70cf4c954ada7b38b76d72c5f67e7b79803",
+      "sha256": "b62b1d430f29fc3b04df207bd94fd70cf4c954ada7b38b76d72c5f67e7b79803",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/prototype_review_initial_timing.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/prototype_review_initial_timing.txt",
+      "original_sha256": "64791cde9080ee3df4c82c37013f48191463f4602e20554299fea9fcd0990024",
+      "sha256": "64791cde9080ee3df4c82c37013f48191463f4602e20554299fea9fcd0990024",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/evidence/prototype_review_reserve_initial.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "evidence/prototype_review_reserve_initial.txt",
+      "original_sha256": "42395692e35dec8320a36cda8970bc2006571b6ebb273b00767d11038f701989",
+      "sha256": "42395692e35dec8320a36cda8970bc2006571b6ebb273b00767d11038f701989",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/delivery_check.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/delivery_check.json",
+      "original_sha256": "eb4d4e2ebef02918f69026d3c1a83d667aa4630ba7ff2ff91806d5b6a655818d",
+      "sha256": "eb4d4e2ebef02918f69026d3c1a83d667aa4630ba7ff2ff91806d5b6a655818d",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/delivery_outputs/01.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/delivery_outputs/01.txt",
+      "original_sha256": "3fde6bf97e79bf464dd371dfd9223119933644d404da58e579d7b3b315402205",
+      "sha256": "3fde6bf97e79bf464dd371dfd9223119933644d404da58e579d7b3b315402205",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/delivery_outputs/02.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/delivery_outputs/02.txt",
+      "original_sha256": "436d8ece79ec162db5e6d4726f490bc65ffcda296c50809d200318a8c96c29c0",
+      "sha256": "436d8ece79ec162db5e6d4726f490bc65ffcda296c50809d200318a8c96c29c0",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/delivery_outputs/03.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/delivery_outputs/03.txt",
+      "original_sha256": "820c70ec523f53b3df07b371e746b3225ebb43f66e8f2cdd0874f393cbb0ce49",
+      "sha256": "820c70ec523f53b3df07b371e746b3225ebb43f66e8f2cdd0874f393cbb0ce49",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/delivery_outputs/04.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/delivery_outputs/04.txt",
+      "original_sha256": "6ee0bd11c63f3d67de03b6410bb20cbb7101fdce04b3af334070bffea68904ad",
+      "sha256": "6ee0bd11c63f3d67de03b6410bb20cbb7101fdce04b3af334070bffea68904ad",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/delivery_outputs/05.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/delivery_outputs/05.txt",
+      "original_sha256": "eca7e777a3af08c9ec09d2a673715e8e329aa4657d0ac98c4786b48deaa6caef",
+      "sha256": "eca7e777a3af08c9ec09d2a673715e8e329aa4657d0ac98c4786b48deaa6caef",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/delivery_outputs/06.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/delivery_outputs/06.txt",
+      "original_sha256": "a3e18a2ba2137cd9ca76c16e6345463b058f68e7de21f1aa703d3cf9b86b29a7",
+      "sha256": "a3e18a2ba2137cd9ca76c16e6345463b058f68e7de21f1aa703d3cf9b86b29a7",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/native_snapshot_audit.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/native_snapshot_audit.json",
+      "original_sha256": "923ff021b5d8b4fb4a4306ac5c2fd1bbeaac0ca6a42ce36c6269805a9c02798f",
+      "sha256": "923ff021b5d8b4fb4a4306ac5c2fd1bbeaac0ca6a42ce36c6269805a9c02798f",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/package_delivery.py",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/package_delivery.py",
+      "original_sha256": "4a707cabbdb83704cdffcb59705ac49ebed10475e1fcc19c755eace2e653c35c",
+      "sha256": "4a707cabbdb83704cdffcb59705ac49ebed10475e1fcc19c755eace2e653c35c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/source_manifest.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/source_manifest.json",
+      "original_sha256": "0bca72e0c506b94ba53181fbf9b7533479be6d41fa8f169aeb3796e41449bc6d",
+      "sha256": "0bca72e0c506b94ba53181fbf9b7533479be6d41fa8f169aeb3796e41449bc6d",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/metadata/verify_native_snapshots.py",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "metadata/verify_native_snapshots.py",
+      "original_sha256": "9524adf2a659c03510a62ded32030b0247f3ee72ce303800a5a0a3c793d4d72e",
+      "sha256": "9524adf2a659c03510a62ded32030b0247f3ee72ce303800a5a0a3c793d4d72e",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/README.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/README.md",
+      "original_sha256": "68cd060102f5ca5e5121b8209919d23420d6c7cc7a0e6db3622e5a8092ae4554",
+      "sha256": "44b894f3356fd0ba825d0a1427ba0596893fa056f695b8de088d484b5887b65a",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/cases.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/cases.json",
+      "original_sha256": "257c6bd577f7c4a80978425f7ab2f0831d62b6cc7536bad32e2b2ea3bb6b7c5d",
+      "sha256": "257c6bd577f7c4a80978425f7ab2f0831d62b6cc7536bad32e2b2ea3bb6b7c5d",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/cb2_baseline_probe.py",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/cb2_baseline_probe.py",
+      "original_sha256": "76485c801ed79f479110b61cf19e2aa980be3648a4d2ebc021a680d0dde7b163",
+      "sha256": "76485c801ed79f479110b61cf19e2aa980be3648a4d2ebc021a680d0dde7b163",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/planner.py",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/planner.py",
+      "original_sha256": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+      "sha256": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/budgets.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/budgets.json",
+      "original_sha256": "ea3e50103e2d45ba2bff4dfc7de966e9ac8b2eedb3ee9de3009722c268e5f5a9",
+      "sha256": "ea3e50103e2d45ba2bff4dfc7de966e9ac8b2eedb3ee9de3009722c268e5f5a9",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/cb2_baseline_probe.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/cb2_baseline_probe.json",
+      "original_sha256": "3e2afeba89a10f23a0fe9a317830b2aa245db6bc48da5798b65b54a2839738fc",
+      "sha256": "3e2afeba89a10f23a0fe9a317830b2aa245db6bc48da5798b65b54a2839738fc",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/feedback.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/feedback.json",
+      "original_sha256": "6905529d7044b62c739ccc0cfe2c1b12dc0d8be931f2a3290969cd37e6d58f72",
+      "sha256": "6905529d7044b62c739ccc0cfe2c1b12dc0d8be931f2a3290969cd37e6d58f72",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/matrix.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/matrix.json",
+      "original_sha256": "ac64117a0654a0dbc4f3e543c5a81e665f31c6e2e967a6c734c2f83014a07c5b",
+      "sha256": "ac64117a0654a0dbc4f3e543c5a81e665f31c6e2e967a6c734c2f83014a07c5b",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/metamorphic.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/metamorphic.json",
+      "original_sha256": "e815ddcf5aab02c9de9e4261cc1be4d1109e773316daed90fef87ecdf09d70f2",
+      "sha256": "e815ddcf5aab02c9de9e4261cc1be4d1109e773316daed90fef87ecdf09d70f2",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/method_review.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/method_review.json",
+      "original_sha256": "3f1a2e121c38d60640cbe16966dc54dfa54911599d5886aa17b50e0b7eec64a3",
+      "sha256": "3f1a2e121c38d60640cbe16966dc54dfa54911599d5886aa17b50e0b7eec64a3",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/method_review_console.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/method_review_console.txt",
+      "original_sha256": "eca7e777a3af08c9ec09d2a673715e8e329aa4657d0ac98c4786b48deaa6caef",
+      "sha256": "eca7e777a3af08c9ec09d2a673715e8e329aa4657d0ac98c4786b48deaa6caef",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/method_review_initial.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/method_review_initial.json",
+      "original_sha256": "ad0517ed5d06066d6d3fa5c9810d8b8bf13538e87f62836b773f7e4d198e2fcc",
+      "sha256": "ad0517ed5d06066d6d3fa5c9810d8b8bf13538e87f62836b773f7e4d198e2fcc",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/run_stdout.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/run_stdout.json",
+      "original_sha256": "5508f20c7c3db6fd5edd213ac58b5d64b6258dcf1f286687c37a18dd1ce0b74b",
+      "sha256": "5508f20c7c3db6fd5edd213ac58b5d64b6258dcf1f286687c37a18dd1ce0b74b",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/sensitivity.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/sensitivity.json",
+      "original_sha256": "50a585592754721e0a6381a18b979c6f5d8db4a02dcc1e431497c878da9640de",
+      "sha256": "50a585592754721e0a6381a18b979c6f5d8db4a02dcc1e431497c878da9640de",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/sequences.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/sequences.json",
+      "original_sha256": "ced1d6ee4f84689af1bd702ee2d0880ae8e46dcd3b1210421af783297ee656e1",
+      "sha256": "ced1d6ee4f84689af1bd702ee2d0880ae8e46dcd3b1210421af783297ee656e1",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/summary.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/summary.json",
+      "original_sha256": "33de7becd2633f4456673ba55ffcd1d1107d393221cac9158c66b430e9c2482a",
+      "sha256": "33de7becd2633f4456673ba55ffcd1d1107d393221cac9158c66b430e9c2482a",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/tests_final.txt",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/tests_final.txt",
+      "original_sha256": "8879e81dbe0f041601784922badceb34d882f858dcc8e3676989ee2c7d61bdbd",
+      "sha256": "8879e81dbe0f041601784922badceb34d882f858dcc8e3676989ee2c7d61bdbd",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/results/traces.json",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/results/traces.json",
+      "original_sha256": "3ee998af1c67122686c6180deb0377a3356c3fe0add324f5e6cfb9577426fd23",
+      "sha256": "3ee998af1c67122686c6180deb0377a3356c3fe0add324f5e6cfb9577426fd23",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/run_experiments.py",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/run_experiments.py",
+      "original_sha256": "53150c98dc9addf7b172d4bfa45f2d2cd033e12a3fbfa456bdcd8b3532b3c96c",
+      "sha256": "53150c98dc9addf7b172d4bfa45f2d2cd033e12a3fbfa456bdcd8b3532b3c96c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/run_feedback.py",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/run_feedback.py",
+      "original_sha256": "2079a9d14540424d9a9da3ab31e9bdab1e89357fb9a39188da1b234830745ab8",
+      "sha256": "2079a9d14540424d9a9da3ab31e9bdab1e89357fb9a39188da1b234830745ab8",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/test_core.py",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/test_core.py",
+      "original_sha256": "c80e699e463e5749f1f8c2c382181a8ce85dbbd95d837349a50d38986a309836",
+      "sha256": "c80e699e463e5749f1f8c2c382181a8ce85dbbd95d837349a50d38986a309836",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/test_method_review.py",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/test_method_review.py",
+      "original_sha256": "387849dac6d8b7a18358dc0dfb933c1fc0d25c2b86404d4e270888b2d9ae11f4",
+      "sha256": "387849dac6d8b7a18358dc0dfb933c1fc0d25c2b86404d4e270888b2d9ae11f4",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/prototype/test_review.py",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "prototype/test_review.py",
+      "original_sha256": "fc48aee50d0f464ea51c72bd9dc66b4e008667747aacb7573e1dfe0e17b3a79c",
+      "sha256": "fc48aee50d0f464ea51c72bd9dc66b4e008667747aacb7573e1dfe0e17b3a79c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/主报告.md",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "主报告.md",
+      "original_sha256": "4697b8c0a117df822fecf3950d8b1b1b4af4b723912dca8ce35e6856b02aacf8",
+      "sha256": "832ba06c88fa904b3f8239f1b8852e03126b3382bb73d2d2a7e9fad51c6b2dde",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase1/MANIFEST.sha256",
+      "archive": "CombatBrain_Research_2026-10-22.zip",
+      "original_path": "MANIFEST.sha256",
+      "original_sha256": "d114a9372bff77f7a050e903105ead0003b82798a3132a72b94dc8bdbf29db7f",
+      "sha256": "d114a9372bff77f7a050e903105ead0003b82798a3132a72b94dc8bdbf29db7f",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/MANIFEST.sha256",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "MANIFEST.sha256",
+      "original_sha256": "5dc3ef00d8dd2c65fde51855207e73acbf9450855e61576005210f0e31329c3f",
+      "sha256": "5dc3ef00d8dd2c65fde51855207e73acbf9450855e61576005210f0e31329c3f",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/README.md",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "README.md",
+      "original_sha256": "f46a886ac6e315b62e0b6f7aa21550d41ee7e8f47e856e740408fa644511d8f6",
+      "sha256": "7ac47fc7569daed6e7d4792fa38ee2b59af95182aa76e1cbbf20e2a6bc884ee4",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/calibration/analyze.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "calibration/analyze.py",
+      "original_sha256": "1f15cdacb7b58d50f9ddb4afc3261aee751fc23ad236f6801c60a691927b7139",
+      "sha256": "1f15cdacb7b58d50f9ddb4afc3261aee751fc23ad236f6801c60a691927b7139",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/calibration/example.csv",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "calibration/example.csv",
+      "original_sha256": "d4faffcb24b8ce79e44c1eb0ceba5476f6dc306b9a000a015ae1f39e1ab05ae7",
+      "sha256": "d4faffcb24b8ce79e44c1eb0ceba5476f6dc306b9a000a015ae1f39e1ab05ae7",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/calibration/example_analysis.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "calibration/example_analysis.json",
+      "original_sha256": "01078b7a94e58a86a8c7e0a71ccc5b0c6ac51691b7eeba8ac93bc3a594e2f574",
+      "sha256": "01078b7a94e58a86a8c7e0a71ccc5b0c6ac51691b7eeba8ac93bc3a594e2f574",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/calibration/make_example.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "calibration/make_example.py",
+      "original_sha256": "61c0480b769c55b585a232378270db39ac79bf395cde7c87ba8a5c1784227a6d",
+      "sha256": "61c0480b769c55b585a232378270db39ac79bf395cde7c87ba8a5c1784227a6d",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/calibration/schema.md",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "calibration/schema.md",
+      "original_sha256": "81c7a3b9c29e59d8d4613c42cf80098b2751eb19383d14c1a53c3aab6c5f1445",
+      "sha256": "daab1750fb086d606c95143813332c09f2c0e087fc3c154b31868e2cc771dbec",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/calibration/test_analyzer.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "calibration/test_analyzer.py",
+      "original_sha256": "a9466f73ff1cd8be369e94b80b80bcda6c69ff261893081d7c85693eac3cc245",
+      "sha256": "a9466f73ff1cd8be369e94b80b80bcda6c69ff261893081d7c85693eac3cc245",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/baseline_increment.md",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/baseline_increment.md",
+      "original_sha256": "2c2bfed58017b8cd47f36418392ad5b572019b7c220dd4293a30c09506aa4612",
+      "sha256": "d30149e9da30f1eb9792266558efd24d9652f48a8d7f8a1265e109c3ea5aaec7",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/delivery_check.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/delivery_check.json",
+      "original_sha256": "ea4fc1859096e83589e8bee6eefcbea57a71390c7bfe02a8ba49c795a40c4548",
+      "sha256": "ea4fc1859096e83589e8bee6eefcbea57a71390c7bfe02a8ba49c795a40c4548",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/delivery_reproduction.log",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/delivery_reproduction.log",
+      "original_sha256": "c6b1f43033151412c420b15821362c3f4bfacb9b4f62e1e4a1a7e6e8c5a91a8d",
+      "sha256": "c6b1f43033151412c420b15821362c3f4bfacb9b4f62e1e4a1a7e6e8c5a91a8d",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/dynamic_adapter_review.md",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/dynamic_adapter_review.md",
+      "original_sha256": "1704379e976de379c5229cf9c9453603d847bfbad4f0ab80e6fd589b2ebb7cb5",
+      "sha256": "f405ec823dffd3f995c961f8f138ffe024b5132d9d30560252630c1539d2f05c",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/frozen_for_holdout.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/frozen_for_holdout.json",
+      "original_sha256": "b8ebbfc9d1e545977e31fc10656844c1227a90d0e84f4388498e32d7e04d4697",
+      "sha256": "b8ebbfc9d1e545977e31fc10656844c1227a90d0e84f4388498e32d7e04d4697",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/methods_phase2.md",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/methods_phase2.md",
+      "original_sha256": "5d66323041c15ae5d53800c0329464b146eea9710b0eee43de0a974671771637",
+      "sha256": "74f43fda229bf924cdbd7a7015c936c08f1ea3dfdeb6d135d162351cd9bfbf77",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/phase1_planner_original.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/phase1_planner_original.py",
+      "original_sha256": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+      "sha256": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/phase1_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/phase1_summary.json",
+      "original_sha256": "33de7becd2633f4456673ba55ffcd1d1107d393221cac9158c66b430e9c2482a",
+      "sha256": "33de7becd2633f4456673ba55ffcd1d1107d393221cac9158c66b430e9c2482a",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/phase2_independent_review.md",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/phase2_independent_review.md",
+      "original_sha256": "d3eb41a105b1c4601728714cf13ab2d5bda4f74a2f967a5d856568e6d83595d4",
+      "sha256": "5ca718812a311bdf5409a104ec9d0c875dff44863c7e41228869370b600ab702",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/protocol_before_results.md",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/protocol_before_results.md",
+      "original_sha256": "8ea95c7f441bb3437e044f50d528968aabdfbf8fd7ebaec50720a003dddbe90b",
+      "sha256": "004c4740f7a30a6c367554a807d046e1013effc7e9dc8f99b5224fd4ba401f74",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/reproduction.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/reproduction.json",
+      "original_sha256": "03c62a49fe07b81409bf7638018e037d61c32b1ed86907637ae1f766b9e69e4c",
+      "sha256": "03c62a49fe07b81409bf7638018e037d61c32b1ed86907637ae1f766b9e69e4c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/reproduction.log",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/reproduction.log",
+      "original_sha256": "c30af0b13b2bac7fa77358febd015a6a33bd5101ed6887cfc96caf8ec0eaf7ac",
+      "sha256": "c30af0b13b2bac7fa77358febd015a6a33bd5101ed6887cfc96caf8ec0eaf7ac",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/start_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/start_identity.json",
+      "original_sha256": "cc30e81752ae9293d0f7cd25e9fd2f8923a2899b6e3ecc906913bf7ff6edae03",
+      "sha256": "cc30e81752ae9293d0f7cd25e9fd2f8923a2899b6e3ecc906913bf7ff6edae03",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/evidence/world_contract.md",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "evidence/world_contract.md",
+      "original_sha256": "5bdc54a6aefa86e0522a309911c9411f01d40bb56e7f1ebc7405aedc3fa7cc9b",
+      "sha256": "2ec905208206829391b0d5f0d005daa1034b6a42daf9babb7eecbb0c2e3c7854",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/package_delivery.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "package_delivery.py",
+      "original_sha256": "6fc6ef0214335cabba07f6a7eb754775ddd2855c75eb8190641fe37450a51c48",
+      "sha256": "6fc6ef0214335cabba07f6a7eb754775ddd2855c75eb8190641fe37450a51c48",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/analyze_traces.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/analyze_traces.py",
+      "original_sha256": "5ac17cf77ed33701aab6a74d50346112b50edc77e4018d06400030bf06d8e79b",
+      "sha256": "5ac17cf77ed33701aab6a74d50346112b50edc77e4018d06400030bf06d8e79b",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/baseline/__init__.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/baseline/__init__.py",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/baseline/planner.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/baseline/planner.py",
+      "original_sha256": "efe0b280acfa503e9cbf7a58a89430fca877dd3418e621eb20e7a04dad51a806",
+      "sha256": "efe0b280acfa503e9cbf7a58a89430fca877dd3418e621eb20e7a04dad51a806",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/baseline/run_experiments.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/baseline/run_experiments.py",
+      "original_sha256": "53150c98dc9addf7b172d4bfa45f2d2cd033e12a3fbfa456bdcd8b3532b3c96c",
+      "sha256": "53150c98dc9addf7b172d4bfa45f2d2cd033e12a3fbfa456bdcd8b3532b3c96c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/baseline/run_feedback.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/baseline/run_feedback.py",
+      "original_sha256": "2079a9d14540424d9a9da3ab31e9bdab1e89357fb9a39188da1b234830745ab8",
+      "sha256": "2079a9d14540424d9a9da3ab31e9bdab1e89357fb9a39188da1b234830745ab8",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/baseline/test_core.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/baseline/test_core.py",
+      "original_sha256": "c80e699e463e5749f1f8c2c382181a8ce85dbbd95d837349a50d38986a309836",
+      "sha256": "c80e699e463e5749f1f8c2c382181a8ce85dbbd95d837349a50d38986a309836",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/baseline/test_method_review.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/baseline/test_method_review.py",
+      "original_sha256": "387849dac6d8b7a18358dc0dfb933c1fc0d25c2b86404d4e270888b2d9ae11f4",
+      "sha256": "387849dac6d8b7a18358dc0dfb933c1fc0d25c2b86404d4e270888b2d9ae11f4",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/baseline/test_review.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/baseline/test_review.py",
+      "original_sha256": "fc48aee50d0f464ea51c72bd9dc66b4e008667747aacb7573e1dfe0e17b3a79c",
+      "sha256": "fc48aee50d0f464ea51c72bd9dc66b4e008667747aacb7573e1dfe0e17b3a79c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/controller.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/controller.py",
+      "original_sha256": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0",
+      "sha256": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/run_baseline_challenges.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/run_baseline_challenges.py",
+      "original_sha256": "b3db37522d416d65aad688f0e669f1d6d669177d8677dac4f9ac6dd32532814d",
+      "sha256": "b3db37522d416d65aad688f0e669f1d6d669177d8677dac4f9ac6dd32532814d",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/run_diagnostics.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/run_diagnostics.py",
+      "original_sha256": "93d128706fe9945b7a88d49a800aeb5ae7b9a9c81f71070798b86e2598290c80",
+      "sha256": "93d128706fe9945b7a88d49a800aeb5ae7b9a9c81f71070798b86e2598290c80",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/run_dynamic.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/run_dynamic.py",
+      "original_sha256": "05282f5361004212862aeda869648a3ce4f89e517070288cfd076c7488a3804c",
+      "sha256": "05282f5361004212862aeda869648a3ce4f89e517070288cfd076c7488a3804c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/run_followup_cases.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/run_followup_cases.py",
+      "original_sha256": "df29f197ca338d5d7c3d0e745212aac59a662725bebe42ad9e17744fa51fba8c",
+      "sha256": "df29f197ca338d5d7c3d0e745212aac59a662725bebe42ad9e17744fa51fba8c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/run_temporal_execution.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/run_temporal_execution.py",
+      "original_sha256": "b664467d6b45f9957e8083a619f9c29bcd48c47cd1699630b28c29bc7628d81f",
+      "sha256": "b664467d6b45f9957e8083a619f9c29bcd48c47cd1699630b28c29bc7628d81f",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/temporal.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/temporal.py",
+      "original_sha256": "a06d9b64d817d750563562f529b63fc64b7a654a20e079c086a119592b8b4247",
+      "sha256": "a06d9b64d817d750563562f529b63fc64b7a654a20e079c086a119592b8b4247",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/test_adapter.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/test_adapter.py",
+      "original_sha256": "7f141494e450ecd2b4df28edadf5e5484bbd1f04dd7b86f3df28cbed10fb5c9f",
+      "sha256": "7f141494e450ecd2b4df28edadf5e5484bbd1f04dd7b86f3df28cbed10fb5c9f",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/test_feedback_phase2.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/test_feedback_phase2.py",
+      "original_sha256": "e226b2cea98582566601280b2265f4e13cc4844afb728cab906e127abb9c034e",
+      "sha256": "e226b2cea98582566601280b2265f4e13cc4844afb728cab906e127abb9c034e",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/test_phase2_review.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/test_phase2_review.py",
+      "original_sha256": "deb13ad8c36863880c31f35c1af112c7b0f593f972b35b2ff91d146c93744dbd",
+      "sha256": "deb13ad8c36863880c31f35c1af112c7b0f593f972b35b2ff91d146c93744dbd",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/test_temporal.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/test_temporal.py",
+      "original_sha256": "bdf5a75c50e8b05778223f94a143166ba8240306d0092fc96dbdd696b7421a11",
+      "sha256": "bdf5a75c50e8b05778223f94a143166ba8240306d0092fc96dbdd696b7421a11",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/test_world.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/test_world.py",
+      "original_sha256": "f45183b107372125a82078c7c1acaf9a84eaa5e7cc5979c80ad8d5b366558d59",
+      "sha256": "f45183b107372125a82078c7c1acaf9a84eaa5e7cc5979c80ad8d5b366558d59",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/prototype/world.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "prototype/world.py",
+      "original_sha256": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f",
+      "sha256": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/reproduce.py",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "reproduce.py",
+      "original_sha256": "029e568e97299018d0c61736b95278888de142de2278dcbf4596c515abe3f475",
+      "sha256": "029e568e97299018d0c61736b95278888de142de2278dcbf4596c515abe3f475",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/ablations_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/ablations_identity.json",
+      "original_sha256": "e214cf9a109d1c5d845ed6d7b91573c06b1a0c0acc6de9a468692f2749c06273",
+      "sha256": "e214cf9a109d1c5d845ed6d7b91573c06b1a0c0acc6de9a468692f2749c06273",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/ablations_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/ablations_summary.json",
+      "original_sha256": "f747432b8d0f394ef67f2babfa5d7b7a8d8f2cfe897682d020c49c596f76ee32",
+      "sha256": "f747432b8d0f394ef67f2babfa5d7b7a8d8f2cfe897682d020c49c596f76ee32",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/baseline_candidates.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/baseline_candidates.json",
+      "original_sha256": "6c2a25baaddfa34700c51e0ebe85382a900621a75f827d2200fef5a71b7b6ecf",
+      "sha256": "6c2a25baaddfa34700c51e0ebe85382a900621a75f827d2200fef5a71b7b6ecf",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/baseline_feedback_fixed.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/baseline_feedback_fixed.json",
+      "original_sha256": "626e79f81a80826c84e20c3678fb0ea58df9ef7ceb5ad15ecc117ab30f1e9e93",
+      "sha256": "626e79f81a80826c84e20c3678fb0ea58df9ef7ceb5ad15ecc117ab30f1e9e93",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/baseline_feedback_initial.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/baseline_feedback_initial.json",
+      "original_sha256": "cd6582837859dac9bffa2edc75f7ba14d256754038e145e72dec9461b73961de",
+      "sha256": "cd6582837859dac9bffa2edc75f7ba14d256754038e145e72dec9461b73961de",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/baseline_high_order.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/baseline_high_order.json",
+      "original_sha256": "a8fbf3eddb72e1c8d4aed41019cbcadc1591ce9300d2193d2acb1e8ea602255b",
+      "sha256": "a8fbf3eddb72e1c8d4aed41019cbcadc1591ce9300d2193d2acb1e8ea602255b",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/baseline_regression_final.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/baseline_regression_final.json",
+      "original_sha256": "e260de5abc9b8e0adeb37c5252b8bba2f5979466620e46e6cfc05b404d884fb1",
+      "sha256": "e260de5abc9b8e0adeb37c5252b8bba2f5979466620e46e6cfc05b404d884fb1",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/bilateral_close_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/bilateral_close_summary.json",
+      "original_sha256": "8c549db1d4f7e0ecd17140e90ab7061fc0a4f8ee62055e82c4d1727b685f3022",
+      "sha256": "8c549db1d4f7e0ecd17140e90ab7061fc0a4f8ee62055e82c4d1727b685f3022",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/bilateral_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/bilateral_identity.json",
+      "original_sha256": "e214cf9a109d1c5d845ed6d7b91573c06b1a0c0acc6de9a468692f2749c06273",
+      "sha256": "e214cf9a109d1c5d845ed6d7b91573c06b1a0c0acc6de9a468692f2749c06273",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/bilateral_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/bilateral_summary.json",
+      "original_sha256": "3180d51b471e1d566129fbd98de198484bbd8831618d2a445c5f3edcf5f2f425",
+      "sha256": "3180d51b471e1d566129fbd98de198484bbd8831618d2a445c5f3edcf5f2f425",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/confirm_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/confirm_identity.json",
+      "original_sha256": "7aafee2a9ed34133198fbff85026feca811bd049f62621a166a253ae44c6308d",
+      "sha256": "7aafee2a9ed34133198fbff85026feca811bd049f62621a166a253ae44c6308d",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/confirm_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/confirm_summary.json",
+      "original_sha256": "25f8fe7b7d38cb4f5642164205770e7d09dfa1d2d19f1bba356bc8b92298ce67",
+      "sha256": "25f8fe7b7d38cb4f5642164205770e7d09dfa1d2d19f1bba356bc8b92298ce67",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/dev_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/dev_identity.json",
+      "original_sha256": "cedc6d1cf81b853032f70eaff186af17bc119789bef7b23e3de5d75a162e90ea",
+      "sha256": "cedc6d1cf81b853032f70eaff186af17bc119789bef7b23e3de5d75a162e90ea",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/dev_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/dev_summary.json",
+      "original_sha256": "3157faf6bbe02f05b4fb1417b3ae6714eb2e9077a54ce8f56cac3412cafaa3ba",
+      "sha256": "3157faf6bbe02f05b4fb1417b3ae6714eb2e9077a54ce8f56cac3412cafaa3ba",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/development_initial/dev_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/development_initial/dev_identity.json",
+      "original_sha256": "cedc6d1cf81b853032f70eaff186af17bc119789bef7b23e3de5d75a162e90ea",
+      "sha256": "cedc6d1cf81b853032f70eaff186af17bc119789bef7b23e3de5d75a162e90ea",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/development_initial/dev_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/development_initial/dev_summary.json",
+      "original_sha256": "3157faf6bbe02f05b4fb1417b3ae6714eb2e9077a54ce8f56cac3412cafaa3ba",
+      "sha256": "3157faf6bbe02f05b4fb1417b3ae6714eb2e9077a54ce8f56cac3412cafaa3ba",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/development_initial/diagnostics_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/development_initial/diagnostics_summary.json",
+      "original_sha256": "47693427cc31216b18e1c0c645772830e645a0d85b31c90a8b8d73e202a1f980",
+      "sha256": "47693427cc31216b18e1c0c645772830e645a0d85b31c90a8b8d73e202a1f980",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/development_initial/dynamic_transform.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/development_initial/dynamic_transform.json",
+      "original_sha256": "facf8b33ca910de9ac747bb2032258e005801fe7826378a6a8a04a3883d28406",
+      "sha256": "facf8b33ca910de9ac747bb2032258e005801fe7826378a6a8a04a3883d28406",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/development_initial/smoke_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/development_initial/smoke_identity.json",
+      "original_sha256": "cedc6d1cf81b853032f70eaff186af17bc119789bef7b23e3de5d75a162e90ea",
+      "sha256": "cedc6d1cf81b853032f70eaff186af17bc119789bef7b23e3de5d75a162e90ea",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/development_initial/smoke_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/development_initial/smoke_summary.json",
+      "original_sha256": "70f1abc38fbf01ca2f6bf90a5da436e9aa6b465fb6baf7f6fe5cbf278e148548",
+      "sha256": "70f1abc38fbf01ca2f6bf90a5da436e9aa6b465fb6baf7f6fe5cbf278e148548",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/diagnostics_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/diagnostics_summary.json",
+      "original_sha256": "02e8ea1115945531afeb6f1eb729c660ceaf3d6fbd7e2b1b796a8cb917b48043",
+      "sha256": "02e8ea1115945531afeb6f1eb729c660ceaf3d6fbd7e2b1b796a8cb917b48043",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/dynamic_budget_checks.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/dynamic_budget_checks.json",
+      "original_sha256": "acc5381c0cc03faec5afb90f5c52c04122bb21ebea83b1e4eab90969e5d156e0",
+      "sha256": "acc5381c0cc03faec5afb90f5c52c04122bb21ebea83b1e4eab90969e5d156e0",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/dynamic_transform.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/dynamic_transform.json",
+      "original_sha256": "f7804dc987838ba43b894804ad9e4de559902bab44742b5d20271071b98f5f80",
+      "sha256": "f7804dc987838ba43b894804ad9e4de559902bab44742b5d20271071b98f5f80",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/final_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/final_identity.json",
+      "original_sha256": "df81f7ce831f5ced8c82f707b8d1065b77354287d8ab9cc2e2b4a785d8aefe27",
+      "sha256": "df81f7ce831f5ced8c82f707b8d1065b77354287d8ab9cc2e2b4a785d8aefe27",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/final_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/final_summary.json",
+      "original_sha256": "897a56713c3d727b9069a8393697cdd9d9d023caaf7c7fc0497f974f17786967",
+      "sha256": "897a56713c3d727b9069a8393697cdd9d9d023caaf7c7fc0497f974f17786967",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/holdout_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/holdout_identity.json",
+      "original_sha256": "e214cf9a109d1c5d845ed6d7b91573c06b1a0c0acc6de9a468692f2749c06273",
+      "sha256": "e214cf9a109d1c5d845ed6d7b91573c06b1a0c0acc6de9a468692f2749c06273",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/holdout_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/holdout_summary.json",
+      "original_sha256": "75b724d4cab267a37bbc77cf808f43d2bef197f6b97eeb252abd2133de128ba0",
+      "sha256": "75b724d4cab267a37bbc77cf808f43d2bef197f6b97eeb252abd2133de128ba0",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/review_accounting.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/review_accounting.json",
+      "original_sha256": "58196caefdf4ba28e4b6ce2b5a28b53d51ac2f2ea20ce79c757a99536b17ea5c",
+      "sha256": "58196caefdf4ba28e4b6ce2b5a28b53d51ac2f2ea20ce79c757a99536b17ea5c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/review_final.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/review_final.json",
+      "original_sha256": "cf6700ac694bb2d709e977b1a42bcfccd607a976745d50cef6671d4a797a3223",
+      "sha256": "cf6700ac694bb2d709e977b1a42bcfccd607a976745d50cef6671d4a797a3223",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/review_followup.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/review_followup.json",
+      "original_sha256": "346fbb0e1d9f737a4e3d7e0b8cf3a1c5672d7b3505cbaed298d20fce260e7985",
+      "sha256": "346fbb0e1d9f737a4e3d7e0b8cf3a1c5672d7b3505cbaed298d20fce260e7985",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/review_initial.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/review_initial.json",
+      "original_sha256": "241768e8d7ba5fbadbd99b982aad273d8ad608da79d7d8375de769f2290bc20b",
+      "sha256": "241768e8d7ba5fbadbd99b982aad273d8ad608da79d7d8375de769f2290bc20b",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/scale_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/scale_identity.json",
+      "original_sha256": "e214cf9a109d1c5d845ed6d7b91573c06b1a0c0acc6de9a468692f2749c06273",
+      "sha256": "e214cf9a109d1c5d845ed6d7b91573c06b1a0c0acc6de9a468692f2749c06273",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/scale_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/scale_summary.json",
+      "original_sha256": "3025e5ae32e8637e451d00c8eafe6f46ddb87467945d0f191103e4d6a7ef3d95",
+      "sha256": "3025e5ae32e8637e451d00c8eafe6f46ddb87467945d0f191103e4d6a7ef3d95",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/smoke_identity.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/smoke_identity.json",
+      "original_sha256": "df81f7ce831f5ced8c82f707b8d1065b77354287d8ab9cc2e2b4a785d8aefe27",
+      "sha256": "df81f7ce831f5ced8c82f707b8d1065b77354287d8ab9cc2e2b4a785d8aefe27",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/results/smoke_summary.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "results/smoke_summary.json",
+      "original_sha256": "df4c7896b20d308165e558d485d64ba05a1b783501cac5e9486b877a524c2c6c",
+      "sha256": "df4c7896b20d308165e558d485d64ba05a1b783501cac5e9486b877a524c2c6c",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/sources/methods/manifest.json",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "sources/methods/manifest.json",
+      "original_sha256": "8dacf52c042cafb39c844c50f784e3ea1908967a8d8bd4cd3d21954b0c7c4d22",
+      "sha256": "8dacf52c042cafb39c844c50f784e3ea1908967a8d8bd4cd3d21954b0c7c4d22",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/phase2/第二阶段主报告.md",
+      "archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+      "original_path": "第二阶段主报告.md",
+      "original_sha256": "4e4a4a144899559210171e22dc0580bbd34db434f48e297a7e1401f2df2c5a7b",
+      "sha256": "e14ad61c40548ed422afe58f0b5e92150214a7805a3edaa10254141330a0953c",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/independent-review-phase2/CombatBrain_Phase2_Independent_Review_2026-10-22.md",
+      "archive": "CombatBrain_Phase2_Independent_Review_2026-10-22.zip",
+      "original_path": "CombatBrain_Phase2_Independent_Review_2026-10-22.md",
+      "original_sha256": "883a65deada2af8617d8edc99825eddea7e10472fcf0874f7de6d2039fba741c",
+      "sha256": "04143567bcb85e9397adad2a7c0dd7c6157a178e0000748855ae0a44f54a4757",
+      "transformation": "readable-view banner and missing-local-link archive mapping"
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/independent-review-phase2/contract_gap_results.json",
+      "archive": "CombatBrain_Phase2_Independent_Review_2026-10-22.zip",
+      "original_path": "contract_gap_results.json",
+      "original_sha256": "5aea3844ad49e22e9eb46c9d84d2e516872177f715e80beb83235da320648529",
+      "sha256": "5aea3844ad49e22e9eb46c9d84d2e516872177f715e80beb83235da320648529",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/independent-review-phase2/identity.json",
+      "archive": "CombatBrain_Phase2_Independent_Review_2026-10-22.zip",
+      "original_path": "identity.json",
+      "original_sha256": "981e17a44b59ecdce09cdf8b81bfa74c7d78f3a248d3b52ff5d2aea799fe4515",
+      "sha256": "981e17a44b59ecdce09cdf8b81bfa74c7d78f3a248d3b52ff5d2aea799fe4515",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/independent-review-phase2/original_MANIFEST.sha256",
+      "archive": "CombatBrain_Phase2_Independent_Review_2026-10-22.zip",
+      "original_path": "original_MANIFEST.sha256",
+      "original_sha256": "5dc3ef00d8dd2c65fde51855207e73acbf9450855e61576005210f0e31329c3f",
+      "sha256": "5dc3ef00d8dd2c65fde51855207e73acbf9450855e61576005210f0e31329c3f",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/independent-review-phase2/output_comparison.json",
+      "archive": "CombatBrain_Phase2_Independent_Review_2026-10-22.zip",
+      "original_path": "output_comparison.json",
+      "original_sha256": "d7831d6faac029a012d471896163d204e0da4bbf4897560482d2b60dbe22cc67",
+      "sha256": "d7831d6faac029a012d471896163d204e0da4bbf4897560482d2b60dbe22cc67",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/independent-review-phase2/probe_contract_gaps.py",
+      "archive": "CombatBrain_Phase2_Independent_Review_2026-10-22.zip",
+      "original_path": "probe_contract_gaps.py",
+      "original_sha256": "9ec9362b14198ad43e206a2c14c5ff17f01b4750f5eb4416e335baf318956a9f",
+      "sha256": "9ec9362b14198ad43e206a2c14c5ff17f01b4750f5eb4416e335baf318956a9f",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/independent-review-phase2/reproduction.json",
+      "archive": "CombatBrain_Phase2_Independent_Review_2026-10-22.zip",
+      "original_path": "reproduction.json",
+      "original_sha256": "ff488fe807351fea290c7134fa18afd9832f103fa8d296e97a0ac2c562942d7e",
+      "sha256": "ff488fe807351fea290c7134fa18afd9832f103fa8d296e97a0ac2c562942d7e",
+      "transformation": null
+    },
+    {
+      "kind": "readable_view",
+      "path": "research/astra-research-2026-10-22/independent-review-phase2/reproduction.log",
+      "archive": "CombatBrain_Phase2_Independent_Review_2026-10-22.zip",
+      "original_path": "reproduction.log",
+      "original_sha256": "82846fdd9f1e2377c36a6c3283422fad5913890fdb6d4a749673173a3fb55eaa",
+      "sha256": "82846fdd9f1e2377c36a6c3283422fad5913890fdb6d4a749673173a3fb55eaa",
+      "transformation": null
+    },
+    {
+      "kind": "historical_research_prompt",
+      "path": "research/astra-research-2026-10-22/prompts/CombatBrain_Astra_OneShot_Research_Prompt_2026-10-22.md",
+      "sha256": "7bf0ad5caa7afa0b0219b99f75fc434006ca0ea9b2711f08c30a9050a35b0540",
+      "bytes": 39611,
+      "origin": "CombatBrain_Astra_OneShot_Research_Prompt_2026-10-22.md"
+    },
+    {
+      "kind": "historical_research_prompt",
+      "path": "research/astra-research-2026-10-22/prompts/CombatBrain_Astra_OneShot_Research_Prompt_V2.1.md",
+      "sha256": "532c9bc014a723755a8841e84014790de12d42837190dc0ee660057b878bf662",
+      "bytes": 38549,
+      "origin": "CombatBrain_Astra_OneShot_Research_Prompt_V2.1.md"
+    },
+    {
+      "kind": "historical_research_prompt",
+      "path": "research/astra-research-2026-10-22/prompts/CombatBrain_Astra_OneShot_Research_Prompt_V2.md",
+      "sha256": "5c3579e60a9530c468fefc4614d6832287194d31321f5774b394b0fd6cab9a59",
+      "bytes": 35226,
+      "origin": "CombatBrain_Astra_OneShot_Research_Prompt_V2.md"
+    },
+    {
+      "kind": "historical_research_prompt",
+      "path": "research/astra-research-2026-10-22/prompts/CombatBrain_Astra_Phase2_Final_Research_Prompt_2026-10-22.md",
+      "sha256": "fc1fd5a2a0439dc68f021c39916ca39c17a469650611bfd03a9a652b8e70a4a9",
+      "bytes": 29774,
+      "origin": "CombatBrain_Astra_Phase2_Final_Research_Prompt_2026-10-22.md"
+    },
+    {
+      "kind": "phase1_review_receipt",
+      "path": "research/astra-research-2026-10-22/independent-review-phase1/authority_report_counterexample.json",
+      "sha256": "901ad687821c220ddd6a8e55087ee8c997a952ac262e1279c38cbf6bbe67a6af"
+    },
+    {
+      "kind": "phase1_review_receipt",
+      "path": "research/astra-research-2026-10-22/independent-review-phase1/baseline.txt",
+      "sha256": "6ee0bd11c63f3d67de03b6410bb20cbb7101fdce04b3af334070bffea68904ad"
+    },
+    {
+      "kind": "phase1_review_receipt",
+      "path": "research/astra-research-2026-10-22/independent-review-phase1/experiments.txt",
+      "sha256": "13b5217395f5569b1506547203dbb3cf182d82a309e711af4eb0252d20c40b86"
+    },
+    {
+      "kind": "phase1_review_receipt",
+      "path": "research/astra-research-2026-10-22/independent-review-phase1/feedback.txt",
+      "sha256": "820c70ec523f53b3df07b371e746b3225ebb43f66e8f2cdd0874f393cbb0ce49"
+    },
+    {
+      "kind": "phase1_review_receipt",
+      "path": "research/astra-research-2026-10-22/independent-review-phase1/method.txt",
+      "sha256": "eca7e777a3af08c9ec09d2a673715e8e329aa4657d0ac98c4786b48deaa6caef"
+    },
+    {
+      "kind": "phase1_review_receipt",
+      "path": "research/astra-research-2026-10-22/independent-review-phase1/reproduction.json",
+      "sha256": "abe34265e9fc48c8869adee77ac8d4021a3d302c42569e41f443f141619992f3"
+    },
+    {
+      "kind": "phase1_review_receipt",
+      "path": "research/astra-research-2026-10-22/independent-review-phase1/tests.txt",
+      "sha256": "1893b20c11afa0a1785748a10f334b011fbb409c4df0284556a57ace5c2212b2"
+    },
+    {
+      "kind": "phase1_review_receipt",
+      "path": "research/astra-research-2026-10-22/independent-review-phase1/three_way_search.json",
+      "sha256": "47dde3c0b3db23115c1f121bef955a05e5aa5e704b770847fec4ca139b02ec39"
+    }
+  ]
+}

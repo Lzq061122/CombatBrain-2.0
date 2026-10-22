@@ -1,5 +1,7 @@
 # CombatBrain 2.0 — 战术可观测性与 CBATH 升级建议 v0.1
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > 日期：2026-10-21。状态：**研究分支提案 / 非实现授权 / 不替代 P3 现有验收合同**。需求来源：Commander 按战术价值改变目标、Formation 任务进展评价、自适应观察窗口及失败经验、Developer Mode 可视化、对 RBM AI Log 的核查。以下分为 VERIFIED（源码与手册确认）、CONFIRMED-DIRECTION（用户认可方向）与 PROPOSED（未定实现）。
 
 ## 1. 研究结论与边界

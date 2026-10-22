@@ -1,5 +1,7 @@
 # CombatBrain 2.0｜IF-FEEDBACK-01 多维任务健康反馈与重大变化事件（2026-10-22）
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-01](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-01)、[AR-02](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-02)、[AR-03](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-03)、[AR-07](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-07)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > **CONFIRMED：IF-FEEDBACK-01 方案 C（反馈组织原则）**，即“**少量独立状态维度 + 重大变化事件**”。具体状态轴枚举、事件字段、频率、严重性阈值、滞回/去重、持久化、消息可靠性和验收门槛均 **OPEN/PROPOSED**。以下是架构反例检验，**非游戏实机 PASS**。只改研究分支，**不修改 master、现行 P3 合同、CBATH 或生产代码**。
 
 ## 一、产品负责人明确签收

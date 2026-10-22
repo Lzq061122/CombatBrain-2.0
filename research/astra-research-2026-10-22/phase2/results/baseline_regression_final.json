@@ -1,0 +1,38 @@
+{
+  "python": "3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]",
+  "baseline_sha256": "efe0b280acfa503e9cbf7a58a89430fca877dd3418e621eb20e7a04dad51a806",
+  "runs": [
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "prototype/baseline",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_authority_revocation_blocks_old_write_and_safety (test_core.CoreChecks.test_authority_revocation_blocks_old_write_and_safety) ... ok\ntest_dependency_exec_requires_observed_fix_not_just_assignment (test_core.CoreChecks.test_dependency_exec_requires_observed_fix_not_just_assignment) ... ok\ntest_duplicate_report_and_old_revision_cannot_replan (test_core.CoreChecks.test_duplicate_report_and_old_revision_cannot_replan) ... ok\ntest_enemy_output_conserved_across_attacks (test_core.CoreChecks.test_enemy_output_conserved_across_attacks) ... ok\ntest_high_loss_report_does_not_cancel_effective_sacrifice_duty (test_core.CoreChecks.test_high_loss_report_does_not_cancel_effective_sacrifice_duty) ... ok\ntest_no_response_memory_invalidated_only_by_material_epoch (test_core.CoreChecks.test_no_response_memory_invalidated_only_by_material_epoch) ... ok\ntest_probe_feedback_changes_candidates_and_prevents_identical_retry (test_core.CoreChecks.test_probe_feedback_changes_candidates_and_prevents_identical_retry) ... ok\ntest_zero_extra_budget_keeps_duty (test_core.CoreChecks.test_zero_extra_budget_keeps_duty) ... ok\ntest_observed_active_effect_has_no_second_setup_charge (test_core.TimingChecks.test_observed_active_effect_has_no_second_setup_charge) ... ok\ntest_short_fix_cannot_cover_long_strike (test_core.TimingChecks.test_short_fix_cannot_cover_long_strike) ... ok\ntest_adopt_revalidates_authority (test_review.ReviewCounterexamples.test_adopt_revalidates_authority) ... ok\ntest_adopt_revalidates_generation (test_review.ReviewCounterexamples.test_adopt_revalidates_generation) ... ok\ntest_cancel_preserves_critical_duty (test_review.ReviewCounterexamples.test_cancel_preserves_critical_duty) ... ok\ntest_duplicate_resource_is_infeasible (test_review.ReviewCounterexamples.test_duplicate_resource_is_infeasible) ... ok\ntest_effect_releases_after_time_and_observed_readiness (test_review.ReviewCounterexamples.test_effect_releases_after_time_and_observed_readiness) ... ok\ntest_effect_waits_for_arrival_and_setup (test_review.ReviewCounterexamples.test_effect_waits_for_arrival_and_setup) ... ok\ntest_expired_current_authority_not_retained_by_hysteresis (test_review.ReviewCounterexamples.test_expired_current_authority_not_retained_by_hysteresis) ... ok\ntest_late_fix_does_not_suppress_reinforcement_before_arrival (test_review.ReviewCounterexamples.test_late_fix_does_not_suppress_reinforcement_before_arrival) ... ok\ntest_mandatory_duty_option_survives_optional_cap (test_review.ReviewCounterexamples.test_mandatory_duty_option_survives_optional_cap) ... ok\ntest_missing_dependency_does_not_pass_hard_feasibility (test_review.ReviewCounterexamples.test_missing_dependency_does_not_pass_hard_feasibility) ... ok\ntest_old_actor_generation_sequence_does_not_poison_new_reports (test_review.ReviewCounterexamples.test_old_actor_generation_sequence_does_not_poison_new_reports) ... ok\ntest_old_mission_report_rejected (test_review.ReviewCounterexamples.test_old_mission_report_rejected) ... ok\ntest_one_enemy_fire_budget_is_shared_across_attackers (test_review.ReviewCounterexamples.test_one_enemy_fire_budget_is_shared_across_attackers) ... ok\ntest_other_domain_report_rejected (test_review.ReviewCounterexamples.test_other_domain_report_rejected) ... ok\ntest_reserve_cover_budget_not_reused_for_two_assets (test_review.ReviewCounterexamples.test_reserve_cover_budget_not_reused_for_two_assets) ... ok\ntest_safety_ignores_other_mission (test_review.ReviewCounterexamples.test_safety_ignores_other_mission) ... ok\ntest_same_action_readoption_refreshes_delayed_arrival (test_review.ReviewCounterexamples.test_same_action_readoption_refreshes_delayed_arrival) ... ok\ntest_stale_report_cannot_block_current_route (test_review.ReviewCounterexamples.test_stale_report_cannot_block_current_route) ... ok\ntest_stationary_far_anti_mount_is_not_immediate_support (test_review.ReviewCounterexamples.test_stationary_far_anti_mount_is_not_immediate_support) ... ok\ntest_valid_no_response_feedback_prevents_repeat_probe (test_review.ReviewCounterexamples.test_valid_no_response_feedback_prevents_repeat_probe) ... ok\n\n----------------------------------------------------------------------\nRan 30 tests in 0.064s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "prototype",
+        "-p",
+        "test_feedback_phase2.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_budget_cutoffs_keep_authority_and_mandatory_duty (test_feedback_phase2.BoundedDependencyClosure.test_budget_cutoffs_keep_authority_and_mandatory_duty) ... ok\ntest_fixed_solver_exposes_candidate_omission (test_feedback_phase2.BoundedDependencyClosure.test_fixed_solver_exposes_candidate_omission) ... ok\ntest_local_basin_negative_result_is_preserved (test_feedback_phase2.BoundedDependencyClosure.test_local_basin_negative_result_is_preserved) ... ok\ntest_three_actor_package_reaches_exact_reference (test_feedback_phase2.BoundedDependencyClosure.test_three_actor_package_reaches_exact_reference) ... ok\ntest_authority_generation_change_drops_task_report (test_feedback_phase2.FeedbackConsumption.test_authority_generation_change_drops_task_report) ... ok\ntest_cancel_retracts_old_task_overlay (test_feedback_phase2.FeedbackConsumption.test_cancel_retracts_old_task_overlay) ... ok\ntest_environment_fact_ttl_is_not_extended_by_revalidation (test_feedback_phase2.FeedbackConsumption.test_environment_fact_ttl_is_not_extended_by_revalidation) ... ok\ntest_expired_task_report_removed_even_from_derived_snapshot (test_feedback_phase2.FeedbackConsumption.test_expired_task_report_removed_even_from_derived_snapshot) ... ok\ntest_future_observation_not_consumed (test_feedback_phase2.FeedbackConsumption.test_future_observation_not_consumed) ... ok\ntest_independent_fresh_fact_retained_after_command_revoke_only_if_revalidated (test_feedback_phase2.FeedbackConsumption.test_independent_fresh_fact_retained_after_command_revoke_only_if_revalidated) ... ok\ntest_membership_generation_change_drops_task_report (test_feedback_phase2.FeedbackConsumption.test_membership_generation_change_drops_task_report) ... ok\ntest_old_condition_epoch_drops_task_report (test_feedback_phase2.FeedbackConsumption.test_old_condition_epoch_drops_task_report) ... ok\ntest_raw_independent_block_is_not_removed_as_task_overlay (test_feedback_phase2.FeedbackConsumption.test_raw_independent_block_is_not_removed_as_task_overlay) ... ok\ntest_revoked_authority_drops_task_report (test_feedback_phase2.FeedbackConsumption.test_revoked_authority_drops_task_report) ... ok\ntest_same_valid_task_report_still_consumed (test_feedback_phase2.FeedbackConsumption.test_same_valid_task_report_still_consumed) ... ok\ntest_target_replacement_invalidates_task_judgement (test_feedback_phase2.FeedbackConsumption.test_target_replacement_invalidates_task_judgement) ... ok\ntest_wrong_mission_not_consumed (test_feedback_phase2.FeedbackConsumption.test_wrong_mission_not_consumed) ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 0.304s\n\nOK\n"
+    }
+  ]
+}

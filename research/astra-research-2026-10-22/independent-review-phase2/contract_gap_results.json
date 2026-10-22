@@ -1,0 +1,72 @@
+{
+  "scope": "SYNTHETIC_CONTRACT_PROBES_ONLY",
+  "failure_memory": {
+    "before_failed": [
+      [
+        "a",
+        "e",
+        1
+      ]
+    ],
+    "after_plan_change_failed": [],
+    "before_kinds": [
+      "hold",
+      "strike",
+      "fix",
+      "shoot"
+    ],
+    "after_kinds": [
+      "hold",
+      "strike",
+      "fix",
+      "shoot",
+      "probe"
+    ],
+    "same_epoch": true,
+    "same_actor_authority": true,
+    "memory_lost": true,
+    "probe_reappeared": true
+  },
+  "exit_resource": {
+    "exit_still_recorded": {
+      "actor": "h",
+      "kind": "retreat",
+      "x": -40.0,
+      "y": 0.0,
+      "generation": 1,
+      "authority": 1
+    },
+    "issued_helper_order": {
+      "actor": "h",
+      "kind": "fix",
+      "generation": 1,
+      "authority": 1,
+      "target": "g"
+    },
+    "issued_orders": [
+      {
+        "actor": "c",
+        "kind": "hold",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "h",
+        "kind": "fix",
+        "generation": 1,
+        "authority": 1,
+        "target": "g"
+      }
+    ],
+    "exit_resource_reassigned": true,
+    "score_is_controlled_contract_probe": true
+  },
+  "release_task_revision": {
+    "current_task_revision": 2,
+    "receipt_task_revision": 1,
+    "stale_task_revision_accepted": true,
+    "completed": [
+      "move"
+    ]
+  }
+}

@@ -1,0 +1,1764 @@
+{
+  "1729": {
+    "beam": {
+      "actions": [
+        {
+          "actor": "f0",
+          "kind": "strike",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f1",
+          "kind": "strike",
+          "target": "e0",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f2",
+          "kind": "shoot",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 30.37879375282956,
+          "reinforce": 24.51667175701624,
+          "counter": 30.37879375282956
+        },
+        "interval": [
+          24.2142207922341,
+          30.681244717611698
+        ],
+        "starts": {
+          "f0": 13.126538190356513,
+          "f1": 14.064012761893522,
+          "f2": 6.343393762101535
+        },
+        "dependencies": {
+          "f0": [],
+          "f1": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 35.352794528557425,
+            "friendly_capacity_lost": 4.974000775727866,
+            "transition_cost": 0.0,
+            "model_error": 0.30245096478213973,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 13.23,
+              "e1": 18.0
+            },
+            "enemy_output_used": {
+              "e0": 0.550331104103726,
+              "e1": 4.42366967162414
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 29.490672532744107,
+            "friendly_capacity_lost": 4.974000775727866,
+            "transition_cost": 0.0,
+            "model_error": 0.2584850498135398,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 13.23,
+              "e1": 18.0
+            },
+            "enemy_output_used": {
+              "e0": 0.550331104103726,
+              "e1": 4.42366967162414
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 35.352794528557425,
+            "friendly_capacity_lost": 4.974000775727866,
+            "transition_cost": 0.0,
+            "model_error": 0.30245096478213973,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 13.23,
+              "e1": 18.0
+            },
+            "enemy_output_used": {
+              "e0": 0.550331104103726,
+              "e1": 4.42366967162414
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 296,
+        "evaluations": 104,
+        "model_calls": 400,
+        "search_model_calls": 399,
+        "truncated": false,
+        "actors": 3,
+        "options": 19
+      },
+      "rejected": {
+        "unfixed_support:f0:e1": 6
+      }
+    },
+    "greedy": {
+      "actions": [
+        {
+          "actor": "f0",
+          "kind": "strike",
+          "target": "e0",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f1",
+          "kind": "fix",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f2",
+          "kind": "shoot",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 27.163827783633366,
+          "reinforce": 26.677286721394132,
+          "counter": 27.163827783633366
+        },
+        "interval": [
+          26.40161513192143,
+          27.439499373106067
+        ],
+        "starts": {
+          "f0": 15.648371633054882,
+          "f1": 13.648371633054882,
+          "f2": 6.343393762101535
+        },
+        "dependencies": {
+          "f0": [
+            "f1"
+          ]
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 31.960019856663465,
+            "friendly_capacity_lost": 4.796192073030099,
+            "transition_cost": 0.0,
+            "model_error": 0.27567158947270176,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 13.23,
+              "e1": 18.0
+            },
+            "enemy_output_used": {
+              "e0": 0.4938317271121679,
+              "e1": 4.302360345917931
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 31.47347879442423,
+            "friendly_capacity_lost": 4.796192073030099,
+            "transition_cost": 0.0,
+            "model_error": 0.27202253150590755,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 13.23,
+              "e1": 18.0
+            },
+            "enemy_output_used": {
+              "e0": 0.4938317271121679,
+              "e1": 4.302360345917931
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 31.960019856663465,
+            "friendly_capacity_lost": 4.796192073030099,
+            "transition_cost": 0.0,
+            "model_error": 0.27567158947270176,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 13.23,
+              "e1": 18.0
+            },
+            "enemy_output_used": {
+              "e0": 0.4938317271121679,
+              "e1": 4.302360345917931
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 276,
+        "evaluations": 277,
+        "model_calls": 277,
+        "search_model_calls": 276,
+        "truncated": false,
+        "actors": 3,
+        "options": 19
+      },
+      "rejected": {
+        "unfixed_support:f0:e1": 24
+      }
+    },
+    "exhaustive": {
+      "actions": [
+        {
+          "actor": "f0",
+          "kind": "strike",
+          "target": "e0",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f1",
+          "kind": "fix",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f2",
+          "kind": "shoot",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 27.163827783633366,
+          "reinforce": 26.677286721394132,
+          "counter": 27.163827783633366
+        },
+        "interval": [
+          26.40161513192143,
+          27.439499373106067
+        ],
+        "starts": {
+          "f0": 15.648371633054882,
+          "f1": 13.648371633054882,
+          "f2": 6.343393762101535
+        },
+        "dependencies": {
+          "f0": [
+            "f1"
+          ]
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 31.960019856663465,
+            "friendly_capacity_lost": 4.796192073030099,
+            "transition_cost": 0.0,
+            "model_error": 0.27567158947270176,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 13.23,
+              "e1": 18.0
+            },
+            "enemy_output_used": {
+              "e0": 0.4938317271121679,
+              "e1": 4.302360345917931
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 31.47347879442423,
+            "friendly_capacity_lost": 4.796192073030099,
+            "transition_cost": 0.0,
+            "model_error": 0.27202253150590755,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 13.23,
+              "e1": 18.0
+            },
+            "enemy_output_used": {
+              "e0": 0.4938317271121679,
+              "e1": 4.302360345917931
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 31.960019856663465,
+            "friendly_capacity_lost": 4.796192073030099,
+            "transition_cost": 0.0,
+            "model_error": 0.27567158947270176,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 13.23,
+              "e1": 18.0
+            },
+            "enemy_output_used": {
+              "e0": 0.4938317271121679,
+              "e1": 4.302360345917931
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 245,
+        "evaluations": 246,
+        "model_calls": 246,
+        "search_model_calls": 245,
+        "truncated": false,
+        "actors": 3,
+        "options": 19
+      },
+      "rejected": {
+        "unfixed_support:f0:e1": 30
+      }
+    }
+  },
+  "1730": {
+    "beam": {
+      "actions": [
+        {
+          "actor": "f0",
+          "kind": "strike",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f1",
+          "kind": "strike",
+          "target": "e0",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f2",
+          "kind": "probe",
+          "target": "e0",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 30.050072289643367,
+          "reinforce": 24.942173229903815,
+          "counter": 29.5834056229767
+        },
+        "interval": [
+          24.23814036946149,
+          30.754105150085692
+        ],
+        "starts": {
+          "f0": 8.631001618260107,
+          "f1": 13.915549141656689,
+          "f2": 7.042634234332741
+        },
+        "dependencies": {
+          "f0": [],
+          "f1": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 34.90692739555473,
+            "friendly_capacity_lost": 4.856855105911366,
+            "transition_cost": 0.0,
+            "model_error": 0.6958661937756567,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 15.75,
+              "e1": 11.25
+            },
+            "enemy_output_used": {
+              "e0": 1.3236416878000603,
+              "e1": 3.5332134181113064
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 29.79902833581518,
+            "friendly_capacity_lost": 4.856855105911366,
+            "transition_cost": 0.0,
+            "model_error": 0.6064779602302145,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 15.75,
+              "e1": 11.25
+            },
+            "enemy_output_used": {
+              "e0": 1.3236416878000603,
+              "e1": 3.5332134181113064
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 34.90692739555473,
+            "friendly_capacity_lost": 5.323521772578033,
+            "transition_cost": 0.0,
+            "model_error": 0.7040328604423234,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 15.75,
+              "e1": 11.25
+            },
+            "enemy_output_used": {
+              "e0": 1.7903083544667269,
+              "e1": 3.5332134181113064
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 296,
+        "evaluations": 104,
+        "model_calls": 400,
+        "search_model_calls": 399,
+        "truncated": false,
+        "actors": 3,
+        "options": 19
+      },
+      "rejected": {
+        "unfixed_support:f0:e1": 6
+      }
+    },
+    "greedy": {
+      "actions": [
+        {
+          "actor": "f0",
+          "kind": "strike",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f1",
+          "kind": "strike",
+          "target": "e0",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f2",
+          "kind": "probe",
+          "target": "e0",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 30.050072289643367,
+          "reinforce": 24.942173229903815,
+          "counter": 29.5834056229767
+        },
+        "interval": [
+          24.23814036946149,
+          30.754105150085692
+        ],
+        "starts": {
+          "f0": 8.631001618260107,
+          "f1": 13.915549141656689,
+          "f2": 7.042634234332741
+        },
+        "dependencies": {
+          "f0": [],
+          "f1": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 34.90692739555473,
+            "friendly_capacity_lost": 4.856855105911366,
+            "transition_cost": 0.0,
+            "model_error": 0.6958661937756567,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 15.75,
+              "e1": 11.25
+            },
+            "enemy_output_used": {
+              "e0": 1.3236416878000603,
+              "e1": 3.5332134181113064
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 29.79902833581518,
+            "friendly_capacity_lost": 4.856855105911366,
+            "transition_cost": 0.0,
+            "model_error": 0.6064779602302145,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 15.75,
+              "e1": 11.25
+            },
+            "enemy_output_used": {
+              "e0": 1.3236416878000603,
+              "e1": 3.5332134181113064
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 34.90692739555473,
+            "friendly_capacity_lost": 5.323521772578033,
+            "transition_cost": 0.0,
+            "model_error": 0.7040328604423234,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 15.75,
+              "e1": 11.25
+            },
+            "enemy_output_used": {
+              "e0": 1.7903083544667269,
+              "e1": 3.5332134181113064
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 276,
+        "evaluations": 277,
+        "model_calls": 277,
+        "search_model_calls": 276,
+        "truncated": false,
+        "actors": 3,
+        "options": 19
+      },
+      "rejected": {
+        "unfixed_support:f0:e1": 24
+      }
+    },
+    "exhaustive": {
+      "actions": [
+        {
+          "actor": "f0",
+          "kind": "strike",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f1",
+          "kind": "strike",
+          "target": "e0",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f2",
+          "kind": "probe",
+          "target": "e0",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 30.050072289643367,
+          "reinforce": 24.942173229903815,
+          "counter": 29.5834056229767
+        },
+        "interval": [
+          24.23814036946149,
+          30.754105150085692
+        ],
+        "starts": {
+          "f0": 8.631001618260107,
+          "f1": 13.915549141656689,
+          "f2": 7.042634234332741
+        },
+        "dependencies": {
+          "f0": [],
+          "f1": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 34.90692739555473,
+            "friendly_capacity_lost": 4.856855105911366,
+            "transition_cost": 0.0,
+            "model_error": 0.6958661937756567,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 15.75,
+              "e1": 11.25
+            },
+            "enemy_output_used": {
+              "e0": 1.3236416878000603,
+              "e1": 3.5332134181113064
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 29.79902833581518,
+            "friendly_capacity_lost": 4.856855105911366,
+            "transition_cost": 0.0,
+            "model_error": 0.6064779602302145,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 15.75,
+              "e1": 11.25
+            },
+            "enemy_output_used": {
+              "e0": 1.3236416878000603,
+              "e1": 3.5332134181113064
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 34.90692739555473,
+            "friendly_capacity_lost": 5.323521772578033,
+            "transition_cost": 0.0,
+            "model_error": 0.7040328604423234,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 15.75,
+              "e1": 11.25
+            },
+            "enemy_output_used": {
+              "e0": 1.7903083544667269,
+              "e1": 3.5332134181113064
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 245,
+        "evaluations": 246,
+        "model_calls": 246,
+        "search_model_calls": 245,
+        "truncated": false,
+        "actors": 3,
+        "options": 19
+      },
+      "rejected": {
+        "unfixed_support:f0:e1": 30
+      }
+    }
+  },
+  "1731": {
+    "beam": {
+      "actions": [
+        {
+          "actor": "f0",
+          "kind": "strike",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f1",
+          "kind": "protect",
+          "target": "f2",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f2",
+          "kind": "shoot",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 39.56088091532337,
+          "reinforce": 36.52536672864636,
+          "counter": 39.56088091532337
+        },
+        "interval": [
+          36.144202499229,
+          39.942045144740725
+        ],
+        "starts": {
+          "f0": 7.167574054230812,
+          "f1": 0.0,
+          "f2": 2.0
+        },
+        "dependencies": {
+          "f0": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 45.191389085485625,
+            "friendly_capacity_lost": 5.630508170162255,
+            "transition_cost": 0.0,
+            "model_error": 0.38116422941735917,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 17.64,
+              "e1": 16.650000000000002
+            },
+            "enemy_output_used": {
+              "e0": 0.0,
+              "e1": 5.630508170162255
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 42.15587489880862,
+            "friendly_capacity_lost": 5.630508170162255,
+            "transition_cost": 0.0,
+            "model_error": 0.35839787301728165,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 17.64,
+              "e1": 16.650000000000002
+            },
+            "enemy_output_used": {
+              "e0": 0.0,
+              "e1": 5.630508170162255
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 45.191389085485625,
+            "friendly_capacity_lost": 5.630508170162255,
+            "transition_cost": 0.0,
+            "model_error": 0.38116422941735917,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 17.64,
+              "e1": 16.650000000000002
+            },
+            "enemy_output_used": {
+              "e0": 0.0,
+              "e1": 5.630508170162255
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 399,
+        "evaluations": 104,
+        "model_calls": 503,
+        "search_model_calls": 502,
+        "truncated": false,
+        "actors": 3,
+        "options": 22
+      },
+      "rejected": {
+        "unfixed_support:f0:e1": 2,
+        "critical_duty:f2": 85
+      }
+    },
+    "greedy": {
+      "actions": [
+        {
+          "actor": "f0",
+          "kind": "strike",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f1",
+          "kind": "protect",
+          "target": "f2",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f2",
+          "kind": "shoot",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 39.56088091532337,
+          "reinforce": 36.52536672864636,
+          "counter": 39.56088091532337
+        },
+        "interval": [
+          36.144202499229,
+          39.942045144740725
+        ],
+        "starts": {
+          "f0": 7.167574054230812,
+          "f1": 0.0,
+          "f2": 2.0
+        },
+        "dependencies": {
+          "f0": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 45.191389085485625,
+            "friendly_capacity_lost": 5.630508170162255,
+            "transition_cost": 0.0,
+            "model_error": 0.38116422941735917,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 17.64,
+              "e1": 16.650000000000002
+            },
+            "enemy_output_used": {
+              "e0": 0.0,
+              "e1": 5.630508170162255
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 42.15587489880862,
+            "friendly_capacity_lost": 5.630508170162255,
+            "transition_cost": 0.0,
+            "model_error": 0.35839787301728165,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 17.64,
+              "e1": 16.650000000000002
+            },
+            "enemy_output_used": {
+              "e0": 0.0,
+              "e1": 5.630508170162255
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 45.191389085485625,
+            "friendly_capacity_lost": 5.630508170162255,
+            "transition_cost": 0.0,
+            "model_error": 0.38116422941735917,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 17.64,
+              "e1": 16.650000000000002
+            },
+            "enemy_output_used": {
+              "e0": 0.0,
+              "e1": 5.630508170162255
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 366,
+        "evaluations": 367,
+        "model_calls": 367,
+        "search_model_calls": 366,
+        "truncated": false,
+        "actors": 3,
+        "options": 22
+      },
+      "rejected": {
+        "unfixed_support:f0:e1": 30,
+        "critical_duty:f2": 210
+      }
+    },
+    "exhaustive": {
+      "actions": [
+        {
+          "actor": "f0",
+          "kind": "strike",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f1",
+          "kind": "protect",
+          "target": "f2",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "f2",
+          "kind": "shoot",
+          "target": "e1",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 39.56088091532337,
+          "reinforce": 36.52536672864636,
+          "counter": 39.56088091532337
+        },
+        "interval": [
+          36.144202499229,
+          39.942045144740725
+        ],
+        "starts": {
+          "f0": 7.167574054230812,
+          "f1": 0.0,
+          "f2": 2.0
+        },
+        "dependencies": {
+          "f0": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 45.191389085485625,
+            "friendly_capacity_lost": 5.630508170162255,
+            "transition_cost": 0.0,
+            "model_error": 0.38116422941735917,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 17.64,
+              "e1": 16.650000000000002
+            },
+            "enemy_output_used": {
+              "e0": 0.0,
+              "e1": 5.630508170162255
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 42.15587489880862,
+            "friendly_capacity_lost": 5.630508170162255,
+            "transition_cost": 0.0,
+            "model_error": 0.35839787301728165,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 17.64,
+              "e1": 16.650000000000002
+            },
+            "enemy_output_used": {
+              "e0": 0.0,
+              "e1": 5.630508170162255
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 45.191389085485625,
+            "friendly_capacity_lost": 5.630508170162255,
+            "transition_cost": 0.0,
+            "model_error": 0.38116422941735917,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "e0": 17.64,
+              "e1": 16.650000000000002
+            },
+            "enemy_output_used": {
+              "e0": 0.0,
+              "e1": 5.630508170162255
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 392,
+        "evaluations": 393,
+        "model_calls": 393,
+        "search_model_calls": 392,
+        "truncated": false,
+        "actors": 3,
+        "options": 22
+      },
+      "rejected": {
+        "critical_duty:f2": 343,
+        "unfixed_support:f0:e1": 49
+      }
+    }
+  },
+  "constructed": {
+    "base": {
+      "actions": [
+        {
+          "actor": "archers",
+          "kind": "shoot",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "cavalry",
+          "kind": "strike",
+          "target": "enemy_archers",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "infantry",
+          "kind": "fix",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 48.52083930973606,
+          "reinforce": 45.215583595556986,
+          "counter": 48.52083930973606
+        },
+        "interval": [
+          44.791210370663045,
+          48.94521253463
+        ],
+        "starts": {
+          "archers": 8.721947908039937,
+          "cavalry": 14.222222222222221,
+          "infantry": 10.838834764831844
+        },
+        "dependencies": {
+          "cavalry": [
+            "infantry"
+          ]
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 52.55196798113084,
+            "friendly_capacity_lost": 4.031128671394776,
+            "transition_cost": 0.0,
+            "model_error": 0.4243732248939422,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 3.143628671394776
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 49.24671226695176,
+            "friendly_capacity_lost": 4.031128671394776,
+            "transition_cost": 0.0,
+            "model_error": 0.3995838070375991,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 3.143628671394776
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 52.55196798113084,
+            "friendly_capacity_lost": 4.031128671394776,
+            "transition_cost": 0.0,
+            "model_error": 0.4243732248939422,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 3.143628671394776
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 276,
+        "evaluations": 277,
+        "model_calls": 277,
+        "search_model_calls": 276,
+        "truncated": false,
+        "actors": 3,
+        "options": 19
+      },
+      "rejected": {
+        "unfixed_support:cavalry:enemy_spears": 24
+      }
+    },
+    "support_far": {
+      "actions": [
+        {
+          "actor": "archers",
+          "kind": "shoot",
+          "target": "enemy_archers",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "cavalry",
+          "kind": "strike",
+          "target": "enemy_archers",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "infantry",
+          "kind": "strike",
+          "target": "enemy_archers",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 51.39510130499819,
+          "reinforce": 51.39510130499819,
+          "counter": 51.39510130499819
+        },
+        "interval": [
+          50.78586585780898,
+          52.004336752187406
+        ],
+        "starts": {
+          "archers": 12.0,
+          "cavalry": 14.222222222222221,
+          "infantry": 15.050383136138187
+        },
+        "dependencies": {
+          "cavalry": [],
+          "infantry": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 66.31324713177983,
+            "friendly_capacity_lost": 14.918145826781638,
+            "transition_cost": 0.0,
+            "model_error": 0.6092354471892112,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 14.918145826781638,
+              "enemy_spears": 0.0
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 66.31324713177983,
+            "friendly_capacity_lost": 14.918145826781638,
+            "transition_cost": 0.0,
+            "model_error": 0.6092354471892112,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 14.918145826781638,
+              "enemy_spears": 0.0
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 66.31324713177983,
+            "friendly_capacity_lost": 14.918145826781638,
+            "transition_cost": 0.0,
+            "model_error": 0.6092354471892112,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 14.918145826781638,
+              "enemy_spears": 0.0
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 102,
+        "evaluations": 103,
+        "model_calls": 103,
+        "search_model_calls": 102,
+        "truncated": false,
+        "actors": 3,
+        "options": 11
+      },
+      "rejected": {}
+    },
+    "fixer_late": {
+      "actions": [
+        {
+          "actor": "archers",
+          "kind": "shoot",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "cavalry",
+          "kind": "strike",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "infantry",
+          "kind": "hold",
+          "target": "",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 32.48976174621103,
+          "reinforce": 32.453557324466615,
+          "counter": 32.48976174621103
+        },
+        "interval": [
+          32.26600613319767,
+          32.677312937479975
+        ],
+        "starts": {
+          "archers": 8.721947908039937,
+          "cavalry": 12.786937688304223,
+          "infantry": 0
+        },
+        "dependencies": {
+          "cavalry": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 35.0,
+            "friendly_capacity_lost": 2.510238253788968,
+            "transition_cost": 0.0,
+            "model_error": 0.18755119126894487,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.0,
+              "enemy_spears": 2.510238253788968
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 34.963795578255585,
+            "friendly_capacity_lost": 2.510238253788968,
+            "transition_cost": 0.0,
+            "model_error": 0.18737016916022278,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.0,
+              "enemy_spears": 2.510238253788968
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 35.0,
+            "friendly_capacity_lost": 2.510238253788968,
+            "transition_cost": 0.0,
+            "model_error": 0.18755119126894487,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.0,
+              "enemy_spears": 2.510238253788968
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 172,
+        "evaluations": 173,
+        "model_calls": 173,
+        "search_model_calls": 172,
+        "truncated": false,
+        "actors": 3,
+        "options": 15
+      },
+      "rejected": {
+        "unfixed_support:cavalry:enemy_spears": 18,
+        "window:infantry": 26
+      }
+    },
+    "protect_competition": {
+      "actions": [
+        {
+          "actor": "archers",
+          "kind": "shoot",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "cavalry",
+          "kind": "strike",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "infantry",
+          "kind": "protect",
+          "target": "archers",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 29.549761746211033,
+          "reinforce": 29.513557324466618,
+          "counter": 28.19976174621103
+        },
+        "interval": [
+          27.886259959307615,
+          29.86326353311445
+        ],
+        "starts": {
+          "archers": 8.721947908039937,
+          "cavalry": 12.786937688304223,
+          "infantry": 0.0
+        },
+        "dependencies": {
+          "cavalry": []
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 35.0,
+            "friendly_capacity_lost": 5.4502382537889655,
+            "transition_cost": 0.0,
+            "model_error": 0.30337678690341735,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 2.9399999999999977,
+              "enemy_spears": 2.510238253788968
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 34.963795578255585,
+            "friendly_capacity_lost": 5.4502382537889655,
+            "transition_cost": 0.0,
+            "model_error": 0.3031052537403342,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 2.9399999999999977,
+              "enemy_spears": 2.510238253788968
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 35.0,
+            "friendly_capacity_lost": 6.800238253788967,
+            "transition_cost": 0.0,
+            "model_error": 0.31350178690341735,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 4.289999999999999,
+              "enemy_spears": 2.510238253788968
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 302,
+        "evaluations": 303,
+        "model_calls": 303,
+        "search_model_calls": 302,
+        "truncated": false,
+        "actors": 3,
+        "options": 20
+      },
+      "rejected": {
+        "unfixed_support:cavalry:enemy_spears": 26,
+        "critical_duty:archers": 182
+      }
+    },
+    "ammo_zero_los_blocked": {
+      "actions": [
+        {
+          "actor": "archers",
+          "kind": "hold",
+          "target": "",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "cavalry",
+          "kind": "strike",
+          "target": "enemy_archers",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "infantry",
+          "kind": "fix",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 28.07722063314698,
+          "reinforce": 28.07722063314698,
+          "counter": 28.07722063314698
+        },
+        "interval": [
+          27.896523243267296,
+          28.25791802302666
+        ],
+        "starts": {
+          "archers": 0,
+          "cavalry": 14.222222222222221,
+          "infantry": 10.838834764831844
+        },
+        "dependencies": {
+          "cavalry": [
+            "infantry"
+          ]
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 32.108349304541754,
+            "friendly_capacity_lost": 4.031128671394776,
+            "transition_cost": 0.0,
+            "model_error": 0.18069738987968265,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 3.143628671394776
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 32.108349304541754,
+            "friendly_capacity_lost": 4.031128671394776,
+            "transition_cost": 0.0,
+            "model_error": 0.18069738987968265,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 3.143628671394776
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 32.108349304541754,
+            "friendly_capacity_lost": 4.031128671394776,
+            "transition_cost": 0.0,
+            "model_error": 0.18069738987968265,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 3.143628671394776
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 216,
+        "evaluations": 217,
+        "model_calls": 217,
+        "search_model_calls": 216,
+        "truncated": false,
+        "actors": 3,
+        "options": 17
+      },
+      "rejected": {
+        "unfixed_support:cavalry:enemy_spears": 40
+      }
+    },
+    "actual_reinforcement": {
+      "actions": [
+        {
+          "actor": "archers",
+          "kind": "shoot",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "cavalry",
+          "kind": "strike",
+          "target": "enemy_archers",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "infantry",
+          "kind": "protect",
+          "target": "archers",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "reinforcement",
+          "kind": "fix",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 47.88688352611288,
+          "reinforce": 44.58162781193381,
+          "counter": 47.88688352611288
+        },
+        "interval": [
+          44.03181717861609,
+          48.4366941594306
+        ],
+        "starts": {
+          "archers": 8.721947908039937,
+          "cavalry": 14.222222222222221,
+          "infantry": 0.0,
+          "reinforcement": 11.762812094883317
+        },
+        "dependencies": {
+          "cavalry": [
+            "reinforcement"
+          ]
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 51.4339734289424,
+            "friendly_capacity_lost": 3.5470899028295166,
+            "transition_cost": 0.0,
+            "model_error": 0.5498106333177193,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 2.6595899028295165
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 48.128717714763326,
+            "friendly_capacity_lost": 3.5470899028295166,
+            "transition_cost": 0.0,
+            "model_error": 0.5167580761759285,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 2.6595899028295165
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 51.4339734289424,
+            "friendly_capacity_lost": 3.5470899028295166,
+            "transition_cost": 0.0,
+            "model_error": 0.5498106333177193,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 2.6595899028295165
+            }
+          }
+        }
+      },
+      "reason": "best_available",
+      "work": {
+        "expansions": 596,
+        "evaluations": 597,
+        "model_calls": 597,
+        "search_model_calls": 596,
+        "truncated": false,
+        "actors": 4,
+        "options": 27
+      },
+      "rejected": {
+        "unfixed_support:cavalry:enemy_spears": 38,
+        "critical_duty:archers": 280
+      }
+    }
+  },
+  "dependency_package": {
+    "base": {
+      "feasible": true,
+      "reasons": [],
+      "outcomes": {
+        "hold": 39.4926052485316,
+        "reinforce": 39.24148422759532,
+        "counter": 39.4926052485316
+      },
+      "interval": [
+        38.688553527391186,
+        40.04553594873574
+      ],
+      "starts": {
+        "cavalry": 14.222222222222221,
+        "infantry": 10.838834764831844,
+        "archers": 12.0
+      },
+      "dependencies": {
+        "cavalry": [
+          "infantry"
+        ]
+      },
+      "details": {
+        "hold": {
+          "enemy_capacity_removed": 56.60834930454176,
+          "friendly_capacity_lost": 17.115744056010158,
+          "transition_cost": 0.0,
+          "model_error": 0.5529307002041395,
+          "reserve_assignment": {},
+          "enemy_output_budget": {
+            "enemy_archers": 31.3875,
+            "enemy_spears": 13.5
+          },
+          "enemy_output_used": {
+            "enemy_archers": 13.972115384615382,
+            "enemy_spears": 3.143628671394776
+          }
+        },
+        "reinforce": {
+          "enemy_capacity_removed": 56.35722828360548,
+          "friendly_capacity_lost": 17.115744056010158,
+          "transition_cost": 0.0,
+          "model_error": 0.5510472925471174,
+          "reserve_assignment": {},
+          "enemy_output_budget": {
+            "enemy_archers": 31.3875,
+            "enemy_spears": 13.5
+          },
+          "enemy_output_used": {
+            "enemy_archers": 13.972115384615382,
+            "enemy_spears": 3.143628671394776
+          }
+        },
+        "counter": {
+          "enemy_capacity_removed": 56.60834930454176,
+          "friendly_capacity_lost": 17.115744056010158,
+          "transition_cost": 0.0,
+          "model_error": 0.5529307002041395,
+          "reserve_assignment": {},
+          "enemy_output_budget": {
+            "enemy_archers": 31.3875,
+            "enemy_spears": 13.5
+          },
+          "enemy_output_used": {
+            "enemy_archers": 13.972115384615382,
+            "enemy_spears": 3.143628671394776
+          }
+        }
+      }
+    },
+    "support_far": {
+      "feasible": false,
+      "reasons": [
+        "window:infantry"
+      ],
+      "outcomes": {},
+      "interval": [
+        0.0,
+        0.0
+      ],
+      "starts": {
+        "cavalry": 14.222222222222221,
+        "infantry": 74.51077506136588,
+        "archers": 12.0
+      },
+      "dependencies": {
+        "cavalry": []
+      },
+      "details": {}
+    },
+    "fixer_late": {
+      "feasible": false,
+      "reasons": [
+        "dependency_window:cavalry",
+        "window:infantry"
+      ],
+      "outcomes": {},
+      "interval": [
+        0.0,
+        0.0
+      ],
+      "starts": {
+        "cavalry": 40.27154532136727,
+        "infantry": 38.27154532136727,
+        "archers": 12.0
+      },
+      "dependencies": {
+        "cavalry": [
+          "infantry"
+        ]
+      },
+      "details": {}
+    },
+    "protect_competition": {
+      "feasible": false,
+      "reasons": [
+        "critical_duty:archers"
+      ],
+      "outcomes": {},
+      "interval": [
+        0.0,
+        0.0
+      ],
+      "starts": {
+        "cavalry": 14.222222222222221,
+        "infantry": 10.838834764831844,
+        "archers": 12.0
+      },
+      "dependencies": {
+        "cavalry": [
+          "infantry"
+        ]
+      },
+      "details": {}
+    }
+  }
+}

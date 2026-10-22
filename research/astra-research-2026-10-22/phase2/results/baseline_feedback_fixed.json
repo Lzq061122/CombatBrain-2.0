@@ -1,0 +1,32 @@
+{
+  "source_sha256": "dd4a6c289877ea8d20ac93be8dd1336b1fc6d126b3e40685b06229da765a3727",
+  "runs": [
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "-v",
+        "prototype/test_feedback_phase2.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_authority_generation_change_drops_task_report (prototype.test_feedback_phase2.FeedbackConsumption.test_authority_generation_change_drops_task_report) ... ok\ntest_cancel_retracts_old_task_overlay (prototype.test_feedback_phase2.FeedbackConsumption.test_cancel_retracts_old_task_overlay) ... ok\ntest_environment_fact_ttl_is_not_extended_by_revalidation (prototype.test_feedback_phase2.FeedbackConsumption.test_environment_fact_ttl_is_not_extended_by_revalidation) ... ok\ntest_expired_task_report_removed_even_from_derived_snapshot (prototype.test_feedback_phase2.FeedbackConsumption.test_expired_task_report_removed_even_from_derived_snapshot) ... ok\ntest_future_observation_not_consumed (prototype.test_feedback_phase2.FeedbackConsumption.test_future_observation_not_consumed) ... ok\ntest_independent_fresh_fact_retained_after_command_revoke_only_if_revalidated (prototype.test_feedback_phase2.FeedbackConsumption.test_independent_fresh_fact_retained_after_command_revoke_only_if_revalidated) ... ok\ntest_membership_generation_change_drops_task_report (prototype.test_feedback_phase2.FeedbackConsumption.test_membership_generation_change_drops_task_report) ... ok\ntest_old_condition_epoch_drops_task_report (prototype.test_feedback_phase2.FeedbackConsumption.test_old_condition_epoch_drops_task_report) ... ok\ntest_raw_independent_block_is_not_removed_as_task_overlay (prototype.test_feedback_phase2.FeedbackConsumption.test_raw_independent_block_is_not_removed_as_task_overlay) ... ok\ntest_revoked_authority_drops_task_report (prototype.test_feedback_phase2.FeedbackConsumption.test_revoked_authority_drops_task_report) ... ok\ntest_same_valid_task_report_still_consumed (prototype.test_feedback_phase2.FeedbackConsumption.test_same_valid_task_report_still_consumed) ... ok\ntest_target_replacement_invalidates_task_judgement (prototype.test_feedback_phase2.FeedbackConsumption.test_target_replacement_invalidates_task_judgement) ... ok\ntest_wrong_mission_not_consumed (prototype.test_feedback_phase2.FeedbackConsumption.test_wrong_mission_not_consumed) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.002s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "prototype/baseline",
+        "-p",
+        "test_*.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "..............................\n----------------------------------------------------------------------\nRan 30 tests in 0.064s\n\nOK\n"
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "source_sha256": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+  "accounting_summary": {
+    "beam": {
+      "mean_actual_assessment_calls": 385.3888888888889,
+      "mean_reported_evaluations": 94.80555555555556,
+      "mean_reported_model_calls": 385.3888888888889
+    },
+    "greedy": {
+      "mean_actual_assessment_calls": 278.0,
+      "mean_reported_evaluations": 278.0,
+      "mean_reported_model_calls": 278.0
+    },
+    "exhaustive": {
+      "mean_actual_assessment_calls": 252.61111111111111,
+      "mean_reported_evaluations": 252.61111111111111,
+      "mean_reported_model_calls": 252.61111111111111
+    }
+  },
+  "maximin_vs_all_scenario_retention": {
+    "seed": 1729,
+    "current_outcomes": {
+      "hold": 30.37879375282956,
+      "reinforce": 24.51667175701624,
+      "counter": 30.37879375282956
+    },
+    "best_maximin_outcomes": {
+      "hold": 27.163827783633366,
+      "reinforce": 26.677286721394132,
+      "counter": 27.163827783633366
+    },
+    "current_lower_value": 24.51667175701624,
+    "best_maximin_lower_value": 26.677286721394132,
+    "optional_all_scenario_reason": "retain_current:uncertain_or_no_global_trigger",
+    "default_reason": "best_available",
+    "default_lower_value": 26.677286721394132,
+    "default_reaches_maximin_value": true,
+    "uncertainty": false,
+    "switch_cost": 0
+  },
+  "two_weak_fixers": {
+    "sum_fix_melee": 40,
+    "required_fix_melee": 35.0,
+    "strict_feasible": false,
+    "strict_reasons": [
+      "unfixed_support:cavalry:guard"
+    ],
+    "without_hard_dependency_feasible": true
+  },
+  "budget_audit": [
+    {
+      "budget": 0,
+      "method": "beam",
+      "actual_calls": 1,
+      "work": {
+        "expansions": 0,
+        "evaluations": 1,
+        "model_calls": 1,
+        "search_model_calls": 0,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 0,
+      "method": "greedy",
+      "actual_calls": 1,
+      "work": {
+        "expansions": 0,
+        "evaluations": 1,
+        "model_calls": 1,
+        "search_model_calls": 0,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 1,
+      "method": "beam",
+      "actual_calls": 2,
+      "work": {
+        "expansions": 1,
+        "evaluations": 1,
+        "model_calls": 2,
+        "search_model_calls": 1,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 1,
+      "method": "greedy",
+      "actual_calls": 2,
+      "work": {
+        "expansions": 1,
+        "evaluations": 2,
+        "model_calls": 2,
+        "search_model_calls": 1,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 10,
+      "method": "beam",
+      "actual_calls": 11,
+      "work": {
+        "expansions": 7,
+        "evaluations": 4,
+        "model_calls": 11,
+        "search_model_calls": 10,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 10,
+      "method": "greedy",
+      "actual_calls": 11,
+      "work": {
+        "expansions": 10,
+        "evaluations": 11,
+        "model_calls": 11,
+        "search_model_calls": 10,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 50,
+      "method": "beam",
+      "actual_calls": 51,
+      "work": {
+        "expansions": 43,
+        "evaluations": 8,
+        "model_calls": 51,
+        "search_model_calls": 50,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 50,
+      "method": "greedy",
+      "actual_calls": 51,
+      "work": {
+        "expansions": 50,
+        "evaluations": 51,
+        "model_calls": 51,
+        "search_model_calls": 50,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 100,
+      "method": "beam",
+      "actual_calls": 101,
+      "work": {
+        "expansions": 56,
+        "evaluations": 45,
+        "model_calls": 101,
+        "search_model_calls": 100,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 100,
+      "method": "greedy",
+      "actual_calls": 101,
+      "work": {
+        "expansions": 100,
+        "evaluations": 101,
+        "model_calls": 101,
+        "search_model_calls": 100,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    }
+  ],
+  "multiple_support_final_window": {
+    "feasible": false,
+    "reasons": [
+      "support_duration:cavalry:s1"
+    ],
+    "starts": {
+      "cavalry": 10.0,
+      "s1": 2.0,
+      "s2": 8.0
+    },
+    "first_fix_end": 10.0,
+    "final_strike_end": 16.0
+  },
+  "active_effect_observation": {
+    "unstarted_start": 2.2,
+    "observed_active_start": 0.0
+  },
+  "fix_expiry_effect": {
+    "long_fix_shoot_effect": 60.20638348932086,
+    "short_fix_shoot_effect": 39.65228386281018
+  },
+  "scope": "synthetic algorithm accounting and stated-constraint counterexamples only"
+}

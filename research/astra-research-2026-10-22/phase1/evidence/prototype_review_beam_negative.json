@@ -1,0 +1,314 @@
+{
+  "source_sha256": "5f304a1375782ae2dfb151e52a9ecdea1d13577d3d09852bd548fc7d8456e3a0",
+  "seed": 20261022,
+  "index": 15,
+  "snapshot": {
+    "friendly": [
+      {
+        "uid": "f0",
+        "x": 8,
+        "y": -18,
+        "speed": 12,
+        "groups": [
+          {
+            "n": 57,
+            "melee": 0.5,
+            "ranged": 0,
+            "armour": 0.5,
+            "anti_mount": 0.0,
+            "mounted": true,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true
+      },
+      {
+        "uid": "f1",
+        "x": 6,
+        "y": 19,
+        "speed": 6,
+        "groups": [
+          {
+            "n": 71,
+            "melee": 0.2,
+            "ranged": 1,
+            "armour": 0.5,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true
+      },
+      {
+        "uid": "f2",
+        "x": -68,
+        "y": -12,
+        "speed": 12,
+        "groups": [
+          {
+            "n": 62,
+            "melee": 0.2,
+            "ranged": 1,
+            "armour": 0.5,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true
+      }
+    ],
+    "enemy": [
+      {
+        "uid": "target",
+        "x": 50,
+        "y": 0,
+        "speed": 10,
+        "groups": [
+          {
+            "n": 77,
+            "melee": 0.2,
+            "ranged": 1,
+            "armour": 0.5,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true
+      },
+      {
+        "uid": "guard",
+        "x": 60,
+        "y": 15,
+        "speed": 10,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 1,
+            "ranged": 0.0,
+            "armour": 0.5,
+            "anti_mount": 1,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true
+      }
+    ],
+    "duties": [],
+    "horizon": 30.0,
+    "mission": "synthetic",
+    "domain": "legal-domain-fixture",
+    "now": 0.0,
+    "epoch": 1,
+    "blocked": [],
+    "failed_probes": [],
+    "major_change": true
+  },
+  "config": {
+    "width": 1,
+    "expansions": 5000,
+    "options": 8,
+    "targets": 2,
+    "loss_weight": 1.0,
+    "switch_cost": 2.0,
+    "uncertainty": false,
+    "dependencies": true,
+    "scenarios": [
+      "hold",
+      "reinforce",
+      "counter"
+    ],
+    "eta_scale": 1.0,
+    "setup_seconds": 2.0,
+    "strike_seconds": 6.0,
+    "guard_radius": 75.0
+  },
+  "beam": {
+    "actions": [
+      {
+        "actor": "f0",
+        "kind": "strike",
+        "target": "guard",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f1",
+        "kind": "shoot",
+        "target": "guard",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f2",
+        "kind": "probe",
+        "target": "target",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "assessment": {
+      "feasible": true,
+      "reasons": [],
+      "outcomes": {
+        "hold": 54.28651953274122,
+        "reinforce": 47.14270640805828,
+        "counter": 52.84918619940788
+      },
+      "interval": [
+        47.14270640805828,
+        54.28651953274122
+      ],
+      "starts": {
+        "f0": 7.132278030054274,
+        "f1": 2.0,
+        "f2": 6.884050002121825
+      },
+      "dependencies": {
+        "f0": []
+      },
+      "details": {
+        "hold": {
+          "enemy_capacity_removed": 63.52222222222222,
+          "friendly_capacity_lost": 9.235702689481004,
+          "transition_cost": 0.0,
+          "model_error": 0.5456844368377743
+        },
+        "reinforce": {
+          "enemy_capacity_removed": 56.37840909753928,
+          "friendly_capacity_lost": 9.235702689481004,
+          "transition_cost": 0.0,
+          "model_error": 0.4921058384026523
+        },
+        "counter": {
+          "enemy_capacity_removed": 63.52222222222222,
+          "friendly_capacity_lost": 10.673036022814337,
+          "transition_cost": 0.0,
+          "model_error": 0.5564644368377744
+        }
+      }
+    },
+    "reason": "best_available",
+    "work": {
+      "expansions": 25,
+      "evaluations": 4,
+      "truncated": false,
+      "actors": 3,
+      "options": 25
+    },
+    "rejected": {}
+  },
+  "exhaustive": {
+    "actions": [
+      {
+        "actor": "f0",
+        "kind": "fix",
+        "target": "target",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f1",
+        "kind": "shoot",
+        "target": "guard",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f2",
+        "kind": "shoot",
+        "target": "guard",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "assessment": {
+      "feasible": true,
+      "reasons": [],
+      "outcomes": {
+        "hold": 54.136999676584935,
+        "reinforce": 54.136999676584935,
+        "counter": 54.136999676584935
+      },
+      "interval": [
+        54.136999676584935,
+        54.136999676584935
+      ],
+      "starts": {
+        "f0": 5.807886552931954,
+        "f1": 2.0,
+        "f2": 6.234722133746691
+      },
+      "dependencies": {},
+      "details": {
+        "hold": {
+          "enemy_capacity_removed": 57.862585147433414,
+          "friendly_capacity_lost": 3.725585470848479,
+          "transition_cost": 0.0,
+          "model_error": 0.4619112796371143
+        },
+        "reinforce": {
+          "enemy_capacity_removed": 57.862585147433414,
+          "friendly_capacity_lost": 3.725585470848479,
+          "transition_cost": 0.0,
+          "model_error": 0.4619112796371143
+        },
+        "counter": {
+          "enemy_capacity_removed": 57.862585147433414,
+          "friendly_capacity_lost": 3.725585470848479,
+          "transition_cost": 0.0,
+          "model_error": 0.4619112796371143
+        }
+      }
+    },
+    "reason": "best_available",
+    "work": {
+      "expansions": 567,
+      "evaluations": 568,
+      "truncated": false,
+      "actors": 3,
+      "options": 25
+    },
+    "rejected": {
+      "unfixed_support:f0:guard": 64
+    }
+  }
+}

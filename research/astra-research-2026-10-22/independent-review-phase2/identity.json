@@ -1,0 +1,13 @@
+{
+  "input_archive": "CombatBrain_Phase2_Research_2026-10-22.zip",
+  "archive_sha256": "04d9c4bbb59f8b3375e4020831fd7385beb5898e66babc8c8d7b362774d437f2",
+  "source_sha256": {
+    "prototype/baseline/planner.py": "efe0b280acfa503e9cbf7a58a89430fca877dd3418e621eb20e7a04dad51a806",
+    "prototype/controller.py": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0",
+    "prototype/temporal.py": "a06d9b64d817d750563562f529b63fc64b7a654a20e079c086a119592b8b4247",
+    "prototype/world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f",
+    "reproduce.py": "029e568e97299018d0c61736b95278888de142de2278dcbf4596c515abe3f475"
+  },
+  "production_modified": false,
+  "game_runtime": "NOT_RUN"
+}

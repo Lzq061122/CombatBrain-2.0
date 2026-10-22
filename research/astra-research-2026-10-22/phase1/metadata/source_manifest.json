@@ -1,0 +1,57 @@
+{
+  "read_date": "2026-10-22",
+  "timezone": "Asia/Shanghai",
+  "snapshots": [
+    {
+      "repository": "Lzq061122/CombatBrain-2.0",
+      "branch": "master",
+      "sha": "2138038cef53216118d445d37c5245b1bef019db",
+      "path": "sources/cb2_default",
+      "source_url": "https://github.com/Lzq061122/CombatBrain-2.0/tree/2138038cef53216118d445d37c5245b1bef019db",
+      "archive_url": "https://codeload.github.com/Lzq061122/CombatBrain-2.0/tar.gz/2138038cef53216118d445d37c5245b1bef019db"
+    },
+    {
+      "repository": "Lzq061122/CombatBrain-2.0",
+      "branch": "research/requirements-clarification-20261021",
+      "sha": "dd28965238a83c29ae824f7225d90e3b2c8bfce4",
+      "path": "sources/cb2_research",
+      "source_url": "https://github.com/Lzq061122/CombatBrain-2.0/tree/dd28965238a83c29ae824f7225d90e3b2c8bfce4",
+      "archive_url": "https://codeload.github.com/Lzq061122/CombatBrain-2.0/tar.gz/dd28965238a83c29ae824f7225d90e3b2c8bfce4"
+    },
+    {
+      "repository": "Lzq061122/Bannerlord-CombatBrain",
+      "branch": "main",
+      "sha": "e30a3543f3a249ac458b0894bfc1fd7a17a17f2d",
+      "path": "sources/legacy",
+      "source_url": "https://github.com/Lzq061122/Bannerlord-CombatBrain/tree/e30a3543f3a249ac458b0894bfc1fd7a17a17f2d",
+      "archive_url": "https://codeload.github.com/Lzq061122/Bannerlord-CombatBrain/tar.gz/e30a3543f3a249ac458b0894bfc1fd7a17a17f2d"
+    },
+    {
+      "repository": "Lzq061122/TacticalCommandLab",
+      "branch": "master",
+      "sha": "c86167a887cb3c1691dd12fa2d19385d937e8364",
+      "path": "sources/tcl/default",
+      "source_url": "https://github.com/Lzq061122/TacticalCommandLab/tree/c86167a887cb3c1691dd12fa2d19385d937e8364",
+      "archive_url": "https://codeload.github.com/Lzq061122/TacticalCommandLab/tar.gz/c86167a887cb3c1691dd12fa2d19385d937e8364"
+    },
+    {
+      "repository": "Lzq061122/TacticalCommandLab",
+      "branch": "codex/local-phase10-verification-20261006",
+      "sha": "a4524aa1cad75f085ad9c866a4dda457dfd6ad49",
+      "path": "sources/tcl/phase10",
+      "source_url": "https://github.com/Lzq061122/TacticalCommandLab/tree/a4524aa1cad75f085ad9c866a4dda457dfd6ad49",
+      "archive_url": "https://codeload.github.com/Lzq061122/TacticalCommandLab/tar.gz/a4524aa1cad75f085ad9c866a4dda457dfd6ad49"
+    },
+    {
+      "repository": "Lzq061122/Bannerlord-CBATH",
+      "branch": "main",
+      "sha": "acbd5d94a45770bdeaa046f24a72b4d803054388",
+      "path": "sources/cbath/default",
+      "source_url": "https://github.com/Lzq061122/Bannerlord-CBATH/tree/acbd5d94a45770bdeaa046f24a72b4d803054388",
+      "archive_url": "https://codeload.github.com/Lzq061122/Bannerlord-CBATH/tar.gz/acbd5d94a45770bdeaa046f24a72b4d803054388"
+    }
+  ],
+  "python_executable": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+  "planner_sha256": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+  "source_changes": "No production source, P3, frozen acceptance, push or PR changes. Independent snapshots only."
+}

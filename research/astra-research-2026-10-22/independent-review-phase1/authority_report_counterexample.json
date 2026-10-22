@@ -1,0 +1,21 @@
+{
+  "old_plan_adopted": true,
+  "old_report_initially_valid": true,
+  "old_authority": 1,
+  "new_authority": 2,
+  "new_snapshot_initial_blocked": [],
+  "blocked_after_consuming_old_report": [
+    [
+      "cavalry",
+      "enemy_archers"
+    ]
+  ],
+  "blocked_after_authority_revoked": [
+    [
+      "cavalry",
+      "enemy_archers"
+    ]
+  ],
+  "old_order_write_result": "lost_authority_or_identity",
+  "scope": "prototype only; no Bannerlord test"
+}

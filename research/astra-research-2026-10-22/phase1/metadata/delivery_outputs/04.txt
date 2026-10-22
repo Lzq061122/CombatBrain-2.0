@@ -1,0 +1,37 @@
+{
+  "source_sha": "dd28965238a83c29ae824f7225d90e3b2c8bfce4",
+  "symbol": "PlanBuilder.AssignGuardAndSupport",
+  "input": {
+    "formations": [
+      [
+        "A",
+        4.0,
+        0.0
+      ],
+      [
+        "B",
+        -5.0,
+        0.0
+      ]
+    ],
+    "guard_point": [
+      0.0,
+      0.0
+    ],
+    "support_point": [
+      10.0,
+      0.0
+    ]
+  },
+  "translated_cb2": {
+    "guard": "A",
+    "support": "B",
+    "travel_sum_m": 19.0
+  },
+  "joint_travel_reference": {
+    "guard": "B",
+    "support": "A",
+    "travel_sum_m": 11.0
+  },
+  "scope": "fixed geometric role subproblem only; Guard-first prioritization may be intentional. Not a production bug verdict, C# build, full CB2 reproduction or game performance comparison."
+}

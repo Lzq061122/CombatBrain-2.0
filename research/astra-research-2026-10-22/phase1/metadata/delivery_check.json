@@ -1,0 +1,135 @@
+{
+  "scope": "Extracted ZIP portability replay; no game or C# execution",
+  "python": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+  "planner_sha256": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+  "report_sha256": "4697b8c0a117df822fecf3950d8b1b1b4af4b723912dca8ce35e6856b02aacf8",
+  "local_links": [
+    {
+      "document": "主报告.md",
+      "target": "evidence/legacy_audit.md"
+    },
+    {
+      "document": "主报告.md",
+      "target": "evidence/native_audit.md"
+    },
+    {
+      "document": "主报告.md",
+      "target": "evidence/integration_spec.md"
+    },
+    {
+      "document": "主报告.md",
+      "target": "evidence/external_research.md"
+    },
+    {
+      "document": "主报告.md",
+      "target": "evidence/evaluation_protocol.md"
+    },
+    {
+      "document": "主报告.md",
+      "target": "prototype/results/cb2_baseline_probe.json"
+    },
+    {
+      "document": "主报告.md",
+      "target": "evidence/prototype_review.md"
+    },
+    {
+      "document": "主报告.md",
+      "target": "evidence/method_validity_review.md"
+    },
+    {
+      "document": "主报告.md",
+      "target": "prototype/README.md"
+    },
+    {
+      "document": "README.md",
+      "target": "主报告.md"
+    },
+    {
+      "document": "README.md",
+      "target": "prototype/README.md"
+    },
+    {
+      "document": "README.md",
+      "target": "evidence/external_research.md"
+    },
+    {
+      "document": "prototype/README.md",
+      "target": "../主报告.md"
+    },
+    {
+      "document": "prototype/README.md",
+      "target": "../evidence/integration_spec.md"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "prototype",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "output": "metadata/delivery_outputs/01.txt"
+    },
+    {
+      "command": [
+        "python3",
+        "prototype/run_experiments.py"
+      ],
+      "exit_code": 0,
+      "output": "metadata/delivery_outputs/02.txt"
+    },
+    {
+      "command": [
+        "python3",
+        "prototype/run_feedback.py"
+      ],
+      "exit_code": 0,
+      "output": "metadata/delivery_outputs/03.txt"
+    },
+    {
+      "command": [
+        "python3",
+        "prototype/cb2_baseline_probe.py"
+      ],
+      "exit_code": 0,
+      "output": "metadata/delivery_outputs/04.txt"
+    },
+    {
+      "command": [
+        "python3",
+        "prototype/test_method_review.py"
+      ],
+      "exit_code": 0,
+      "output": "metadata/delivery_outputs/05.txt"
+    },
+    {
+      "command": [
+        "python3",
+        "metadata/verify_native_snapshots.py"
+      ],
+      "exit_code": 0,
+      "output": "metadata/delivery_outputs/06.txt"
+    }
+  ],
+  "extracted_manifest_files_verified": 1091,
+  "unittest_count": 30,
+  "deterministic_summary_fields_match": [
+    "config",
+    "n",
+    "comparison",
+    "ablation",
+    "metamorphic_max_delta",
+    "sensitivity_changes",
+    "sensitivity_n",
+    "sequence_changes"
+  ],
+  "method_probe_key_repairs_confirmed": true,
+  "status": "PASS"
+}

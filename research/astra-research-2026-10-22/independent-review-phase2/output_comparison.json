@@ -1,0 +1,147 @@
+{
+  "ignored_timing_fields": [
+    "episode_ms",
+    "max_decision_ms",
+    "mean_decision_ms",
+    "total_ms",
+    "wall_ms",
+    "wall_ms_max",
+    "wall_ms_median",
+    "wall_ms_p90"
+  ],
+  "files": [
+    {
+      "file": "baseline_feedback_fixed.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "baseline_high_order.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "baseline_candidates.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "baseline_scale.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "baseline_sensitivity.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "baseline_regression_final.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "final_raw.jsonl",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "final_summary.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "ablations_raw.jsonl",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "ablations_summary.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "scale_raw.jsonl",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "scale_summary.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "bilateral_raw.jsonl",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "bilateral_summary.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "bilateral_close_raw.jsonl",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "bilateral_close_summary.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "model_challenges.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "active_cases.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "dynamic_budget_checks.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "dynamic_transform.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "diagnostics_summary.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "temporal_execution.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "review_final.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "selected_failure_traces.json",
+      "same_non_timing": true,
+      "first_difference": null
+    },
+    {
+      "file": "trace_behavior_analysis.json",
+      "same_non_timing": true,
+      "first_difference": null
+    }
+  ],
+  "all_same": true,
+  "ignored_environment_fields": [
+    "executable",
+    "machine",
+    "platform",
+    "processor",
+    "python"
+  ]
+}

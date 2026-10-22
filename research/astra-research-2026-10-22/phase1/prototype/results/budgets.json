@@ -1,0 +1,172 @@
+[
+  {
+    "budget": 0,
+    "expansions": 0,
+    "evaluations": 1,
+    "model_calls": 1,
+    "search_model_calls": 0,
+    "truncated": true,
+    "actors": 3,
+    "options": 20,
+    "feasible": true,
+    "actions": [
+      {
+        "actor": "cavalry",
+        "kind": "hold",
+        "target": "",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "infantry",
+        "kind": "protect",
+        "target": "archers",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "archers",
+        "kind": "hold",
+        "target": "",
+        "generation": 1,
+        "authority": 1
+      }
+    ]
+  },
+  {
+    "budget": 10,
+    "expansions": 10,
+    "evaluations": 11,
+    "model_calls": 11,
+    "search_model_calls": 10,
+    "truncated": true,
+    "actors": 3,
+    "options": 20,
+    "feasible": true,
+    "actions": [
+      {
+        "actor": "archers",
+        "kind": "shoot",
+        "target": "enemy_spears",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "cavalry",
+        "kind": "hold",
+        "target": "",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "infantry",
+        "kind": "protect",
+        "target": "archers",
+        "generation": 1,
+        "authority": 1
+      }
+    ]
+  },
+  {
+    "budget": 50,
+    "expansions": 50,
+    "evaluations": 51,
+    "model_calls": 51,
+    "search_model_calls": 50,
+    "truncated": true,
+    "actors": 3,
+    "options": 20,
+    "feasible": true,
+    "actions": [
+      {
+        "actor": "archers",
+        "kind": "shoot",
+        "target": "enemy_spears",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "cavalry",
+        "kind": "strike",
+        "target": "enemy_spears",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "infantry",
+        "kind": "protect",
+        "target": "archers",
+        "generation": 1,
+        "authority": 1
+      }
+    ]
+  },
+  {
+    "budget": 300,
+    "expansions": 300,
+    "evaluations": 301,
+    "model_calls": 301,
+    "search_model_calls": 300,
+    "truncated": true,
+    "actors": 3,
+    "options": 20,
+    "feasible": true,
+    "actions": [
+      {
+        "actor": "archers",
+        "kind": "shoot",
+        "target": "enemy_spears",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "cavalry",
+        "kind": "strike",
+        "target": "enemy_spears",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "infantry",
+        "kind": "protect",
+        "target": "archers",
+        "generation": 1,
+        "authority": 1
+      }
+    ]
+  },
+  {
+    "budget": 3000,
+    "expansions": 302,
+    "evaluations": 303,
+    "model_calls": 303,
+    "search_model_calls": 302,
+    "truncated": false,
+    "actors": 3,
+    "options": 20,
+    "feasible": true,
+    "actions": [
+      {
+        "actor": "archers",
+        "kind": "shoot",
+        "target": "enemy_spears",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "cavalry",
+        "kind": "strike",
+        "target": "enemy_spears",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "infantry",
+        "kind": "protect",
+        "target": "archers",
+        "generation": 1,
+        "authority": 1
+      }
+    ]
+  }
+]

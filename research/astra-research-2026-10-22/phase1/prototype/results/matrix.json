@@ -1,0 +1,2306 @@
+[
+  {
+    "seed": 1729,
+    "reference": 26.40161513192143,
+    "beam": {
+      "value": 24.2142207922341,
+      "regret": 2.18739433968733,
+      "feasible": true,
+      "expansions": 296,
+      "evaluations": 104,
+      "model_calls": 400,
+      "search_model_calls": 399,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 26.40161513192143,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 276,
+      "evaluations": 277,
+      "model_calls": 277,
+      "search_model_calls": 276,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 26.40161513192143,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 245,
+      "evaluations": 246,
+      "model_calls": 246,
+      "search_model_calls": 245,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.2142207922341,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.2142207922341,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.2142207922341,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.2142207922341,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1730,
+    "reference": 24.23814036946149,
+    "beam": {
+      "value": 24.23814036946149,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 296,
+      "evaluations": 104,
+      "model_calls": 400,
+      "search_model_calls": 399,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 24.23814036946149,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 276,
+      "evaluations": 277,
+      "model_calls": 277,
+      "search_model_calls": 276,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 24.23814036946149,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 245,
+      "evaluations": 246,
+      "model_calls": 246,
+      "search_model_calls": 245,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.23814036946149,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.23814036946149,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.23814036946149,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.23814036946149,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1731,
+    "reference": 36.144202499229,
+    "beam": {
+      "value": 36.144202499229,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 399,
+      "evaluations": 104,
+      "model_calls": 503,
+      "search_model_calls": 502,
+      "truncated": false,
+      "actors": 3,
+      "options": 22
+    },
+    "greedy": {
+      "value": 36.144202499229,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 366,
+      "evaluations": 367,
+      "model_calls": 367,
+      "search_model_calls": 366,
+      "truncated": false,
+      "actors": 3,
+      "options": 22
+    },
+    "exhaustive": {
+      "value": 36.144202499229,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 392,
+      "evaluations": 393,
+      "model_calls": 393,
+      "search_model_calls": 392,
+      "truncated": false,
+      "actors": 3,
+      "options": 22
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 36.144202499229,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 36.144202499229,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 36.144202499229,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 36.144202499229,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1732,
+    "reference": 8.55758789754334,
+    "beam": {
+      "value": 8.55758789754334,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 133,
+      "evaluations": 77,
+      "model_calls": 210,
+      "search_model_calls": 209,
+      "truncated": false,
+      "actors": 3,
+      "options": 15
+    },
+    "greedy": {
+      "value": 8.55758789754334,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 172,
+      "evaluations": 173,
+      "model_calls": 173,
+      "search_model_calls": 172,
+      "truncated": false,
+      "actors": 3,
+      "options": 15
+    },
+    "exhaustive": {
+      "value": 8.55758789754334,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 105,
+      "evaluations": 106,
+      "model_calls": 106,
+      "search_model_calls": 105,
+      "truncated": false,
+      "actors": 3,
+      "options": 15
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 8.55758789754334,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 8.55758789754334,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 8.55758789754334,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 8.55758789754334,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1733,
+    "reference": 15.403471196948239,
+    "beam": {
+      "value": 15.403471196948239,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 133,
+      "evaluations": 77,
+      "model_calls": 210,
+      "search_model_calls": 209,
+      "truncated": false,
+      "actors": 3,
+      "options": 15
+    },
+    "greedy": {
+      "value": 15.403471196948239,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 172,
+      "evaluations": 173,
+      "model_calls": 173,
+      "search_model_calls": 172,
+      "truncated": false,
+      "actors": 3,
+      "options": 15
+    },
+    "exhaustive": {
+      "value": 15.403471196948239,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 105,
+      "evaluations": 106,
+      "model_calls": 106,
+      "search_model_calls": 105,
+      "truncated": false,
+      "actors": 3,
+      "options": 15
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.403471196948239,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.081716520701667,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.081716520701667,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.403471196948239,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1734,
+    "reference": 10.990466256518827,
+    "beam": {
+      "value": 10.990466256518827,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 119,
+      "evaluations": 84,
+      "model_calls": 203,
+      "search_model_calls": 202,
+      "truncated": false,
+      "actors": 3,
+      "options": 14
+    },
+    "greedy": {
+      "value": 10.990466256518827,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 150,
+      "evaluations": 151,
+      "model_calls": 151,
+      "search_model_calls": 150,
+      "truncated": false,
+      "actors": 3,
+      "options": 14
+    },
+    "exhaustive": {
+      "value": 10.990466256518827,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 84,
+      "evaluations": 85,
+      "model_calls": 85,
+      "search_model_calls": 84,
+      "truncated": false,
+      "actors": 3,
+      "options": 14
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 10.990466256518827,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 10.990466256518827,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 10.990466256518827,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 10.990466256518827,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1735,
+    "reference": 25.689533931176616,
+    "beam": {
+      "value": 25.689533931176616,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 287,
+      "evaluations": 91,
+      "model_calls": 378,
+      "search_model_calls": 377,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 25.689533931176616,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 276,
+      "evaluations": 277,
+      "model_calls": 277,
+      "search_model_calls": 276,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 25.689533931176616,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 245,
+      "evaluations": 246,
+      "model_calls": 246,
+      "search_model_calls": 245,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 25.689533931176616,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 25.689533931176616,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 25.689533931176616,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 25.689533931176616,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1736,
+    "reference": 21.114854673633765,
+    "beam": {
+      "value": 21.114854673633765,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 175,
+      "evaluations": 77,
+      "model_calls": 252,
+      "search_model_calls": 251,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "greedy": {
+      "value": 21.114854673633765,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 216,
+      "evaluations": 217,
+      "model_calls": 217,
+      "search_model_calls": 216,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "exhaustive": {
+      "value": 21.114854673633765,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 147,
+      "evaluations": 148,
+      "model_calls": 148,
+      "search_model_calls": 147,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 21.114854673633765,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 16.120288603585934,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 16.120288603585934,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 21.114854673633765,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1737,
+    "reference": 19.095816473098008,
+    "beam": {
+      "value": 19.095816473098008,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 287,
+      "evaluations": 84,
+      "model_calls": 371,
+      "search_model_calls": 370,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "greedy": {
+      "value": 19.095816473098008,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 294,
+      "evaluations": 295,
+      "model_calls": 295,
+      "search_model_calls": 294,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "exhaustive": {
+      "value": 19.095816473098008,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 252,
+      "evaluations": 253,
+      "model_calls": 253,
+      "search_model_calls": 252,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 19.095816473098008,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 19.095816473098008,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 19.095816473098008,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 19.095816473098008,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1738,
+    "reference": 26.782681425516905,
+    "beam": {
+      "value": 26.782681425516905,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 296,
+      "evaluations": 104,
+      "model_calls": 400,
+      "search_model_calls": 399,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 26.782681425516905,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 276,
+      "evaluations": 277,
+      "model_calls": 277,
+      "search_model_calls": 276,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 26.782681425516905,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 245,
+      "evaluations": 246,
+      "model_calls": 246,
+      "search_model_calls": 245,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 26.782681425516905,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 26.782681425516905,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 26.782681425516905,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 26.782681425516905,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1739,
+    "reference": 29.134081338326645,
+    "beam": {
+      "value": 29.134081338326645,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 217,
+      "evaluations": 91,
+      "model_calls": 308,
+      "search_model_calls": 307,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "greedy": {
+      "value": 29.134081338326645,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 224,
+      "evaluations": 225,
+      "model_calls": 225,
+      "search_model_calls": 224,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "exhaustive": {
+      "value": 29.134081338326645,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 175,
+      "evaluations": 176,
+      "model_calls": 176,
+      "search_model_calls": 175,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 29.134081338326645,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.46558755887392,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.46558755887392,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 29.134081338326645,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1740,
+    "reference": 23.595535567500683,
+    "beam": {
+      "value": 23.595535567500683,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 399,
+      "evaluations": 104,
+      "model_calls": 503,
+      "search_model_calls": 502,
+      "truncated": false,
+      "actors": 3,
+      "options": 22
+    },
+    "greedy": {
+      "value": 23.595535567500683,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 366,
+      "evaluations": 367,
+      "model_calls": 367,
+      "search_model_calls": 366,
+      "truncated": false,
+      "actors": 3,
+      "options": 22
+    },
+    "exhaustive": {
+      "value": 23.595535567500683,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 392,
+      "evaluations": 393,
+      "model_calls": 393,
+      "search_model_calls": 392,
+      "truncated": false,
+      "actors": 3,
+      "options": 22
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 23.595535567500683,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 23.595535567500683,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 23.595535567500683,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 23.595535567500683,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1741,
+    "reference": 21.027060386059457,
+    "beam": {
+      "value": 21.027060386059457,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 357,
+      "evaluations": 91,
+      "model_calls": 448,
+      "search_model_calls": 447,
+      "truncated": false,
+      "actors": 3,
+      "options": 21
+    },
+    "greedy": {
+      "value": 21.027060386059457,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 328,
+      "evaluations": 329,
+      "model_calls": 329,
+      "search_model_calls": 328,
+      "truncated": false,
+      "actors": 3,
+      "options": 21
+    },
+    "exhaustive": {
+      "value": 21.027060386059457,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 315,
+      "evaluations": 316,
+      "model_calls": 316,
+      "search_model_calls": 315,
+      "truncated": false,
+      "actors": 3,
+      "options": 21
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 21.027060386059457,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 21.027060386059457,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 21.027060386059457,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 21.027060386059457,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1742,
+    "reference": 6.628015844954237,
+    "beam": {
+      "value": 6.628015844954237,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 133,
+      "evaluations": 77,
+      "model_calls": 210,
+      "search_model_calls": 209,
+      "truncated": false,
+      "actors": 3,
+      "options": 15
+    },
+    "greedy": {
+      "value": 6.628015844954237,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 172,
+      "evaluations": 173,
+      "model_calls": 173,
+      "search_model_calls": 172,
+      "truncated": false,
+      "actors": 3,
+      "options": 15
+    },
+    "exhaustive": {
+      "value": 6.628015844954237,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 105,
+      "evaluations": 106,
+      "model_calls": 106,
+      "search_model_calls": 105,
+      "truncated": false,
+      "actors": 3,
+      "options": 15
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 6.628015844954237,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 6.233413367913792,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 6.233413367913792,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 6.628015844954237,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1743,
+    "reference": 9.381936197048041,
+    "beam": {
+      "value": 9.381936197048041,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 399,
+      "evaluations": 104,
+      "model_calls": 503,
+      "search_model_calls": 502,
+      "truncated": false,
+      "actors": 3,
+      "options": 22
+    },
+    "greedy": {
+      "value": 9.381936197048041,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 366,
+      "evaluations": 367,
+      "model_calls": 367,
+      "search_model_calls": 366,
+      "truncated": false,
+      "actors": 3,
+      "options": 22
+    },
+    "exhaustive": {
+      "value": 9.381936197048041,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 392,
+      "evaluations": 393,
+      "model_calls": 393,
+      "search_model_calls": 392,
+      "truncated": false,
+      "actors": 3,
+      "options": 22
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 9.381936197048041,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 9.381936197048041,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 9.381936197048041,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 9.381936197048041,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1744,
+    "reference": 29.604940579132652,
+    "beam": {
+      "value": 29.604940579132652,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 296,
+      "evaluations": 104,
+      "model_calls": 400,
+      "search_model_calls": 399,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 29.604940579132652,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 276,
+      "evaluations": 277,
+      "model_calls": 277,
+      "search_model_calls": 276,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 29.604940579132652,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 245,
+      "evaluations": 246,
+      "model_calls": 246,
+      "search_model_calls": 245,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 29.604940579132652,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 20.467189019938573,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 20.467189019938573,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 29.604940579132652,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1745,
+    "reference": 27.203175350337425,
+    "beam": {
+      "value": 27.203175350337425,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 488,
+      "evaluations": 104,
+      "model_calls": 592,
+      "search_model_calls": 591,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "greedy": {
+      "value": 27.203175350337425,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 396,
+      "evaluations": 397,
+      "model_calls": 397,
+      "search_model_calls": 396,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "exhaustive": {
+      "value": 27.203175350337425,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 441,
+      "evaluations": 442,
+      "model_calls": 442,
+      "search_model_calls": 441,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.203175350337425,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.203175350337425,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.203175350337425,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.203175350337425,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1746,
+    "reference": 15.847682951201717,
+    "beam": {
+      "value": 15.847682951201717,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 175,
+      "evaluations": 84,
+      "model_calls": 259,
+      "search_model_calls": 258,
+      "truncated": false,
+      "actors": 3,
+      "options": 16
+    },
+    "greedy": {
+      "value": 15.847682951201717,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 198,
+      "evaluations": 199,
+      "model_calls": 199,
+      "search_model_calls": 198,
+      "truncated": false,
+      "actors": 3,
+      "options": 16
+    },
+    "exhaustive": {
+      "value": 15.847682951201717,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 140,
+      "evaluations": 141,
+      "model_calls": 141,
+      "search_model_calls": 140,
+      "truncated": false,
+      "actors": 3,
+      "options": 16
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.847682951201717,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.847682951201717,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.847682951201717,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.847682951201717,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1747,
+    "reference": 17.393092929073262,
+    "beam": {
+      "value": 17.393092929073262,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 200,
+      "evaluations": 104,
+      "model_calls": 304,
+      "search_model_calls": 303,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "greedy": {
+      "value": 17.393092929073262,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 216,
+      "evaluations": 217,
+      "model_calls": 217,
+      "search_model_calls": 216,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "exhaustive": {
+      "value": 17.393092929073262,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 147,
+      "evaluations": 148,
+      "model_calls": 148,
+      "search_model_calls": 147,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.393092929073262,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.393092929073262,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.393092929073262,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.393092929073262,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1748,
+    "reference": 17.996909728413364,
+    "beam": {
+      "value": 17.996909728413364,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 217,
+      "evaluations": 91,
+      "model_calls": 308,
+      "search_model_calls": 307,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "greedy": {
+      "value": 17.996909728413364,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 224,
+      "evaluations": 225,
+      "model_calls": 225,
+      "search_model_calls": 224,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "exhaustive": {
+      "value": 17.996909728413364,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 175,
+      "evaluations": 176,
+      "model_calls": 176,
+      "search_model_calls": 175,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.996909728413364,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.996909728413364,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.996909728413364,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.996909728413364,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1749,
+    "reference": 27.001059259734703,
+    "beam": {
+      "value": 27.001059259734703,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 343,
+      "evaluations": 98,
+      "model_calls": 441,
+      "search_model_calls": 440,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "greedy": {
+      "value": 27.001059259734703,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 306,
+      "evaluations": 307,
+      "model_calls": 307,
+      "search_model_calls": 306,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "exhaustive": {
+      "value": 27.001059259734703,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 294,
+      "evaluations": 295,
+      "model_calls": 295,
+      "search_model_calls": 294,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.001059259734703,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.001059259734703,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.001059259734703,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.001059259734703,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1750,
+    "reference": 8.111999094426945,
+    "beam": {
+      "value": 8.111999094426945,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 217,
+      "evaluations": 77,
+      "model_calls": 294,
+      "search_model_calls": 293,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 8.111999094426945,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 260,
+      "evaluations": 261,
+      "model_calls": 261,
+      "search_model_calls": 260,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 8.111999094426945,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 189,
+      "evaluations": 190,
+      "model_calls": 190,
+      "search_model_calls": 189,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 8.111999094426945,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 8.111999094426945,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 8.111999094426945,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 8.111999094426945,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1751,
+    "reference": 17.60475407196145,
+    "beam": {
+      "value": 17.60475407196145,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 287,
+      "evaluations": 91,
+      "model_calls": 378,
+      "search_model_calls": 377,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 17.60475407196145,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 276,
+      "evaluations": 277,
+      "model_calls": 277,
+      "search_model_calls": 276,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 17.60475407196145,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 245,
+      "evaluations": 246,
+      "model_calls": 246,
+      "search_model_calls": 245,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.60475407196145,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.60475407196145,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.60475407196145,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 17.60475407196145,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1752,
+    "reference": 20.869305692262746,
+    "beam": {
+      "value": 20.869305692262746,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 343,
+      "evaluations": 98,
+      "model_calls": 441,
+      "search_model_calls": 440,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "greedy": {
+      "value": 20.869305692262746,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 306,
+      "evaluations": 307,
+      "model_calls": 307,
+      "search_model_calls": 306,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "exhaustive": {
+      "value": 20.869305692262746,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 294,
+      "evaluations": 295,
+      "model_calls": 295,
+      "search_model_calls": 294,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 20.869305692262746,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.73605544968892,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.73605544968892,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 20.869305692262746,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1753,
+    "reference": 13.829137716910912,
+    "beam": {
+      "value": 13.829137716910912,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 217,
+      "evaluations": 91,
+      "model_calls": 308,
+      "search_model_calls": 307,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "greedy": {
+      "value": 13.829137716910912,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 224,
+      "evaluations": 225,
+      "model_calls": 225,
+      "search_model_calls": 224,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "exhaustive": {
+      "value": 13.829137716910912,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 175,
+      "evaluations": 176,
+      "model_calls": 176,
+      "search_model_calls": 175,
+      "truncated": false,
+      "actors": 3,
+      "options": 17
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 13.829137716910912,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 13.829137716910912,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 13.829137716910912,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 13.829137716910912,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1754,
+    "reference": 26.864730171055765,
+    "beam": {
+      "value": 26.864730171055765,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 488,
+      "evaluations": 104,
+      "model_calls": 592,
+      "search_model_calls": 591,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "greedy": {
+      "value": 26.864730171055765,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 396,
+      "evaluations": 397,
+      "model_calls": 397,
+      "search_model_calls": 396,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "exhaustive": {
+      "value": 26.864730171055765,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 441,
+      "evaluations": 442,
+      "model_calls": 442,
+      "search_model_calls": 441,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 26.864730171055765,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 26.552675720284103,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 26.552675720284103,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 26.864730171055765,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1755,
+    "reference": 15.88127979413524,
+    "beam": {
+      "value": 15.88127979413524,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 175,
+      "evaluations": 84,
+      "model_calls": 259,
+      "search_model_calls": 258,
+      "truncated": false,
+      "actors": 3,
+      "options": 16
+    },
+    "greedy": {
+      "value": 15.88127979413524,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 198,
+      "evaluations": 199,
+      "model_calls": 199,
+      "search_model_calls": 198,
+      "truncated": false,
+      "actors": 3,
+      "options": 16
+    },
+    "exhaustive": {
+      "value": 15.88127979413524,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 140,
+      "evaluations": 141,
+      "model_calls": 141,
+      "search_model_calls": 140,
+      "truncated": false,
+      "actors": 3,
+      "options": 16
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.88127979413524,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.88127979413524,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.88127979413524,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.88127979413524,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1756,
+    "reference": 27.022135271262282,
+    "beam": {
+      "value": 27.022135271262282,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 488,
+      "evaluations": 104,
+      "model_calls": 592,
+      "search_model_calls": 591,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "greedy": {
+      "value": 27.022135271262282,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 396,
+      "evaluations": 397,
+      "model_calls": 397,
+      "search_model_calls": 396,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "exhaustive": {
+      "value": 27.022135271262282,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 441,
+      "evaluations": 442,
+      "model_calls": 442,
+      "search_model_calls": 441,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.022135271262282,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.022135271262282,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.022135271262282,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 27.022135271262282,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1757,
+    "reference": 36.50910854962765,
+    "beam": {
+      "value": 36.50910854962765,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 296,
+      "evaluations": 104,
+      "model_calls": 400,
+      "search_model_calls": 399,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 36.50910854962765,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 276,
+      "evaluations": 277,
+      "model_calls": 277,
+      "search_model_calls": 276,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 36.50910854962765,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 245,
+      "evaluations": 246,
+      "model_calls": 246,
+      "search_model_calls": 245,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 36.50910854962765,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 34.64554710249194,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 34.64554710249194,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 36.50910854962765,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1758,
+    "reference": -1.7304365502957915,
+    "beam": {
+      "value": -1.7304365502957915,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 259,
+      "evaluations": 98,
+      "model_calls": 357,
+      "search_model_calls": 356,
+      "truncated": false,
+      "actors": 3,
+      "options": 18
+    },
+    "greedy": {
+      "value": -1.7304365502957915,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 250,
+      "evaluations": 251,
+      "model_calls": 251,
+      "search_model_calls": 250,
+      "truncated": false,
+      "actors": 3,
+      "options": 18
+    },
+    "exhaustive": {
+      "value": -1.7304365502957915,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 210,
+      "evaluations": 211,
+      "model_calls": 211,
+      "search_model_calls": 210,
+      "truncated": false,
+      "actors": 3,
+      "options": 18
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": -1.7304365502957915,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": -2.568805212351121,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": -2.568805212351121,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": -1.7983599879513228,
+      "same_as_full": false
+    }
+  },
+  {
+    "seed": 1759,
+    "reference": 25.65832403983159,
+    "beam": {
+      "value": 25.65832403983159,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 488,
+      "evaluations": 104,
+      "model_calls": 592,
+      "search_model_calls": 591,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "greedy": {
+      "value": 25.65832403983159,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 396,
+      "evaluations": 397,
+      "model_calls": 397,
+      "search_model_calls": 396,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "exhaustive": {
+      "value": 25.65832403983159,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 441,
+      "evaluations": 442,
+      "model_calls": 442,
+      "search_model_calls": 441,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 25.65832403983159,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.50502993621257,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 24.50502993621257,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 25.65832403983159,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1760,
+    "reference": 28.218862265291587,
+    "beam": {
+      "value": 28.218862265291587,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 488,
+      "evaluations": 104,
+      "model_calls": 592,
+      "search_model_calls": 591,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "greedy": {
+      "value": 28.218862265291587,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 396,
+      "evaluations": 397,
+      "model_calls": 397,
+      "search_model_calls": 396,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "exhaustive": {
+      "value": 28.218862265291587,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 441,
+      "evaluations": 442,
+      "model_calls": 442,
+      "search_model_calls": 441,
+      "truncated": false,
+      "actors": 3,
+      "options": 23
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 28.218862265291587,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 28.218862265291587,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 28.218862265291587,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 28.218862265291587,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1761,
+    "reference": 15.38885962824589,
+    "beam": {
+      "value": 15.38885962824589,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 303,
+      "evaluations": 104,
+      "model_calls": 407,
+      "search_model_calls": 406,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "greedy": {
+      "value": 15.38885962824589,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 302,
+      "evaluations": 303,
+      "model_calls": 303,
+      "search_model_calls": 302,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "exhaustive": {
+      "value": 15.38885962824589,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 280,
+      "evaluations": 281,
+      "model_calls": 281,
+      "search_model_calls": 280,
+      "truncated": false,
+      "actors": 3,
+      "options": 20
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.38885962824589,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.38885962824589,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.38885962824589,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 15.38885962824589,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1762,
+    "reference": 15.552813175642353,
+    "beam": {
+      "value": 14.81429397688466,
+      "regret": 0.7385191987576931,
+      "feasible": true,
+      "expansions": 296,
+      "evaluations": 104,
+      "model_calls": 400,
+      "search_model_calls": 399,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 15.552813175642353,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 276,
+      "evaluations": 277,
+      "model_calls": 277,
+      "search_model_calls": 276,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 15.552813175642353,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 245,
+      "evaluations": 246,
+      "model_calls": 246,
+      "search_model_calls": 245,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 14.81429397688466,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 14.1159512023615,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 14.1159512023615,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 14.81429397688466,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1763,
+    "reference": 18.90973218458792,
+    "beam": {
+      "value": 18.90973218458792,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 296,
+      "evaluations": 104,
+      "model_calls": 400,
+      "search_model_calls": 399,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "greedy": {
+      "value": 18.90973218458792,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 276,
+      "evaluations": 277,
+      "model_calls": 277,
+      "search_model_calls": 276,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "exhaustive": {
+      "value": 18.90973218458792,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 245,
+      "evaluations": 246,
+      "model_calls": 246,
+      "search_model_calls": 245,
+      "truncated": false,
+      "actors": 3,
+      "options": 19
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 18.90973218458792,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 18.577566491550563,
+      "same_as_full": false
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 18.577566491550563,
+      "same_as_full": false
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 18.90973218458792,
+      "same_as_full": true
+    }
+  },
+  {
+    "seed": 1764,
+    "reference": 11.84521069363622,
+    "beam": {
+      "value": 11.84521069363622,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 175,
+      "evaluations": 84,
+      "model_calls": 259,
+      "search_model_calls": 258,
+      "truncated": false,
+      "actors": 3,
+      "options": 16
+    },
+    "greedy": {
+      "value": 11.84521069363622,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 198,
+      "evaluations": 199,
+      "model_calls": 199,
+      "search_model_calls": 198,
+      "truncated": false,
+      "actors": 3,
+      "options": 16
+    },
+    "exhaustive": {
+      "value": 11.84521069363622,
+      "regret": 0.0,
+      "feasible": true,
+      "expansions": 140,
+      "evaluations": 141,
+      "model_calls": 141,
+      "search_model_calls": 140,
+      "truncated": false,
+      "actors": 3,
+      "options": 16
+    },
+    "no_dependency": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 11.84521069363622,
+      "same_as_full": true
+    },
+    "nominal_only": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 11.84521069363622,
+      "same_as_full": true
+    },
+    "single_scenario": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 11.84521069363622,
+      "same_as_full": true
+    },
+    "no_uncertainty": {
+      "strict_feasible": true,
+      "strict_reasons": [],
+      "strict_value": 11.84521069363622,
+      "same_as_full": true
+    }
+  }
+]

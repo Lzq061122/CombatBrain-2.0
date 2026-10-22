@@ -1,0 +1,82 @@
+{
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.39"
+  },
+  "config": {
+    "width": 48,
+    "expansions": 3000,
+    "options": 10,
+    "targets": 2,
+    "loss_weight": 1.0,
+    "switch_cost": 2.0,
+    "uncertainty": true,
+    "retain_all_scenarios": false,
+    "dependencies": true,
+    "scenarios": [
+      "hold",
+      "reinforce",
+      "counter"
+    ],
+    "eta_scale": 1.0,
+    "setup_seconds": 2.0,
+    "strike_seconds": 6.0,
+    "guard_radius": 75.0
+  },
+  "n": 36,
+  "comparison": {
+    "beam": {
+      "mean_regret": 0.08127537606791731,
+      "max_regret": 2.18739433968733,
+      "exact_count": 34,
+      "feasible_count": 36,
+      "mean_evaluations": 94.80555555555556,
+      "mean_model_calls": 385.3888888888889,
+      "mean_expansions": 290.5833333333333
+    },
+    "greedy": {
+      "mean_regret": 0.0,
+      "max_regret": 0.0,
+      "exact_count": 36,
+      "feasible_count": 36,
+      "mean_evaluations": 278,
+      "mean_model_calls": 278,
+      "mean_expansions": 277
+    }
+  },
+  "ablation": {
+    "no_dependency": {
+      "invalid": 0,
+      "different": 0
+    },
+    "nominal_only": {
+      "invalid": 0,
+      "different": 12
+    },
+    "single_scenario": {
+      "invalid": 0,
+      "different": 12
+    },
+    "no_uncertainty": {
+      "invalid": 0,
+      "different": 1
+    }
+  },
+  "metamorphic_max_delta": 3.197442310920451e-14,
+  "sensitivity_changes": 25,
+  "sensitivity_n": 90,
+  "sequence_changes": {
+    "full": 1,
+    "no_switch_cost": 1
+  },
+  "per_case_three_methods_ms": {
+    "median": 64.03984699997523,
+    "max": 155.39134300001933
+  },
+  "limitations": [
+    "synthetic capacity proxy, not victory probability",
+    "same model used by evaluator and reference; no game validation",
+    "beam heuristic can miss feasible packages",
+    "three-method timing includes exhaustive search"
+  ]
+}

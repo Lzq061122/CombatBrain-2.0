@@ -1,0 +1,1491 @@
+{
+  "environment": {
+    "python": "3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]",
+    "executable": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+    "platform": "macOS-26.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "processor": "arm",
+    "seed": 2026102202,
+    "baseline_sha256": "efe0b280acfa503e9cbf7a58a89430fca877dd3418e621eb20e7a04dad51a806",
+    "runner_sha256": "b3db37522d416d65aad688f0e669f1d6d669177d8677dac4f9ac6dd32532814d",
+    "units": "abstract equal-weight capacity loss; not victory or measured game damage",
+    "timing": "whole choose(), serial methods, perf_counter_ns; no warmup excluded",
+    "budget": "search model calls capped; 1 mandatory fallback call separate; closure nodes separately capped at same limit; candidate generation included only in wall time",
+    "scope": "single snapshot; inherited model with uncertainty=False; same-model search checks only"
+  },
+  "cases": [
+    {
+      "id": "three_way_positive",
+      "snapshot": {
+        "friendly": [
+          {
+            "uid": "cavalry",
+            "x": 0,
+            "y": 0,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 500,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 0,
+                "anti_mount": 0,
+                "mounted": true,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          },
+          {
+            "uid": "fixer1",
+            "x": 0,
+            "y": 0,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 35,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 0,
+                "anti_mount": 0,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          },
+          {
+            "uid": "fixer2",
+            "x": 0,
+            "y": 0,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 35,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 0,
+                "anti_mount": 0,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          }
+        ],
+        "enemy": [
+          {
+            "uid": "target",
+            "x": 100,
+            "y": 0,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 500,
+                "melee": 0,
+                "ranged": 1,
+                "armour": 0,
+                "anti_mount": 0,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          },
+          {
+            "uid": "guard1",
+            "x": 100,
+            "y": -30,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 100,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 1,
+                "anti_mount": 1,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          },
+          {
+            "uid": "guard2",
+            "x": 100,
+            "y": 30,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 100,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 1,
+                "anti_mount": 1,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          }
+        ],
+        "duties": [],
+        "horizon": 30.0,
+        "mission": "synthetic",
+        "domain": "legal-domain-fixture",
+        "now": 0.0,
+        "epoch": 1,
+        "blocked": [],
+        "failed_probes": [],
+        "major_change": true,
+        "active_effects": [],
+        "feedback_blocked": [],
+        "feedback_failed_probes": []
+      },
+      "config": {
+        "width": 32,
+        "expansions": 5000,
+        "options": 16,
+        "targets": 3,
+        "loss_weight": 1.0,
+        "switch_cost": 2.0,
+        "uncertainty": false,
+        "retain_all_scenarios": false,
+        "dependencies": true,
+        "scenarios": [
+          "hold",
+          "reinforce",
+          "counter"
+        ],
+        "eta_scale": 1.0,
+        "setup_seconds": 2.0,
+        "strike_seconds": 6.0,
+        "guard_radius": 75.0,
+        "closure_fanout": 3
+      },
+      "options": {
+        "cavalry": [
+          {
+            "actor": "cavalry",
+            "kind": "hold",
+            "target": "",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "strike",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "fix",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "probe",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "strike",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "fix",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "probe",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "strike",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "fix",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "probe",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "fixer1": [
+          {
+            "actor": "fixer1",
+            "kind": "hold",
+            "target": "",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "strike",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "fix",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "probe",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "strike",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "fix",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "probe",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "strike",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "fix",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "probe",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "fixer2": [
+          {
+            "actor": "fixer2",
+            "kind": "hold",
+            "target": "",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "strike",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "fix",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "probe",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "strike",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "fix",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "probe",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "strike",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "fix",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "probe",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          }
+        ]
+      },
+      "candidate_product": 1000,
+      "support_relations": 4,
+      "runs": [
+        {
+          "method": "greedy",
+          "value": 135.0,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "fix",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 147.0,
+            "reinforce": 135.0,
+            "counter": 147.0
+          },
+          "work": {
+            "expansions": 660,
+            "evaluations": 661,
+            "model_calls": 661,
+            "search_model_calls": 660,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 0,
+            "dependency_packages": 0,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard1": 76,
+            "unfixed_support:cavalry:guard2": 76
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 661,
+            "partial_relaxed_assessments": 0,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 661,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            43.854125,
+            42.858792,
+            42.10825
+          ]
+        },
+        {
+          "method": "closure",
+          "value": 213.81935255375072,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "fix",
+              "target": "guard1",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "fix",
+              "target": "guard2",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 213.81935255375072,
+            "reinforce": 213.81935255375072,
+            "counter": 213.81935255375072
+          },
+          "work": {
+            "expansions": 672,
+            "evaluations": 673,
+            "model_calls": 673,
+            "search_model_calls": 672,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 20,
+            "dependency_packages": 12,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard1": 146,
+            "unfixed_support:cavalry:guard2": 146
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 673,
+            "partial_relaxed_assessments": 0,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 673,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            38.742166,
+            38.809042,
+            38.160375
+          ]
+        },
+        {
+          "method": "beam",
+          "value": 135.0,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "fix",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 147.0,
+            "reinforce": 135.0,
+            "counter": 147.0
+          },
+          "work": {
+            "expansions": 430,
+            "evaluations": 75,
+            "model_calls": 505,
+            "search_model_calls": 504,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 0,
+            "dependency_packages": 0,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard2": 2,
+            "unfixed_support:cavalry:guard1": 2
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 75,
+            "partial_relaxed_assessments": 430,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 75,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            39.805291,
+            40.216708,
+            40.197083
+          ]
+        },
+        {
+          "method": "exhaustive",
+          "value": 213.81935255375072,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "fix",
+              "target": "guard1",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "fix",
+              "target": "guard2",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 213.81935255375072,
+            "reinforce": 213.81935255375072,
+            "counter": 213.81935255375072
+          },
+          "work": {
+            "expansions": 1000,
+            "evaluations": 1001,
+            "model_calls": 1001,
+            "search_model_calls": 1000,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 0,
+            "dependency_packages": 0,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard1": 162,
+            "unfixed_support:cavalry:guard2": 162
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 1001,
+            "partial_relaxed_assessments": 0,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 1001,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            61.152625,
+            60.600167,
+            61.765791
+          ]
+        },
+        {
+          "method": "beam",
+          "value": 213.81935255375072,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "fix",
+              "target": "guard1",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "fix",
+              "target": "guard2",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 213.81935255375072,
+            "reinforce": 213.81935255375072,
+            "counter": 213.81935255375072
+          },
+          "work": {
+            "expansions": 1110,
+            "evaluations": 1111,
+            "model_calls": 2221,
+            "search_model_calls": 2220,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 0,
+            "dependency_packages": 0,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard2": 182,
+            "unfixed_support:cavalry:guard1": 182
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 1111,
+            "partial_relaxed_assessments": 1110,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 1111,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            161.622292,
+            160.110542,
+            162.081334
+          ],
+          "variant": "wide_1000"
+        }
+      ]
+    },
+    {
+      "id": "closure_local_basin_negative",
+      "snapshot": {
+        "friendly": [
+          {
+            "uid": "cavalry",
+            "x": 0,
+            "y": 0,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 200,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 0,
+                "anti_mount": 0,
+                "mounted": true,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          },
+          {
+            "uid": "fixer1",
+            "x": 0,
+            "y": 0,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 35,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 0,
+                "anti_mount": 0,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          },
+          {
+            "uid": "fixer2",
+            "x": 0,
+            "y": 0,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 35,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 0,
+                "anti_mount": 0,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          }
+        ],
+        "enemy": [
+          {
+            "uid": "target",
+            "x": 100,
+            "y": 0,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 500,
+                "melee": 0,
+                "ranged": 1,
+                "armour": 0,
+                "anti_mount": 0,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          },
+          {
+            "uid": "guard1",
+            "x": 100,
+            "y": -30,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 100,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 1,
+                "anti_mount": 1,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          },
+          {
+            "uid": "guard2",
+            "x": 100,
+            "y": 30,
+            "speed": 10,
+            "groups": [
+              {
+                "n": 100,
+                "melee": 1,
+                "ranged": 0,
+                "armour": 1,
+                "anti_mount": 1,
+                "mounted": false,
+                "known": true
+              }
+            ],
+            "generation": 1,
+            "authority": 1,
+            "authorized": true,
+            "present": true,
+            "ammo": 1.0,
+            "los": true,
+            "mobility": 1.0,
+            "executable": true,
+            "endurance": 30.0
+          }
+        ],
+        "duties": [],
+        "horizon": 30.0,
+        "mission": "synthetic",
+        "domain": "legal-domain-fixture",
+        "now": 0.0,
+        "epoch": 1,
+        "blocked": [],
+        "failed_probes": [],
+        "major_change": true,
+        "active_effects": [],
+        "feedback_blocked": [],
+        "feedback_failed_probes": []
+      },
+      "config": {
+        "width": 32,
+        "expansions": 5000,
+        "options": 16,
+        "targets": 3,
+        "loss_weight": 1.0,
+        "switch_cost": 2.0,
+        "uncertainty": false,
+        "retain_all_scenarios": false,
+        "dependencies": true,
+        "scenarios": [
+          "hold",
+          "reinforce",
+          "counter"
+        ],
+        "eta_scale": 1.0,
+        "setup_seconds": 2.0,
+        "strike_seconds": 6.0,
+        "guard_radius": 75.0,
+        "closure_fanout": 3
+      },
+      "options": {
+        "cavalry": [
+          {
+            "actor": "cavalry",
+            "kind": "hold",
+            "target": "",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "strike",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "fix",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "probe",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "strike",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "fix",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "probe",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "strike",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "fix",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "cavalry",
+            "kind": "probe",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "fixer1": [
+          {
+            "actor": "fixer1",
+            "kind": "hold",
+            "target": "",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "strike",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "fix",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "probe",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "strike",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "fix",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "probe",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "strike",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "fix",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer1",
+            "kind": "probe",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "fixer2": [
+          {
+            "actor": "fixer2",
+            "kind": "hold",
+            "target": "",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "strike",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "fix",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "probe",
+            "target": "target",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "strike",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "fix",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "probe",
+            "target": "guard1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "strike",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "fix",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "fixer2",
+            "kind": "probe",
+            "target": "guard2",
+            "generation": 1,
+            "authority": 1
+          }
+        ]
+      },
+      "candidate_product": 1000,
+      "support_relations": 4,
+      "runs": [
+        {
+          "method": "greedy",
+          "value": 72.0,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "fix",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 84.0,
+            "reinforce": 72.0,
+            "counter": 84.0
+          },
+          "work": {
+            "expansions": 660,
+            "evaluations": 661,
+            "model_calls": 661,
+            "search_model_calls": 660,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 0,
+            "dependency_packages": 0,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard1": 76,
+            "unfixed_support:cavalry:guard2": 76
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 661,
+            "partial_relaxed_assessments": 0,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 661,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            41.451958,
+            41.082916,
+            40.702167
+          ]
+        },
+        {
+          "method": "closure",
+          "value": 58.222417642856186,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "fix",
+              "target": "guard1",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "fix",
+              "target": "guard2",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 58.222417642856186,
+            "reinforce": 58.222417642856186,
+            "counter": 58.222417642856186
+          },
+          "work": {
+            "expansions": 672,
+            "evaluations": 673,
+            "model_calls": 673,
+            "search_model_calls": 672,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 20,
+            "dependency_packages": 12,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard1": 146,
+            "unfixed_support:cavalry:guard2": 146
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 673,
+            "partial_relaxed_assessments": 0,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 673,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            37.45475,
+            38.325125,
+            38.990583
+          ]
+        },
+        {
+          "method": "beam",
+          "value": 72.0,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "fix",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 84.0,
+            "reinforce": 72.0,
+            "counter": 84.0
+          },
+          "work": {
+            "expansions": 430,
+            "evaluations": 75,
+            "model_calls": 505,
+            "search_model_calls": 504,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 0,
+            "dependency_packages": 0,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard2": 2,
+            "unfixed_support:cavalry:guard1": 2
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 75,
+            "partial_relaxed_assessments": 430,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 75,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            38.187542,
+            38.006666,
+            38.210334
+          ]
+        },
+        {
+          "method": "exhaustive",
+          "value": 72.0,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "fix",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 84.0,
+            "reinforce": 72.0,
+            "counter": 84.0
+          },
+          "work": {
+            "expansions": 1000,
+            "evaluations": 1001,
+            "model_calls": 1001,
+            "search_model_calls": 1000,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 0,
+            "dependency_packages": 0,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard1": 162,
+            "unfixed_support:cavalry:guard2": 162
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 1001,
+            "partial_relaxed_assessments": 0,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 1001,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            60.234375,
+            60.421292,
+            59.507
+          ]
+        },
+        {
+          "method": "beam",
+          "value": 72.0,
+          "feasible": true,
+          "rechecked_feasible": true,
+          "actions": [
+            {
+              "actor": "cavalry",
+              "kind": "fix",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer1",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            },
+            {
+              "actor": "fixer2",
+              "kind": "strike",
+              "target": "target",
+              "generation": 1,
+              "authority": 1
+            }
+          ],
+          "outcomes": {
+            "hold": 84.0,
+            "reinforce": 72.0,
+            "counter": 84.0
+          },
+          "work": {
+            "expansions": 1110,
+            "evaluations": 1111,
+            "model_calls": 2221,
+            "search_model_calls": 2220,
+            "truncated": false,
+            "actors": 3,
+            "options": 30,
+            "closure_nodes": 0,
+            "dependency_packages": 0,
+            "mandatory_model_calls": 1
+          },
+          "rejected": {
+            "unfixed_support:cavalry:guard2": 182,
+            "unfixed_support:cavalry:guard1": 182
+          },
+          "reason": "best_available",
+          "work_attribution": {
+            "full_assessments": 1111,
+            "partial_relaxed_assessments": 1110,
+            "candidate_generation_passes": 1,
+            "complete_plan_constraint_checks": 1111,
+            "external_result_recheck_excluded_from_wall_time": 1
+          },
+          "wall_ms": [
+            158.205208,
+            160.327,
+            159.697167
+          ],
+          "variant": "wide_1000"
+        }
+      ]
+    }
+  ],
+  "interpretation": "Candidate-domain optimum only. Closure is not a universal dominance improvement; wide beam spends extra evaluations."
+}

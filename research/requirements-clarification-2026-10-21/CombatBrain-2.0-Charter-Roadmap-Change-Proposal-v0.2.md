@@ -1,5 +1,7 @@
 # CombatBrain 2.0 — Charter 与 Roadmap 增量修订建议 v0.2
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-09](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-09)、[AR-13](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-13)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > 2026-10-21 / 研究分支 / **不覆盖现行上位文档，不变更生产控制权或 P3 合同**。源文件：Charter v0.3（文件名 Charter V0.2.md）、Roadmap v0.2（文件名 v0.1）、Requirements Clarification（2026-10-20）；新增研究稿见同目录 v0.5。
 
 ## A. 建议写回 Charter 的产品要求（已确认方向）

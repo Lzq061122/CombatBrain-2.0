@@ -1,5 +1,7 @@
 # CombatBrain 2.0｜D-CAP-01 有效战斗能力与任务效果评估：已确认裁决（2026-10-22）
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-04](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-04)、[AR-08](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-08)、[AR-14](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-14)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > 状态：**D-CAP-01 CONFIRMED（架构方向）**；细节及验收均 OPEN/PROPOSED。本文件属于研究分支的产品决策记录，**不代表已实现、代码获准开发或 P3 合同发生变化**。不更改 `master`。
 
 ## 1. 产品负责人裁决（CONFIRMED）

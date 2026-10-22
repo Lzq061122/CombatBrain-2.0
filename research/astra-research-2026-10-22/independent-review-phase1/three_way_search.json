@@ -1,0 +1,86 @@
+{
+  "greedy": {
+    "feasible": true,
+    "value": 170.88182059877505,
+    "actions": [
+      {
+        "actor": "cav",
+        "kind": "fix",
+        "target": "target",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f1",
+        "kind": "strike",
+        "target": "target",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f2",
+        "kind": "strike",
+        "target": "target",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "model_calls": 661
+  },
+  "beam": {
+    "feasible": true,
+    "value": 309.745016522155,
+    "actions": [
+      {
+        "actor": "cav",
+        "kind": "strike",
+        "target": "target",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f1",
+        "kind": "fix",
+        "target": "g2",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f2",
+        "kind": "fix",
+        "target": "g1",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "model_calls": 505
+  },
+  "exhaustive": {
+    "feasible": true,
+    "value": 309.745016522155,
+    "actions": [
+      {
+        "actor": "cav",
+        "kind": "strike",
+        "target": "target",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f1",
+        "kind": "fix",
+        "target": "g2",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "f2",
+        "kind": "fix",
+        "target": "g1",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "model_calls": 1001
+  }
+}

@@ -1,0 +1,408 @@
+{
+  "repo": "Lzq061122/Bannerlord-CombatBrain",
+  "default_branch": "main",
+  "sha": "e30a3543f3a249ac458b0894bfc1fd7a17a17f2d",
+  "archive_url": "https://api.github.com/repos/Lzq061122/Bannerlord-CombatBrain/tarball/e30a3543f3a249ac458b0894bfc1fd7a17a17f2d",
+  "archive_sha256": "fcd5f608e8ab3d99ff7fa60648ed6405414cb321b47c10e4f19f9d82070228de",
+  "local_checks": [
+    {
+      "command": [
+        "/Users/tianxq/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "--test-reporter=tap",
+        "OfflineTests/VerificationContracts.test.js"
+      ],
+      "exit_code": 0,
+      "stdout": "TAP version 13\n# Subtest: mission accepts the supported source and braced decompiler shapes\nok 1 - mission accepts the supported source and braced decompiler shapes\n  ---\n  duration_ms: 1.202333\n  type: 'test'\n  ...\n# Subtest: mission rejects missing reservation\nok 2 - mission rejects missing reservation\n  ---\n  duration_ms: 0.187667\n  type: 'test'\n  ...\n# Subtest: mission rejects missing executor\nok 3 - mission rejects missing executor\n  ---\n  duration_ms: 0.105958\n  type: 'test'\n  ...\n# Subtest: mission rejects reversed calls\nok 4 - mission rejects reversed calls\n  ---\n  duration_ms: 0.092791\n  type: 'test'\n  ...\n# Subtest: mission rejects wrong inline branch\nok 5 - mission rejects wrong inline branch\n  ---\n  duration_ms: 0.099125\n  type: 'test'\n  ...\n# Subtest: mission rejects wrong braced branch\nok 6 - mission rejects wrong braced branch\n  ---\n  duration_ms: 0.089167\n  type: 'test'\n  ...\n# Subtest: mission rejects early return between calls\nok 7 - mission rejects early return between calls\n  ---\n  duration_ms: 0.062375\n  type: 'test'\n  ...\n# Subtest: mission rejects duplicate reservation\nok 8 - mission rejects duplicate reservation\n  ---\n  duration_ms: 0.06075\n  type: 'test'\n  ...\n# Subtest: candidate accepts the prepared order and final false assignment\nok 9 - candidate accepts the prepared order and final false assignment\n  ---\n  duration_ms: 0.178\n  type: 'test'\n  ...\n# Subtest: candidate rejects final true assignment\nok 10 - candidate rejects final true assignment\n  ---\n  duration_ms: 0.24225\n  type: 'test'\n  ...\n# Subtest: candidate rejects conditional false assignment\nok 11 - candidate rejects conditional false assignment\n  ---\n  duration_ms: 0.069792\n  type: 'test'\n  ...\n# Subtest: candidate rejects helper side effect\nok 12 - candidate rejects helper side effect\n  ---\n  duration_ms: 0.052792\n  type: 'test'\n  ...\n# Subtest: candidate rejects wrong prepared order\nok 13 - candidate rejects wrong prepared order\n  ---\n  duration_ms: 0.568792\n  type: 'test'\n  ...\n# Subtest: candidate rejects comment-only false assignment\nok 14 - candidate rejects comment-only false assignment\n  ---\n  duration_ms: 0.071292\n  type: 'test'\n  ...\n# Subtest: MCM accepts expression accessors and block accessors from decompilation\nok 15 - MCM accepts expression accessors and block accessors from decompilation\n  ---\n  duration_ms: 1.050292\n  type: 'test'\n  ...\n# Subtest: MCM rejects constant observer setter\nok 16 - MCM rejects constant observer setter\n  ---\n  duration_ms: 0.071292\n  type: 'test'\n  ...\n# Subtest: MCM rejects wrong observer field\nok 17 - MCM rejects wrong observer field\n  ---\n  duration_ms: 0.044208\n  type: 'test'\n  ...\n# Subtest: MCM rejects missing E option\nok 18 - MCM rejects missing E option\n  ---\n  duration_ms: 0.062417\n  type: 'test'\n  ...\n# Subtest: MCM rejects disconnected dropdown\nok 19 - MCM rejects disconnected dropdown\n  ---\n  duration_ms: 0.065959\n  type: 'test'\n  ...\n# Subtest: MCM rejects wrong initial index\nok 20 - MCM rejects wrong initial index\n  ---\n  duration_ms: 0.051834\n  type: 'test'\n  ...\n# Subtest: MCM rejects missing instance sync\nok 21 - MCM rejects missing instance sync\n  ---\n  duration_ms: 0.058917\n  type: 'test'\n  ...\n# Subtest: MCM rejects missing setter forwarding\nok 22 - MCM rejects missing setter forwarding\n  ---\n  duration_ms: 0.054791\n  type: 'test'\n  ...\n# Subtest: ledger accepts complete groups without locking an assertion total\nok 23 - ledger accepts complete groups without locking an assertion total\n  ---\n  duration_ms: 0.145542\n  type: 'test'\n  ...\n# Subtest: ledger rejects missing group\nok 24 - ledger rejects missing group\n  ---\n  duration_ms: 0.042584\n  type: 'test'\n  ...\n# Subtest: ledger rejects no groups despite many PASS lines\nok 25 - ledger rejects no groups despite many PASS lines\n  ---\n  duration_ms: 0.145541\n  type: 'test'\n  ...\n# Subtest: ledger rejects empty group\nok 26 - ledger rejects empty group\n  ---\n  duration_ms: 0.033875\n  type: 'test'\n  ...\n# Subtest: ledger rejects duplicate group\nok 27 - ledger rejects duplicate group\n  ---\n  duration_ms: 0.037042\n  type: 'test'\n  ...\n# Subtest: ledger rejects failed group\nok 28 - ledger rejects failed group\n  ---\n  duration_ms: 0.027\n  type: 'test'\n  ...\n# Subtest: ledger rejects unknown group\nok 29 - ledger rejects unknown group\n  ---\n  duration_ms: 0.029958\n  type: 'test'\n  ...\n# Subtest: registration includes nested test groups\nok 30 - registration includes nested test groups\n  ---\n  duration_ms: 0.302917\n  type: 'test'\n  ...\n# Subtest: registration rejects an omitted nested call\nok 31 - registration rejects an omitted nested call\n  ---\n  duration_ms: 0.141\n  type: 'test'\n  ...\n# Subtest: registration rejects a removed test definition\nok 32 - registration rejects a removed test definition\n  ---\n  duration_ms: 0.044333\n  type: 'test'\n  ...\n# Subtest: registration rejects an undeclared manifest entry\nok 33 - registration rejects an undeclared manifest entry\n  ---\n  duration_ms: 0.056667\n  type: 'test'\n  ...\n# Subtest: literal and comment braces cannot corrupt extraction\nok 34 - literal and comment braces cannot corrupt extraction\n  ---\n  duration_ms: 0.070166\n  type: 'test'\n  ...\n# Subtest: CLI reads real PowerShell UTF-16LE and UTF-8 log encodings\nok 35 - CLI reads real PowerShell UTF-16LE and UTF-8 log encodings\n  ---\n  duration_ms: 81.81475\n  type: 'test'\n  ...\n1..35\n# tests 35\n# suites 0\n# pass 35\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 141.834333\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/tianxq/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "OfflineTests/VerificationContracts.js",
+        "--source",
+        "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/sources/legacy"
+      ],
+      "exit_code": 0,
+      "stdout": "[PASS] Verification contracts: --source\n",
+      "stderr": ""
+    }
+  ],
+  "environment": {
+    "dotnet": null,
+    "powershell": null,
+    "powershell.exe": null,
+    "pwsh": null,
+    "ilspycmd": null,
+    "csc": null,
+    "mcs": null,
+    "mono": null
+  },
+  "comparison_to_documented_baseline": {
+    "ahead_by": 51,
+    "status": "ahead",
+    "changed_files": [
+      {
+        "filename": "AGENTS.md",
+        "status": "modified"
+      },
+      {
+        "filename": "CombatBrain-2.0/.gitattributes",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/.gitignore",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/AGENTS.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Agent/r1-cb-legacy.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Agent/r1-code-analyst.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Agent/r1-glue-engine.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Agent/r1-rbm.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Agent/r2-chief-design.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Agent/r3-feasibility.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Agent/r4-asset-audit.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Agent/r4-glue-verification.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Agent/r5-independent-review.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/Program/README.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/charter/Charter V0.2.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/charter/CombatBrain-2.0-Development-Roadmap-v0.1.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/charter/CombatBrain-2.0-Feature-Decomposition-Draft.md",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/charter/charter修改意见by5.6sol.txt",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain-2.0/prompts/registry.json",
+        "status": "added"
+      },
+      {
+        "filename": "CombatBrain/Ai/CombatAiMissionLogic.cs",
+        "status": "modified"
+      },
+      {
+        "filename": "CombatBrain/Ai/FormationControlLeaseGlue.cs",
+        "status": "modified"
+      },
+      {
+        "filename": "CombatBrain/Ai/RouteAOrderAdapter.cs",
+        "status": "modified"
+      },
+      {
+        "filename": "CombatBrain/CombatLog.cs",
+        "status": "modified"
+      },
+      {
+        "filename": "CombatBrain/Coordination/MissionStateLifecycle.cs",
+        "status": "modified"
+      },
+      {
+        "filename": "CombatBrain/Coordination/RouteAControl.cs",
+        "status": "modified"
+      },
+      {
+        "filename": "CombatBrain/Coordination/RouteAEvidence.cs",
+        "status": "modified"
+      },
+      {
+        "filename": "OfflineTests/Program.cs",
+        "status": "modified"
+      },
+      {
+        "filename": "OfflineTests/ReleaseDiagnosticTests.cs",
+        "status": "added"
+      },
+      {
+        "filename": "OfflineTests/RequiredTestGroups.json",
+        "status": "added"
+      },
+      {
+        "filename": "OfflineTests/RouteAStaticChecks.ps1",
+        "status": "modified"
+      },
+      {
+        "filename": "OfflineTests/RouteATests.cs",
+        "status": "modified"
+      },
+      {
+        "filename": "OfflineTests/RunMutationChecks.ps1",
+        "status": "added"
+      },
+      {
+        "filename": "OfflineTests/RunOfflineTests.ps1",
+        "status": "added"
+      },
+      {
+        "filename": "OfflineTests/TestGroupRunner.cs",
+        "status": "added"
+      },
+      {
+        "filename": "OfflineTests/VerificationContracts.js",
+        "status": "added"
+      },
+      {
+        "filename": "OfflineTests/VerificationContracts.test.js",
+        "status": "added"
+      },
+      {
+        "filename": "README.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/adr/ADR-0005-cps-execution-architecture-2026-09-15.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/adr/README.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/cps2-route-a-research.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/cps3-runtime-ab-report-2026-09-07.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/cps3r-routea-astra-rereview-brief-2026-09-14.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/cps3r-routea-astra-review-submission-2026-09-08.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/cps3r-routea-diagnostic-sampling-2026-09-15.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/cps3r-routea-final-blocker-report.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/cps3r-routea-r3-sampling-record-2026-09-14.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/cps3r-routea-runtime-scenarios-2026-09-13.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/cps4-hardgate-checklist-2026-09-08.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/cps4-runtime-evidence-plan-2026-09-15.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/evidence/INDEX.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/knowledge/CURRENT_STATE.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/knowledge/INDEX.md",
+        "status": "modified"
+      },
+      {
+        "filename": "docs/knowledge/PAIPOS_LITE.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/offline-test-repair-review-2026-10-02.md",
+        "status": "added"
+      },
+      {
+        "filename": "docs/offline-validation-hardening-2026-10-06.md",
+        "status": "added"
+      },
+      {
+        "filename": "测试指南.md",
+        "status": "modified"
+      }
+    ]
+  },
+  "transcribed_counterexamples": {
+    "scope": "Python transcription from frozen C#; not C# binary or Bannerlord runtime",
+    "candidate_hold": {
+      "eleven_prior_vectors": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.9,
+        0,
+        0,
+        0.8,
+        0.7,
+        0,
+        0
+      ],
+      "final_vector": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      "result": {
+        "changed": true,
+        "current": "Flank",
+        "stored_score": 1.55,
+        "hold": 0.0,
+        "best": "Flank",
+        "scores": {
+          "Attack": 0.1,
+          "Defend": 0.0,
+          "Retreat": 0.2,
+          "Flank": 1.55,
+          "Harass": 1.0,
+          "Reform": 0.1,
+          "Pursue": 0.10000000000000002,
+          "ProtectArcher": 0.45,
+          "BraceFormation": 0.15
+        }
+      }
+    },
+    "stale_current_score": {
+      "initial_vector": [
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "initial_result": {
+        "changed": false,
+        "current": "Defend",
+        "stored_score": 0.9,
+        "hold": 0.0,
+        "best": "Defend",
+        "scores": {
+          "Attack": -0.25,
+          "Defend": 0.9,
+          "Retreat": 0.6,
+          "Flank": -0.3,
+          "Harass": 0.25,
+          "Reform": -0.30000000000000004,
+          "Pursue": -0.1,
+          "ProtectArcher": 0.1,
+          "BraceFormation": 0.05000000000000002
+        }
+      },
+      "120_following_vectors": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "result": {
+        "changed": false,
+        "current": "Defend",
+        "stored_score": 0.9,
+        "hold": 0.0,
+        "best": "Attack",
+        "scores": {
+          "Attack": 0.8,
+          "Defend": -0.3,
+          "Retreat": -1.3,
+          "Flank": 0.2,
+          "Harass": -0.05,
+          "Reform": 2.7755575615628914e-17,
+          "Pursue": 0.8,
+          "ProtectArcher": 0.04999999999999999,
+          "BraceFormation": 0.15000000000000002
+        }
+      }
+    },
+    "belief_decay": {
+      "raw_at_0": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "raw_at_80": [
+        0.0009765625,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "confidence_at_80": 1.0,
+      "entropy_at_80": 0.0
+    }
+  }
+}

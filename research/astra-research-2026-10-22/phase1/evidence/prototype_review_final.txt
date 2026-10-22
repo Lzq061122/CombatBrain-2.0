@@ -1,0 +1,29 @@
+Independent final review
+Source SHA256: 1730e609a23f509d07b6bb317f30dd68c4731137ad114371d47ae205fdb7b3c9
+Command: python3 -m unittest -v prototype/test_review.py
+Exit: 0
+test_adopt_revalidates_authority (prototype.test_review.ReviewCounterexamples.test_adopt_revalidates_authority) ... ok
+test_adopt_revalidates_generation (prototype.test_review.ReviewCounterexamples.test_adopt_revalidates_generation) ... ok
+test_cancel_preserves_critical_duty (prototype.test_review.ReviewCounterexamples.test_cancel_preserves_critical_duty) ... ok
+test_duplicate_resource_is_infeasible (prototype.test_review.ReviewCounterexamples.test_duplicate_resource_is_infeasible) ... ok
+test_effect_releases_after_time_and_observed_readiness (prototype.test_review.ReviewCounterexamples.test_effect_releases_after_time_and_observed_readiness) ... ok
+test_effect_waits_for_arrival_and_setup (prototype.test_review.ReviewCounterexamples.test_effect_waits_for_arrival_and_setup) ... ok
+test_expired_current_authority_not_retained_by_hysteresis (prototype.test_review.ReviewCounterexamples.test_expired_current_authority_not_retained_by_hysteresis) ... ok
+test_late_fix_does_not_suppress_reinforcement_before_arrival (prototype.test_review.ReviewCounterexamples.test_late_fix_does_not_suppress_reinforcement_before_arrival) ... ok
+test_mandatory_duty_option_survives_optional_cap (prototype.test_review.ReviewCounterexamples.test_mandatory_duty_option_survives_optional_cap) ... ok
+test_missing_dependency_does_not_pass_hard_feasibility (prototype.test_review.ReviewCounterexamples.test_missing_dependency_does_not_pass_hard_feasibility) ... ok
+test_old_actor_generation_sequence_does_not_poison_new_reports (prototype.test_review.ReviewCounterexamples.test_old_actor_generation_sequence_does_not_poison_new_reports) ... ok
+test_old_mission_report_rejected (prototype.test_review.ReviewCounterexamples.test_old_mission_report_rejected) ... ok
+test_one_enemy_fire_budget_is_shared_across_attackers (prototype.test_review.ReviewCounterexamples.test_one_enemy_fire_budget_is_shared_across_attackers) ... ok
+test_other_domain_report_rejected (prototype.test_review.ReviewCounterexamples.test_other_domain_report_rejected) ... ok
+test_reserve_cover_budget_not_reused_for_two_assets (prototype.test_review.ReviewCounterexamples.test_reserve_cover_budget_not_reused_for_two_assets) ... ok
+test_safety_ignores_other_mission (prototype.test_review.ReviewCounterexamples.test_safety_ignores_other_mission) ... ok
+test_same_action_readoption_refreshes_delayed_arrival (prototype.test_review.ReviewCounterexamples.test_same_action_readoption_refreshes_delayed_arrival) ... ok
+test_stale_report_cannot_block_current_route (prototype.test_review.ReviewCounterexamples.test_stale_report_cannot_block_current_route) ... ok
+test_stationary_far_anti_mount_is_not_immediate_support (prototype.test_review.ReviewCounterexamples.test_stationary_far_anti_mount_is_not_immediate_support) ... ok
+test_valid_no_response_feedback_prevents_repeat_probe (prototype.test_review.ReviewCounterexamples.test_valid_no_response_feedback_prevents_repeat_probe) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.002s
+
+OK

@@ -1,0 +1,300 @@
+
+[inherited_baseline_tests] ['-m', 'unittest', 'discover', '-s', 'prototype/baseline', '-p', 'test_*.py', '-v']
+test_authority_revocation_blocks_old_write_and_safety (test_core.CoreChecks.test_authority_revocation_blocks_old_write_and_safety) ... ok
+test_dependency_exec_requires_observed_fix_not_just_assignment (test_core.CoreChecks.test_dependency_exec_requires_observed_fix_not_just_assignment) ... ok
+test_duplicate_report_and_old_revision_cannot_replan (test_core.CoreChecks.test_duplicate_report_and_old_revision_cannot_replan) ... ok
+test_enemy_output_conserved_across_attacks (test_core.CoreChecks.test_enemy_output_conserved_across_attacks) ... ok
+test_high_loss_report_does_not_cancel_effective_sacrifice_duty (test_core.CoreChecks.test_high_loss_report_does_not_cancel_effective_sacrifice_duty) ... ok
+test_no_response_memory_invalidated_only_by_material_epoch (test_core.CoreChecks.test_no_response_memory_invalidated_only_by_material_epoch) ... ok
+test_probe_feedback_changes_candidates_and_prevents_identical_retry (test_core.CoreChecks.test_probe_feedback_changes_candidates_and_prevents_identical_retry) ... ok
+test_zero_extra_budget_keeps_duty (test_core.CoreChecks.test_zero_extra_budget_keeps_duty) ... ok
+test_observed_active_effect_has_no_second_setup_charge (test_core.TimingChecks.test_observed_active_effect_has_no_second_setup_charge) ... ok
+test_short_fix_cannot_cover_long_strike (test_core.TimingChecks.test_short_fix_cannot_cover_long_strike) ... ok
+test_adopt_revalidates_authority (test_review.ReviewCounterexamples.test_adopt_revalidates_authority) ... ok
+test_adopt_revalidates_generation (test_review.ReviewCounterexamples.test_adopt_revalidates_generation) ... ok
+test_cancel_preserves_critical_duty (test_review.ReviewCounterexamples.test_cancel_preserves_critical_duty) ... ok
+test_duplicate_resource_is_infeasible (test_review.ReviewCounterexamples.test_duplicate_resource_is_infeasible) ... ok
+test_effect_releases_after_time_and_observed_readiness (test_review.ReviewCounterexamples.test_effect_releases_after_time_and_observed_readiness) ... ok
+test_effect_waits_for_arrival_and_setup (test_review.ReviewCounterexamples.test_effect_waits_for_arrival_and_setup) ... ok
+test_expired_current_authority_not_retained_by_hysteresis (test_review.ReviewCounterexamples.test_expired_current_authority_not_retained_by_hysteresis) ... ok
+test_late_fix_does_not_suppress_reinforcement_before_arrival (test_review.ReviewCounterexamples.test_late_fix_does_not_suppress_reinforcement_before_arrival) ... ok
+test_mandatory_duty_option_survives_optional_cap (test_review.ReviewCounterexamples.test_mandatory_duty_option_survives_optional_cap) ... ok
+test_missing_dependency_does_not_pass_hard_feasibility (test_review.ReviewCounterexamples.test_missing_dependency_does_not_pass_hard_feasibility) ... ok
+test_old_actor_generation_sequence_does_not_poison_new_reports (test_review.ReviewCounterexamples.test_old_actor_generation_sequence_does_not_poison_new_reports) ... ok
+test_old_mission_report_rejected (test_review.ReviewCounterexamples.test_old_mission_report_rejected) ... ok
+test_one_enemy_fire_budget_is_shared_across_attackers (test_review.ReviewCounterexamples.test_one_enemy_fire_budget_is_shared_across_attackers) ... ok
+test_other_domain_report_rejected (test_review.ReviewCounterexamples.test_other_domain_report_rejected) ... ok
+test_reserve_cover_budget_not_reused_for_two_assets (test_review.ReviewCounterexamples.test_reserve_cover_budget_not_reused_for_two_assets) ... ok
+test_safety_ignores_other_mission (test_review.ReviewCounterexamples.test_safety_ignores_other_mission) ... ok
+test_same_action_readoption_refreshes_delayed_arrival (test_review.ReviewCounterexamples.test_same_action_readoption_refreshes_delayed_arrival) ... ok
+test_stale_report_cannot_block_current_route (test_review.ReviewCounterexamples.test_stale_report_cannot_block_current_route) ... ok
+test_stationary_far_anti_mount_is_not_immediate_support (test_review.ReviewCounterexamples.test_stationary_far_anti_mount_is_not_immediate_support) ... ok
+test_valid_no_response_feedback_prevents_repeat_probe (test_review.ReviewCounterexamples.test_valid_no_response_feedback_prevents_repeat_probe) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.507s
+
+OK
+
+
+[feedback_and_search_tests] ['-m', 'unittest', 'discover', '-s', 'prototype', '-p', 'test_feedback_phase2.py', '-v']
+test_budget_cutoffs_keep_authority_and_mandatory_duty (test_feedback_phase2.BoundedDependencyClosure.test_budget_cutoffs_keep_authority_and_mandatory_duty) ... ok
+test_fixed_solver_exposes_candidate_omission (test_feedback_phase2.BoundedDependencyClosure.test_fixed_solver_exposes_candidate_omission) ... ok
+test_local_basin_negative_result_is_preserved (test_feedback_phase2.BoundedDependencyClosure.test_local_basin_negative_result_is_preserved) ... ok
+test_three_actor_package_reaches_exact_reference (test_feedback_phase2.BoundedDependencyClosure.test_three_actor_package_reaches_exact_reference) ... ok
+test_authority_generation_change_drops_task_report (test_feedback_phase2.FeedbackConsumption.test_authority_generation_change_drops_task_report) ... ok
+test_cancel_retracts_old_task_overlay (test_feedback_phase2.FeedbackConsumption.test_cancel_retracts_old_task_overlay) ... ok
+test_environment_fact_ttl_is_not_extended_by_revalidation (test_feedback_phase2.FeedbackConsumption.test_environment_fact_ttl_is_not_extended_by_revalidation) ... ok
+test_expired_task_report_removed_even_from_derived_snapshot (test_feedback_phase2.FeedbackConsumption.test_expired_task_report_removed_even_from_derived_snapshot) ... ok
+test_future_observation_not_consumed (test_feedback_phase2.FeedbackConsumption.test_future_observation_not_consumed) ... ok
+test_independent_fresh_fact_retained_after_command_revoke_only_if_revalidated (test_feedback_phase2.FeedbackConsumption.test_independent_fresh_fact_retained_after_command_revoke_only_if_revalidated) ... ok
+test_membership_generation_change_drops_task_report (test_feedback_phase2.FeedbackConsumption.test_membership_generation_change_drops_task_report) ... ok
+test_old_condition_epoch_drops_task_report (test_feedback_phase2.FeedbackConsumption.test_old_condition_epoch_drops_task_report) ... ok
+test_raw_independent_block_is_not_removed_as_task_overlay (test_feedback_phase2.FeedbackConsumption.test_raw_independent_block_is_not_removed_as_task_overlay) ... ok
+test_revoked_authority_drops_task_report (test_feedback_phase2.FeedbackConsumption.test_revoked_authority_drops_task_report) ... ok
+test_same_valid_task_report_still_consumed (test_feedback_phase2.FeedbackConsumption.test_same_valid_task_report_still_consumed) ... ok
+test_target_replacement_invalidates_task_judgement (test_feedback_phase2.FeedbackConsumption.test_target_replacement_invalidates_task_judgement) ... ok
+test_wrong_mission_not_consumed (test_feedback_phase2.FeedbackConsumption.test_wrong_mission_not_consumed) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.790s
+
+OK
+
+
+[temporal_tests] ['-m', 'unittest', 'discover', '-s', 'prototype', '-p', 'test_temporal.py', '-v']
+test_cancel_does_not_release_resource (test_temporal.TemporalTests.test_cancel_does_not_release_resource) ... ok
+test_cycles_rejected (test_temporal.TemporalTests.test_cycles_rejected) ... ok
+test_duty_not_deleted_by_task_failure (test_temporal.TemporalTests.test_duty_not_deleted_by_task_failure) ... ok
+test_forecast_does_not_release_effect (test_temporal.TemporalTests.test_forecast_does_not_release_effect) ... ok
+test_fresh_joint_observation_required (test_temporal.TemporalTests.test_fresh_joint_observation_required) ... ok
+test_joint_weak_contributions_share_window (test_temporal.TemporalTests.test_joint_weak_contributions_share_window) ... ok
+test_release_is_observed_not_elapsed (test_temporal.TemporalTests.test_release_is_observed_not_elapsed) ... ok
+test_repair_keeps_unrelated_identity (test_temporal.TemporalTests.test_repair_keeps_unrelated_identity) ... ok
+test_resource_reuse_needs_transfer (test_temporal.TemporalTests.test_resource_reuse_needs_transfer) ... ok
+test_revoke_invalidates_future_reservation (test_temporal.TemporalTests.test_revoke_invalidates_future_reservation) ... ok
+test_strength_sum_without_overlap_rejected (test_temporal.TemporalTests.test_strength_sum_without_overlap_rejected) ... ok
+test_unaffected_dispatched_task_keeps_release_scope_after_repair (test_temporal.TemporalTests.test_unaffected_dispatched_task_keeps_release_scope_after_repair) ... ok
+test_unobserved_successor_is_not_duty_handoff (test_temporal.TemporalTests.test_unobserved_successor_is_not_duty_handoff) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.002s
+
+OK
+
+
+[independent_world_tests] ['-m', 'unittest', 'discover', '-s', 'prototype', '-p', 'test_world.py', '-v']
+test_ammo_and_output_are_conserved (test_world.WorldContractTests.test_ammo_and_output_are_conserved) ... ok
+test_correlated_speed_variant_applies_to_both_sides (test_world.WorldContractTests.test_correlated_speed_variant_applies_to_both_sides) ... ok
+test_delayed_order_revalidation_on_authority_change (test_world.WorldContractTests.test_delayed_order_revalidation_on_authority_change) ... ok
+test_duty_samples_existing_alive_authorized_owner (test_world.WorldContractTests.test_duty_samples_existing_alive_authorized_owner) ... ok
+test_exit_hysteresis_is_actual_latency (test_world.WorldContractTests.test_exit_hysteresis_is_actual_latency) ... ok
+test_fix_changes_actual_motion_and_has_damage_cost (test_world.WorldContractTests.test_fix_changes_actual_motion_and_has_damage_cost) ... ok
+test_fix_needs_actual_contact_readiness_and_sufficient_total (test_world.WorldContractTests.test_fix_needs_actual_contact_readiness_and_sufficient_total) ... ok
+test_generation_reuse_invalidates_delayed_commands (test_world.WorldContractTests.test_generation_reuse_invalidates_delayed_commands) ... ok
+test_invalid_commands_do_not_mutate_world (test_world.WorldContractTests.test_invalid_commands_do_not_mutate_world) ... ok
+test_melee_and_ranged_cannot_both_spend_full_budget (test_world.WorldContractTests.test_melee_and_ranged_cannot_both_spend_full_budget) ... ok
+test_observation_does_not_leak_enemy_intent_future_or_coefficients (test_world.WorldContractTests.test_observation_does_not_leak_enemy_intent_future_or_coefficients) ... ok
+test_obstacle_prevents_direct_route (test_world.WorldContractTests.test_obstacle_prevents_direct_route) ... ok
+test_one_melee_budget_shared_across_targets (test_world.WorldContractTests.test_one_melee_budget_shared_across_targets) ... ok
+test_reactive_policy_reads_only_observed_state (test_world.WorldContractTests.test_reactive_policy_reads_only_observed_state) ... ok
+test_real_motion_rate_and_repeat_order_does_not_teleport (test_world.WorldContractTests.test_real_motion_rate_and_repeat_order_does_not_teleport) ... ok
+test_reidentity_preserves_health_ammo_and_allows_retargeting (test_world.WorldContractTests.test_reidentity_preserves_health_ammo_and_allows_retargeting) ... ok
+test_reinforcement_is_unavailable_until_arrival (test_world.WorldContractTests.test_reinforcement_is_unavailable_until_arrival) ... ok
+test_revoked_actor_cannot_supply_fix_or_damage (test_world.WorldContractTests.test_revoked_actor_cannot_supply_fix_or_damage) ... ok
+test_setup_and_range_are_physical (test_world.WorldContractTests.test_setup_and_range_are_physical) ... ok
+test_simultaneous_kill_and_order_independence (test_world.WorldContractTests.test_simultaneous_kill_and_order_independence) ... ok
+test_weak_and_early_fix_are_independent_execution_errors (test_world.WorldContractTests.test_weak_and_early_fix_are_independent_execution_errors) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.027s
+
+OK
+
+
+[phase1_adapter_tests] ['-m', 'unittest', 'discover', '-s', 'prototype', '-p', 'test_adapter.py', '-v']
+test_duty_and_action_capability_enter_baseline_before_selection (test_adapter.AdapterTest.test_duty_and_action_capability_enter_baseline_before_selection) ... ok
+test_hold_is_targetless_and_all_baseline_orders_are_valid (test_adapter.AdapterTest.test_hold_is_targetless_and_all_baseline_orders_are_valid) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.044s
+
+OK
+
+
+[calibration_tests] ['-m', 'unittest', 'discover', '-s', 'calibration', '-p', 'test_analyzer.py', '-v']
+test_do_not_pool_rbm_or_morale (test_analyzer.AnalysisTests.test_do_not_pool_rbm_or_morale) ... ok
+test_no_information_causal_claim_without_matched_prefix (test_analyzer.AnalysisTests.test_no_information_causal_claim_without_matched_prefix) ... ok
+test_reject_fixture_relabelled_as_game (test_analyzer.AnalysisTests.test_reject_fixture_relabelled_as_game) ... ok
+test_reject_nonfinite_and_duplicate (test_analyzer.AnalysisTests.test_reject_nonfinite_and_duplicate) ... ok
+test_synthetic_and_censoring (test_analyzer.AnalysisTests.test_synthetic_and_censoring) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.257s
+
+OK
+
+
+[independent_review_probes] ['prototype/test_phase2_review.py', '--output', 'results/review_final.json']
+results/review_final.json
+temporal duplicate_missing_contributor SAFE
+temporal implicit_actor_reuse SAFE
+temporal cancelled_resource_reuse SAFE
+temporal unscoped_release SAFE
+controller new_dependency_same_action SAFE
+controller repurposed_helper SAFE
+controller negative_budget SAFE
+controller stalled_after_initial_progress SAFE
+controller observed_setup_remaining_cost SAFE
+controller switch_cost_same_reference SAFE
+
+
+[observed_temporal_execution] ['prototype/run_temporal_execution.py']
+{
+  "output": "/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/temporal_execution.json",
+  "cases": [
+    {
+      "name": "nominal_on_time",
+      "ready": 5.0,
+      "strike": 6.0,
+      "move_release": 5.0,
+      "fire": 6.0,
+      "cancellations": [],
+      "duty_coverage": 1.0
+    },
+    {
+      "name": "nominal_second_fixer_late",
+      "ready": 9.0,
+      "strike": 9.0,
+      "move_release": 5.0,
+      "fire": 6.0,
+      "cancellations": [],
+      "duty_coverage": 1.0
+    },
+    {
+      "name": "early_fix_and_guard_revoke",
+      "ready": 5.0,
+      "strike": 6.0,
+      "move_release": 5.0,
+      "fire": 6.0,
+      "cancellations": [
+        {
+          "t": 10.0,
+          "cause": "observed_effect_lost",
+          "directly_failed": [
+            "strike"
+          ],
+          "affected": [
+            "strike"
+          ],
+          "stop_order": {
+            "actor": "striker",
+            "kind": "hold",
+            "generation": 1,
+            "authority": 1
+          },
+          "stop_receipts": [
+            {
+              "t": 10.0,
+              "type": "order_accepted",
+              "actor": "striker",
+              "kind": "hold",
+              "delay": 0.0,
+              "generation": 1,
+              "authority": 1
+            }
+          ]
+        },
+        {
+          "t": 11.0,
+          "cause": "current_identity_or_permission",
+          "directly_failed": [
+            "guard_duty"
+          ],
+          "affected": [
+            "guard_duty"
+          ]
+        }
+      ],
+      "duty_coverage": 0.4583333333333333
+    }
+  ],
+  "checks_passed": true,
+  "failures": []
+}
+
+
+[current_smoke] ['prototype/run_dynamic.py', '--suite', 'smoke']
+{"suite": "smoke", "runs": 12, "sources": {"controller.py": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0", "world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f", "run_dynamic.py": "05282f5361004212862aeda869648a3ce4f89e517070288cfd076c7488a3804c"}, "raw": "/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/smoke_raw.jsonl"}
+
+
+[synthetic_calibration_example] ['calibration/analyze.py', 'calibration/example.csv', '--output', 'calibration/example_analysis.json']
+calibration/example_analysis.json: 4 cohorts; evidence=['SYNTHETIC']
+
+
+[reject_synthetic_as_game] ['calibration/analyze.py', 'calibration/example.csv', '--require-game']
+usage: analyze.py [-h] [--output OUTPUT] [--require-game] csv
+analyze.py: error: --require-game rejects SYNTHETIC data
+
+
+[same_model_baseline_challenges] ['prototype/run_baseline_challenges.py']
+/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/baseline_high_order.json
+/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/baseline_candidates.json
+/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/baseline_scale.json
+/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/baseline_sensitivity.json
+/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/baseline_runtime_costs.json
+
+
+[dynamic_final] ['prototype/run_dynamic.py', '--suite', 'final']
+final 50 / 864
+final 100 / 864
+final 150 / 864
+final 200 / 864
+final 250 / 864
+final 300 / 864
+final 350 / 864
+final 400 / 864
+final 450 / 864
+final 500 / 864
+final 550 / 864
+final 600 / 864
+final 650 / 864
+final 700 / 864
+final 750 / 864
+final 800 / 864
+final 850 / 864
+{"suite": "final", "runs": 864, "sources": {"controller.py": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0", "world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f", "run_dynamic.py": "05282f5361004212862aeda869648a3ce4f89e517070288cfd076c7488a3804c"}, "raw": "/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/final_raw.jsonl"}
+
+
+[dynamic_ablations] ['prototype/run_dynamic.py', '--suite', 'ablations']
+ablations 50 / 192
+ablations 100 / 192
+ablations 150 / 192
+{"suite": "ablations", "runs": 192, "sources": {"controller.py": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0", "world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f", "run_dynamic.py": "05282f5361004212862aeda869648a3ce4f89e517070288cfd076c7488a3804c"}, "raw": "/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/ablations_raw.jsonl"}
+
+
+[dynamic_scale] ['prototype/run_dynamic.py', '--suite', 'scale']
+{"suite": "scale", "runs": 48, "sources": {"controller.py": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0", "world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f", "run_dynamic.py": "05282f5361004212862aeda869648a3ce4f89e517070288cfd076c7488a3804c"}, "raw": "/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/scale_raw.jsonl"}
+
+
+[dynamic_bilateral] ['prototype/run_dynamic.py', '--suite', 'bilateral']
+{"suite": "bilateral", "runs": 48, "sources": {"controller.py": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0", "world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f", "run_dynamic.py": "05282f5361004212862aeda869648a3ce4f89e517070288cfd076c7488a3804c"}, "raw": "/workspace/scratch/27b3be92d1a7/astra_phase2_review/repro/results/bilateral_raw.jsonl"}
+
+
+[model_active_budget_transform_diagnostics] ['prototype/run_diagnostics.py']
+{
+  "model_challenge_count": 96,
+  "positive_regret": 28,
+  "max_regret": 25.232662466301793,
+  "misleading_positive": 0,
+  "budget_cases": 15
+}
+
+
+[posthoc_failure_and_close_bilateral] ['prototype/run_followup_cases.py']
+{"posthoc_close_runs": 32, "with_actual_damage": 32, "orders_rejected": 0}
+
+
+[representative_trace_analysis] ['prototype/analyze_traces.py']
+{"scope": "Saved representative/posthoc traces only; command signatures, not every episode or game oscillation proof", "max_aba": 4, "rows_with_aba": 7}
+

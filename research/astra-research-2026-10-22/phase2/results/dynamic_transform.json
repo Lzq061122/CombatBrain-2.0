@@ -1,0 +1,74 @@
+[
+  {
+    "seed": 2110,
+    "transform": "original",
+    "net": 100.25037385391991,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2110,
+    "transform": "renamed",
+    "net": 100.25037385391991,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2110,
+    "transform": "reversed",
+    "net": 100.25037385391985,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2110,
+    "transform": "translated",
+    "net": 100.25037385391991,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2111,
+    "transform": "original",
+    "net": -32.60019365869218,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2111,
+    "transform": "renamed",
+    "net": -32.60019365869218,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2111,
+    "transform": "reversed",
+    "net": -32.600193658692206,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2111,
+    "transform": "translated",
+    "net": -32.60019365869218,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2112,
+    "transform": "original",
+    "net": 24.500003938969485,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2112,
+    "transform": "renamed",
+    "net": 24.500003938969485,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2112,
+    "transform": "reversed",
+    "net": 24.500003938969428,
+    "orders_rejected": 0
+  },
+  {
+    "seed": 2112,
+    "transform": "translated",
+    "net": 24.500003938969485,
+    "orders_rejected": 0
+  }
+]

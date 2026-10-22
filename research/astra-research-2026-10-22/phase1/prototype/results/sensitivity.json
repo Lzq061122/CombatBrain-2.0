@@ -1,0 +1,632 @@
+[
+  {
+    "seed": 1800,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 19.91441045579858
+  },
+  {
+    "seed": 1800,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 19.23778182094635
+  },
+  {
+    "seed": 1800,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 18.484749335356685
+  },
+  {
+    "seed": 1800,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 15.929415995477623
+  },
+  {
+    "seed": 1800,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 14.978234298358005
+  },
+  {
+    "seed": 1800,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 14.027052601238392
+  },
+  {
+    "seed": 1800,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 6.51165546538952
+  },
+  {
+    "seed": 1800,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 5.811657299195661
+  },
+  {
+    "seed": 1800,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 5.111659133001811
+  },
+  {
+    "seed": 1801,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 18.924918627590433
+  },
+  {
+    "seed": 1801,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 16.80403811035409
+  },
+  {
+    "seed": 1801,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 15.030149691811475
+  },
+  {
+    "seed": 1801,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 16.841211351149923
+  },
+  {
+    "seed": 1801,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 15.027187360907014
+  },
+  {
+    "seed": 1801,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 13.564023368398061
+  },
+  {
+    "seed": 1801,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 12.673796798268901
+  },
+  {
+    "seed": 1801,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 11.473485862012865
+  },
+  {
+    "seed": 1801,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 10.273174925756837
+  },
+  {
+    "seed": 1802,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 41.33312660095242
+  },
+  {
+    "seed": 1802,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 39.33443250754002
+  },
+  {
+    "seed": 1802,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 37.12940126595235
+  },
+  {
+    "seed": 1802,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 37.638794019015016
+  },
+  {
+    "seed": 1802,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 35.8807175238248
+  },
+  {
+    "seed": 1802,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 33.164091538943936
+  },
+  {
+    "seed": 1802,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 30.2501288551402
+  },
+  {
+    "seed": 1802,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 28.973287556394347
+  },
+  {
+    "seed": 1802,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 26.543331348856537
+  },
+  {
+    "seed": 1803,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 22.540303790712446
+  },
+  {
+    "seed": 1803,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 21.774792762027133
+  },
+  {
+    "seed": 1803,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 21.015608196258537
+  },
+  {
+    "seed": 1803,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 16.826940549991026
+  },
+  {
+    "seed": 1803,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 16.181571298226032
+  },
+  {
+    "seed": 1803,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 15.542528509377764
+  },
+  {
+    "seed": 1803,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 5.400214068548188
+  },
+  {
+    "seed": 1803,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 4.9951283706238385
+  },
+  {
+    "seed": 1803,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 4.596369135616214
+  },
+  {
+    "seed": 1804,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": true,
+    "value": 32.27299673660777
+  },
+  {
+    "seed": 1804,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 30.47113656853591
+  },
+  {
+    "seed": 1804,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 29.048510124694804
+  },
+  {
+    "seed": 1804,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": true,
+    "value": 29.114296410965405
+  },
+  {
+    "seed": 1804,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 27.577142440684852
+  },
+  {
+    "seed": 1804,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 26.204388824225664
+  },
+  {
+    "seed": 1804,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": true,
+    "value": 22.796895759680673
+  },
+  {
+    "seed": 1804,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 21.789154184982735
+  },
+  {
+    "seed": 1804,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 20.895601891392282
+  },
+  {
+    "seed": 1805,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 24.699895433887903
+  },
+  {
+    "seed": 1805,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 19.432327143694117
+  },
+  {
+    "seed": 1805,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 14.479153566181793
+  },
+  {
+    "seed": 1805,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 22.525829543025953
+  },
+  {
+    "seed": 1805,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 17.714066077985358
+  },
+  {
+    "seed": 1805,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 13.072127649110811
+  },
+  {
+    "seed": 1805,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 18.177697761302053
+  },
+  {
+    "seed": 1805,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": true,
+    "value": 15.043535886740178
+  },
+  {
+    "seed": 1805,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 12.023842771507116
+  },
+  {
+    "seed": 1806,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 21.909415530191115
+  },
+  {
+    "seed": 1806,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 21.62891475773592
+  },
+  {
+    "seed": 1806,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 21.354133340341267
+  },
+  {
+    "seed": 1806,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 18.45426498655338
+  },
+  {
+    "seed": 1806,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 17.948949736960035
+  },
+  {
+    "seed": 1806,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 17.44363448736669
+  },
+  {
+    "seed": 1806,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": true,
+    "value": 13.871195933445318
+  },
+  {
+    "seed": 1806,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": true,
+    "value": 14.040295870411594
+  },
+  {
+    "seed": 1806,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 14.213546335528656
+  },
+  {
+    "seed": 1807,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 32.309473099203565
+  },
+  {
+    "seed": 1807,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 30.91316392126944
+  },
+  {
+    "seed": 1807,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 29.518179910516505
+  },
+  {
+    "seed": 1807,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": true,
+    "value": 26.114372318153332
+  },
+  {
+    "seed": 1807,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 24.937309013180258
+  },
+  {
+    "seed": 1807,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 24.0813491780695
+  },
+  {
+    "seed": 1807,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": true,
+    "value": 18.913558726739094
+  },
+  {
+    "seed": 1807,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": true,
+    "value": 15.72205092678287
+  },
+  {
+    "seed": 1807,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 15.148079893062677
+  },
+  {
+    "seed": 1808,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": true,
+    "value": 15.181926321291485
+  },
+  {
+    "seed": 1808,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": true,
+    "value": 13.688157072030442
+  },
+  {
+    "seed": 1808,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": true,
+    "value": 12.194387822769398
+  },
+  {
+    "seed": 1808,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 13.082556104846384
+  },
+  {
+    "seed": 1808,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 11.856294829471185
+  },
+  {
+    "seed": 1808,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 10.63014407325993
+  },
+  {
+    "seed": 1808,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 11.509006470763183
+  },
+  {
+    "seed": 1808,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 10.470884734801597
+  },
+  {
+    "seed": 1808,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 9.432873518003955
+  },
+  {
+    "seed": 1809,
+    "loss_weight": 0.5,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 31.80310308154488
+  },
+  {
+    "seed": 1809,
+    "loss_weight": 0.5,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 30.462805541876342
+  },
+  {
+    "seed": 1809,
+    "loss_weight": 0.5,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 29.12408186140646
+  },
+  {
+    "seed": 1809,
+    "loss_weight": 1.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 29.452744528344702
+  },
+  {
+    "seed": 1809,
+    "loss_weight": 1.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 28.26877122806468
+  },
+  {
+    "seed": 1809,
+    "loss_weight": 1.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 27.08637178698331
+  },
+  {
+    "seed": 1809,
+    "loss_weight": 2.0,
+    "eta_scale": 0.8,
+    "changed": false,
+    "value": 24.752027421944344
+  },
+  {
+    "seed": 1809,
+    "loss_weight": 2.0,
+    "eta_scale": 1.0,
+    "changed": false,
+    "value": 23.880702600441353
+  },
+  {
+    "seed": 1809,
+    "loss_weight": 2.0,
+    "eta_scale": 1.2,
+    "changed": false,
+    "value": 23.010951638137016
+  }
+]

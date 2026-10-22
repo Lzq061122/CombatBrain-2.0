@@ -1,0 +1,17 @@
+Source SHA256: 97b9bac20e552abe48eeccbf50d2e2b8ec046f7e1df81d7210fa91b4947a9b64
+Exit: 1
+test_reserve_cover_budget_not_reused_for_two_assets (prototype.test_review.ReviewCounterexamples.test_reserve_cover_budget_not_reused_for_two_assets) ... FAIL
+
+======================================================================
+FAIL: test_reserve_cover_budget_not_reused_for_two_assets (prototype.test_review.ReviewCounterexamples.test_reserve_cover_budget_not_reused_for_two_assets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 176, in test_reserve_cover_budget_not_reused_for_two_assets
+    self.assertLessEqual(gain, reserve.cap('melee') * .5 * .3 + 1e-6)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 30.0 not less than or equal to 15.000001
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)

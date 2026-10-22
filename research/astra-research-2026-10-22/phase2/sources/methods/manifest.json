@@ -1,0 +1,28 @@
+[
+  {
+    "file": "stnu_2001.pdf",
+    "url": "https://ntrs.nasa.gov/api/citations/20010091013/downloads/20010091013.pdf",
+    "error": "HTTP Error 403: Forbidden"
+  },
+  {
+    "file": "robustness_2004.pdf",
+    "url": "https://www.mit.edu/~dbertsim/papers/melvyn/The-Price-Of-Robustness-OR52.pdf",
+    "sha256": "23cf2c77e7cfb899151cdde0e0adbfa79db72e5f50b8989088b75ad5821a3ecc",
+    "bytes": 219793,
+    "retrieved": "2026-10-22"
+  },
+  {
+    "file": "voi_1999.pdf",
+    "url": "https://web.stanford.edu/~shachter/pubs/valinfo.pdf",
+    "sha256": "d63b48720c34017ac7692d4d67eeeba116fb7e1a4192c663d303fe17eba1d194",
+    "bytes": 250498,
+    "retrieved": "2026-10-22"
+  },
+  {
+    "file": "mpc_2ed_6printing.pdf",
+    "url": "https://sites.chemengr.ucsb.edu/~jbraw/mpc/MPC-book-2nd-edition-6th-printing.pdf",
+    "sha256": "5276f2779399deea80e971a53dfd6e263a63c6e19f9375c994f5c42cb52dbccf",
+    "bytes": 3759782,
+    "retrieved": "2026-10-22"
+  }
+]

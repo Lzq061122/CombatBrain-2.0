@@ -1,5 +1,7 @@
 # CombatBrain 2.0｜《Defilade》交叉审查：覆盖、接口缺口与 OPEN 队列（2026-10-22）
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-01](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-01)、[AR-02](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-02)、[AR-03](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-03)、[AR-07](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-07)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > **研究审查文件 / 不是新的已确认需求**。本文件仅整理用户由《Defilade》相关讨论带来的架构核对要点；没有核验《Defilade》实际源代码，也不以《Defilade》为实现正确性证据。仅按 CB2 的 GitHub 研究分支当前决策与代码区分 **CONFIRMED 已覆盖 / OPEN 接口待定义 / PROPOSED 建议 / EVIDENCE 限定工程事实**；未获确认的建议**不录入**正式确认设计台账、不修改 master/P3/CBATH。
 
 ## 1. 读取与证据身份

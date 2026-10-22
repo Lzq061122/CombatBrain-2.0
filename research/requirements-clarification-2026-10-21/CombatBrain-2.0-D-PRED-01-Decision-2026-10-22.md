@@ -1,5 +1,7 @@
 # CombatBrain 2.0｜D-PRED-01 可信战术预测依据：已确认裁决与修正（2026-10-22）
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-05](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-05)、[AR-12](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-12)、[AR-14](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-14)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > **状态：D-PRED-01 CONFIRMED（研发与预测架构方向）；具体数据采集/校准/部署算法及正式验收均 OPEN。** 仅研究分支记录，不属于生产代码实现证据、P3 合同变更或实机验收结论；不修改 `master`。
 
 ## 1. 负责人明确裁决（CONFIRMED）

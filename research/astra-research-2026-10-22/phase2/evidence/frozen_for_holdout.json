@@ -1,0 +1,92 @@
+{
+  "frozen_before_holdout": true,
+  "timestamp": "2026-10-22T14:31:50.791924+00:00",
+  "holdout_seeds": [
+    7300,
+    7301,
+    7302,
+    7303,
+    7304,
+    7305,
+    7306,
+    7307,
+    7308,
+    7309,
+    7310,
+    7311
+  ],
+  "additional_new_ablation_seeds": [
+    7400,
+    7401,
+    7402,
+    7403,
+    7404,
+    7405
+  ],
+  "files": {
+    "prototype/controller.py": "bbb4998786248c1264f32cf3d73897261a617712d7719d21d56d0552402435f1",
+    "prototype/world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f",
+    "prototype/temporal.py": "87e797c32d8da0c70eacabe00806cb433db0a7a45e24d369854a080a8fce1f0c",
+    "prototype/run_dynamic.py": "19cb18d629a9817fb5463c8b4fd8415cb7370bb52dcae9e5c789a47e07d7bd7c",
+    "prototype/run_diagnostics.py": "93d128706fe9945b7a88d49a800aeb5ae7b9a9c81f71070798b86e2598290c80"
+  },
+  "selection_policy": "No results-driven parameter tuning after this freeze. Corrections to correctness defects require explicit new identity and rerun, with holdout validity qualified.",
+  "post_freeze_contract_corrections": [
+    {
+      "file": "prototype/temporal.py",
+      "sha256": "a06d9b64d817d750563562f529b63fc64b7a654a20e079c086a119592b8b4247",
+      "reason": "Static review of scope: carried tasks retain dispatch revision; effect facts bind mission/domain/task revision. Dynamic controller/world/run_dynamic do not import temporal, so randomized holdout policy and environment remained frozen."
+    }
+  ],
+  "initial_holdout_invalid_for_phase1_comparison": {
+    "reason": "phase1 adapter passed target empty-string on hold, causing 1262 rejected orders across 288 phase1 episodes; do not use those new-vs-phase1 estimates. Raw files retained.",
+    "files": "results/holdout_*",
+    "fix": "targetless hold adapter; no changed optimization weights",
+    "new_confirmation_seeds": [
+      8300,
+      8301,
+      8302,
+      8303,
+      8304,
+      8305,
+      8306,
+      8307,
+      8308,
+      8309,
+      8310,
+      8311
+    ]
+  },
+  "confirmation_frozen_at": "2026-10-22T14:35:57.152242+00:00",
+  "confirmation_files": {
+    "prototype/controller.py": "5c6cdfee5538d0251118b94e62409b031e2995333357f71fec331280413f8ebf",
+    "prototype/world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f",
+    "prototype/run_dynamic.py": "8e5e4039eac3f682c17e3663d5d51c2213e40d9434e4ed5ce85c8cf5d6691a91",
+    "prototype/temporal.py": "a06d9b64d817d750563562f529b63fc64b7a654a20e079c086a119592b8b4247"
+  },
+  "second_adapter_review": {
+    "reason": "Pass Duty into phase1 selection, carry its effect dependencies to common observed gate, filter melee probe before selection because World pressure only supports ranged output. These are comparator corrections, not tuned scoring.",
+    "excluded_from_final_comparison": "results/holdout_* and results/confirm_*",
+    "final_seeds": [
+      9300,
+      9301,
+      9302,
+      9303,
+      9304,
+      9305,
+      9306,
+      9307,
+      9308,
+      9309,
+      9310,
+      9311
+    ],
+    "frozen_at": "2026-10-22T14:39:33.267417+00:00",
+    "files": {
+      "prototype/controller.py": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0",
+      "prototype/world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f",
+      "prototype/run_dynamic.py": "05282f5361004212862aeda869648a3ce4f89e517070288cfd076c7488a3804c",
+      "prototype/temporal.py": "a06d9b64d817d750563562f529b63fc64b7a654a20e079c086a119592b8b4247"
+    }
+  }
+}

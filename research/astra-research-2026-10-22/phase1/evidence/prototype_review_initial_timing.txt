@@ -1,0 +1,111 @@
+Second independent review before repair; source SHA256: c1fe2b05b99c4dc71fa12a9cd6d2e41b30714f8fcb1fce7ce8c419dc9bdc7e75
+Exit: 1
+test_adopt_revalidates_authority (prototype.test_review.ReviewCounterexamples.test_adopt_revalidates_authority) ... FAIL
+test_adopt_revalidates_generation (prototype.test_review.ReviewCounterexamples.test_adopt_revalidates_generation) ... FAIL
+test_cancel_preserves_critical_duty (prototype.test_review.ReviewCounterexamples.test_cancel_preserves_critical_duty) ... ok
+test_duplicate_resource_is_infeasible (prototype.test_review.ReviewCounterexamples.test_duplicate_resource_is_infeasible) ... ok
+test_effect_waits_for_arrival_and_setup (prototype.test_review.ReviewCounterexamples.test_effect_waits_for_arrival_and_setup) ... FAIL
+test_expired_current_authority_not_retained_by_hysteresis (prototype.test_review.ReviewCounterexamples.test_expired_current_authority_not_retained_by_hysteresis) ... ok
+test_late_fix_does_not_suppress_reinforcement_before_arrival (prototype.test_review.ReviewCounterexamples.test_late_fix_does_not_suppress_reinforcement_before_arrival) ... FAIL
+test_mandatory_duty_option_survives_optional_cap (prototype.test_review.ReviewCounterexamples.test_mandatory_duty_option_survives_optional_cap) ... FAIL
+test_missing_dependency_does_not_pass_hard_feasibility (prototype.test_review.ReviewCounterexamples.test_missing_dependency_does_not_pass_hard_feasibility) ... ok
+test_old_actor_generation_sequence_does_not_poison_new_reports (prototype.test_review.ReviewCounterexamples.test_old_actor_generation_sequence_does_not_poison_new_reports) ... FAIL
+test_old_mission_report_rejected (prototype.test_review.ReviewCounterexamples.test_old_mission_report_rejected) ... FAIL
+test_other_domain_report_rejected (prototype.test_review.ReviewCounterexamples.test_other_domain_report_rejected) ... FAIL
+test_safety_ignores_other_mission (prototype.test_review.ReviewCounterexamples.test_safety_ignores_other_mission) ... FAIL
+test_stationary_far_anti_mount_is_not_immediate_support (prototype.test_review.ReviewCounterexamples.test_stationary_far_anti_mount_is_not_immediate_support) ... FAIL
+
+======================================================================
+FAIL: test_adopt_revalidates_authority (prototype.test_review.ReviewCounterexamples.test_adopt_revalidates_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 46, in test_adopt_revalidates_authority
+    self.assertFalse(rt.adopt(sel, changed))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_adopt_revalidates_generation (prototype.test_review.ReviewCounterexamples.test_adopt_revalidates_generation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 52, in test_adopt_revalidates_generation
+    self.assertFalse(rt.adopt(sel, changed))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_effect_waits_for_arrival_and_setup (prototype.test_review.ReviewCounterexamples.test_effect_waits_for_arrival_and_setup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 66, in test_effect_waits_for_arrival_and_setup
+    self.assertNotEqual(rt.write(a, rt.revision, self.st), 'accepted_interface_only')
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'accepted_interface_only' == 'accepted_interface_only'
+
+======================================================================
+FAIL: test_late_fix_does_not_suppress_reinforcement_before_arrival (prototype.test_review.ReviewCounterexamples.test_late_fix_does_not_suppress_reinforcement_before_arrival)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 102, in test_late_fix_does_not_suppress_reinforcement_before_arrival
+    self.assertGreater(shooter_damage(early), shooter_damage(late) + 1e-6)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 62.22222222222223 not greater than 62.22222322222222
+
+======================================================================
+FAIL: test_mandatory_duty_option_survives_optional_cap (prototype.test_review.ReviewCounterexamples.test_mandatory_duty_option_survives_optional_cap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 58, in test_mandatory_duty_option_survives_optional_cap
+    self.assertIn(action_for(self.a, 'protect', 'asset'), generated['a'])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Action(actor='a', kind='protect', target='asset', generation=1, authority=1) not found in (Action(actor='a', kind='hold', target='', generation=1, authority=1),)
+
+======================================================================
+FAIL: test_old_actor_generation_sequence_does_not_poison_new_reports (prototype.test_review.ReviewCounterexamples.test_old_actor_generation_sequence_does_not_poison_new_reports)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 75, in test_old_actor_generation_sequence_does_not_poison_new_reports
+    self.assertTrue(rt.report('a', 2, 1, rt.revision, 1, {'effective': True}, next_st))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_old_mission_report_rejected (prototype.test_review.ReviewCounterexamples.test_old_mission_report_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 35, in test_old_mission_report_rejected
+    self.assertFalse(rt.report('a', 1, 1, rt.revision, 1, {'effective': True}, other))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_other_domain_report_rejected (prototype.test_review.ReviewCounterexamples.test_other_domain_report_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 40, in test_other_domain_report_rejected
+    self.assertFalse(rt.report('a', 1, 1, rt.revision, 1, {'effective': True}, other))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_safety_ignores_other_mission (prototype.test_review.ReviewCounterexamples.test_safety_ignores_other_mission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 82, in test_safety_ignores_other_mission
+    self.assertNotEqual(result, 'minimal_exception_report')
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'minimal_exception_report' == 'minimal_exception_report'
+
+======================================================================
+FAIL: test_stationary_far_anti_mount_is_not_immediate_support (prototype.test_review.ReviewCounterexamples.test_stationary_far_anti_mount_is_not_immediate_support)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/prototype/test_review.py", line 110, in test_stationary_far_anti_mount_is_not_immediate_support
+    self.assertTrue(ev.feasible, ev.reasons)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : ['unfixed_support:cavalry:guard']
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.002s
+
+FAILED (failures=10)

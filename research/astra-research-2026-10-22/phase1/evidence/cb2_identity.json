@@ -1,0 +1,18 @@
+[
+  {
+    "repository": "Lzq061122/CombatBrain-2.0",
+    "branch": "master",
+    "sha": "2138038cef53216118d445d37c5245b1bef019db",
+    "read_date": "2026-10-22",
+    "commit_date": "2026-10-20T13:43:59Z",
+    "snapshot": "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/sources/cb2_default"
+  },
+  {
+    "repository": "Lzq061122/CombatBrain-2.0",
+    "branch": "research/requirements-clarification-20261021",
+    "sha": "dd28965238a83c29ae824f7225d90e3b2c8bfce4",
+    "read_date": "2026-10-22",
+    "commit_date": "2026-10-22T08:32:37Z",
+    "snapshot": "/Users/tianxq/Documents/ChatGPT/新教程/CombatBrain_Research_2026-10-22/sources/cb2_research"
+  }
+]

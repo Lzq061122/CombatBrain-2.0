@@ -1,0 +1,322 @@
+[
+  {
+    "phase": "probe_committed",
+    "actions": [
+      {
+        "actor": "cavalry",
+        "kind": "probe",
+        "target": "enemy_archers",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "infantry",
+        "kind": "hold",
+        "target": "",
+        "generation": 1,
+        "authority": 1
+      },
+      {
+        "actor": "archers",
+        "kind": "hold",
+        "target": "",
+        "generation": 1,
+        "authority": 1
+      }
+    ],
+    "revision": 2
+  },
+  {
+    "phase": "no_response_repair",
+    "selection": {
+      "actions": [
+        {
+          "actor": "archers",
+          "kind": "shoot",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "cavalry",
+          "kind": "strike",
+          "target": "enemy_archers",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "infantry",
+          "kind": "fix",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 42.52083930973606,
+          "reinforce": 39.215583595556986,
+          "counter": 42.52083930973606
+        },
+        "interval": [
+          38.791210370663045,
+          42.94521253463
+        ],
+        "starts": {
+          "archers": 8.721947908039937,
+          "cavalry": 14.222222222222221,
+          "infantry": 10.838834764831844
+        },
+        "dependencies": {
+          "cavalry": [
+            "infantry"
+          ]
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 52.55196798113084,
+            "friendly_capacity_lost": 4.031128671394776,
+            "transition_cost": 6.0,
+            "model_error": 0.4243732248939422,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 3.143628671394776
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 49.24671226695176,
+            "friendly_capacity_lost": 4.031128671394776,
+            "transition_cost": 6.0,
+            "model_error": 0.3995838070375991,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 3.143628671394776
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 52.55196798113084,
+            "friendly_capacity_lost": 4.031128671394776,
+            "transition_cost": 6.0,
+            "model_error": 0.4243732248939422,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 0.8875,
+              "enemy_spears": 3.143628671394776
+            }
+          }
+        }
+      },
+      "reason": "hard_invalid_repair",
+      "work": {
+        "expansions": 250,
+        "evaluations": 252,
+        "model_calls": 252,
+        "search_model_calls": 250,
+        "truncated": false,
+        "actors": 3,
+        "options": 18
+      },
+      "rejected": {
+        "repeat_probe:cavalry": 1,
+        "unfixed_support:cavalry:enemy_spears": 24
+      }
+    }
+  },
+  {
+    "phase": "blocked_edge_repair",
+    "selection": {
+      "actions": [
+        {
+          "actor": "archers",
+          "kind": "shoot",
+          "target": "enemy_archers",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "cavalry",
+          "kind": "strike",
+          "target": "enemy_archers",
+          "generation": 1,
+          "authority": 1
+        },
+        {
+          "actor": "infantry",
+          "kind": "fix",
+          "target": "enemy_spears",
+          "generation": 1,
+          "authority": 1
+        }
+      ],
+      "assessment": {
+        "feasible": true,
+        "reasons": [],
+        "outcomes": {
+          "hold": 37.4926052485316,
+          "reinforce": 37.24148422759532,
+          "counter": 37.4926052485316
+        },
+        "interval": [
+          36.688553527391186,
+          38.04553594873574
+        ],
+        "starts": {
+          "archers": 12.0,
+          "cavalry": 14.222222222222221,
+          "infantry": 10.838834764831844
+        },
+        "dependencies": {
+          "cavalry": [
+            "infantry"
+          ]
+        },
+        "details": {
+          "hold": {
+            "enemy_capacity_removed": 56.60834930454176,
+            "friendly_capacity_lost": 17.115744056010158,
+            "transition_cost": 2.0,
+            "model_error": 0.5529307002041395,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 13.972115384615382,
+              "enemy_spears": 3.143628671394776
+            }
+          },
+          "reinforce": {
+            "enemy_capacity_removed": 56.35722828360548,
+            "friendly_capacity_lost": 17.115744056010158,
+            "transition_cost": 2.0,
+            "model_error": 0.5510472925471174,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 13.972115384615382,
+              "enemy_spears": 3.143628671394776
+            }
+          },
+          "counter": {
+            "enemy_capacity_removed": 56.60834930454176,
+            "friendly_capacity_lost": 17.115744056010158,
+            "transition_cost": 2.0,
+            "model_error": 0.5529307002041395,
+            "reserve_assignment": {},
+            "enemy_output_budget": {
+              "enemy_archers": 31.3875,
+              "enemy_spears": 13.5
+            },
+            "enemy_output_used": {
+              "enemy_archers": 13.972115384615382,
+              "enemy_spears": 3.143628671394776
+            }
+          }
+        }
+      },
+      "reason": "hard_invalid_repair",
+      "work": {
+        "expansions": 194,
+        "evaluations": 196,
+        "model_calls": 196,
+        "search_model_calls": 194,
+        "truncated": false,
+        "actors": 3,
+        "options": 16
+      },
+      "rejected": {
+        "window:archers": 1,
+        "unfixed_support:cavalry:enemy_spears": 40
+      }
+    }
+  },
+  {
+    "phase": "two_sides_frozen_frame_order",
+    "equal": true,
+    "outputs": [
+      {
+        "legal-domain-fixture": [
+          [
+            "archers",
+            "shoot",
+            "enemy_spears"
+          ],
+          [
+            "cavalry",
+            "strike",
+            "enemy_archers"
+          ],
+          [
+            "infantry",
+            "fix",
+            "enemy_spears"
+          ]
+        ],
+        "enemy-legal-domain": [
+          [
+            "enemy_archers",
+            "shoot",
+            "infantry"
+          ],
+          [
+            "enemy_spears",
+            "probe",
+            "archers"
+          ]
+        ]
+      },
+      {
+        "enemy-legal-domain": [
+          [
+            "enemy_archers",
+            "shoot",
+            "infantry"
+          ],
+          [
+            "enemy_spears",
+            "probe",
+            "archers"
+          ]
+        ],
+        "legal-domain-fixture": [
+          [
+            "archers",
+            "shoot",
+            "enemy_spears"
+          ],
+          [
+            "cavalry",
+            "strike",
+            "enemy_archers"
+          ],
+          [
+            "infantry",
+            "fix",
+            "enemy_spears"
+          ]
+        ]
+      }
+    ],
+    "limitation": "does not simulate co-adaptive movement; game oscillation unverified"
+  }
+]

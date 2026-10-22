@@ -1,5 +1,7 @@
 # CombatBrain 2.0 — 需求澄清与压力测试：研究整合稿 v0.5
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-04](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-04)、[AR-08](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-08)、[AR-09](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-09)、[AR-14](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-14)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > 初稿日期：2026-10-21，完整性审计更新：2026-10-22；状态：**研究分支草案 / 未完成产品验收 / 未授权直接开发**。依据：2026-10-19 上传的 Charter v0.3（文件名 Charter V0.2）、Roadmap v0.2（文件名 v0.1）、Requirements Clarification（2026-10-20），以及截至 2026-10-21 的 Commander/Formation、RBM、兵种画像讨论。本文是增量研究材料，原始上位文件和当前 P3 合同继续有效。历史阶段 Exit Gate 不因此被追认或更改。
 
 ## 0. 证据与状态约定

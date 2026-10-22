@@ -1,5 +1,7 @@
 # CombatBrain 2.0｜完整设计决策台账与需求收口基线（2026-10-22）
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-01](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-01)、[AR-02](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-02)、[AR-03](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-03)、[AR-07](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-07)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > **性质**：截至 2026-10-22 对话已确认原则的汇编与文档间冲突消解。**研究分支材料；非 PRD 定稿、非生产代码指令、非现行 P3 合同变更、非任何验收 PASS。**
 >
 > **来源**：最初上传的 Charter v0.3（仓库文件名 `charter/Charter V0.2.md`）、Requirements Clarification（2026-10-20）、Roadmap v0.2（文件名 v0.1）；2026-10-20～22 的需求澄清对话；本研究分支和另一研究分支 `research/requirements-reconciliation-2026-10-21` 已有的需求核对材料、RBM 研究与 CBATH 提案。

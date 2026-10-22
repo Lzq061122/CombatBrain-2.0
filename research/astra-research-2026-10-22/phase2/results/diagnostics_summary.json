@@ -1,0 +1,477 @@
+{
+  "active_examples": [
+    {
+      "method": "staged",
+      "variant": "nominal",
+      "opponent": "hold",
+      "net": 99.99999999999999,
+      "issued": {
+        "move": 1,
+        "fire": 7,
+        "hold": 8
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "nominal",
+      "opponent": "hold",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "nominal",
+      "opponent": "hold",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "nominal",
+      "opponent": "counter",
+      "net": 67.96230179984688,
+      "issued": {
+        "move": 1,
+        "fire": 15
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "nominal",
+      "opponent": "counter",
+      "net": 95.86138468974092,
+      "issued": {
+        "hold": 3,
+        "fire": 13
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "nominal",
+      "opponent": "counter",
+      "net": 95.86138468974092,
+      "issued": {
+        "hold": 3,
+        "fire": 13
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "nominal",
+      "opponent": "withdraw",
+      "net": 27.692307692307683,
+      "issued": {
+        "move": 12,
+        "hold": 2,
+        "fire": 2
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "nominal",
+      "opponent": "withdraw",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "nominal",
+      "opponent": "withdraw",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "nominal",
+      "opponent": "feint",
+      "net": 99.99999999999999,
+      "issued": {
+        "move": 1,
+        "fire": 7,
+        "hold": 8
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "nominal",
+      "opponent": "feint",
+      "net": 99.99999999999999,
+      "issued": {
+        "hold": 9,
+        "fire": 7
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "nominal",
+      "opponent": "feint",
+      "net": 99.99999999999999,
+      "issued": {
+        "hold": 9,
+        "fire": 7
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "slow_shared",
+      "opponent": "hold",
+      "net": 100.0,
+      "issued": {
+        "move": 2,
+        "fire": 7,
+        "hold": 7
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "slow_shared",
+      "opponent": "hold",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "slow_shared",
+      "opponent": "hold",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "slow_shared",
+      "opponent": "counter",
+      "net": 100.0,
+      "issued": {
+        "move": 1,
+        "fire": 7,
+        "hold": 8
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "slow_shared",
+      "opponent": "counter",
+      "net": 99.99999999999999,
+      "issued": {
+        "hold": 9,
+        "fire": 7
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "slow_shared",
+      "opponent": "counter",
+      "net": 99.99999999999999,
+      "issued": {
+        "hold": 9,
+        "fire": 7
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "slow_shared",
+      "opponent": "withdraw",
+      "net": 100.0,
+      "issued": {
+        "move": 2,
+        "fire": 7,
+        "hold": 7
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "slow_shared",
+      "opponent": "withdraw",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "slow_shared",
+      "opponent": "withdraw",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "slow_shared",
+      "opponent": "feint",
+      "net": 100.0,
+      "issued": {
+        "move": 1,
+        "fire": 7,
+        "hold": 8
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "slow_shared",
+      "opponent": "feint",
+      "net": 99.99999999999999,
+      "issued": {
+        "hold": 9,
+        "fire": 7
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "slow_shared",
+      "opponent": "feint",
+      "net": 99.99999999999999,
+      "issued": {
+        "hold": 9,
+        "fire": 7
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "sticky_exit",
+      "opponent": "hold",
+      "net": 99.99999999999999,
+      "issued": {
+        "move": 1,
+        "fire": 7,
+        "hold": 8
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "sticky_exit",
+      "opponent": "hold",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "sticky_exit",
+      "opponent": "hold",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "sticky_exit",
+      "opponent": "counter",
+      "net": 67.96230179984688,
+      "issued": {
+        "move": 1,
+        "fire": 15
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "sticky_exit",
+      "opponent": "counter",
+      "net": 95.86138468974092,
+      "issued": {
+        "hold": 3,
+        "fire": 13
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "sticky_exit",
+      "opponent": "counter",
+      "net": 95.86138468974092,
+      "issued": {
+        "hold": 3,
+        "fire": 13
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "sticky_exit",
+      "opponent": "withdraw",
+      "net": 27.692307692307683,
+      "issued": {
+        "move": 12,
+        "hold": 2,
+        "fire": 2
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "sticky_exit",
+      "opponent": "withdraw",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "sticky_exit",
+      "opponent": "withdraw",
+      "net": 0.0,
+      "issued": {
+        "hold": 16
+      },
+      "progress": 0
+    },
+    {
+      "method": "staged",
+      "variant": "sticky_exit",
+      "opponent": "feint",
+      "net": 99.99999999999999,
+      "issued": {
+        "move": 1,
+        "fire": 7,
+        "hold": 8
+      },
+      "progress": 1
+    },
+    {
+      "method": "no_active",
+      "variant": "sticky_exit",
+      "opponent": "feint",
+      "net": 99.99999999999999,
+      "issued": {
+        "hold": 9,
+        "fire": 7
+      },
+      "progress": 0
+    },
+    {
+      "method": "simple",
+      "variant": "sticky_exit",
+      "opponent": "feint",
+      "net": 99.99999999999999,
+      "issued": {
+        "hold": 9,
+        "fire": 7
+      },
+      "progress": 0
+    }
+  ],
+  "model_challenge_count": 96,
+  "positive_regret": 28,
+  "max_regret": 25.232662466301793,
+  "misleading_positive": 0,
+  "budget_cases": 15,
+  "transforms": [
+    {
+      "seed": 2110,
+      "transform": "original",
+      "net": 100.25037385391991,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2110,
+      "transform": "renamed",
+      "net": 100.25037385391991,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2110,
+      "transform": "reversed",
+      "net": 100.25037385391985,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2110,
+      "transform": "translated",
+      "net": 100.25037385391991,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2111,
+      "transform": "original",
+      "net": -32.60019365869218,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2111,
+      "transform": "renamed",
+      "net": -32.60019365869218,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2111,
+      "transform": "reversed",
+      "net": -32.600193658692206,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2111,
+      "transform": "translated",
+      "net": -32.60019365869218,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2112,
+      "transform": "original",
+      "net": 24.500003938969485,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2112,
+      "transform": "renamed",
+      "net": 24.500003938969485,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2112,
+      "transform": "reversed",
+      "net": 24.500003938969428,
+      "orders_rejected": 0
+    },
+    {
+      "seed": 2112,
+      "transform": "translated",
+      "net": 24.500003938969485,
+      "orders_rejected": 0
+    }
+  ]
+}

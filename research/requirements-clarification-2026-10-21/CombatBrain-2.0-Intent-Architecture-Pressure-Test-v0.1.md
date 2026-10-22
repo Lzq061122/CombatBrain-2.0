@@ -1,5 +1,7 @@
 # CombatBrain 2.0 — 意图生成与抗复杂化架构压力测试 v0.1
 
+> **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-09](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-09)、[AR-10](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-10)、[AR-11](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-11)、[AR-12](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-12)、[AR-13](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-13)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
+
 > 日期 2026-10-21。**研究提案 / 未经项目负责人批准实施 / 现行 P3 任务与门槛保持不变**。已确认决策：Commander 显式维护可更新的全军 Operational Intent；Formation 在上级目标/约束内执行；意图变化采用条件触发并保留必要职责交接。本文件中的模块边界与“生成”算法仍是 PROPOSED，不能冒充已实现。
 
 ## 1. 设计中的根本风险

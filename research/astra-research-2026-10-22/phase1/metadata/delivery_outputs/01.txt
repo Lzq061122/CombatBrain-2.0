@@ -1,0 +1,35 @@
+test_authority_revocation_blocks_old_write_and_safety (test_core.CoreChecks.test_authority_revocation_blocks_old_write_and_safety) ... ok
+test_dependency_exec_requires_observed_fix_not_just_assignment (test_core.CoreChecks.test_dependency_exec_requires_observed_fix_not_just_assignment) ... ok
+test_duplicate_report_and_old_revision_cannot_replan (test_core.CoreChecks.test_duplicate_report_and_old_revision_cannot_replan) ... ok
+test_enemy_output_conserved_across_attacks (test_core.CoreChecks.test_enemy_output_conserved_across_attacks) ... ok
+test_high_loss_report_does_not_cancel_effective_sacrifice_duty (test_core.CoreChecks.test_high_loss_report_does_not_cancel_effective_sacrifice_duty) ... ok
+test_no_response_memory_invalidated_only_by_material_epoch (test_core.CoreChecks.test_no_response_memory_invalidated_only_by_material_epoch) ... ok
+test_probe_feedback_changes_candidates_and_prevents_identical_retry (test_core.CoreChecks.test_probe_feedback_changes_candidates_and_prevents_identical_retry) ... ok
+test_zero_extra_budget_keeps_duty (test_core.CoreChecks.test_zero_extra_budget_keeps_duty) ... ok
+test_observed_active_effect_has_no_second_setup_charge (test_core.TimingChecks.test_observed_active_effect_has_no_second_setup_charge) ... ok
+test_short_fix_cannot_cover_long_strike (test_core.TimingChecks.test_short_fix_cannot_cover_long_strike) ... ok
+test_adopt_revalidates_authority (test_review.ReviewCounterexamples.test_adopt_revalidates_authority) ... ok
+test_adopt_revalidates_generation (test_review.ReviewCounterexamples.test_adopt_revalidates_generation) ... ok
+test_cancel_preserves_critical_duty (test_review.ReviewCounterexamples.test_cancel_preserves_critical_duty) ... ok
+test_duplicate_resource_is_infeasible (test_review.ReviewCounterexamples.test_duplicate_resource_is_infeasible) ... ok
+test_effect_releases_after_time_and_observed_readiness (test_review.ReviewCounterexamples.test_effect_releases_after_time_and_observed_readiness) ... ok
+test_effect_waits_for_arrival_and_setup (test_review.ReviewCounterexamples.test_effect_waits_for_arrival_and_setup) ... ok
+test_expired_current_authority_not_retained_by_hysteresis (test_review.ReviewCounterexamples.test_expired_current_authority_not_retained_by_hysteresis) ... ok
+test_late_fix_does_not_suppress_reinforcement_before_arrival (test_review.ReviewCounterexamples.test_late_fix_does_not_suppress_reinforcement_before_arrival) ... ok
+test_mandatory_duty_option_survives_optional_cap (test_review.ReviewCounterexamples.test_mandatory_duty_option_survives_optional_cap) ... ok
+test_missing_dependency_does_not_pass_hard_feasibility (test_review.ReviewCounterexamples.test_missing_dependency_does_not_pass_hard_feasibility) ... ok
+test_old_actor_generation_sequence_does_not_poison_new_reports (test_review.ReviewCounterexamples.test_old_actor_generation_sequence_does_not_poison_new_reports) ... ok
+test_old_mission_report_rejected (test_review.ReviewCounterexamples.test_old_mission_report_rejected) ... ok
+test_one_enemy_fire_budget_is_shared_across_attackers (test_review.ReviewCounterexamples.test_one_enemy_fire_budget_is_shared_across_attackers) ... ok
+test_other_domain_report_rejected (test_review.ReviewCounterexamples.test_other_domain_report_rejected) ... ok
+test_reserve_cover_budget_not_reused_for_two_assets (test_review.ReviewCounterexamples.test_reserve_cover_budget_not_reused_for_two_assets) ... ok
+test_safety_ignores_other_mission (test_review.ReviewCounterexamples.test_safety_ignores_other_mission) ... ok
+test_same_action_readoption_refreshes_delayed_arrival (test_review.ReviewCounterexamples.test_same_action_readoption_refreshes_delayed_arrival) ... ok
+test_stale_report_cannot_block_current_route (test_review.ReviewCounterexamples.test_stale_report_cannot_block_current_route) ... ok
+test_stationary_far_anti_mount_is_not_immediate_support (test_review.ReviewCounterexamples.test_stationary_far_anti_mount_is_not_immediate_support) ... ok
+test_valid_no_response_feedback_prevents_repeat_probe (test_review.ReviewCounterexamples.test_valid_no_response_feedback_prevents_repeat_probe) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.065s
+
+OK

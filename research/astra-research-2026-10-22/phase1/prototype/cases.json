@@ -1,0 +1,922 @@
+{
+  "base": {
+    "friendly": [
+      {
+        "uid": "cavalry",
+        "x": 0,
+        "y": 0,
+        "speed": 9,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 1.8,
+            "ranged": 0,
+            "armour": 0.8,
+            "anti_mount": 0,
+            "mounted": true,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "infantry",
+        "x": 60,
+        "y": 15,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 38,
+            "melee": 0.9,
+            "ranged": 0,
+            "armour": 0.6,
+            "anti_mount": 0.5,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "archers",
+        "x": -10,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 0.2,
+            "ranged": 1.4,
+            "armour": 0.3,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "enemy": [
+      {
+        "uid": "enemy_archers",
+        "x": 110,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 45,
+            "melee": 0.15,
+            "ranged": 1.4,
+            "armour": 0.2,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "enemy_spears",
+        "x": 95,
+        "y": 20,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 25,
+            "melee": 0.7,
+            "ranged": 0,
+            "armour": 0.7,
+            "anti_mount": 1.2,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "duties": [],
+    "horizon": 30.0,
+    "mission": "synthetic",
+    "domain": "legal-domain-fixture",
+    "now": 0.0,
+    "epoch": 1,
+    "blocked": [],
+    "failed_probes": [],
+    "major_change": true,
+    "active_effects": []
+  },
+  "support_far": {
+    "friendly": [
+      {
+        "uid": "cavalry",
+        "x": 0,
+        "y": 0,
+        "speed": 9,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 1.8,
+            "ranged": 0,
+            "armour": 0.8,
+            "anti_mount": 0,
+            "mounted": true,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "infantry",
+        "x": 60,
+        "y": 15,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 38,
+            "melee": 0.9,
+            "ranged": 0,
+            "armour": 0.6,
+            "anti_mount": 0.5,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "archers",
+        "x": -10,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 0.2,
+            "ranged": 1.4,
+            "armour": 0.3,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "enemy": [
+      {
+        "uid": "enemy_archers",
+        "x": 110,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 45,
+            "melee": 0.15,
+            "ranged": 1.4,
+            "armour": 0.2,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "enemy_spears",
+        "x": 350,
+        "y": 20,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 25,
+            "melee": 0.7,
+            "ranged": 0,
+            "armour": 0.7,
+            "anti_mount": 1.2,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "duties": [],
+    "horizon": 30.0,
+    "mission": "synthetic",
+    "domain": "legal-domain-fixture",
+    "now": 0.0,
+    "epoch": 1,
+    "blocked": [],
+    "failed_probes": [],
+    "major_change": true,
+    "active_effects": []
+  },
+  "fixer_late": {
+    "friendly": [
+      {
+        "uid": "cavalry",
+        "x": 0,
+        "y": 0,
+        "speed": 9,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 1.8,
+            "ranged": 0,
+            "armour": 0.8,
+            "anti_mount": 0,
+            "mounted": true,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "infantry",
+        "x": -50,
+        "y": 15,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 38,
+            "melee": 0.9,
+            "ranged": 0,
+            "armour": 0.6,
+            "anti_mount": 0.5,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "archers",
+        "x": -10,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 0.2,
+            "ranged": 1.4,
+            "armour": 0.3,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "enemy": [
+      {
+        "uid": "enemy_archers",
+        "x": 110,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 45,
+            "melee": 0.15,
+            "ranged": 1.4,
+            "armour": 0.2,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "enemy_spears",
+        "x": 95,
+        "y": 20,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 25,
+            "melee": 0.7,
+            "ranged": 0,
+            "armour": 0.7,
+            "anti_mount": 1.2,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "duties": [],
+    "horizon": 30.0,
+    "mission": "synthetic",
+    "domain": "legal-domain-fixture",
+    "now": 0.0,
+    "epoch": 1,
+    "blocked": [],
+    "failed_probes": [],
+    "major_change": true,
+    "active_effects": []
+  },
+  "protect_competition": {
+    "friendly": [
+      {
+        "uid": "cavalry",
+        "x": 0,
+        "y": 0,
+        "speed": 9,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 1.8,
+            "ranged": 0,
+            "armour": 0.8,
+            "anti_mount": 0,
+            "mounted": true,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "infantry",
+        "x": 60,
+        "y": 15,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 38,
+            "melee": 0.9,
+            "ranged": 0,
+            "armour": 0.6,
+            "anti_mount": 0.5,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "archers",
+        "x": -10,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 0.2,
+            "ranged": 1.4,
+            "armour": 0.3,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "enemy": [
+      {
+        "uid": "enemy_archers",
+        "x": 110,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 45,
+            "melee": 0.15,
+            "ranged": 1.4,
+            "armour": 0.2,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "enemy_spears",
+        "x": 95,
+        "y": 20,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 25,
+            "melee": 0.7,
+            "ranged": 0,
+            "armour": 0.7,
+            "anti_mount": 1.2,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "duties": [
+      {
+        "asset": "archers",
+        "owner": "infantry",
+        "deadline": 8.0,
+        "ready_successors": [],
+        "sacrifice": false,
+        "effective": true
+      }
+    ],
+    "horizon": 30.0,
+    "mission": "synthetic",
+    "domain": "legal-domain-fixture",
+    "now": 0.0,
+    "epoch": 1,
+    "blocked": [],
+    "failed_probes": [],
+    "major_change": true,
+    "active_effects": []
+  },
+  "ammo_zero_los_blocked": {
+    "friendly": [
+      {
+        "uid": "cavalry",
+        "x": 0,
+        "y": 0,
+        "speed": 9,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 1.8,
+            "ranged": 0,
+            "armour": 0.8,
+            "anti_mount": 0,
+            "mounted": true,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "infantry",
+        "x": 60,
+        "y": 15,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 38,
+            "melee": 0.9,
+            "ranged": 0,
+            "armour": 0.6,
+            "anti_mount": 0.5,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "archers",
+        "x": -10,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 0.2,
+            "ranged": 1.4,
+            "armour": 0.3,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 0,
+        "los": false,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "enemy": [
+      {
+        "uid": "enemy_archers",
+        "x": 110,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 45,
+            "melee": 0.15,
+            "ranged": 1.4,
+            "armour": 0.2,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "enemy_spears",
+        "x": 95,
+        "y": 20,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 25,
+            "melee": 0.7,
+            "ranged": 0,
+            "armour": 0.7,
+            "anti_mount": 1.2,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "duties": [],
+    "horizon": 30.0,
+    "mission": "synthetic",
+    "domain": "legal-domain-fixture",
+    "now": 0.0,
+    "epoch": 1,
+    "blocked": [],
+    "failed_probes": [],
+    "major_change": true,
+    "active_effects": []
+  },
+  "actual_reinforcement": {
+    "friendly": [
+      {
+        "uid": "cavalry",
+        "x": 0,
+        "y": 0,
+        "speed": 9,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 1.8,
+            "ranged": 0,
+            "armour": 0.8,
+            "anti_mount": 0,
+            "mounted": true,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "infantry",
+        "x": 60,
+        "y": 15,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 38,
+            "melee": 0.9,
+            "ranged": 0,
+            "armour": 0.6,
+            "anti_mount": 0.5,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "archers",
+        "x": -10,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 35,
+            "melee": 0.2,
+            "ranged": 1.4,
+            "armour": 0.3,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "reinforcement",
+        "x": 70,
+        "y": -10,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 30,
+            "melee": 0.9,
+            "ranged": 0,
+            "armour": 0.8,
+            "anti_mount": 0.6,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "enemy": [
+      {
+        "uid": "enemy_archers",
+        "x": 110,
+        "y": 0,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 45,
+            "melee": 0.15,
+            "ranged": 1.4,
+            "armour": 0.2,
+            "anti_mount": 0.0,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      },
+      {
+        "uid": "enemy_spears",
+        "x": 95,
+        "y": 20,
+        "speed": 4,
+        "groups": [
+          {
+            "n": 25,
+            "melee": 0.7,
+            "ranged": 0,
+            "armour": 0.7,
+            "anti_mount": 1.2,
+            "mounted": false,
+            "known": true
+          }
+        ],
+        "generation": 1,
+        "authority": 1,
+        "authorized": true,
+        "present": true,
+        "ammo": 1.0,
+        "los": true,
+        "mobility": 1.0,
+        "executable": true,
+        "endurance": 30.0
+      }
+    ],
+    "duties": [
+      {
+        "asset": "archers",
+        "owner": "infantry",
+        "deadline": 8.0,
+        "ready_successors": [],
+        "sacrifice": false,
+        "effective": true
+      }
+    ],
+    "horizon": 30.0,
+    "mission": "synthetic",
+    "domain": "legal-domain-fixture",
+    "now": 0.0,
+    "epoch": 1,
+    "blocked": [],
+    "failed_probes": [],
+    "major_change": true,
+    "active_effects": []
+  }
+}

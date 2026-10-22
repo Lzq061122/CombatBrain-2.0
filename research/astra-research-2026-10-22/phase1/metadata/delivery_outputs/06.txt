@@ -1,0 +1,26 @@
+{
+  "derived_hash_checks": 12,
+  "derived_file_count": 12,
+  "derived_consistency": [
+    {
+      "run": "run05",
+      "accepted_change_rows": 122,
+      "unique_entity_domain": 63,
+      "ABA_recomputed_from_derived_changes": 37,
+      "ABA_identity_matches_archived_derived": true,
+      "target_T1F0_ABA": 3,
+      "scope": "derived data consistency only; raw telemetry absent"
+    },
+    {
+      "run": "run06",
+      "accepted_change_rows": 120,
+      "unique_entity_domain": 63,
+      "ABA_recomputed_from_derived_changes": 35,
+      "ABA_identity_matches_archived_derived": true,
+      "target_T1F0_ABA": 2,
+      "scope": "derived data consistency only; raw telemetry absent"
+    }
+  ],
+  "cbath_older_timeline_samples": 373,
+  "runtime": "NOT_RUN"
+}

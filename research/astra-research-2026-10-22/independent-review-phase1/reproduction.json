@@ -1,0 +1,27 @@
+[
+  {
+    "job": "tests",
+    "exit_code": 0,
+    "seconds": 0.175
+  },
+  {
+    "job": "experiments",
+    "exit_code": 0,
+    "seconds": 10.077
+  },
+  {
+    "job": "feedback",
+    "exit_code": 0,
+    "seconds": 0.154
+  },
+  {
+    "job": "baseline",
+    "exit_code": 0,
+    "seconds": 0.024
+  },
+  {
+    "job": "method",
+    "exit_code": 0,
+    "seconds": 2.448
+  }
+]

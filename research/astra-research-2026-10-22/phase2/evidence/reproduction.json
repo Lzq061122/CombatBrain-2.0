@@ -1,0 +1,191 @@
+{
+  "status": "PASS",
+  "mode": "quick",
+  "python": "3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]",
+  "executable": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+  "platform": "macOS-26.2-arm64-arm-64bit-Mach-O",
+  "elapsed_seconds": 2.2605479169997125,
+  "commands": [
+    {
+      "label": "inherited_baseline_tests",
+      "arguments": [
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "prototype/baseline",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.2401012089994765
+    },
+    {
+      "label": "feedback_and_search_tests",
+      "arguments": [
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "prototype",
+        "-p",
+        "test_feedback_phase2.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.3611715410006582
+    },
+    {
+      "label": "temporal_tests",
+      "arguments": [
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "prototype",
+        "-p",
+        "test_temporal.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.049131042000226444
+    },
+    {
+      "label": "independent_world_tests",
+      "arguments": [
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "prototype",
+        "-p",
+        "test_world.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.05978983400018478
+    },
+    {
+      "label": "phase1_adapter_tests",
+      "arguments": [
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "prototype",
+        "-p",
+        "test_adapter.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.07895016699876578
+    },
+    {
+      "label": "calibration_tests",
+      "arguments": [
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "calibration",
+        "-p",
+        "test_analyzer.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.2972114589992998
+    },
+    {
+      "label": "independent_review_probes",
+      "arguments": [
+        "prototype/test_phase2_review.py",
+        "--output",
+        "results/review_final.json"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.053591249999954016
+    },
+    {
+      "label": "observed_temporal_execution",
+      "arguments": [
+        "prototype/run_temporal_execution.py"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.11238816700097232
+    },
+    {
+      "label": "current_smoke",
+      "arguments": [
+        "prototype/run_dynamic.py",
+        "--suite",
+        "smoke"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.7138239160012745
+    },
+    {
+      "label": "synthetic_calibration_example",
+      "arguments": [
+        "calibration/analyze.py",
+        "calibration/example.csv",
+        "--output",
+        "calibration/example_analysis.json"
+      ],
+      "returncode": 0,
+      "expected_returncode": 0,
+      "seconds": 0.11453920799976913
+    },
+    {
+      "label": "reject_synthetic_as_game",
+      "arguments": [
+        "calibration/analyze.py",
+        "calibration/example.csv",
+        "--require-game"
+      ],
+      "returncode": 2,
+      "expected_returncode": 2,
+      "seconds": 0.045645750000403496
+    }
+  ],
+  "sources": {
+    "calibration/analyze.py": "1f15cdacb7b58d50f9ddb4afc3261aee751fc23ad236f6801c60a691927b7139",
+    "calibration/make_example.py": "61c0480b769c55b585a232378270db39ac79bf395cde7c87ba8a5c1784227a6d",
+    "calibration/test_analyzer.py": "a9466f73ff1cd8be369e94b80b80bcda6c69ff261893081d7c85693eac3cc245",
+    "evidence/phase1_planner_original.py": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+    "prototype/analyze_traces.py": "5ac17cf77ed33701aab6a74d50346112b50edc77e4018d06400030bf06d8e79b",
+    "prototype/baseline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "prototype/baseline/planner.py": "efe0b280acfa503e9cbf7a58a89430fca877dd3418e621eb20e7a04dad51a806",
+    "prototype/baseline/run_experiments.py": "53150c98dc9addf7b172d4bfa45f2d2cd033e12a3fbfa456bdcd8b3532b3c96c",
+    "prototype/baseline/run_feedback.py": "2079a9d14540424d9a9da3ab31e9bdab1e89357fb9a39188da1b234830745ab8",
+    "prototype/baseline/test_core.py": "c80e699e463e5749f1f8c2c382181a8ce85dbbd95d837349a50d38986a309836",
+    "prototype/baseline/test_method_review.py": "387849dac6d8b7a18358dc0dfb933c1fc0d25c2b86404d4e270888b2d9ae11f4",
+    "prototype/baseline/test_review.py": "fc48aee50d0f464ea51c72bd9dc66b4e008667747aacb7573e1dfe0e17b3a79c",
+    "prototype/controller.py": "bc63cb02d4a76c9fe18085bda7ebf3a11c9b44411563ee54cae13eca26c5e0e0",
+    "prototype/run_baseline_challenges.py": "b3db37522d416d65aad688f0e669f1d6d669177d8677dac4f9ac6dd32532814d",
+    "prototype/run_diagnostics.py": "93d128706fe9945b7a88d49a800aeb5ae7b9a9c81f71070798b86e2598290c80",
+    "prototype/run_dynamic.py": "05282f5361004212862aeda869648a3ce4f89e517070288cfd076c7488a3804c",
+    "prototype/run_followup_cases.py": "df29f197ca338d5d7c3d0e745212aac59a662725bebe42ad9e17744fa51fba8c",
+    "prototype/run_temporal_execution.py": "b664467d6b45f9957e8083a619f9c29bcd48c47cd1699630b28c29bc7628d81f",
+    "prototype/temporal.py": "a06d9b64d817d750563562f529b63fc64b7a654a20e079c086a119592b8b4247",
+    "prototype/test_adapter.py": "7f141494e450ecd2b4df28edadf5e5484bbd1f04dd7b86f3df28cbed10fb5c9f",
+    "prototype/test_feedback_phase2.py": "e226b2cea98582566601280b2265f4e13cc4844afb728cab906e127abb9c034e",
+    "prototype/test_phase2_review.py": "deb13ad8c36863880c31f35c1af112c7b0f593f972b35b2ff91d146c93744dbd",
+    "prototype/test_temporal.py": "bdf5a75c50e8b05778223f94a143166ba8240306d0092fc96dbdd696b7421a11",
+    "prototype/test_world.py": "f45183b107372125a82078c7c1acaf9a84eaa5e7cc5979c80ad8d5b366558d59",
+    "prototype/world.py": "6e325c8e9e0168b4fa7475d566081055918fccf1e04ee1ec719360c887361d3f",
+    "reproduce.py": "029e568e97299018d0c61736b95278888de142de2278dcbf4596c515abe3f475"
+  },
+  "game_runtime": "NOT_RUN",
+  "evidence": "SYNTHETIC_AND_CONTRACT_ONLY",
+  "note": "Timings and absolute log paths may differ. Historical invalid batches are retained, not regenerated."
+}

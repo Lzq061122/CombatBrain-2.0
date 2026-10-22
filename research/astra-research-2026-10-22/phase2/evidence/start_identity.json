@@ -1,0 +1,10 @@
+{
+  "phase1_planner_sha256": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+  "phase1_report_sha256": "4697b8c0a117df822fecf3950d8b1b1b4af4b723912dca8ce35e6856b02aacf8",
+  "phase1_archive_sha256": "916b65dc65a58c0753d2e7d3bac331725afc313735abfcc0e14297743e30d6a7",
+  "cb2_sha": "dd28965238a83c29ae824f7225d90e3b2c8bfce4",
+  "baseline_policy": "Use frozen phase1 source; no full repository reaudit or remote tracking this round",
+  "python": "3.13.7 (v3.13.7:bcee1c32211, Aug 14 2025, 19:10:51) [Clang 16.0.0 (clang-1600.0.26.6)]",
+  "executable": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+  "platform": "macOS-26.2-arm64-arm-64bit-Mach-O"
+}

@@ -1,0 +1,630 @@
+[
+  {
+    "mechanism": "full",
+    "changes": 1,
+    "trace": [
+      {
+        "tick": 0,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 29.040293661483293
+      },
+      {
+        "tick": 1,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 28.777717780662343
+      },
+      {
+        "tick": 2,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 29.040293661483293
+      },
+      {
+        "tick": 3,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 28.777717780662343
+      },
+      {
+        "tick": 4,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 29.040293661483293
+      },
+      {
+        "tick": 5,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 28.777717780662343
+      },
+      {
+        "tick": 6,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 29.040293661483293
+      },
+      {
+        "tick": 7,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 28.777717780662343
+      },
+      {
+        "tick": 8,
+        "reason": "hard_invalid_repair",
+        "actions": [
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 15.160504586708287
+      },
+      {
+        "tick": 9,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 15.160504586708287
+      },
+      {
+        "tick": 10,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 15.160504586708287
+      },
+      {
+        "tick": 11,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 15.160504586708287
+      }
+    ]
+  },
+  {
+    "mechanism": "no_switch_cost",
+    "changes": 1,
+    "trace": [
+      {
+        "tick": 0,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 29.040293661483293
+      },
+      {
+        "tick": 1,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 28.777717780662343
+      },
+      {
+        "tick": 2,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 29.040293661483293
+      },
+      {
+        "tick": 3,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 28.777717780662343
+      },
+      {
+        "tick": 4,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 29.040293661483293
+      },
+      {
+        "tick": 5,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 28.777717780662343
+      },
+      {
+        "tick": 6,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 29.040293661483293
+      },
+      {
+        "tick": 7,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f0",
+            "kind": "strike",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 28.777717780662343
+      },
+      {
+        "tick": 8,
+        "reason": "hard_invalid_repair",
+        "actions": [
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 15.160504586708287
+      },
+      {
+        "tick": 9,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 15.160504586708287
+      },
+      {
+        "tick": 10,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 15.160504586708287
+      },
+      {
+        "tick": 11,
+        "reason": "best_available",
+        "actions": [
+          {
+            "actor": "f1",
+            "kind": "strike",
+            "target": "e0",
+            "generation": 1,
+            "authority": 1
+          },
+          {
+            "actor": "f2",
+            "kind": "shoot",
+            "target": "e1",
+            "generation": 1,
+            "authority": 1
+          }
+        ],
+        "value": 15.160504586708287
+      }
+    ]
+  }
+]

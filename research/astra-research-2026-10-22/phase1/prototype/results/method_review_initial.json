@@ -1,0 +1,1450 @@
+{
+  "accounting_summary": {
+    "beam": {
+      "mean_actual_assessment_calls": 385.3888888888889,
+      "mean_reported_evaluations": 94.80555555555556
+    },
+    "greedy": {
+      "mean_actual_assessment_calls": 280.0,
+      "mean_reported_evaluations": 278.0
+    },
+    "exhaustive": {
+      "mean_actual_assessment_calls": 252.61111111111111,
+      "mean_reported_evaluations": 252.61111111111111
+    }
+  },
+  "accounting": [
+    {
+      "seed": 1729,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 24.2142207922341
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 279,
+        "relaxed_calls": 0,
+        "value": 26.40161513192143
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 26.40161513192143
+      }
+    },
+    {
+      "seed": 1730,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 24.23814036946149
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 279,
+        "relaxed_calls": 0,
+        "value": 24.23814036946149
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 24.23814036946149
+      }
+    },
+    {
+      "seed": 1731,
+      "beam": {
+        "reported": {
+          "expansions": 399,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 503,
+        "relaxed_calls": 399,
+        "value": 36.144202499229
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 366,
+          "evaluations": 367,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 369,
+        "relaxed_calls": 0,
+        "value": 36.144202499229
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 392,
+          "evaluations": 393,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 393,
+        "relaxed_calls": 0,
+        "value": 36.144202499229
+      }
+    },
+    {
+      "seed": 1732,
+      "beam": {
+        "reported": {
+          "expansions": 133,
+          "evaluations": 77,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 210,
+        "relaxed_calls": 133,
+        "value": 8.55758789754334
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 172,
+          "evaluations": 173,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 175,
+        "relaxed_calls": 0,
+        "value": 8.55758789754334
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 105,
+          "evaluations": 106,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 106,
+        "relaxed_calls": 0,
+        "value": 8.55758789754334
+      }
+    },
+    {
+      "seed": 1733,
+      "beam": {
+        "reported": {
+          "expansions": 133,
+          "evaluations": 77,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 210,
+        "relaxed_calls": 133,
+        "value": 15.403471196948239
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 172,
+          "evaluations": 173,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 175,
+        "relaxed_calls": 0,
+        "value": 15.403471196948239
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 105,
+          "evaluations": 106,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 106,
+        "relaxed_calls": 0,
+        "value": 15.403471196948239
+      }
+    },
+    {
+      "seed": 1734,
+      "beam": {
+        "reported": {
+          "expansions": 119,
+          "evaluations": 84,
+          "truncated": false,
+          "actors": 3,
+          "options": 14
+        },
+        "actual_assessment_calls": 203,
+        "relaxed_calls": 119,
+        "value": 10.990466256518827
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 150,
+          "evaluations": 151,
+          "truncated": false,
+          "actors": 3,
+          "options": 14
+        },
+        "actual_assessment_calls": 153,
+        "relaxed_calls": 0,
+        "value": 10.990466256518827
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 84,
+          "evaluations": 85,
+          "truncated": false,
+          "actors": 3,
+          "options": 14
+        },
+        "actual_assessment_calls": 85,
+        "relaxed_calls": 0,
+        "value": 10.990466256518827
+      }
+    },
+    {
+      "seed": 1735,
+      "beam": {
+        "reported": {
+          "expansions": 287,
+          "evaluations": 91,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 378,
+        "relaxed_calls": 287,
+        "value": 25.689533931176616
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 279,
+        "relaxed_calls": 0,
+        "value": 25.689533931176616
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 25.689533931176616
+      }
+    },
+    {
+      "seed": 1736,
+      "beam": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 77,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 252,
+        "relaxed_calls": 175,
+        "value": 21.114854673633765
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 216,
+          "evaluations": 217,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 219,
+        "relaxed_calls": 0,
+        "value": 21.114854673633765
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 147,
+          "evaluations": 148,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 148,
+        "relaxed_calls": 0,
+        "value": 21.114854673633765
+      }
+    },
+    {
+      "seed": 1737,
+      "beam": {
+        "reported": {
+          "expansions": 287,
+          "evaluations": 84,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 371,
+        "relaxed_calls": 287,
+        "value": 19.095816473098008
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 294,
+          "evaluations": 295,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 297,
+        "relaxed_calls": 0,
+        "value": 19.095816473098008
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 252,
+          "evaluations": 253,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 253,
+        "relaxed_calls": 0,
+        "value": 19.095816473098008
+      }
+    },
+    {
+      "seed": 1738,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 26.782681425516905
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 279,
+        "relaxed_calls": 0,
+        "value": 26.782681425516905
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 26.782681425516905
+      }
+    },
+    {
+      "seed": 1739,
+      "beam": {
+        "reported": {
+          "expansions": 217,
+          "evaluations": 91,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 308,
+        "relaxed_calls": 217,
+        "value": 29.134081338326645
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 224,
+          "evaluations": 225,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 227,
+        "relaxed_calls": 0,
+        "value": 29.134081338326645
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 176,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 176,
+        "relaxed_calls": 0,
+        "value": 29.134081338326645
+      }
+    },
+    {
+      "seed": 1740,
+      "beam": {
+        "reported": {
+          "expansions": 399,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 503,
+        "relaxed_calls": 399,
+        "value": 23.595535567500683
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 366,
+          "evaluations": 367,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 369,
+        "relaxed_calls": 0,
+        "value": 23.595535567500683
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 392,
+          "evaluations": 393,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 393,
+        "relaxed_calls": 0,
+        "value": 23.595535567500683
+      }
+    },
+    {
+      "seed": 1741,
+      "beam": {
+        "reported": {
+          "expansions": 357,
+          "evaluations": 91,
+          "truncated": false,
+          "actors": 3,
+          "options": 21
+        },
+        "actual_assessment_calls": 448,
+        "relaxed_calls": 357,
+        "value": 21.027060386059457
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 328,
+          "evaluations": 329,
+          "truncated": false,
+          "actors": 3,
+          "options": 21
+        },
+        "actual_assessment_calls": 331,
+        "relaxed_calls": 0,
+        "value": 21.027060386059457
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 315,
+          "evaluations": 316,
+          "truncated": false,
+          "actors": 3,
+          "options": 21
+        },
+        "actual_assessment_calls": 316,
+        "relaxed_calls": 0,
+        "value": 21.027060386059457
+      }
+    },
+    {
+      "seed": 1742,
+      "beam": {
+        "reported": {
+          "expansions": 133,
+          "evaluations": 77,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 210,
+        "relaxed_calls": 133,
+        "value": 6.628015844954237
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 172,
+          "evaluations": 173,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 175,
+        "relaxed_calls": 0,
+        "value": 6.628015844954237
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 105,
+          "evaluations": 106,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 106,
+        "relaxed_calls": 0,
+        "value": 6.628015844954237
+      }
+    },
+    {
+      "seed": 1743,
+      "beam": {
+        "reported": {
+          "expansions": 399,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 503,
+        "relaxed_calls": 399,
+        "value": 9.381936197048041
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 366,
+          "evaluations": 367,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 369,
+        "relaxed_calls": 0,
+        "value": 9.381936197048041
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 392,
+          "evaluations": 393,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 393,
+        "relaxed_calls": 0,
+        "value": 9.381936197048041
+      }
+    },
+    {
+      "seed": 1744,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 29.604940579132652
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 279,
+        "relaxed_calls": 0,
+        "value": 29.604940579132652
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 29.604940579132652
+      }
+    },
+    {
+      "seed": 1745,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 27.203175350337425
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 399,
+        "relaxed_calls": 0,
+        "value": 27.203175350337425
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 27.203175350337425
+      }
+    },
+    {
+      "seed": 1746,
+      "beam": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 84,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 259,
+        "relaxed_calls": 175,
+        "value": 15.847682951201717
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 198,
+          "evaluations": 199,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 201,
+        "relaxed_calls": 0,
+        "value": 15.847682951201717
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 140,
+          "evaluations": 141,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 141,
+        "relaxed_calls": 0,
+        "value": 15.847682951201717
+      }
+    },
+    {
+      "seed": 1747,
+      "beam": {
+        "reported": {
+          "expansions": 200,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 304,
+        "relaxed_calls": 200,
+        "value": 17.393092929073262
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 216,
+          "evaluations": 217,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 219,
+        "relaxed_calls": 0,
+        "value": 17.393092929073262
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 147,
+          "evaluations": 148,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 148,
+        "relaxed_calls": 0,
+        "value": 17.393092929073262
+      }
+    },
+    {
+      "seed": 1748,
+      "beam": {
+        "reported": {
+          "expansions": 217,
+          "evaluations": 91,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 308,
+        "relaxed_calls": 217,
+        "value": 17.996909728413364
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 224,
+          "evaluations": 225,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 227,
+        "relaxed_calls": 0,
+        "value": 17.996909728413364
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 176,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 176,
+        "relaxed_calls": 0,
+        "value": 17.996909728413364
+      }
+    },
+    {
+      "seed": 1749,
+      "beam": {
+        "reported": {
+          "expansions": 343,
+          "evaluations": 98,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 441,
+        "relaxed_calls": 343,
+        "value": 27.001059259734703
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 306,
+          "evaluations": 307,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 309,
+        "relaxed_calls": 0,
+        "value": 27.001059259734703
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 294,
+          "evaluations": 295,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 295,
+        "relaxed_calls": 0,
+        "value": 27.001059259734703
+      }
+    },
+    {
+      "seed": 1750,
+      "beam": {
+        "reported": {
+          "expansions": 217,
+          "evaluations": 77,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 294,
+        "relaxed_calls": 217,
+        "value": 8.111999094426945
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 260,
+          "evaluations": 261,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 263,
+        "relaxed_calls": 0,
+        "value": 8.111999094426945
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 189,
+          "evaluations": 190,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 190,
+        "relaxed_calls": 0,
+        "value": 8.111999094426945
+      }
+    },
+    {
+      "seed": 1751,
+      "beam": {
+        "reported": {
+          "expansions": 287,
+          "evaluations": 91,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 378,
+        "relaxed_calls": 287,
+        "value": 17.60475407196145
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 279,
+        "relaxed_calls": 0,
+        "value": 17.60475407196145
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 17.60475407196145
+      }
+    },
+    {
+      "seed": 1752,
+      "beam": {
+        "reported": {
+          "expansions": 343,
+          "evaluations": 98,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 441,
+        "relaxed_calls": 343,
+        "value": 20.869305692262746
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 306,
+          "evaluations": 307,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 309,
+        "relaxed_calls": 0,
+        "value": 20.869305692262746
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 294,
+          "evaluations": 295,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 295,
+        "relaxed_calls": 0,
+        "value": 20.869305692262746
+      }
+    },
+    {
+      "seed": 1753,
+      "beam": {
+        "reported": {
+          "expansions": 217,
+          "evaluations": 91,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 308,
+        "relaxed_calls": 217,
+        "value": 13.829137716910912
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 224,
+          "evaluations": 225,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 227,
+        "relaxed_calls": 0,
+        "value": 13.829137716910912
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 176,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 176,
+        "relaxed_calls": 0,
+        "value": 13.829137716910912
+      }
+    },
+    {
+      "seed": 1754,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 26.864730171055765
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 399,
+        "relaxed_calls": 0,
+        "value": 26.864730171055765
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 26.864730171055765
+      }
+    },
+    {
+      "seed": 1755,
+      "beam": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 84,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 259,
+        "relaxed_calls": 175,
+        "value": 15.88127979413524
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 198,
+          "evaluations": 199,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 201,
+        "relaxed_calls": 0,
+        "value": 15.88127979413524
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 140,
+          "evaluations": 141,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 141,
+        "relaxed_calls": 0,
+        "value": 15.88127979413524
+      }
+    },
+    {
+      "seed": 1756,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 27.022135271262282
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 399,
+        "relaxed_calls": 0,
+        "value": 27.022135271262282
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 27.022135271262282
+      }
+    },
+    {
+      "seed": 1757,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 36.50910854962765
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 279,
+        "relaxed_calls": 0,
+        "value": 36.50910854962765
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 36.50910854962765
+      }
+    },
+    {
+      "seed": 1758,
+      "beam": {
+        "reported": {
+          "expansions": 259,
+          "evaluations": 98,
+          "truncated": false,
+          "actors": 3,
+          "options": 18
+        },
+        "actual_assessment_calls": 357,
+        "relaxed_calls": 259,
+        "value": -1.7304365502957915
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 250,
+          "evaluations": 251,
+          "truncated": false,
+          "actors": 3,
+          "options": 18
+        },
+        "actual_assessment_calls": 253,
+        "relaxed_calls": 0,
+        "value": -1.7304365502957915
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 210,
+          "evaluations": 211,
+          "truncated": false,
+          "actors": 3,
+          "options": 18
+        },
+        "actual_assessment_calls": 211,
+        "relaxed_calls": 0,
+        "value": -1.7304365502957915
+      }
+    },
+    {
+      "seed": 1759,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 25.65832403983159
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 399,
+        "relaxed_calls": 0,
+        "value": 25.65832403983159
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 25.65832403983159
+      }
+    },
+    {
+      "seed": 1760,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 28.218862265291587
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 399,
+        "relaxed_calls": 0,
+        "value": 28.218862265291587
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 28.218862265291587
+      }
+    },
+    {
+      "seed": 1761,
+      "beam": {
+        "reported": {
+          "expansions": 303,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 407,
+        "relaxed_calls": 303,
+        "value": 15.38885962824589
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 302,
+          "evaluations": 303,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 305,
+        "relaxed_calls": 0,
+        "value": 15.38885962824589
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 280,
+          "evaluations": 281,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 281,
+        "relaxed_calls": 0,
+        "value": 15.38885962824589
+      }
+    },
+    {
+      "seed": 1762,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 14.81429397688466
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 279,
+        "relaxed_calls": 0,
+        "value": 15.552813175642353
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 15.552813175642353
+      }
+    },
+    {
+      "seed": 1763,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 18.90973218458792
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 279,
+        "relaxed_calls": 0,
+        "value": 18.90973218458792
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 18.90973218458792
+      }
+    },
+    {
+      "seed": 1764,
+      "beam": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 84,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 259,
+        "relaxed_calls": 175,
+        "value": 11.84521069363622
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 198,
+          "evaluations": 199,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 201,
+        "relaxed_calls": 0,
+        "value": 11.84521069363622
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 140,
+          "evaluations": 141,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 141,
+        "relaxed_calls": 0,
+        "value": 11.84521069363622
+      }
+    }
+  ],
+  "maximin_vs_all_scenario_retention": {
+    "seed": 1729,
+    "current_outcomes": {
+      "hold": 30.37879375282956,
+      "reinforce": 24.51667175701624,
+      "counter": 30.37879375282956
+    },
+    "best_maximin_outcomes": {
+      "hold": 27.163827783633366,
+      "reinforce": 26.677286721394132,
+      "counter": 27.163827783633366
+    },
+    "current_lower_value": 24.51667175701624,
+    "best_maximin_lower_value": 26.677286721394132,
+    "returned_reason": "retain_current:uncertain_or_no_global_trigger",
+    "uncertainty": false,
+    "switch_cost": 0
+  },
+  "two_weak_fixers": {
+    "sum_fix_melee": 40,
+    "required_fix_melee": 35.0,
+    "strict_feasible": false,
+    "strict_reasons": [
+      "unfixed_support:cavalry:guard"
+    ],
+    "without_hard_dependency_feasible": true
+  },
+  "scope": "synthetic algorithm accounting and stated-constraint counterexamples only"
+}

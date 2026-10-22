@@ -1,0 +1,114 @@
+{
+  "read_date": "2026-10-22",
+  "tcl_derived_files": [
+    {
+      "path": "docs/evidence/phase10-closure-20261007/g3-summary.json",
+      "present": true,
+      "sha_match": true,
+      "sha256": "27fda22bea7bd685a3017a199671362bf9a80f55976b36b900808b174df79b78"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/h3-same-run.json",
+      "present": true,
+      "sha_match": true,
+      "sha256": "7a1de2fb9ae641720eacf2373c5068ba9d6df46fe2af31a9c2453b7582217b76"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run05-changes.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "d5ae2ae90b81ca3484b4e07b07e4d520baafa42d05fda23c6911dd5bf6b61028"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run05-keys.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "b4f047c9baccec2593a3bddbae1a14adf33254dc94347969ff8c08e1140f5ade"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run05-lifetimes.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "9129159ef07736445838080633eef31945b3a35aa3a433d9a21366c97a73ce58"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run05-triples.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "adb20118edb3c30b64169bfd203701c7dc54fd6eb0beb6cda34a7d1cbc36bd24"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run05-window-start-states.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "b8b79529abba9977768c0810b7c9015362032dc18221ad4854ed43a353b9caa9"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run06-changes.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "4ce9e13fa63c17951f5eb2810a8270f3cd8d472de0a8631e2fedf988c9321666"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run06-keys.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "c5af98ab3aa3e3299e0b8eb195846631b61d86ea577914730fa12d0fac98f9e2"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run06-lifetimes.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "c79b56dc5d733741b3eee32f88eaa6ec0bf7248bb958463a26b48579d77c5715"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run06-triples.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "9ca493b534b83b86ad0970861af5f4f054e8f9ba88acb0dd0696d9fbc6f3fabe"
+    },
+    {
+      "path": "docs/evidence/phase10-closure-20261007/run06-window-start-states.csv",
+      "present": true,
+      "sha_match": true,
+      "sha256": "7f7bbe7ff6f736b0e5ceaaefa6d03e4ad6b4e1a8e19372924f79cdcce9e4eebf"
+    }
+  ],
+  "tcl_raw_run04_11_present": false,
+  "cbath_final_zt_raw_present": false,
+  "cbath_older_timeline": {
+    "path": "sources/cbath/default/RD/CombatBrain-Autonomous-Test-Harness/evidence/runs/p2-006-cbath-timeline-live.json",
+    "sha256": "da693b734f8e67dc37923094b5d174c825e4bc66fcb588a881f60927e605cf85",
+    "samples": 373,
+    "declared_samples": 373,
+    "first_time": 0.031,
+    "last_time": 373.631,
+    "interval_min": 1.0,
+    "interval_max": 1.029,
+    "interval_median": 1.004000000000019,
+    "mission_start": "0.031",
+    "mission_end": "374.376"
+  },
+  "applicable_AGENTS_files": [],
+  "license_files": [],
+  "derived_consistency_recheck": [
+    {
+      "run": "run05",
+      "accepted_change_rows": 122,
+      "unique_entity_domain": 63,
+      "ABA_recomputed_from_derived_changes": 37,
+      "ABA_identity_matches_archived_derived": true,
+      "target_T1F0_ABA": 3,
+      "scope": "derived data consistency only; raw telemetry absent"
+    },
+    {
+      "run": "run06",
+      "accepted_change_rows": 120,
+      "unique_entity_domain": 63,
+      "ABA_recomputed_from_derived_changes": 35,
+      "ABA_identity_matches_archived_derived": true,
+      "target_T1F0_ABA": 2,
+      "scope": "derived data consistency only; raw telemetry absent"
+    }
+  ]
+}

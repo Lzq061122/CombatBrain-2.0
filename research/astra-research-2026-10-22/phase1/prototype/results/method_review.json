@@ -1,0 +1,1856 @@
+{
+  "source_sha256": "6c67598cd8e65ccfa919280b4a62d5362c9a2b560b8ce8c7890c1a78f55c74dc",
+  "accounting_summary": {
+    "beam": {
+      "mean_actual_assessment_calls": 385.3888888888889,
+      "mean_reported_evaluations": 94.80555555555556,
+      "mean_reported_model_calls": 385.3888888888889
+    },
+    "greedy": {
+      "mean_actual_assessment_calls": 278.0,
+      "mean_reported_evaluations": 278.0,
+      "mean_reported_model_calls": 278.0
+    },
+    "exhaustive": {
+      "mean_actual_assessment_calls": 252.61111111111111,
+      "mean_reported_evaluations": 252.61111111111111,
+      "mean_reported_model_calls": 252.61111111111111
+    }
+  },
+  "accounting": [
+    {
+      "seed": 1729,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "model_calls": 400,
+          "search_model_calls": 399,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 24.2142207922341
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "model_calls": 277,
+          "search_model_calls": 276,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 277,
+        "relaxed_calls": 0,
+        "value": 26.40161513192143
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "model_calls": 246,
+          "search_model_calls": 245,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 26.40161513192143
+      }
+    },
+    {
+      "seed": 1730,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "model_calls": 400,
+          "search_model_calls": 399,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 24.23814036946149
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "model_calls": 277,
+          "search_model_calls": 276,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 277,
+        "relaxed_calls": 0,
+        "value": 24.23814036946149
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "model_calls": 246,
+          "search_model_calls": 245,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 24.23814036946149
+      }
+    },
+    {
+      "seed": 1731,
+      "beam": {
+        "reported": {
+          "expansions": 399,
+          "evaluations": 104,
+          "model_calls": 503,
+          "search_model_calls": 502,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 503,
+        "relaxed_calls": 399,
+        "value": 36.144202499229
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 366,
+          "evaluations": 367,
+          "model_calls": 367,
+          "search_model_calls": 366,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 367,
+        "relaxed_calls": 0,
+        "value": 36.144202499229
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 392,
+          "evaluations": 393,
+          "model_calls": 393,
+          "search_model_calls": 392,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 393,
+        "relaxed_calls": 0,
+        "value": 36.144202499229
+      }
+    },
+    {
+      "seed": 1732,
+      "beam": {
+        "reported": {
+          "expansions": 133,
+          "evaluations": 77,
+          "model_calls": 210,
+          "search_model_calls": 209,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 210,
+        "relaxed_calls": 133,
+        "value": 8.55758789754334
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 172,
+          "evaluations": 173,
+          "model_calls": 173,
+          "search_model_calls": 172,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 173,
+        "relaxed_calls": 0,
+        "value": 8.55758789754334
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 105,
+          "evaluations": 106,
+          "model_calls": 106,
+          "search_model_calls": 105,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 106,
+        "relaxed_calls": 0,
+        "value": 8.55758789754334
+      }
+    },
+    {
+      "seed": 1733,
+      "beam": {
+        "reported": {
+          "expansions": 133,
+          "evaluations": 77,
+          "model_calls": 210,
+          "search_model_calls": 209,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 210,
+        "relaxed_calls": 133,
+        "value": 15.403471196948239
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 172,
+          "evaluations": 173,
+          "model_calls": 173,
+          "search_model_calls": 172,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 173,
+        "relaxed_calls": 0,
+        "value": 15.403471196948239
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 105,
+          "evaluations": 106,
+          "model_calls": 106,
+          "search_model_calls": 105,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 106,
+        "relaxed_calls": 0,
+        "value": 15.403471196948239
+      }
+    },
+    {
+      "seed": 1734,
+      "beam": {
+        "reported": {
+          "expansions": 119,
+          "evaluations": 84,
+          "model_calls": 203,
+          "search_model_calls": 202,
+          "truncated": false,
+          "actors": 3,
+          "options": 14
+        },
+        "actual_assessment_calls": 203,
+        "relaxed_calls": 119,
+        "value": 10.990466256518827
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 150,
+          "evaluations": 151,
+          "model_calls": 151,
+          "search_model_calls": 150,
+          "truncated": false,
+          "actors": 3,
+          "options": 14
+        },
+        "actual_assessment_calls": 151,
+        "relaxed_calls": 0,
+        "value": 10.990466256518827
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 84,
+          "evaluations": 85,
+          "model_calls": 85,
+          "search_model_calls": 84,
+          "truncated": false,
+          "actors": 3,
+          "options": 14
+        },
+        "actual_assessment_calls": 85,
+        "relaxed_calls": 0,
+        "value": 10.990466256518827
+      }
+    },
+    {
+      "seed": 1735,
+      "beam": {
+        "reported": {
+          "expansions": 287,
+          "evaluations": 91,
+          "model_calls": 378,
+          "search_model_calls": 377,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 378,
+        "relaxed_calls": 287,
+        "value": 25.689533931176616
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "model_calls": 277,
+          "search_model_calls": 276,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 277,
+        "relaxed_calls": 0,
+        "value": 25.689533931176616
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "model_calls": 246,
+          "search_model_calls": 245,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 25.689533931176616
+      }
+    },
+    {
+      "seed": 1736,
+      "beam": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 77,
+          "model_calls": 252,
+          "search_model_calls": 251,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 252,
+        "relaxed_calls": 175,
+        "value": 21.114854673633765
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 216,
+          "evaluations": 217,
+          "model_calls": 217,
+          "search_model_calls": 216,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 217,
+        "relaxed_calls": 0,
+        "value": 21.114854673633765
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 147,
+          "evaluations": 148,
+          "model_calls": 148,
+          "search_model_calls": 147,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 148,
+        "relaxed_calls": 0,
+        "value": 21.114854673633765
+      }
+    },
+    {
+      "seed": 1737,
+      "beam": {
+        "reported": {
+          "expansions": 287,
+          "evaluations": 84,
+          "model_calls": 371,
+          "search_model_calls": 370,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 371,
+        "relaxed_calls": 287,
+        "value": 19.095816473098008
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 294,
+          "evaluations": 295,
+          "model_calls": 295,
+          "search_model_calls": 294,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 295,
+        "relaxed_calls": 0,
+        "value": 19.095816473098008
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 252,
+          "evaluations": 253,
+          "model_calls": 253,
+          "search_model_calls": 252,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 253,
+        "relaxed_calls": 0,
+        "value": 19.095816473098008
+      }
+    },
+    {
+      "seed": 1738,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "model_calls": 400,
+          "search_model_calls": 399,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 26.782681425516905
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "model_calls": 277,
+          "search_model_calls": 276,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 277,
+        "relaxed_calls": 0,
+        "value": 26.782681425516905
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "model_calls": 246,
+          "search_model_calls": 245,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 26.782681425516905
+      }
+    },
+    {
+      "seed": 1739,
+      "beam": {
+        "reported": {
+          "expansions": 217,
+          "evaluations": 91,
+          "model_calls": 308,
+          "search_model_calls": 307,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 308,
+        "relaxed_calls": 217,
+        "value": 29.134081338326645
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 224,
+          "evaluations": 225,
+          "model_calls": 225,
+          "search_model_calls": 224,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 225,
+        "relaxed_calls": 0,
+        "value": 29.134081338326645
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 176,
+          "model_calls": 176,
+          "search_model_calls": 175,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 176,
+        "relaxed_calls": 0,
+        "value": 29.134081338326645
+      }
+    },
+    {
+      "seed": 1740,
+      "beam": {
+        "reported": {
+          "expansions": 399,
+          "evaluations": 104,
+          "model_calls": 503,
+          "search_model_calls": 502,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 503,
+        "relaxed_calls": 399,
+        "value": 23.595535567500683
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 366,
+          "evaluations": 367,
+          "model_calls": 367,
+          "search_model_calls": 366,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 367,
+        "relaxed_calls": 0,
+        "value": 23.595535567500683
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 392,
+          "evaluations": 393,
+          "model_calls": 393,
+          "search_model_calls": 392,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 393,
+        "relaxed_calls": 0,
+        "value": 23.595535567500683
+      }
+    },
+    {
+      "seed": 1741,
+      "beam": {
+        "reported": {
+          "expansions": 357,
+          "evaluations": 91,
+          "model_calls": 448,
+          "search_model_calls": 447,
+          "truncated": false,
+          "actors": 3,
+          "options": 21
+        },
+        "actual_assessment_calls": 448,
+        "relaxed_calls": 357,
+        "value": 21.027060386059457
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 328,
+          "evaluations": 329,
+          "model_calls": 329,
+          "search_model_calls": 328,
+          "truncated": false,
+          "actors": 3,
+          "options": 21
+        },
+        "actual_assessment_calls": 329,
+        "relaxed_calls": 0,
+        "value": 21.027060386059457
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 315,
+          "evaluations": 316,
+          "model_calls": 316,
+          "search_model_calls": 315,
+          "truncated": false,
+          "actors": 3,
+          "options": 21
+        },
+        "actual_assessment_calls": 316,
+        "relaxed_calls": 0,
+        "value": 21.027060386059457
+      }
+    },
+    {
+      "seed": 1742,
+      "beam": {
+        "reported": {
+          "expansions": 133,
+          "evaluations": 77,
+          "model_calls": 210,
+          "search_model_calls": 209,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 210,
+        "relaxed_calls": 133,
+        "value": 6.628015844954237
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 172,
+          "evaluations": 173,
+          "model_calls": 173,
+          "search_model_calls": 172,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 173,
+        "relaxed_calls": 0,
+        "value": 6.628015844954237
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 105,
+          "evaluations": 106,
+          "model_calls": 106,
+          "search_model_calls": 105,
+          "truncated": false,
+          "actors": 3,
+          "options": 15
+        },
+        "actual_assessment_calls": 106,
+        "relaxed_calls": 0,
+        "value": 6.628015844954237
+      }
+    },
+    {
+      "seed": 1743,
+      "beam": {
+        "reported": {
+          "expansions": 399,
+          "evaluations": 104,
+          "model_calls": 503,
+          "search_model_calls": 502,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 503,
+        "relaxed_calls": 399,
+        "value": 9.381936197048041
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 366,
+          "evaluations": 367,
+          "model_calls": 367,
+          "search_model_calls": 366,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 367,
+        "relaxed_calls": 0,
+        "value": 9.381936197048041
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 392,
+          "evaluations": 393,
+          "model_calls": 393,
+          "search_model_calls": 392,
+          "truncated": false,
+          "actors": 3,
+          "options": 22
+        },
+        "actual_assessment_calls": 393,
+        "relaxed_calls": 0,
+        "value": 9.381936197048041
+      }
+    },
+    {
+      "seed": 1744,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "model_calls": 400,
+          "search_model_calls": 399,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 29.604940579132652
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "model_calls": 277,
+          "search_model_calls": 276,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 277,
+        "relaxed_calls": 0,
+        "value": 29.604940579132652
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "model_calls": 246,
+          "search_model_calls": 245,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 29.604940579132652
+      }
+    },
+    {
+      "seed": 1745,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "model_calls": 592,
+          "search_model_calls": 591,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 27.203175350337425
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "model_calls": 397,
+          "search_model_calls": 396,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 397,
+        "relaxed_calls": 0,
+        "value": 27.203175350337425
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "model_calls": 442,
+          "search_model_calls": 441,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 27.203175350337425
+      }
+    },
+    {
+      "seed": 1746,
+      "beam": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 84,
+          "model_calls": 259,
+          "search_model_calls": 258,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 259,
+        "relaxed_calls": 175,
+        "value": 15.847682951201717
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 198,
+          "evaluations": 199,
+          "model_calls": 199,
+          "search_model_calls": 198,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 199,
+        "relaxed_calls": 0,
+        "value": 15.847682951201717
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 140,
+          "evaluations": 141,
+          "model_calls": 141,
+          "search_model_calls": 140,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 141,
+        "relaxed_calls": 0,
+        "value": 15.847682951201717
+      }
+    },
+    {
+      "seed": 1747,
+      "beam": {
+        "reported": {
+          "expansions": 200,
+          "evaluations": 104,
+          "model_calls": 304,
+          "search_model_calls": 303,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 304,
+        "relaxed_calls": 200,
+        "value": 17.393092929073262
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 216,
+          "evaluations": 217,
+          "model_calls": 217,
+          "search_model_calls": 216,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 217,
+        "relaxed_calls": 0,
+        "value": 17.393092929073262
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 147,
+          "evaluations": 148,
+          "model_calls": 148,
+          "search_model_calls": 147,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 148,
+        "relaxed_calls": 0,
+        "value": 17.393092929073262
+      }
+    },
+    {
+      "seed": 1748,
+      "beam": {
+        "reported": {
+          "expansions": 217,
+          "evaluations": 91,
+          "model_calls": 308,
+          "search_model_calls": 307,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 308,
+        "relaxed_calls": 217,
+        "value": 17.996909728413364
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 224,
+          "evaluations": 225,
+          "model_calls": 225,
+          "search_model_calls": 224,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 225,
+        "relaxed_calls": 0,
+        "value": 17.996909728413364
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 176,
+          "model_calls": 176,
+          "search_model_calls": 175,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 176,
+        "relaxed_calls": 0,
+        "value": 17.996909728413364
+      }
+    },
+    {
+      "seed": 1749,
+      "beam": {
+        "reported": {
+          "expansions": 343,
+          "evaluations": 98,
+          "model_calls": 441,
+          "search_model_calls": 440,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 441,
+        "relaxed_calls": 343,
+        "value": 27.001059259734703
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 306,
+          "evaluations": 307,
+          "model_calls": 307,
+          "search_model_calls": 306,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 307,
+        "relaxed_calls": 0,
+        "value": 27.001059259734703
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 294,
+          "evaluations": 295,
+          "model_calls": 295,
+          "search_model_calls": 294,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 295,
+        "relaxed_calls": 0,
+        "value": 27.001059259734703
+      }
+    },
+    {
+      "seed": 1750,
+      "beam": {
+        "reported": {
+          "expansions": 217,
+          "evaluations": 77,
+          "model_calls": 294,
+          "search_model_calls": 293,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 294,
+        "relaxed_calls": 217,
+        "value": 8.111999094426945
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 260,
+          "evaluations": 261,
+          "model_calls": 261,
+          "search_model_calls": 260,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 261,
+        "relaxed_calls": 0,
+        "value": 8.111999094426945
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 189,
+          "evaluations": 190,
+          "model_calls": 190,
+          "search_model_calls": 189,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 190,
+        "relaxed_calls": 0,
+        "value": 8.111999094426945
+      }
+    },
+    {
+      "seed": 1751,
+      "beam": {
+        "reported": {
+          "expansions": 287,
+          "evaluations": 91,
+          "model_calls": 378,
+          "search_model_calls": 377,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 378,
+        "relaxed_calls": 287,
+        "value": 17.60475407196145
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "model_calls": 277,
+          "search_model_calls": 276,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 277,
+        "relaxed_calls": 0,
+        "value": 17.60475407196145
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "model_calls": 246,
+          "search_model_calls": 245,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 17.60475407196145
+      }
+    },
+    {
+      "seed": 1752,
+      "beam": {
+        "reported": {
+          "expansions": 343,
+          "evaluations": 98,
+          "model_calls": 441,
+          "search_model_calls": 440,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 441,
+        "relaxed_calls": 343,
+        "value": 20.869305692262746
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 306,
+          "evaluations": 307,
+          "model_calls": 307,
+          "search_model_calls": 306,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 307,
+        "relaxed_calls": 0,
+        "value": 20.869305692262746
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 294,
+          "evaluations": 295,
+          "model_calls": 295,
+          "search_model_calls": 294,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 295,
+        "relaxed_calls": 0,
+        "value": 20.869305692262746
+      }
+    },
+    {
+      "seed": 1753,
+      "beam": {
+        "reported": {
+          "expansions": 217,
+          "evaluations": 91,
+          "model_calls": 308,
+          "search_model_calls": 307,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 308,
+        "relaxed_calls": 217,
+        "value": 13.829137716910912
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 224,
+          "evaluations": 225,
+          "model_calls": 225,
+          "search_model_calls": 224,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 225,
+        "relaxed_calls": 0,
+        "value": 13.829137716910912
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 176,
+          "model_calls": 176,
+          "search_model_calls": 175,
+          "truncated": false,
+          "actors": 3,
+          "options": 17
+        },
+        "actual_assessment_calls": 176,
+        "relaxed_calls": 0,
+        "value": 13.829137716910912
+      }
+    },
+    {
+      "seed": 1754,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "model_calls": 592,
+          "search_model_calls": 591,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 26.864730171055765
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "model_calls": 397,
+          "search_model_calls": 396,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 397,
+        "relaxed_calls": 0,
+        "value": 26.864730171055765
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "model_calls": 442,
+          "search_model_calls": 441,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 26.864730171055765
+      }
+    },
+    {
+      "seed": 1755,
+      "beam": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 84,
+          "model_calls": 259,
+          "search_model_calls": 258,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 259,
+        "relaxed_calls": 175,
+        "value": 15.88127979413524
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 198,
+          "evaluations": 199,
+          "model_calls": 199,
+          "search_model_calls": 198,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 199,
+        "relaxed_calls": 0,
+        "value": 15.88127979413524
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 140,
+          "evaluations": 141,
+          "model_calls": 141,
+          "search_model_calls": 140,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 141,
+        "relaxed_calls": 0,
+        "value": 15.88127979413524
+      }
+    },
+    {
+      "seed": 1756,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "model_calls": 592,
+          "search_model_calls": 591,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 27.022135271262282
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "model_calls": 397,
+          "search_model_calls": 396,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 397,
+        "relaxed_calls": 0,
+        "value": 27.022135271262282
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "model_calls": 442,
+          "search_model_calls": 441,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 27.022135271262282
+      }
+    },
+    {
+      "seed": 1757,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "model_calls": 400,
+          "search_model_calls": 399,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 36.50910854962765
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "model_calls": 277,
+          "search_model_calls": 276,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 277,
+        "relaxed_calls": 0,
+        "value": 36.50910854962765
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "model_calls": 246,
+          "search_model_calls": 245,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 36.50910854962765
+      }
+    },
+    {
+      "seed": 1758,
+      "beam": {
+        "reported": {
+          "expansions": 259,
+          "evaluations": 98,
+          "model_calls": 357,
+          "search_model_calls": 356,
+          "truncated": false,
+          "actors": 3,
+          "options": 18
+        },
+        "actual_assessment_calls": 357,
+        "relaxed_calls": 259,
+        "value": -1.7304365502957915
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 250,
+          "evaluations": 251,
+          "model_calls": 251,
+          "search_model_calls": 250,
+          "truncated": false,
+          "actors": 3,
+          "options": 18
+        },
+        "actual_assessment_calls": 251,
+        "relaxed_calls": 0,
+        "value": -1.7304365502957915
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 210,
+          "evaluations": 211,
+          "model_calls": 211,
+          "search_model_calls": 210,
+          "truncated": false,
+          "actors": 3,
+          "options": 18
+        },
+        "actual_assessment_calls": 211,
+        "relaxed_calls": 0,
+        "value": -1.7304365502957915
+      }
+    },
+    {
+      "seed": 1759,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "model_calls": 592,
+          "search_model_calls": 591,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 25.65832403983159
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "model_calls": 397,
+          "search_model_calls": 396,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 397,
+        "relaxed_calls": 0,
+        "value": 25.65832403983159
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "model_calls": 442,
+          "search_model_calls": 441,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 25.65832403983159
+      }
+    },
+    {
+      "seed": 1760,
+      "beam": {
+        "reported": {
+          "expansions": 488,
+          "evaluations": 104,
+          "model_calls": 592,
+          "search_model_calls": 591,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 592,
+        "relaxed_calls": 488,
+        "value": 28.218862265291587
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 396,
+          "evaluations": 397,
+          "model_calls": 397,
+          "search_model_calls": 396,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 397,
+        "relaxed_calls": 0,
+        "value": 28.218862265291587
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 441,
+          "evaluations": 442,
+          "model_calls": 442,
+          "search_model_calls": 441,
+          "truncated": false,
+          "actors": 3,
+          "options": 23
+        },
+        "actual_assessment_calls": 442,
+        "relaxed_calls": 0,
+        "value": 28.218862265291587
+      }
+    },
+    {
+      "seed": 1761,
+      "beam": {
+        "reported": {
+          "expansions": 303,
+          "evaluations": 104,
+          "model_calls": 407,
+          "search_model_calls": 406,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 407,
+        "relaxed_calls": 303,
+        "value": 15.38885962824589
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 302,
+          "evaluations": 303,
+          "model_calls": 303,
+          "search_model_calls": 302,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 303,
+        "relaxed_calls": 0,
+        "value": 15.38885962824589
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 280,
+          "evaluations": 281,
+          "model_calls": 281,
+          "search_model_calls": 280,
+          "truncated": false,
+          "actors": 3,
+          "options": 20
+        },
+        "actual_assessment_calls": 281,
+        "relaxed_calls": 0,
+        "value": 15.38885962824589
+      }
+    },
+    {
+      "seed": 1762,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "model_calls": 400,
+          "search_model_calls": 399,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 14.81429397688466
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "model_calls": 277,
+          "search_model_calls": 276,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 277,
+        "relaxed_calls": 0,
+        "value": 15.552813175642353
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "model_calls": 246,
+          "search_model_calls": 245,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 15.552813175642353
+      }
+    },
+    {
+      "seed": 1763,
+      "beam": {
+        "reported": {
+          "expansions": 296,
+          "evaluations": 104,
+          "model_calls": 400,
+          "search_model_calls": 399,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 400,
+        "relaxed_calls": 296,
+        "value": 18.90973218458792
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 276,
+          "evaluations": 277,
+          "model_calls": 277,
+          "search_model_calls": 276,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 277,
+        "relaxed_calls": 0,
+        "value": 18.90973218458792
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 245,
+          "evaluations": 246,
+          "model_calls": 246,
+          "search_model_calls": 245,
+          "truncated": false,
+          "actors": 3,
+          "options": 19
+        },
+        "actual_assessment_calls": 246,
+        "relaxed_calls": 0,
+        "value": 18.90973218458792
+      }
+    },
+    {
+      "seed": 1764,
+      "beam": {
+        "reported": {
+          "expansions": 175,
+          "evaluations": 84,
+          "model_calls": 259,
+          "search_model_calls": 258,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 259,
+        "relaxed_calls": 175,
+        "value": 11.84521069363622
+      },
+      "greedy": {
+        "reported": {
+          "expansions": 198,
+          "evaluations": 199,
+          "model_calls": 199,
+          "search_model_calls": 198,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 199,
+        "relaxed_calls": 0,
+        "value": 11.84521069363622
+      },
+      "exhaustive": {
+        "reported": {
+          "expansions": 140,
+          "evaluations": 141,
+          "model_calls": 141,
+          "search_model_calls": 140,
+          "truncated": false,
+          "actors": 3,
+          "options": 16
+        },
+        "actual_assessment_calls": 141,
+        "relaxed_calls": 0,
+        "value": 11.84521069363622
+      }
+    }
+  ],
+  "maximin_vs_all_scenario_retention": {
+    "seed": 1729,
+    "current_outcomes": {
+      "hold": 30.37879375282956,
+      "reinforce": 24.51667175701624,
+      "counter": 30.37879375282956
+    },
+    "best_maximin_outcomes": {
+      "hold": 27.163827783633366,
+      "reinforce": 26.677286721394132,
+      "counter": 27.163827783633366
+    },
+    "current_lower_value": 24.51667175701624,
+    "best_maximin_lower_value": 26.677286721394132,
+    "optional_all_scenario_reason": "retain_current:uncertain_or_no_global_trigger",
+    "default_reason": "best_available",
+    "default_lower_value": 26.677286721394132,
+    "default_reaches_maximin_value": true,
+    "uncertainty": false,
+    "switch_cost": 0
+  },
+  "two_weak_fixers": {
+    "sum_fix_melee": 40,
+    "required_fix_melee": 35.0,
+    "strict_feasible": false,
+    "strict_reasons": [
+      "unfixed_support:cavalry:guard"
+    ],
+    "without_hard_dependency_feasible": true
+  },
+  "budget_audit": [
+    {
+      "budget": 0,
+      "method": "beam",
+      "actual_calls": 1,
+      "work": {
+        "expansions": 0,
+        "evaluations": 1,
+        "model_calls": 1,
+        "search_model_calls": 0,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 0,
+      "method": "greedy",
+      "actual_calls": 1,
+      "work": {
+        "expansions": 0,
+        "evaluations": 1,
+        "model_calls": 1,
+        "search_model_calls": 0,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 1,
+      "method": "beam",
+      "actual_calls": 2,
+      "work": {
+        "expansions": 1,
+        "evaluations": 1,
+        "model_calls": 2,
+        "search_model_calls": 1,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 1,
+      "method": "greedy",
+      "actual_calls": 2,
+      "work": {
+        "expansions": 1,
+        "evaluations": 2,
+        "model_calls": 2,
+        "search_model_calls": 1,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 10,
+      "method": "beam",
+      "actual_calls": 11,
+      "work": {
+        "expansions": 7,
+        "evaluations": 4,
+        "model_calls": 11,
+        "search_model_calls": 10,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 10,
+      "method": "greedy",
+      "actual_calls": 11,
+      "work": {
+        "expansions": 10,
+        "evaluations": 11,
+        "model_calls": 11,
+        "search_model_calls": 10,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 50,
+      "method": "beam",
+      "actual_calls": 51,
+      "work": {
+        "expansions": 43,
+        "evaluations": 8,
+        "model_calls": 51,
+        "search_model_calls": 50,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 50,
+      "method": "greedy",
+      "actual_calls": 51,
+      "work": {
+        "expansions": 50,
+        "evaluations": 51,
+        "model_calls": 51,
+        "search_model_calls": 50,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 100,
+      "method": "beam",
+      "actual_calls": 101,
+      "work": {
+        "expansions": 56,
+        "evaluations": 45,
+        "model_calls": 101,
+        "search_model_calls": 100,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    },
+    {
+      "budget": 100,
+      "method": "greedy",
+      "actual_calls": 101,
+      "work": {
+        "expansions": 100,
+        "evaluations": 101,
+        "model_calls": 101,
+        "search_model_calls": 100,
+        "truncated": true,
+        "actors": 3,
+        "options": 19
+      },
+      "accounting_exact": true,
+      "search_calls_within_budget": true
+    }
+  ],
+  "multiple_support_final_window": {
+    "feasible": false,
+    "reasons": [
+      "support_duration:cavalry:s1"
+    ],
+    "starts": {
+      "cavalry": 10.0,
+      "s1": 2.0,
+      "s2": 8.0
+    },
+    "first_fix_end": 10.0,
+    "final_strike_end": 16.0
+  },
+  "active_effect_observation": {
+    "unstarted_start": 2.2,
+    "observed_active_start": 0.0
+  },
+  "fix_expiry_effect": {
+    "long_fix_shoot_effect": 60.20638348932086,
+    "short_fix_shoot_effect": 39.65228386281018
+  },
+  "scope": "synthetic algorithm accounting and stated-constraint counterexamples only"
+}
