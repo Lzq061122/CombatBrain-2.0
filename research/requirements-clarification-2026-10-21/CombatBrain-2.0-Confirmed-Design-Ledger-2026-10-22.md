@@ -166,3 +166,12 @@
 4. **D-DATA-01 仍 OPEN**：必须先分清可构造的 Campaign 风格 Mission 状态与真实 Campaign 集成特有部分，再确定校准/泛化和最小验收场景。现行 P3 合同、CBATH「死战不退」政策和非 Agent 层边界均不因此改变。
 
 详细核查、证据现状与仍待决事项见 [Tactics、双端独立接管及自动战役验证](CombatBrain-2.0-Tactics-Side-Control-Automated-Campaign-Testing-2026-10-22.md)。
+
+
+## O. 增量签收（2026-10-22）：U-TAC-02 合法指挥域最高 Tactics
+
+**CONFIRMED**：项目负责人明确选择 **U-TAC-02 方案 B**：CombatBrain Commander 的战术能力预设基于**当前合法指挥域所关联的合格参战成员中最高原版 Tactics**，并且独立于该域的 Command Authority；技能更高不能扩大任一 Formation 控制权。不允许从不在当前合法域的友军/另一阵营无条件借用最高值，也不只限名义统帅的直属 Party。此决定覆盖此前 U-TAC-01 所留“范围 A/B/C”选择，但仍不表示真实 Party→Team→Formation/玩家 F6 权限关系已完成调查。
+
+**下一项 OPEN：U-AUTH-01**，如何基于真实游戏的权限关系构造每个 Commander 的 Legal Command Domain；按 Team、实际原生可控的 Formation 集合、还是其他权限边界，要求在军团/敌方/玩家 F6/部分手动控制中均不过权。**后续 OPEN：U-TAC-03** 合格参战角色的精确身份/失效/增援/最高技能变化刷新及无角色回退，真实引擎和自动 Campaign 测试要求。不能把具体实现细节当已签收。
+
+详见 [U-TAC-02 已确认决策](CombatBrain-2.0-U-TAC-02-Decision-2026-10-22.md)；仍不改动 `master`、现行 P3 合同或测试规则。
