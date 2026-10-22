@@ -57,3 +57,12 @@
 此份审计 §4 对 `U-AUTH-06b` 的 OPEN 标记为**交叉审查当时的历史状态**。本轮项目负责人随后明确选择 **U-AUTH-06b 方案 C**；已写入 [U-AUTH-06b 正式裁决文件](CombatBrain-2.0-U-AUTH-06b-Decision-2026-10-22.md) 与 [确认台账 §W](CombatBrain-2.0-Confirmed-Design-Ledger-2026-10-22.md)。**该项现为 CONFIRMED**：Commander 的明示牺牲关键职责原则上优先，Formation 只有在已有可观测事实支持实质无法履职、并满足受限紧急例外条件时，才能最小必要地越界报告。
 
 **《Defilade》交叉审查本身尚未使任何接口建议被批准**。本审计仍保持 `IF-FEEDBACK-01`、`IF-FEEDBACK-02`、`IF-EVAL-01`、`IF-SAFE-01`、`IF-TEST-01` 为 OPEN；按依赖顺序，**下一讨论题为 `IF-FEEDBACK-01` 结构化任务健康反馈**。不要由本次状态补录推断字段枚举、具体算法、动态 Tactics 来源、Campaign 链或实施完成。
+
+
+## 7. 进展补录（2026-10-22）：IF-FEEDBACK-01 已确认组织原则
+
+项目负责人在后续澄清中明确选 **IF-FEEDBACK-01 方案 C：少量独立任务健康状态维度 + 重大变化事件**，现已经更新 [独立裁决与 12 项压力测试](CombatBrain-2.0-IF-FEEDBACK-01-Decision-2026-10-22.md) 与 [已确认台账 §X](CombatBrain-2.0-Confirmed-Design-Ledger-2026-10-22.md)。**本文件 §3/§6 将 IF-FEEDBACK-01 列作 OPEN 是当时的历史状态，不再表示该总体组织形式待裁决。**
+
+本次确认**仅限反馈的组织与权威分层**：健康维度不得成为独立的 Task 生命周期状态机，重大事件只能请求 Commander 检查，不可自动改写 Intent，Formation 不参与 D-EVAL-01 全局净价值裁决。现有 `TaskFeedback`、`PlanLedger`、P3 `ActionFeedbackTracker` 的实施整合仍 OPEN；CBATH `ObservationAdapter` 允许丢弃旁路事件，不能承担关键运行时消息的唯一投递。
+
+**继续 OPEN**：具体多维 Schema/枚举、证据与 UNKNOWN、过滤/滞回/刷新数值；**NEXT IF-FEEDBACK-02** 任务/编队版本与关键事件身份、新鲜度、去重、交接、进程内可靠性和 CBATH 旁路分离；之后 IF-EVAL-01、IF-SAFE-01、IF-TEST-01。不得将这些未批准机制写成 CONFIRMED 或已实现。
