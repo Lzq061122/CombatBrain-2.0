@@ -1,6 +1,6 @@
 # CombatBrain 2.0｜跨文档完整性审计与冲突修正清单（2026-10-22）
 
-> **2026-10-23后续裁决**：确认进度见台账 §Y～§AE；最新为 **IF-SAFE-01 过渡安全约束结束及新任务最低执行保障原则**。具体接管判据、时限和恢复机制仍 OPEN。当前讨论 **CB 系统控制故障的恢复与显式交还政策**；普通战术受阻继续按已确认 U-AUTH-04 由 CB 处理。下方“研究批注（未采纳）”保留归档时状态，不覆盖后续明确裁决。
+> **2026-10-23后续裁决**：确认进度见台账 §Y～§AF；最新为 **IF-SAFE-01 系统异常时的有界恢复与显式交还原则**。具体触发、退出时限、故障范围、恢复检查及验收仍 OPEN。当前进入 **IF-TEST-01 / AR-15：实机研究实验优先次序与否证回退**，其建议尚未采纳。下方“研究批注（未采纳）”保留归档时状态，不覆盖后续明确裁决。
 
 > **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-01](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-01)、[AR-02](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-02)、[AR-07](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-07)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
 

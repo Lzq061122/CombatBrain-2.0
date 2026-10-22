@@ -1,12 +1,12 @@
 # CombatBrain 2.0｜新对话接续手册（2026-10-22）
 
-> **2026-10-23导航更新**：本手册保留旧背景，当前讨论进度与研究建议请优先读[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)。D-EVAL-01的旧开场已更新为IF-FEEDBACK-02；后续确认进度见台账至 §AE，最新为 IF-SAFE-01 过渡结束与最低执行保障原则。下一题为 CB 系统控制故障的恢复与显式交还政策，具体机制仍 OPEN。
+> **2026-10-23导航更新**：本手册保留旧背景，当前讨论进度与研究建议请优先读[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)。D-EVAL-01的旧开场已更新为IF-FEEDBACK-02；后续确认进度见台账至 §AF，最新为 IF-SAFE-01 异常恢复与显式交还原则。下一题为 IF-TEST-01 / AR-15 的实机研究优先次序与否证回退，具体机制及验收仍 OPEN。
 
 > 目标：用户因旧会话过长，转入新会话继续 **系统需求澄清与压力测试**。本文件是“交接索引”，不是 PRD 终稿、不是代码开发授权。确认原则均保存于本研究分支，`master` 与当前 P3 阶段合同未因本次归档而更新。
 
 ## 1. 新对话从哪里开始
 
-**当前下一核心问题：IF-SAFE-01「CB 系统控制故障的恢复与显式交还政策」。过渡结束及 AR-07 释放/再分配原则已确认，故障退出政策与具体协议仍 OPEN。**
+**当前下一核心问题：IF-TEST-01 / AR-15「实机研究实验优先次序与否证回退」。IF-SAFE-01 异常恢复上层原则已确认，具体机制仍 OPEN，AR-15 尚未采纳。**
 
 D-EVAL-01架构及其后的D-CAP/D-PRED、U-AUTH和IF-FEEDBACK-01已有增量签收；完整进度见[2026-10-23接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)。
 
@@ -65,4 +65,4 @@ D-EVAL-01架构及其后的D-CAP/D-PRED、U-AUTH和IF-FEEDBACK-01已有增量签
 
 ## 6. 新对话可直接发送的开场请求
 
-> 继续CombatBrain 2.0系统需求澄清。先读取本分支`research/requirements-clarification-2026-10-21/CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md`、完整确认台账和其中链接的研究建议卡。Astra两阶段资料仅为证据和建议，尚未整体采纳。既有原则及IF-SAFE-01过渡结束原则已确认至台账§AE，具体机制仍OPEN，当前继续IF-SAFE-01的系统控制故障恢复与显式交还政策，一次只讨论一个核心问题，先说明反例、取舍和推荐再让我决定；不要重问已签收架构，不修改master、生产代码或现行P3合同。
+> 继续CombatBrain 2.0系统需求澄清。先读取本分支`research/requirements-clarification-2026-10-21/CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md`、完整确认台账和其中链接的研究建议卡。Astra两阶段资料仅为证据和建议，尚未整体采纳。既有原则及IF-SAFE-01异常恢复原则已确认至台账§AF，具体机制仍OPEN，当前继续IF-TEST-01 / AR-15的实机研究优先次序与否证回退，一次只讨论一个核心问题，先说明反例、取舍和推荐再让我决定；不要重问已签收架构，不修改master、生产代码或现行P3合同。
