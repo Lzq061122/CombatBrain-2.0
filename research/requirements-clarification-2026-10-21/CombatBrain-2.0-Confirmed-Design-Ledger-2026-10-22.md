@@ -175,3 +175,14 @@
 **下一项 OPEN：U-AUTH-01**，如何基于真实游戏的权限关系构造每个 Commander 的 Legal Command Domain；按 Team、实际原生可控的 Formation 集合、还是其他权限边界，要求在军团/敌方/玩家 F6/部分手动控制中均不过权。**后续 OPEN：U-TAC-03** 合格参战角色的精确身份/失效/增援/最高技能变化刷新及无角色回退，真实引擎和自动 Campaign 测试要求。不能把具体实现细节当已签收。
 
 详见 [U-TAC-02 已确认决策](CombatBrain-2.0-U-TAC-02-Decision-2026-10-22.md)；仍不改动 `master`、现行 P3 合同或测试规则。
+
+
+## P. 增量签收（2026-10-22）：U-AUTH-01 稳定指挥域与动态 Formation 授权
+
+**CONFIRMED｜U-AUTH-01 方案 C**：产品负责人明确答复“U-AUTH-01 我选择方案 C”，选择**稳定的合法指挥域（Legal Command Domain）+ 动态写令授权 Formation 集合（Authorized Formation Set）**。Commander 的 `Operational Intent` 和域身份不会仅因为一个 F6 编队交还、增援到来而无条件重建；但玩家手动接管、敌我 CB 接管开关、真实权限/Team 变化、重编和槽位复用等均可即时使某 Formation 失去/获得 CB 写令资格。**观察范围大于写令权限**：可以观察有关的全部战况，只有有证据授权且执行前仍合法的编队可下令。关键职责要保持、合法交接或明确承受缺位风险；Mission 生命周期或真实管辖关系改变后旧 Commander/任务身份须失效，不许缓存订单“复活”。
+
+**反例检验结论**：方案 C 在 F6 ↔ 手动、授权集合暂空、增援、拆并与槽位复用、统帅切换、双端 CB/Native 接管开关及多领主/多 Team 场景下没有原则性矛盾，但若简单将 `IsAIControlled` 当成玩家 F6 对 CB 的明确授权、将 Team=领主=指挥域、或仅根据旧快照继续发令，就会出现越权/残留/身份串位。上述行为约束已签收，**具体原生接口/事件与自动化 PASS 尚未验证**。
+
+**NEXT OPEN U-AUTH-02**：CB 如何区分原生 AI 控制、玩家真实 F6 委托、其他友军与测试注入，建立可审计的写令授权来源并在真正执行前复核？需按目标 Bannerlord 1.4.8.119303 真实命令链验证；授权不明时不得擅自抢令。后续 U-TAC-03 才细化域内 Tactics 参战合格成员及状态变化。首版 U-SIDE-01（敌我独立开关）与 U-AUTO-01（无人值守 Campaign 风格/真实 Mission 实测）继续有效；D-DATA-01 尚未收口。
+
+详见 [U-AUTH-01 确认裁决与反例压力测试](CombatBrain-2.0-U-AUTH-01-Decision-2026-10-22.md)。只修改研究分支；不改 `master`、现行 P3 代码或合同。
