@@ -1,6 +1,6 @@
 # CombatBrain 2.0｜跨文档完整性审计与冲突修正清单（2026-10-22）
 
-> **2026-10-23后续裁决**：确认进度见台账 §Y～§AI；最新为 **U-TASK / AR-09 条件式多阶段执行承诺、推进重验与按证据扩展原则**。具体阶段数、时长、规划/确认算法和实机门槛仍 OPEN。当前进入 **D-OPP-01 / U-OPP / AR-10：必要依赖候选覆盖与共同预算内的有界改进**，其建议尚未采纳。下方“研究批注（未采纳）”保留归档时状态，不覆盖后续明确裁决。
+> **2026-10-23后续裁决**：确认进度见台账 §Y～§AJ；最新为 **D-OPP-01 / U-OPP / AR-10 必要依赖候选、共同预算内有界改进与分层验证原则**。具体生成/裁剪、搜索算法、预算和实机门槛仍 OPEN。当前进入 **D-OPP-01 / D-EVAL-01 / AR-11：主动行动的战术效果与信息价值**，其建议尚未采纳。下方“研究批注（未采纳）”保留归档时状态，不覆盖后续明确裁决。
 
 > **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-01](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-01)、[AR-02](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-02)、[AR-07](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-07)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
 
