@@ -210,3 +210,14 @@
 **NEXT OPEN U-AUTH-04**：任务保证级别与独占升级的决策时机——关键 Formation Task 是否应在规划承诺前验证可用的执行保障（并实时重新验证），还是先交由 Native 尝试、不遵守时再升级；要求关键职责与性能约束不被静默削弱。具体阈值、Lease 值和命令域白名单等保留 OPEN。
 
 独立签收及反例：[U-AUTH-03 Decision](CombatBrain-2.0-U-AUTH-03-Decision-2026-10-22.md)。本次仅修改研究分支，不触及 `master`、现行 P3 合同和生产代码。
+
+
+## S. 增量细化（2026-10-22）：U-AUTH-03a 战术决策完全由 CB 掌握
+
+**CONFIRMED｜U-AUTH-03a 对 §R 的更精确解释（最新用户裁决）**：产品负责人在查证 RBM 通过 Harmony 重新注册 Tactic、增设 Formation Behavior，而 TCL 提示完整原生命令写入口拦截成本后，明确**认可**：**对所有已合法授权给 CB 的 Formation，Commander 全军意图和 Formation 战术任务/局部行动的决策权均由 CombatBrain 独占；原版不应自行作出与 CB 任务相冲突的战术选择。** 可继续借用 Bannerlord 的 Tactic/Behavior 接入接口、Formation Order 底层执行与必要的队形维护/运动基础机制，不修改 Agent 个体战斗层。**复用原生控制管线是复用接口和执行基础，不是让 Native FormationAI 保留自由改写 CB 战术目标的权限。**
+
+这**不是“所有 Formation 在所有命令域必须全程 Harmony Full”的已批准实现方案**：是否需要物理独占/写入口 Reject，按域与具体行为确定并做实机覆盖及可恢复性验证；禁止高频双 Writer 抢写。原生底层自维护可能绕开 Set*Order Hook（TCL 证明结构风险），不能盲目全关 `Formation.Tick` 或一刀切 `SetControlledByAI(false)`。U-AUTH-01/02 合法域与 F6 权限、U-SIDE-01 双端 ON/OFF 真 Native、CB 对关键职责的连续性及最小性能预算仍为硬约束。RBM 的自定义 Tactic/Behavior 是可借鉴的源码事实，不是 RBM 全域独占的证据；CB2 尚未实现/验收本方案。
+
+**NEXT OPEN（重新界定的 U-AUTH-04）**：**当 CB 当前没有安全可执行的 Formation Task、相关命令域无法保证执行，或发生 CB 故障时，已合法授权 Formation 是继续由 CB 维持明确的最低安全任务、立即交还原版 AI、还是采取有条件的两级恢复？** 任何临时交还都应显式撤销 CB 写令资格和防止立即重复抢回；如选择由 CB 继续指挥，必须有现实可执行的安全行动与可观测失效处理。旧 §R 的“普通任务交原生独立选战术、发现不遵守再升级”的问法不再与最新决策相容，不能重复征询。
+
+详见 [U-AUTH-03 已签收决策及后续细化 §五](CombatBrain-2.0-U-AUTH-03-Decision-2026-10-22.md)。此记录只更新研究分支，不修改 `master`、现行 P3 或生产代码。
