@@ -186,3 +186,14 @@
 **NEXT OPEN U-AUTH-02**：CB 如何区分原生 AI 控制、玩家真实 F6 委托、其他友军与测试注入，建立可审计的写令授权来源并在真正执行前复核？需按目标 Bannerlord 1.4.8.119303 真实命令链验证；授权不明时不得擅自抢令。后续 U-TAC-03 才细化域内 Tactics 参战合格成员及状态变化。首版 U-SIDE-01（敌我独立开关）与 U-AUTO-01（无人值守 Campaign 风格/真实 Mission 实测）继续有效；D-DATA-01 尚未收口。
 
 详见 [U-AUTH-01 确认裁决与反例压力测试](CombatBrain-2.0-U-AUTH-01-Decision-2026-10-22.md)。只修改研究分支；不改 `master`、现行 P3 代码或合同。
+
+
+## Q. 增量签收（2026-10-22）：U-AUTH-02 授权来源与实时状态双重验证（Harmony/TCL）
+
+**CONFIRMED｜U-AUTH-02 方案 C**：产品负责人明确答复“我同意 C”，同时重申 CombatBrain 2.0 的 Harmony 接管技术路线，并要求借鉴 TCL 仓库。现签收**原生授权来源 + 当前 Team/Formation 与玩家 F6 控制状态 + 真正执行前的身份/权限复核**。权限不明或失效时不抢该编队的写令；可继续指挥其他合法编队；玩家直接命令与友军未授权域不可由 Harmony 技术能力绕过。与 U-AUTH-01 稳定合法域/动态 Formation 授权和 U-SIDE-01 双端独立接管（禁用时真实 Native、无残留）结合使用。**Harmony 可以拦截不代表玩家已授权，也不代表全部原生控制路径已经覆盖。**
+
+**TCL EVIDENCE（新核查）**：`Lzq061122/TacticalCommandLab` 的 `codex/local-phase10-verification-20261006` 分支有目标 Bannerlord **v1.4.8.119303** 的 Harmony 实机测试：七个 Patch 入口生效；run05 H2 **T1F0 Movement HOLD 24.50s、有效窗口内 49 次 Native Movement 尝试拒绝、G1/G2 PASS**，但 **G3 全场 Oscillating FAIL**；Facing/Arrangement Full、完整写入覆盖、多域交还/异常/到期恢复**均未通过完整验收**。`SetControlledByAI(false)` 会影响原生 FormationAI 选择而不能当成细粒度独占的等价物。TCL Core 仍有**先仲裁后权限**导致合法候选被非法高优先级候选排挤的实测最小反例，以及 Lease/Release/Token 生命周期差距。不得把 TCL Phase 11 设计文档 PASS 冒充 CB2 宿主接管通过。
+
+**NEXT OPEN U-AUTH-03**：具体 Harmony/Native 执行链怎样在不并列抢写的情况下实现任务有效落地、必要时有界独占、玩家权限即时切换、CB OFF 原生恢复及所有相关命令域安全交还；默认原生管线集成与有证据的分域独占如何划界。TCL 文档也有其自己的“架构 C=原生管线集成”，**与此次 U-AUTH-02 C=授权来源校验无关，不得混同**。具体 Hook、数值、Lease 参数与实现授权仍 OPEN。
+
+独立记录：[U-AUTH-02 裁决与 TCL 证据](CombatBrain-2.0-U-AUTH-02-Decision-and-TCL-Evidence-2026-10-22.md)。仅研究分支，不更改 `master`、现行 P3 合同或 CBATH。
