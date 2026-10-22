@@ -1,12 +1,12 @@
 # CombatBrain 2.0｜新对话接续手册（2026-10-22）
 
-> **2026-10-23导航更新**：本手册保留旧背景，当前讨论进度与研究建议请优先读[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)。D-EVAL-01的旧开场已更新为IF-FEEDBACK-02；后续用户已确认 AR-01、AR-02、IF-FEEDBACK-02 消费及 AR-03 复核范围原则，见台账至 §AB。下一题为 IF-EVAL-01 / AR-03 的局部修补与全军意图重评分界，具体机制仍 OPEN。
+> **2026-10-23导航更新**：本手册保留旧背景，当前讨论进度与研究建议请优先读[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)。D-EVAL-01的旧开场已更新为IF-FEEDBACK-02；后续用户已确认 AR-01、AR-02、IF-FEEDBACK-02 消费及 AR-03 复核范围/修补边界原则，见台账至 §AC。下一题为 IF-SAFE-01 / AR-07 的退出、释放与再分配边界，具体机制仍 OPEN。
 
 > 目标：用户因旧会话过长，转入新会话继续 **系统需求澄清与压力测试**。本文件是“交接索引”，不是 PRD 终稿、不是代码开发授权。确认原则均保存于本研究分支，`master` 与当前 P3 阶段合同未因本次归档而更新。
 
 ## 1. 新对话从哪里开始
 
-**当前下一核心问题：IF-EVAL-01 / AR-03「局部修补与全军意图重评的分界」。AR-03 复核范围原则已确认，具体修补、升级与接口细则仍 OPEN。**
+**当前下一核心问题：IF-SAFE-01 / AR-07「退出、释放与再分配边界」。AR-03 复核范围/修补边界原则已确认，AR-07 尚未采纳，具体机制仍 OPEN。**
 
 D-EVAL-01架构及其后的D-CAP/D-PRED、U-AUTH和IF-FEEDBACK-01已有增量签收；完整进度见[2026-10-23接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)。
 
@@ -65,4 +65,4 @@ D-EVAL-01架构及其后的D-CAP/D-PRED、U-AUTH和IF-FEEDBACK-01已有增量签
 
 ## 6. 新对话可直接发送的开场请求
 
-> 继续CombatBrain 2.0系统需求澄清。先读取本分支`research/requirements-clarification-2026-10-21/CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md`、完整确认台账和其中链接的研究建议卡。Astra两阶段资料仅为证据和建议，尚未整体采纳。AR-01、AR-02、IF-FEEDBACK-02消费及AR-03复核范围原则已确认，具体机制仍OPEN，当前继续IF-EVAL-01 / AR-03的局部修补与全军意图重评分界，一次只讨论一个核心问题，先说明反例、取舍和推荐再让我决定；不要重问已签收架构，不修改master、生产代码或现行P3合同。
+> 继续CombatBrain 2.0系统需求澄清。先读取本分支`research/requirements-clarification-2026-10-21/CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md`、完整确认台账和其中链接的研究建议卡。Astra两阶段资料仅为证据和建议，尚未整体采纳。AR-01、AR-02、IF-FEEDBACK-02消费及AR-03复核范围/修补边界原则已确认，具体机制仍OPEN，当前继续IF-SAFE-01 / AR-07的退出、释放与再分配边界，一次只讨论一个核心问题，先说明反例、取舍和推荐再让我决定；不要重问已签收架构，不修改master、生产代码或现行P3合同。
