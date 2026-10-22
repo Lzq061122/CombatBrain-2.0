@@ -234,3 +234,16 @@
 **NEXT OPEN U-AUTH-05（Local Safety Envelope）**：限定自主脱离的边界由什么确定？推荐采用 Commander `TaskContract` 中职责感知的可行动作/约束与临时安全包络，再由 Formation 依据地形、敌军威胁、可达性作局部选择；是否接受该设计、关键职责锚点何时可以临时突破、无安全后撤路线时的选择与数值阈值还需进一步裁决。该问题确定后再讨论紧急生存例外与测试契约。
 
 详细记录和反例表见 [U-AUTH-04 签收与压力测试](CombatBrain-2.0-U-AUTH-04-Decision-2026-10-22.md)。仅修改研究分支，未修改 `master`、P3、CBATH 或生产代码。
+
+
+## U. 增量签收（2026-10-22）：U-AUTH-05 Task Contract 安全授权包络
+
+**CONFIRMED｜U-AUTH-05 方案 C**：用户明确选择 **Commander `TaskContract` 的职责感知局部安全包络（Local Safety Envelope）+ Formation 实时局部危险/可达性选择**。Commander 授予具体 Formation 的安全行动边界和仍须维持的关键职责；Formation 可按 U-AUTH-04 自行选择合规的有限防御、重新集结、交战距离调整和局部脱离，立即报告 Commander，不用每一细步重新请示，但**不能**因局部伤亡/任务受阻就自行突破职责、扩张权限或触发全军撤退。具体行为目录、字段、阈值、计时及实机运行均 **OPEN**。
+
+**关键反例与必要边界**：**`TaskCancelled` 不等于 `DutyCancelled`，也不等于 `FreeToRetreat`**。突破任务失效但仍承担牵制职责时，允许改变局部行动而不是擅自退出；Commander 取消旧 Task 与发行下一 Task 之间必须有**可核当前授权的临时安全行为/责任承接**（实现机制 OPEN），旧 Revision 不得再发命令。多个 Formation 同时按自身安全最大化后撤可能破坏阵线，因此包络必须顾及协同依赖、任务责任与原生权限；脱离不可达、贴身混战撤离更危险、无盾编队难以盾墙、F6 收回及 CB 开关关闭时均不得凭包络非法写令。无可执行安全动作应明确标 BLOCKED/请求 Commander，而非假装存在安全撤路。安全包络可以临时有效但不得无限延期或自动提升权限。
+
+**压力测试**：已用 **UA05-1 至 UA05-12** 共 12 类场景完成设计层反例检验，结果为**原则层不矛盾，但必须增加上述约束**；**非** CustomBattle/Campaign/TCL/CBATH 实机 PASS。研究分支 `Program/src/Core/BattlePlan.cs` 目前只具备 TaskId、Revision、Role/简单依赖等基础任务字段，未实现本完整安全包络/职责连续性机制。任何算法/阈值与异常恢复均不得声称已实现。
+
+**NEXT OPEN U-AUTH-06（极端危险突破约束）**：当本地 Formation 遭遇迫在眉睫、无法在普通包络内处理的近乎全灭/失能危险时，是否允许在未获 Commander 新命令前**最小程度突破**既有关键职责约束？须特别审查全军必要牺牲（P09）与 Formation 自动生存的冲突。建议比较严格等待、自由避险、有条件紧急例外；**暂不签收例外**。后续再议包络 Schema、状态机、Token/Lease 与实机验证。此轮只改研究文档，绝不改 `master`、现行 P3 合同或 CBATH。
+
+完整文档：[U-AUTH-05 已确认裁决与 12 类压力测试](CombatBrain-2.0-U-AUTH-05-Decision-2026-10-22.md)。
