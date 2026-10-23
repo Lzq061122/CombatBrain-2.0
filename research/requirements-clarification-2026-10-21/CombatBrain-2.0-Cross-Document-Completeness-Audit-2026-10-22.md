@@ -1,6 +1,6 @@
 # CombatBrain 2.0｜跨文档完整性审计与冲突修正清单（2026-10-22）
 
-> **2026-10-23后续裁决**：确认进度见台账 §Y～§AL；最新为 **D-PRED-01 / U-OPP / AR-12 有限备选反应的内部一致性与观察后复核/修补原则**。具体情景数量、概率、风险聚合及预算仍 OPEN。当前进入 **C19 / U-CPU / AR-13：必要基础工作与可中断增量改进的预算安排**，其建议尚未采纳。下方“研究批注（未采纳）”保留归档时状态，不覆盖后续明确裁决。
+> **2026-10-23后续裁决及暂停交接**：确认进度见台账 §Y～§AM；最新为 **C19 / U-CPU / AR-13 有界必要工作优先、余量可中断改进与未知保留原则**。具体额度、调度、缓存及实机成本仍 OPEN。用户已要求本轮到此暂停，准备在 Chat 模式继续；下次接续 **D-DATA-01 / U-PROFILE / AR-14：画像与任务效果的校准优先次序**，该题尚未展开或采纳。下方“研究批注（未采纳）”保留归档时状态，不覆盖后续明确裁决。
 
 > **2026-10-23研究批注（未采纳）**：两阶段研究及独立复查已归档，本专题关联 [AR-01](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-01)、[AR-02](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-02)、[AR-07](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-07)、[AR-15](CombatBrain-2.0-Astra-Design-Review-Cards-2026-10-23.md#ar-15)。请从[新Chat接续入口](CombatBrain-2.0-Chat-Research-Handoff-2026-10-23.md)继续逐项讨论；当前停在 **IF-FEEDBACK-02**。以下原有裁决与历史文本保留，状态以确认台账后续增量为准；本批注不新增CONFIRMED、不改变master/P3或授权实施。
 
