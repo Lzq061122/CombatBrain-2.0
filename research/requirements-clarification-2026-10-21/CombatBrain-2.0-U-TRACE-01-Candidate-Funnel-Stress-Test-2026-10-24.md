@@ -1,5 +1,7 @@
 # CombatBrain 2.0｜U-TRACE-01 候选漏斗追踪：方案 C 及纸面压力测试
 
+> **2026-10-24 后续裁决（U-TRACE-02 已确认）**：用户对本文件“日志缺失不等于未处理候选，证据不足保留 UNKNOWN”的后续单项问题明确答复“认可”。详见 [U-TRACE-02 已确认裁决](CombatBrain-2.0-U-TRACE-02-Evidence-Semantics-Decision-2026-10-24.md)与台账 §AT。本文件旧的 PROPOSED 状态只是裁决之前的历史内容；固定状态枚举、具体完整性机制和所有数值仍 OPEN。
+
 日期：2026-10-24｜研究分支记录｜**追踪深度方向 CONFIRMED；压力测试补充约束 PROPOSED；实施细节与实机结果 OPEN**
 
 ## 一、明确选择
